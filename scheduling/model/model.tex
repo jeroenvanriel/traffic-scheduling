@@ -1,0 +1,49 @@
+\documentclass{article}
+\usepackage{amsmath}
+
+\title{Traffic Scheduling}
+\author{Jeroen van Riel}
+\date{September 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Job Shop Scheduling}
+We have $m$ machines and $n$ jobs. The basic job shop scheduling problem may be
+formulated as the following MIP:
+\begin{align*}
+  \text{minimize} \max_{ij} C_{ij} \\
+  y_{ij} + p_{ij} &\leq y_{kj}  & \text{ for all } (i,j) \xrightarrow{} (k,j) \in A \\
+  y_{ij} + p_{ij} &\leq C_{\text{max}} & \text{ for all } (i,j) \in N \\
+  y_{il} + p_{il} &\leq  y_{ij} \text{ or } y_{ij} + p_{ij} \leq y_{il}  & \text{ for all } (i,l) \text{ and } (i,j), i =1, \dots,m \\
+  y_{ij} &\geq 0 & \text{ for all } (i,j) \in N
+\end{align*}
+
+
+\section{Traffic Scheduling}
+We now consider a situation with different job types, setup
+(switch-over/clearance) times between different job types and minimal delay
+between operations that belong to the same job (to model a vehicle traveling
+along an edge).
+%
+\begin{itemize}
+  \item jobs on the same edge (same ``type'') must respect the release date order
+  \item operations belonging to the same job, traveling from intersection $i$ to $k$ must be at least $t_{ik}$ apart
+  \item switch-over time is required between jobs of different type on same machine (this probably required binary variables, or disjunction in any case)
+\end{itemize}
+%
+Preserve ordering of vehicles on each incoming edge, because we assume vehicles do not overtake each other:
+\begin{align*}
+  r_{j} < r_{l} \implies (i,j) \rightarrow{} (i,l) \text{ for all } i = 1,\dots,m .
+\end{align*}
+%
+\begin{align*}
+  \text{minimize} \max_{ij} C_{ij} \\
+  y_{ij} + p_{ij} + t_{ik} &\leq y_{kj}  & \text{ for all } (i,j) \xrightarrow{} (k,j) \in A \\
+  y_{ij} + p_{ij} &\leq C_{\text{max}} & \text{ for all } (i,j) \in N \\
+  y_{il} + p_{il} &\leq  y_{ij} \text{ or } y_{ij} + p_{ij} \leq y_{il}  & \text{ for all } (i,l) \text{ and } (i,j), i =1, \dots,m \\
+  y_{ij} &\geq 0 & \text{ for all } (i,j) \in N \\
+  %
+\end{align*}
+\end{document}
