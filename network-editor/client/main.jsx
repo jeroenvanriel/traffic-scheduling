@@ -8,6 +8,7 @@ import {
   createBrowserRouter,
   RouterProvider
 } from 'react-router-dom';
+import { Timeline } from '../imports/ui/Schedule';
 
 const router = createBrowserRouter([
   {
@@ -17,6 +18,10 @@ const router = createBrowserRouter([
   {
     path: "/network/:name",
     element: <Network />,
+  },
+  {
+    path: "/timeline",
+    element: <Timeline />,
   }
 ])
 
