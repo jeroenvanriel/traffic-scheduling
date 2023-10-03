@@ -84,6 +84,14 @@ def solve(n, m, ptime, switch, release, order, distance):
     # big-M
     M = 100
 
+    # Collect the entrypoints (first machine in machine order list) of all jobs.
+    entrypoints = [order[j][0] for j in range(n)]
+    # Collect the exitpoints (last machine in machine order list) of all jobs.
+    exitpoints = [order[j][-1] for j in range(n)]
+
+
+    ### Variables
+
     # non-negative makespan
     makespan = g.addVar(obj=1, vtype=gp.GRB.CONTINUOUS, name="makespan")
 
@@ -93,60 +101,62 @@ def solve(n, m, ptime, switch, release, order, distance):
         # Initialize the starting times at incoming edges based on release date.
         y[(order[j][0], j)] = release[j]
 
-        # We add variables only for times that are actually relevant.
+        # We add variables only for times that are actually relevant (so only
+        # for the machines/intersection that the vehicle actually visits).
         for i in order[j][1:]:
             y[(i, j)] = g.addVar(obj=1, vtype=gp.GRB.CONTINUOUS, name=f"y_{i}_{j}")
 
-    # Determine pairs of vehicles that conflict at a shared intersection and
-    # create disjunctive variables for "selecting" disjunctive arcs
-    #   (machine i, job j, job l)
-    #   true = job l before job j
-    conflicts = []
     s = {}
+
+    ### For all pairs of vehicles, add constraints to enforce order, either based on
+    #   - initial ordering at entrypoint, defined by release dates, or
+    #   - conflicts at intersections.
     for j, l in combinations(range(n), 2):
-        common_intersections = set(order[j]).intersection(set(order[l]))
+        p = common_substring(order[j], order[l])
 
-        for i in common_intersections:
-            if order[j].index(i) == 0 or order[l].index(i) == 0:
-                # Overlap in entrypoint can never be a conflict.
-                continue
-
-            if order[j][order[j].index(i) - 1] != order[l][order[l].index(i) - 1]:
-                # Conflict found.
-                conflicts.append((i, j, l))
-                s[(i, j, l)] = g.addVar(obj=0, vtype=gp.GRB.BINARY, name=f"s_{i}_{j}_{l}")
-
-    # Enforce conflicts at intersections (disjunctions).
-    for i, j, l in conflicts:
-        # j before l
-        g.addConstr(y[i,j] + ptime + switch <= y[i,l] + s[i,j,l] * M)
-
-        # l before j
-        g.addConstr(y[i,l] + ptime + switch <= y[i,j] + (1 - s[i,j,l]) * M)
-
-    # Fix order of vehicles on the same incoming lane based on release dates.
-    for i in range(m):
-        # Collect all vehicles that start at entrypoint i.
-        vehicles = []
-        for j in range(n):
-            if order[j][0] == i:
-                vehicles.append((j, release[j]))
-
-        if len(vehicles) <= 1:
+        if len(p) == 0:
             continue
 
-        # Get the intersection (second machine) to which all these vehicles are
-        # travelling.
-        k = order[vehicles[0][0]][1]
+        # Handle substring p.
+        # Assumption: len(p) > 0
+        #
+        # It should be possible to later reuse the following code when we drop the
+        # DAG assumption. In that case, each overlapping substring should be handled
+        # by the following procedure.
 
-        # Order these vehicles based on release date...
-        lane_order = list(map(lambda x: x[0], sorted(vehicles, key=lambda x: x[1])))
+        # merge point and tail (may be empty)
+        mp, *tail = p
 
-        # ...and add constraints for each consecutive pair in the order.
-        for j, l in zip(lane_order[:-1], lane_order[1:]):
-            g.addConstr(y[k, j] + ptime <= y[k, l])
+        if mp in exitpoints:
+            raise Exception("Exit point may not have more than one incoming edge.")
 
-    # Enforce machine order (operations order per job) and travel time.
+        if mp in entrypoints:
+            # Base the order on the release dates.
+            s[(mp, j, l)] = (s0 := (0 if release[j] <= release[l] else 1))
+
+            if s0 == 0:
+                first, second = j, l
+            else:
+                first, second = l, j
+
+            # Keep this order in the tail.
+            for k in tail:
+                g.addConstr(y[k, first] + ptime <= y[k, second])
+        else:
+            # Merge point must be an intersection, hence we are dealing with a
+            # conflict.
+            s[(mp, j, l)] = (s0 := g.addVar(obj=0, vtype=gp.GRB.BINARY, name=f"s_{mp}_{j}_{l}"))
+
+            g.addConstr(y[mp, j] + ptime + switch <= y[mp, l] + s0 * M)
+            g.addConstr(y[mp, l] + ptime + switch <= y[mp, j] + (1 - s0) * M)
+
+            # Enforce the same order in the tail, but without switch-over time.
+            for k in tail:
+                g.addConstr(y[mp, j] + ptime <= y[mp, l] + s0 * M)
+                g.addConstr(y[mp, l] + ptime <= y[mp, j] + (1 - s0) * M)
+
+
+    ### For each vehicle: enforce machine order (among operations) and travel time.
     #
     # N.B.: We could assume that the entrypoint does not require processing
     # time, but that would complicate the implementation. Essentially, it does
@@ -155,6 +165,7 @@ def solve(n, m, ptime, switch, release, order, distance):
     for j in range(n):
         for i, k in zip(order[j][0:-1], order[j][1:]):
             g.addConstr(y[i, j] + ptime + distance[i][k] <= y[k, j])
+
 
     # makespan constraints
     for i, j in y.keys():
@@ -168,7 +179,7 @@ def solve(n, m, ptime, switch, release, order, distance):
     # Somehow, we need to do this inside the current function definition,
     # otherwise the Gurobi variables don't expose the .X attribute anymore.
     return { k : (v.X if hasattr(v, 'X') else v) for k, v in y.items() }, \
-           { k : v.X for k, v in s.items() }
+           { k : (v.X if hasattr(v, 'X') else v) for k, v in s.items() }
 
 
 def save_to_mongodb(y, s, ptime, switch):
