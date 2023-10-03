@@ -56,6 +56,28 @@ def print_solution(y, s):
         print(f"s{one_based(k)}: {v}")
 
 
+def common_substring(a, b):
+    """Assumption: at most one common substring."""
+    res = []
+    first = None
+
+    for x in a:
+        if x in b:
+            # found first match
+            first = x
+            break
+
+    if first is not None:
+        # match elements from first
+        for x, y in zip(a[a.index(first):], b[b.index(first):]):
+            if x == y:
+                res.append(x)
+            else:
+                break
+
+    return res
+
+
 def solve(n, m, ptime, switch, release, order, distance):
     g = gp.Model()
 
