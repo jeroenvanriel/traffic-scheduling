@@ -1,5 +1,7 @@
 import gurobipy as gp
 from itertools import product, combinations
+from pymongo import MongoClient
+from datetime import datetime
 
 def read_instance(file):
     with open(file, 'r') as f:
@@ -147,8 +149,35 @@ def solve(n, m, ptime, switch, release, order, distance):
            { k : v.X for k, v in s.items() }
 
 
+def save_to_mongodb(y, s, ptime, switch):
+    # load network from mongodb
+    client = MongoClient("mongodb://127.0.0.1:3001/meteor")
+    db = client.meteor
+
+    schedule = {
+        'date': datetime.now(),
+        'y': {},
+        's': {},
+        'ptime': ptime,
+        'swtich': switch,
+    }
+
+    def one_based(k):
+        return tuple(x + 1 for x in k)
+
+    for k, v in y.items():
+        schedule['y'][str(one_based(k))] = v
+
+    for k, v in s.items():
+        schedule['s'][str(one_based(k))] = v
+
+    db.schedules.insert_one(schedule)
+
+
 if __name__ == "__main__":
     n, m, ptime, switch, release, order, distance = read_instance("traffic1.txt")
     y, s = solve(n, m, ptime, switch, release, order, distance)
 
     print_solution(y, s)
+
+    save_to_mongodb(y, s, ptime, switch)
