@@ -1,61 +1,78 @@
 import React, { useRef, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { useTracker } from 'meteor/react-meteor-data';
 
 import { Timeline as VisTimeline } from 'vis-timeline/peer';
 import { DataSet as VisDataSet } from 'vis-data/peer';
 import "vis-timeline/styles/vis-timeline-graph2d.css";
 
+import { SchedulesCollection } from '/imports/api/schedules';
+
 import moment from 'moment';
 
-export const Timeline = () => {
+export const Schedule = () => {
+
+  let { id } = useParams();
+  const schedule = useTracker(() => SchedulesCollection.findOne(new Meteor.Collection.ObjectID(id)), [id])
+
+  const items = useRef(new VisDataSet());
+  const groups = useRef(new VisDataSet());
 
   const vistimeline = useRef(null);
   const container = useRef(null);
 
   // initialize visjs timeline widget
   useEffect(() => {
-    let now = moment().minutes(0).seconds(0).milliseconds(0);
-    let groupCount = 3;
-    let itemCount = 20;
-
-    // create a data set with groups
-    let names = ["John", "Alston", "Lee", "Grant"];
-    let groups = new VisDataSet();
-    for (let g = 0; g < groupCount; g++) {
-        groups.add({ id: g, content: names[g] });
-    }
-
-    // create a dataset with items
-    let items = new VisDataSet();
-    for (let i = 0; i < itemCount; i++) {
-        let start = now.clone().add(Math.random() * 20, "hours");
-        let end = start.clone().add(4, "hours");
-        let group = Math.floor(Math.random() * groupCount);
-        items.add({
-            id: i,
-            group: group,
-            content:
-            "item " +
-            i +
-            ' <span style="color:#97B0F8;">(' +
-            names[group] +
-            ")</span>",
-            start: start,
-            end: end,
-            type: "range",
-        });
-    }
-
-    // create visualization
     let options = {
-        groupOrder: "content", // groupOrder can be a property name or a sorting function
+      min: moment().startOf('day'),
+      showCurrentTime: false,
+      showMajorLabels: false,
+      timeAxis: {scale: 'second', step: 1},
+      margin: { item: { horizontal: 0 } },
+      groupOrder: "content", // groupOrder can be a property name or a sorting function
     };
 
     vistimeline.current = new VisTimeline(container.current);
     vistimeline.current.setOptions(options);
-    vistimeline.current.setGroups(groups);
-    vistimeline.current.setItems(items);
+    vistimeline.current.setGroups(groups.current);
+    vistimeline.current.setItems(items.current);
 
   }, [])
+
+  // synchronize network from database to visjs DataSets
+  useEffect(() => {
+    if (!schedule) { return }
+
+    items.current.clear()
+    groups.current.clear()
+
+    const ptime = schedule.ptime;
+
+    for (let key in schedule.y) {
+      // match "(i, j)" tuples
+      const re = /\(\s*(\d+)\s*\,\s*(\d+)\)/;
+
+      const machine = key.match(re)[1];
+      const job = key.match(re)[2];
+      const start = moment().startOf('day').add(schedule.y[key], 's');
+      const end = start.clone().add(ptime, 's')
+
+      // Create groups corresponding to machines (if not yet exists).
+      groups.current.update([{ id: machine, content: machine }])
+
+      // Create items from y variables.
+      items.current.add({
+        id: key,
+        group: machine,
+        content: job,
+        start: start,
+        end: end,
+        type: "range",
+      })
+    }
+
+    vistimeline.current.fit();
+  }, [schedule]);
 
   return (
     <div>

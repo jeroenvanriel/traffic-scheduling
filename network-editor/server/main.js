@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { NetworksCollection } from '/imports/api/networks';
+import { SchedulesCollection } from '../imports/api/schedules';
 
 async function insertNetwork() {
   await NetworksCollection.insertAsync({
@@ -45,14 +46,18 @@ Meteor.startup(async () => {
     await insertNetwork();
   }
 
-  // TODO: The following is currently not necessary because autopublish is
-  // enabled To enable/disable this: `meteor add/remove autopublish`
+  // TODO: The following should currently not be strictl necessary because
+  // autopublish is enabled. To enable/disable this:
   //
-  // We publish the entire Networks collection to all clients.
-  // In order to be fetched in real-time to the clients
-  // Meteor.publish("networks", function () {
-  //   return NetworksCollection.find();
-  // });
+  //   `meteor add/remove autopublish`
+
+  Meteor.publish("networks", function () {
+    return NetworksCollection.find();
+  });
+
+  Meteor.publish("schedules", function () {
+    return SchedulesCollection.find();
+  });
 });
 
 Meteor.methods({

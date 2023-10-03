@@ -3,12 +3,13 @@ import { createRoot } from 'react-dom/client';
 import { Meteor } from 'meteor/meteor';
 import { Network } from '/imports/ui/Network.jsx'
 import { NetworkList } from '/imports/ui/NetworkList';
+import { Schedule } from '/imports/ui/Schedule';
+import { ScheduleList } from '/imports/ui/ScheduleList';
 
 import {
   createBrowserRouter,
   RouterProvider
 } from 'react-router-dom';
-import { Timeline } from '../imports/ui/Schedule';
 
 const router = createBrowserRouter([
   {
@@ -20,9 +21,13 @@ const router = createBrowserRouter([
     element: <Network />,
   },
   {
-    path: "/timeline",
-    element: <Timeline />,
-  }
+    path: "/schedule",
+    element: <ScheduleList />,
+  },
+  {
+    path: "/schedule/:id",
+    element: <Schedule />,
+  },
 ])
 
 Meteor.startup(() => {
