@@ -122,7 +122,7 @@ def solve(n, m, ptime, switch, release, order, distance):
         for j, l in zip(lane_order[:-1], lane_order[1:]):
             g.addConstr(y[k, j] + ptime <= y[k, l])
 
-    # Order operations for each job and enforce travel time.
+    # Enforce machine order (operations order per job) and travel time.
     #
     # N.B.: We could assume that the entrypoint does not require processing
     # time, but that would complicate the implementation. Essentially, it does
