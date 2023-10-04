@@ -76,7 +76,7 @@ export const Schedule = () => {
 
   return (
     <div>
-      <h1>Timeline</h1>
+      <h1>Schedule</h1>
       <div ref={container}/>
     </div>
   )
