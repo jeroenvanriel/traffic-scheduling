@@ -2,22 +2,30 @@ import gurobipy as gp
 from itertools import product, combinations
 from pymongo import MongoClient
 from datetime import datetime
+import sys
 
 def read_instance(file):
     with open(file, 'r') as f:
-        n, m = map(int, f.readline().split())
-        ptime, switch = map(int, f.readline().split())
+        def readline():
+            l = f.readline().strip()
+            if l and len(l) > 0 and l[0] != '#':
+                return l.split()
+            else:
+                return readline()
+
+        n, m = map(int, readline())
+        ptime, switch = map(int, readline())
 
         # Read adjacency matrix for machine distance graph.
         distance = [[] for _ in range(m)]
         for i in range(m):
-            distance[i] = list(map(int, f.readline().split()))
+            distance[i] = list(map(int, readline()))
 
         order = [[] for _ in range(n)]
         release = [0 for _ in range(n)]
 
         for j in range(n):
-            numbers = list(map(int, f.readline().split()))
+            numbers = list(map(int, readline()))
 
             # Read release date for each job.
             release[j] = numbers[0]
@@ -208,7 +216,8 @@ def save_to_mongodb(y, s, ptime, switch):
 
 
 if __name__ == "__main__":
-    n, m, ptime, switch, release, order, distance = read_instance("traffic1.txt")
+    instance = sys.argv[1]
+    n, m, ptime, switch, release, order, distance = read_instance(instance)
     y, s = solve(n, m, ptime, switch, release, order, distance)
 
     print_solution(y, s)
