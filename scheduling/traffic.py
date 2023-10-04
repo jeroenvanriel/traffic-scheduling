@@ -172,14 +172,12 @@ def solve(n, m, ptime, switch, release, order, distance):
 
 
     ### For each vehicle: enforce machine order (among operations) and travel time.
-    #
-    # N.B.: We could assume that the entrypoint does not require processing
-    # time, but that would complicate the implementation. Essentially, it does
-    # not make a difference, as is equivalent to a uniform shift of the release
-    # dates of all jobs.
+    # N.B.: We assume that entrypoints do not require processing time.
     for j in range(n):
         for i, k in zip(order[j][0:-1], order[j][1:]):
-            g.addConstr(y[i, j] + ptime + distance[i][k] <= y[k, j])
+            g.addConstr(y[i, j] \
+                        + (ptime if i not in entrypoints else 0) \
+                        + distance[i][k] <= y[k, j])
 
 
     # makespan constraints
