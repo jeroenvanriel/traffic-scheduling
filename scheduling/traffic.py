@@ -86,16 +86,11 @@ def common_substring(a, b):
     return res
 
 
-def solve(n, m, ptime, switch, release, order, distance):
+def solve(n, m, ptime, switch, release, order, distance, entrypoints, exitpoints):
     g = gp.Model()
 
     # big-M
     M = 100
-
-    # Collect the entrypoints (first machine in machine order list) of all jobs.
-    entrypoints = [order[j][0] for j in range(n)]
-    # Collect the exitpoints (last machine in machine order list) of all jobs.
-    exitpoints = [order[j][-1] for j in range(n)]
 
 
     ### Variables
@@ -195,10 +190,13 @@ def solve(n, m, ptime, switch, release, order, distance):
            { k : (v.X if hasattr(v, 'X') else v) for k, v in s.items() }
 
 
-def save_to_mongodb(y, s, ptime, switch):
+def save_to_mongodb(y, s, ptime, switch, entrypoints, exitpoints):
     # load network from mongodb
     client = MongoClient("mongodb://127.0.0.1:3001/meteor")
     db = client.meteor
+
+    def one_based(k):
+        return tuple(x + 1 for x in k)
 
     schedule = {
         'date': datetime.now(),
@@ -206,10 +204,9 @@ def save_to_mongodb(y, s, ptime, switch):
         's': {},
         'ptime': ptime,
         'swtich': switch,
+        'entrypoints': list(one_based(entrypoints)),
+        'exitpoints': list(one_based(exitpoints)),
     }
-
-    def one_based(k):
-        return tuple(x + 1 for x in k)
 
     for k, v in y.items():
         schedule['y'][str(one_based(k))] = v
@@ -223,8 +220,14 @@ def save_to_mongodb(y, s, ptime, switch):
 if __name__ == "__main__":
     instance = sys.argv[1]
     n, m, ptime, switch, release, order, distance = read_instance(instance)
-    y, s = solve(n, m, ptime, switch, release, order, distance)
+
+    # Collect the entrypoints (first machine in machine order list) of all jobs.
+    entrypoints = {order[j][0] for j in range(n)}
+    # Collect the exitpoints (last machine in machine order list) of all jobs.
+    exitpoints = {order[j][-1] for j in range(n)}
+
+    y, s = solve(n, m, ptime, switch, release, order, distance, entrypoints, exitpoints)
 
     print_solution(y, s)
 
-    save_to_mongodb(y, s, ptime, switch)
+    save_to_mongodb(y, s, ptime, switch, list(entrypoints), list(exitpoints))

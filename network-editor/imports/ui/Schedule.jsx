@@ -52,22 +52,26 @@ export const Schedule = () => {
       // match "(i, j)" tuples
       const re = /\(\s*(\d+)\s*\,\s*(\d+)\)/;
 
-      const machine = key.match(re)[1];
-      const job = key.match(re)[2];
+      const node = key.match(re)[1];
+      const vehicle = key.match(re)[2];
       const start = moment().startOf('day').add(schedule.y[key], 's');
       const end = start.clone().add(ptime, 's')
 
       // Create groups corresponding to machines (if not yet exists).
-      groups.current.update([{ id: machine, content: machine }])
+      let style = "";
+      if (schedule.entrypoints.includes(Number(node))) { style += "color: grey; background-color: #eeeeff;" }
+      if (schedule.exitpoints.includes(Number(node))) { style += "color: grey; background-color: #ffeeee;" }
+      groups.current.update([{ id: node, content: node, style: style }])
 
       // Create items from y variables.
       items.current.add({
         id: key,
-        group: machine,
-        content: job,
+        group: node,
+        content: vehicle,
         start: start,
         end: end,
         type: "range",
+        style: style,
       })
     }
 
