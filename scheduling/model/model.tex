@@ -54,14 +54,15 @@ last line enforces non-negative start times.
 % TODO: use ``arc'' instead of ``arc''
 We now turn to vehicles traveling through a network of intersections. The
 network may be thought of as a weighted directed graph $G=(V,E)$, with nodes and
-arcs representing intersections and roads, respectively. Let $d(x,y)$ be
-defined as the \textit{distance} between nodes $x$ and $y$. We assume there are
-no nodes of degree two, since their two incident arcs $(x,y)$ and $(y,z)$ could
-be merged into one arc $(x,z)$ with $d(x,z) = d(x,y) + d(y,z)$, without loss of
+arcs representing intersections and roads, respectively. Let $d(x,y)$ be defined
+as the \textit{distance} between nodes $x$ and $y$. We assume there are no nodes
+of degree two, since their two incident arcs $(x,y)$ and $(y,z)$ could be merged
+into one arc $(x,z)$ with $d(x,z) = d(x,y) + d(y,z)$, without loss of
 expressiveness. Furthermore, we assume the graph is connected. Each node of
 degree one is called an \textit{external node} and models the location where
-vehicles enter/exit the network. A node of degree at least three is called an
-\textit{internal node} and models an intersection.
+vehicles enter (\textit{entrypoint}) or exit (\textit{exitpoint}) the network. A
+node of degree at least three is called an \textit{internal node} and models an
+intersection.
 
 Each vehicle $j$ enters the network at some external node $s$ and follows a
 predetermined sequence of arcs
@@ -83,25 +84,94 @@ different arc than the vehicle $j_{0}$ that last crossed the intersection, we
 require that there is at least a \textit{switch-over time} $S$ between the
 moment $j_{0}$ leaves and the moment $j_{1}$ enters the intersection.
 
-Assuming that arrival times and routes of all vehicles are fixed and given,
-our task is to determine when individual vehicles should cross intersections by
-setting values for $y(i,j)$.
-Like job shop, this problem may be formulated as a MIP.
+Assuming that arrival times and routes of all vehicles are fixed and given, our
+task is to determine when individual vehicles should cross intersections by
+setting values for $y(i,j)$. This problem is similar to job shop scheduling,
+with intersections and vehicles now taking the roles of machines and jobs, and
+can also be formulated as a MIP, as we will show below.
 
+% lane order is main difference with job shop
+The main difference with job shop scheduling is related to the ordering of
+vehicles. In the job shop model, every order $o \in \sigma_{n}$ of jobs on a
+machine $i$ was allowed. By assuming that vehicles cannot overtake each other,
+we are limiting the valid orderings.
+% define common path and merge point
+Given two routes $R_{j}$ and $R_{l}$, we define a common path
+$p=(i_{0},\dots,i_{L})$ as a substring of both routes. We refer to the first
+node $i_{0}$ of a common path as a \textit{merge point}. The set of all common
+paths is denoted by $P_{jl}$.
+
+Consider a common path $p$ whose merge point $i_{0}$ is an external node.
+In this case, $i_{0}$ must be the entrypoint of both vehicles.
+% first merge point
+That means that the order on $p$ is determined by the order or arrival.
+Let $r_{j}$ denote the arrival time (called the \textit{release date} in
+scheduling) of vehicle $j$.
+If $r_{j} < r_{l}$, then we require that $j$ goes first, formally stated as
 \begin{align*}
-  \text{maximize } P(y) \\
-  y_{ij} + p_{ij} + t_{ik} &\leq y_{kj}  & \text{ for all } (i,j) \xrightarrow{} (k,j) \in A \\
-  y_{ij} + p_{ij} &\leq C_{\text{max}} & \text{ for all } (i,j) \in N \\
-  y_{il} + p_{il} &\leq  y_{ij} \text{ or } y_{ij} + p_{ij} \leq y_{il}  & \text{ for all } (i,l) \text{ and } (i,j), i =1, \dots,m \\
-  y_{ij} &\geq 0 & \text{ for all } (i,j) \in N \\
-  %
+  y_{ij} + p_{ij} \leq y_{il} \text{ for all } i \in p.
 \end{align*}
+
+% internal merge points are conflicts
+Now suppose that $j$ and $l$ have a mergepoint $i_{0} \in p$ that is not an
+external node, then these vehicles approach $i_{0}$ from different arcs,
+which means that we have what we will call a \textit{conflict} between $j$ and
+$l$, because the scheduler must choose which vehicle crosses the intersection
+first. Furthermore, the switch-over time should be respected at $i_{0}$.
+Requiring that vehicle $j$ must cross first can be formally stated as
+\begin{align*}
+  y_{i_{0}j} + p_{i_{0}j} + S \leq y_{i_{0}l} \text{ and } y_{ij} + p_{ij} \leq y_{il} \text{ for all } i_{0} \neq i \in p .
+\end{align*}
+
+% introduce s-variables
+In order to model the above decision making with a MIP, we introduce binary
+decision variables $s_{i,j,l}$ to encode the relative order of $j$ and $l$ at some common
+node $i \in p \in P_{jl}$. A value of zero corresponds to $j$ crossing first and
+a value of one indicates that $l$ crosses first.
+In the case of $i_{0}$ being an external node, we treat $s_{i,j,l}$ as a fixed
+parameter of the MIP.
+For each common path $p \in P_{jl}$, we must have
+\begin{align*}
+s_{i_{0},j,l} = s_{i_{1},j,l} = \dots = s_{i_{L},j,l}.
+\end{align*}
+
+Let $N$ denote the set of operations like in the job shop example, but now pairs
+correspond to vehicles and the intersections they encounter along their route.
+Also similarly, let $A$ encode the route constraints of each vehicle. We use
+$p^{0}$ to denote the merge point of path $p$. Let $P_{jl}^{e}$ denote all the
+common paths that have an external merge point and let $P_{jl}$ denote the other
+common paths. By implicitely letting the indices $j$ and $l$ run over all the
+\textit{ordered pairs} of vehicles, we write
+%
+\begin{subequations}
+\begin{align}
+  \text{maximize } P(y) \\
+  y_{ij} + p_{ij} + t_{ik} &\leq y_{kj}, & \text{ for all } (i,j) \xrightarrow{} (k,j) \in A, \\
+  \label{1} y_{ij} + p_{ij} &\leq y_{il}, \text{ for all } i \in p, &\text{ for all } p \in P_{jl}^{e}, s_{p^{0}jl} = 1, \\
+  \label{2} y_{p^{0}j} + p_{p^{0}j} + S &\leq y_{p^{0}l},  &\text{ for all } p \in P_{jl}, s_{p^{0}jl} = 1, \\
+  \label{3} y_{ij} + p_{ij} &\leq y_{il}, \text{ for all } i \neq p^{0}, &\text{ for all } p \in P_{jl}, s_{p^{0}jl} = 1, \\
+  y_{ij} &\geq 0, & \text{ for all } (i,j) \in N ,
+  %
+\end{align}
+\end{subequations}
 where $P(y)$ denotes some unspecified performance metric, leaving for now the
 question of what it means for a schedule to be \textit{good}.
+% explain how these 'if s=1' constraints can be implemented using the big-M technique
+In order to solve this program using existing solvers, we use the well-known
+\textit{big-M} method to encode which constraints from sets \eqref{1}, \eqref{2}
+and \eqref{3} are active for specific values of the binary variables $s$.
 
-Preserve ordering of vehicles on each incoming edge, because we assume vehicles do not overtake each other:
-\begin{align*}
-  r_{j} < r_{l} \implies (i,j) \rightarrow{} (i,l) \text{ for all } i = 1,\dots,m .
-\end{align*}
+\section{Platoon Splitting}
+
+In the single intersection case, platoon splitting is never necessary, in the
+sense that the exhaustive policy is optimal in terms of minimizing total delay.
+So in this context, platoon splitting can only become necessary from using a
+different performance metric, e.g., one that takes into account fairness.
+
+Once we start looking at the network-level interactions, however, we can show
+that platoon splitting is sometimes necessary to obtain an optimal schedule. The
+main idea is that delaying a job $j$ might require to also delay further
+downstream jobs. Therefore, it might be cheapter overall to not delay $j$, but
+interrupt some already running job $l$ instead.
 
 \end{document}
