@@ -26,7 +26,7 @@ formulated as the following MIP:
 % TODO: introduce multiple lanes, opposing lanes on the same edge and consider
 % multiple phases at intersections
 % TODO: use ``arc'' instead of ``edge''
-We now turn to vehicles travelling through a network of intersections. The
+We now turn to vehicles traveling through a network of intersections. The
 network may be thought of as a weighted directed graph $G=(V,E)$, with nodes and
 edges representing intersections and roads, respectively. Let $d(x,y)$ be
 defined as the \textit{distance} between nodes $x$ and $y$. We assume there are
@@ -41,9 +41,9 @@ Each vehicle $j$ enters the network at some external node $s$ and follows a
 predetermined sequence of edges
 $R = ((s,i_{0}), (i_{0},i_{1}), \dots, (i_{n-1},i_{n}), (i_{n},d))$ towards an
 external node $d$ where it leaves the network. Vehicles are not able to overtake
-each other when travelling on the same edge. We assume that edges provide
+each other when traveling on the same edge. We assume that edges provide
 infinite \textit{buffers} for vehicles, meaning that there is no limit on the
-number of vehicles that are travelling on the same edge at the same time.
+number of vehicles that are traveling on the same edge at the same time.
 However, we impose a minimum time required to travel along an edge $(x,y)$. By
 assuming uniform maximum speed among vehicles, $d(x,y)$ can be directly
 interpreted as this minimum travel time.
