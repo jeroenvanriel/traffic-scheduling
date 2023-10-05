@@ -3,23 +3,49 @@
 
 \title{Traffic Scheduling}
 \author{Jeroen van Riel}
-\date{September 2023}
+\date{Oktober 2023}
 
 \begin{document}
 
 \maketitle
 
 \section{Job Shop Scheduling}
-We have $m$ machines and $n$ jobs. The basic job shop scheduling problem may be
-formulated as the following MIP:
+
+This section shortly introduces the classical \textit{job shop} scheduling
+problem. Assume there are $m$ machines and $n$ jobs. A job $j$ consists of
+exactly $m$ operations, one for each of the machines. We let $(i,j)$ denote the
+operation of job $j$ that needs to be processed on machine $i$. The time
+required for processing operation $(i,j)$ is denoted by $p_{ij}$. The operations
+of a job need to be executed in a fixed given order, which may be different
+among jobs, and an operation may only start once its predecessor has completed
+processing. Each machine can process at most one operation at the same time and,
+once started, operations cannot be preempted.
+
+Let the set of all operations be denoted by $N$. Furthermore, we encode the job
+routes by defining the set $A$ of precedence constraints
+$(i,j) \xrightarrow{} (k,j)$. Let $y_{ij}$ denote the start of operation
+$(i,j)$. The completion time of job $j$ is defined as
+$C_{j} := y_{lj} + p_{lj}$, where $l$ is the last machine on which $j$ must be
+processed. A valid schedule is given by setting values for $y_{ij}$ such that
+the above requirements are met. There are various measures for how \textit{good}
+a given schedule is. For the purpose of this example, let us consider the
+well-known makespan objective $C_{\text{max}} := \max_{j} C_{j}$, which is often
+related to efficient use of the available machines. Minimizing the makespan can
+now be formulated as a Mixed-Integer Program (MIP) as follows:
+%
 \begin{align*}
-  \text{minimize} \max_{ij} C_{ij} \\
+  \text{minimize } C_{\text{max}} \\
   y_{ij} + p_{ij} &\leq y_{kj}  & \text{ for all } (i,j) \xrightarrow{} (k,j) \in A \\
-  y_{ij} + p_{ij} &\leq C_{\text{max}} & \text{ for all } (i,j) \in N \\
   y_{il} + p_{il} &\leq  y_{ij} \text{ or } y_{ij} + p_{ij} \leq y_{il}  & \text{ for all } (i,l) \text{ and } (i,j), i =1, \dots,m \\
+  y_{ij} + p_{ij} &\leq C_{\text{max}} & \text{ for all } (i,j) \in N \\
   y_{ij} &\geq 0 & \text{ for all } (i,j) \in N
 \end{align*}
-
+%
+The first set of constraints enforce the order of operations belonging to the
+same job. The second set of constraints are called \textit{disjunctive}, because
+they model that we need to choose between jobs $l$ and $l$ to be scheduled first
+on machine $i$. The next constraints are used to define the makespan and the
+last line enforces non-negative start times.
 
 \section{Traffic Scheduling}
 
