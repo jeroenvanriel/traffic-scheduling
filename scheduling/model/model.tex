@@ -161,7 +161,21 @@ In order to solve this program using existing solvers, we use the well-known
 \textit{big-M} method to encode which constraints from sets \eqref{1}, \eqref{2}
 and \eqref{3} are active for specific values of the binary variables $s$.
 
-\section{Platoon Splitting}
+
+\section{Structure in Schedules}
+
+Before we start experimenting with the above problem (see if the MIP method
+scales and later trying to learn policies with (MA)RL), we first should try to
+find some common structural patterns in solutions or even some simple general
+scheduling rules.
+
+\begin{itemize}
+  \item simple situations with total completion time in which some kind of LPT rule hold
+  \item tandem networks where $\sum C_{j}$ causes platoon splitting when there is ``delay propagation''
+  \item can we formalise such ``delay propagation'' with a graph?
+\end{itemize}
+
+\subsection{Platoon Splitting}
 
 In the single intersection case, platoon splitting is never necessary, in the
 sense that the exhaustive policy is optimal in terms of minimizing total delay.
