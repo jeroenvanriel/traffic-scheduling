@@ -7,4 +7,5 @@
 - snap to grid function
 - node properties: vehicle number (used to distinguish type) and color (no semantics, just eye candy)
 
-![screenshot](./screenshot-2023-10-02.png)
+![screenshot network](./screenshot-2023-10-02.png)
+![screenshot schedule](./screenshot-2023-10-05.png)
