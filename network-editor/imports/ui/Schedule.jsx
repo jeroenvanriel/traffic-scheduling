@@ -39,7 +39,7 @@ export const Schedule = () => {
 
   }, [])
 
-  // synchronize network from database to visjs DataSets
+  // synchronize schedule from database to visjs DataSets
   useEffect(() => {
     if (!schedule) { return }
 
