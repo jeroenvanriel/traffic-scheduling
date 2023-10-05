@@ -49,37 +49,37 @@ last line enforces non-negative start times.
 
 \section{Traffic Scheduling}
 
-% TODO: introduce multiple lanes, opposing lanes on the same edge and consider
+% TODO: introduce multiple lanes, opposing lanes on the same arc and consider
 % multiple phases at intersections
-% TODO: use ``arc'' instead of ``edge''
+% TODO: use ``arc'' instead of ``arc''
 We now turn to vehicles traveling through a network of intersections. The
 network may be thought of as a weighted directed graph $G=(V,E)$, with nodes and
-edges representing intersections and roads, respectively. Let $d(x,y)$ be
+arcs representing intersections and roads, respectively. Let $d(x,y)$ be
 defined as the \textit{distance} between nodes $x$ and $y$. We assume there are
-no nodes of degree two, since their two incident edges $(x,y)$ and $(y,z)$ could
-be merged into one edge $(x,z)$ with $d(x,z) = d(x,y) + d(y,z)$, without loss of
+no nodes of degree two, since their two incident arcs $(x,y)$ and $(y,z)$ could
+be merged into one arc $(x,z)$ with $d(x,z) = d(x,y) + d(y,z)$, without loss of
 expressiveness. Furthermore, we assume the graph is connected. Each node of
 degree one is called an \textit{external node} and models the location where
 vehicles enter/exit the network. A node of degree at least three is called an
 \textit{internal node} and models an intersection.
 
 Each vehicle $j$ enters the network at some external node $s$ and follows a
-predetermined sequence of edges
+predetermined sequence of arcs
 $R = ((s,i_{0}), (i_{0},i_{1}), \dots, (i_{n-1},i_{n}), (i_{n},d))$ towards an
 external node $d$ where it leaves the network. Vehicles are not able to overtake
-each other when traveling on the same edge. We assume that edges provide
+each other when traveling on the same arc. We assume that arcs provide
 infinite \textit{buffers} for vehicles, meaning that there is no limit on the
-number of vehicles that are traveling on the same edge at the same time.
-However, we impose a minimum time required to travel along an edge $(x,y)$. By
+number of vehicles that are traveling on the same arc at the same time.
+However, we impose a minimum time required to travel along an arc $(x,y)$. By
 assuming uniform maximum speed among vehicles, $d(x,y)$ can be directly
 interpreted as this minimum travel time.
 
 Let $y(i,j)$ denote the time vehicle $j$ enters intersection $i$. Crossing an
 intersection takes $p$ time per vehicle and at most one vehicle can cross an
 intersection at the same time. When two consecutive vehicles crossing an
-intersection originate from the same edge, they may pass immediately after each
+intersection originate from the same arc, they may pass immediately after each
 other. However, when a vehicle $j_{1}$ that wants to cross comes from a
-different edge than the vehicle $j_{0}$ that last crossed the intersection, we
+different arc than the vehicle $j_{0}$ that last crossed the intersection, we
 require that there is at least a \textit{switch-over time} $S$ between the
 moment $j_{0}$ leaves and the moment $j_{1}$ enters the intersection.
 
