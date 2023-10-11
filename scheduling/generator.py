@@ -73,15 +73,29 @@ print("generated routes:")
 print('\n'.join(map(str, routes)))
 
 
-# for each route, add some vehicles
+# add some vehicles
+# TODO: add randomness and parameterize
+# currently: adding vehicles 'round-robin'-like w.r.t. routes
 vehicles = []
-for ix, route in enumerate(routes):
-    release_date = 0
+route_release_dates = [0 for _ in routes]
+current_route = 0
 
-    # TODO: add randomness and parameterize
-    for _ in range(3):
-        vehicles.append({ 'route_id': ix, 'release_date': release_date })
-        release_date += 2
+for _ in range(args.total_vehicles):
+    vehicles.append({
+        'route_id': current_route,
+        'release_date': route_release_dates[current_route]
+    })
+
+    # random platoon split
+    if random.random() < 0.1:
+        route_release_dates[current_route] += 4
+    else:
+        route_release_dates[current_route] += 1
+
+    current_route = (current_route + 1) % len(routes)
+
+# sort vehicles by route
+vehicles.sort(key=lambda veh: veh['route_id'])
 
 
 # write to file
