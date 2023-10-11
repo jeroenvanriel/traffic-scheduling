@@ -171,9 +171,9 @@ find some common structural patterns in solutions or even some simple general
 scheduling rules.
 
 \begin{itemize}
-  \item simple situations with total completion time in which some kind of LPT rule hold
-  \item tandem networks where $\sum C_{j}$ causes platoon splitting when there is ``delay propagation''
-  \item can we formalise such ``delay propagation'' with a graph?
+  \item Study simple situations with the total completion time objective ($\sum C_{j}$), in which some kind of LPT rule holds. (\textit{TODO: explain why LPT-like schedules arise})
+  \item Study tandem networks where the $\sum C_{j}$ objective causes platoon splitting due to some kind of ``propagation of delay costs''. (\textit{TODO: insert the example that I have})
+  \item Can we study this ``delay cost propagation'' using some kind of dependency graph, e.g., by recording that delaying job A would require us to also delay job B, which would also require to delay C, etc.?
 \end{itemize}
 
 \subsection{Platoon Splitting}
@@ -186,7 +186,11 @@ different performance metric, e.g., one that takes into account fairness.
 Once we start looking at the network-level interactions, however, we can show
 that platoon splitting is sometimes necessary to obtain an optimal schedule. The
 main idea is that delaying a job $j$ might require to also delay further
-downstream jobs. Therefore, it might be cheapter overall to not delay $j$, but
+downstream jobs. Therefore, it might be cheaper overall to not delay $j$, but
 interrupt some already running job $l$ instead.
+
+\section{Scaling up the MIP}
+
+
 
 \end{document}
