@@ -42,11 +42,14 @@ def read_instance(file):
     # Make machine numbers start at zero.
     order = list(map(lambda l: list(map(lambda x: x-1, l)), order))
 
-    # Make sure the adjacency matrix is symmetric. We only expect the lower
-    # triangular part and use it to fill the upper part.
+    # If entries in the upper triangular part are missing, we use the lower
+    # triangular part to fill the upper part.
     for i in range(m):
         for k in range(i+1, m):
-            distance[i].append(distance[k][i])
+            if len(distance[i]) > k:
+                distance[i][k] = distance[k][i]
+            else:
+                distance[i].append(distance[k][i])
 
     return n, m, ptime, switch, release, order, distance
 
