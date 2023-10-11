@@ -94,5 +94,7 @@ def solve(n, m, p, o):
 
 
 if __name__ == "__main__":
-    n, m, ptime, order = read_instance("jobshop2.txt")
+    import sys
+    file_name = sys.argv[1]
+    n, m, ptime, order = read_instance(file_name)
     solve(n, m, ptime, order)
