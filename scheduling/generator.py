@@ -7,8 +7,9 @@ import argparse
 parser = argparse.ArgumentParser(description='Generate routes and vehicles.')
 parser.add_argument('network', help='network name as found in mongo')
 parser.add_argument('-o', dest='output', help='output file name')
-parser.add_argument('-p', dest='processing_time', default=1, help='processing time')
-parser.add_argument('-s', dest='switch_over_time', default=1, help='switch-over time')
+parser.add_argument('-p', type=int, dest='processing_time', default=1, help='processing time')
+parser.add_argument('-s', type=int, dest='switch_over_time', default=1, help='switch-over time')
+parser.add_argument('-n', type=int, dest='total_vehicles', default=1, help='total number of vehicles')
 args = parser.parse_args()
 
 # establish mongodb database connection
