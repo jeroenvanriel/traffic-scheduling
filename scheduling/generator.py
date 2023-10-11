@@ -68,7 +68,8 @@ for begin in entry_nodes:
 
     routes.append(route)
 
-print(f"generated routes: {routes}")
+print("generated routes:")
+print('\n'.join(map(str, routes)))
 
 
 # for each route, add some vehicles
