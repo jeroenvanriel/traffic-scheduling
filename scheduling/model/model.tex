@@ -67,7 +67,7 @@ intersection.
 
 Each vehicle $j$ enters the network at some external node $s$ and follows a
 predetermined sequence of arcs
-$R = ((s,i_{0}), (i_{0},i_{1}), \dots, (i_{n-1},i_{n}), (i_{n},d))$ towards an
+$R = ((s,i_{1}), (i_{1},i_{2}), \dots, (i_{n-1},i_{n}), (i_{n},d))$ towards an
 external node $d$ where it leaves the network. Vehicles are not able to overtake
 each other when traveling on the same arc. We assume that arcs provide
 infinite \textit{buffers} for vehicles, meaning that there is no limit on the
@@ -98,12 +98,12 @@ machine $i$ was allowed. By assuming that vehicles cannot overtake each other,
 we are limiting the valid orderings.
 % define common path and merge point
 Given two routes $R_{j}$ and $R_{l}$, we define a common path
-$p=(i_{0},\dots,i_{L})$ as a substring of both routes. We refer to the first
-node $i_{0}$ of a common path as a \textit{merge point}. The set of all common
+$p=(i_{1},\dots,i_{L})$ as a substring of both routes. We refer to the first
+node $i_{1}$ of a common path as a \textit{merge point}. The set of all common
 paths is denoted by $P_{jl}$.
 
-Consider a common path $p$ whose merge point $i_{0}$ is an external node.
-In this case, $i_{0}$ must be the entrypoint of both vehicles.
+Consider a common path $p$ whose merge point $i_{1}$ is an external node.
+In this case, $i_{1}$ must be the entrypoint of both vehicles.
 % first merge point
 That means that the order on $p$ is determined by the order or arrival.
 Let $r_{j}$ denote the arrival time (called the \textit{release date} in
@@ -114,14 +114,14 @@ If $r_{j} < r_{l}$, then we require that $j$ goes first, formally stated as
 \end{align*}
 
 % internal merge points are conflicts
-Now suppose that $j$ and $l$ have a mergepoint $i_{0} \in p$ that is not an
-external node, then these vehicles approach $i_{0}$ from different arcs,
+Now suppose that $j$ and $l$ have a mergepoint $i_{1} \in p$ that is not an
+external node, then these vehicles approach $i_{1}$ from different arcs,
 which means that we have what we will call a \textit{conflict} between $j$ and
 $l$, because the scheduler must choose which vehicle crosses the intersection
 first. Furthermore, the switch-over time should be respected at $i_{0}$.
 Requiring that vehicle $j$ must cross first can be formally stated as
 \begin{align*}
-  y_{i_{0}j} + p_{i_{0}j} + S \leq y_{i_{0}l} \text{ and } y_{ij} + p_{ij} \leq y_{il} \text{ for all } i_{0} \neq i \in p .
+  y_{i_{1}j} + p_{i_{1}j} + S \leq y_{i_{1}l} \text{ and } y_{ij} + p_{ij} \leq y_{il} \text{ for all } i_{1} \neq i \in p .
 \end{align*}
 
 % introduce s-variables
@@ -129,17 +129,17 @@ In order to model the above decision making with a MIP, we introduce binary
 decision variables $s_{i,j,l}$ to encode the relative order of $j$ and $l$ at some common
 node $i \in p \in P_{jl}$. A value of zero corresponds to $j$ crossing first and
 a value of one indicates that $l$ crosses first.
-In the case of $i_{0}$ being an external node, we treat $s_{i,j,l}$ as a fixed
+In the case of $i_{1}$ being an external node, we treat $s_{i,j,l}$ as a fixed
 parameter of the MIP.
 For each common path $p \in P_{jl}$, we must have
 \begin{align*}
-s_{i_{0},j,l} = s_{i_{1},j,l} = \dots = s_{i_{L},j,l}.
+s_{i_{1},j,l} = s_{i_{2},j,l} = \dots = s_{i_{L},j,l}.
 \end{align*}
 
 Let $N$ denote the set of operations like in the job shop example, but now pairs
 correspond to vehicles and the intersections they encounter along their route.
 Also similarly, let $A$ encode the route constraints of each vehicle. We use
-$p^{0}$ to denote the merge point of path $p$. Let $P_{jl}^{e}$ denote all the
+$p_{1}$ to denote the merge point of path $p$. Let $P_{jl}^{e}$ denote all the
 common paths that have an external merge point and let $P_{jl}$ denote the other
 common paths. By implicitely letting the indices $j$ and $l$ run over all the
 \textit{ordered pairs} of vehicles, we write
@@ -148,9 +148,9 @@ common paths. By implicitely letting the indices $j$ and $l$ run over all the
 \begin{align}
   \text{maximize } P(y) \\
   y_{ij} + p_{ij} + t_{ik} &\leq y_{kj}, & \text{ for all } (i,j) \xrightarrow{} (k,j) \in A, \\
-  \label{1} y_{ij} + p_{ij} &\leq y_{il}, \text{ for all } i \in p, &\text{ for all } p \in P_{jl}^{e}, s_{p^{0}jl} = 1, \\
-  \label{2} y_{p^{0}j} + p_{p^{0}j} + S &\leq y_{p^{0}l},  &\text{ for all } p \in P_{jl}, s_{p^{0}jl} = 1, \\
-  \label{3} y_{ij} + p_{ij} &\leq y_{il}, \text{ for all } i \neq p^{0}, &\text{ for all } p \in P_{jl}, s_{p^{0}jl} = 1, \\
+  \label{1} y_{ij} + p_{ij} &\leq y_{il}, \text{ for all } i \in p, &\text{ for all } p \in P_{jl}^{e}, s_{p_{1}jl} = 1, \\
+  \label{2} y_{p_{1}j} + p_{p_{1}j} + S &\leq y_{p_{1}l},  &\text{ for all } p \in P_{jl}, s_{p_{1}jl} = 1, \\
+  \label{3} y_{ij} + p_{ij} &\leq y_{il}, \text{ for all } i \neq p_{1}, &\text{ for all } p \in P_{jl}, s_{p_{1}jl} = 1, \\
   y_{ij} &\geq 0, & \text{ for all } (i,j) \in N ,
   %
 \end{align}
