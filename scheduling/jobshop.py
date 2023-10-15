@@ -3,18 +3,25 @@ from itertools import product, combinations
 
 def read_instance(file):
     with open(file, 'r') as f:
-        n, m = map(int, f.readline().split())
+        def readline():
+            l = f.readline().strip()
+            if l and len(l) > 0 and l[0] != '#':
+                return l.split()
+            else:
+                return readline()
+
+        n, m = map(int, readline())
 
         ptime = [[] for _ in range(n)]
         order = [[] for _ in range(n)]
 
         # Read operation times for each job.
         for j in range(n):
-            ptime[j] = list(map(int, f.readline().split()))
+            ptime[j] = list(map(int, readline()))
 
         # Read machine order for each job.
         for j in range(n):
-            order[j] = list(map(int, f.readline().split()))
+            order[j] = list(map(int, readline()))
 
     # Verify whether all processing times are provided.
     # N.B. When a job does not have an operation for a particular machine, the
