@@ -23,25 +23,29 @@ def read_instance(file):
         for j in range(n):
             order[j] = list(map(int, readline()))
 
+    # Verify whether order is a valid permutation of the machines.
+    for o in order:
+        assert len(o) == m
+        assert set(o) == set(range(1, m + 1))
+
+    # Make machine numbers start at zero.
+    order = list(map(lambda l: list(map(lambda x: x-1, l)), order))
+
     # Verify whether all processing times are provided.
     # N.B. When a job does not have an operation for a particular machine, the
     # corresponding processing time should just be set to zero.
     for pt in ptime:
         assert len(pt) == m
 
-    # Verify whether order is a valid permutation of the machines.
-    for o in order:
-        assert len(o) == m
-        assert set(o) == set(range(1, m + 1))
-
-    # Transpose the list of processing times, to align with the conventional
+    # Transform the list of processing times, to align with the conventional
     # p_{ij} notation, where i=machine, j=job.
-    ptime = list(map(list, zip(*ptime)))
+    ptime_trans = [[0 for _ in range(n)] for _ in range(m)]
+    for j in range(n):
+        for o in range(m):
+            i = order[j][o]
+            ptime_trans[i][j] = ptime[j][o]
 
-    # Make machine numbers start at zero.
-    order = list(map(lambda l: list(map(lambda x: x-1, l)), order))
-
-    return n, m, ptime, order
+    return n, m, ptime_trans, order
 
 
 def print_solution(y, s):
