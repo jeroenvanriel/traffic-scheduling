@@ -6,10 +6,10 @@ from typing import List, Dict, Tuple
 
 # order the operations according to some priority rule
 # construct a schedule by dispatching in this order
-# 1. with the "no-idle time"-rule
-# 2. without the "no-idle time"-rule
+# TODO 1. with the "no-idle time"-rule
+# DONE 2. without the "no-idle time"-rule
 
-def solve(n, m, ptimes: Dict[Tuple, int], order: List[List[int]]):
+def order_operations(n, m, ptimes: Dict[Tuple, int], order: List[List[int]]):
 
     # maximum of processing times
     M = max(ptimes.values()) + 1
@@ -48,17 +48,26 @@ def solve(n, m, ptimes: Dict[Tuple, int], order: List[List[int]]):
         _, j = shortest_o
         latest_operation[j] += 1
 
+    return ordered_operations
+
+
+def solve(n, m, ptimes: Dict[Tuple, int], order: List[List[int]]):
+
+    ordered_operations = order_operations(n, m, ptimes, order)
+    print(f"computed operation order: {ordered_operations}")
+
     # given the operations order, construct a schedule (start times) by dispatching
-    # 1. with the "no-idle time"-rule
-    # 2. without the "no-idle time"-rule
+    # 1. TODO with the "no-idle time"-rule
+    # 2. (below) without the "no-idle time"-rule
+
+    print("dispatching without no-idle time rule")
+
     y = { (i,j): 0 for i, j in product(range(m), range(n)) }
 
     # keep track of the completion time of last job of each individual machine
     machine_C = [0 for _ in range(m)]
     # keep track of the completion time of last operation of each individual job
     job_C = [0 for _ in range(n)]
-
-    print(f"computed operation order: {ordered_operations}")
 
     for i, j in ordered_operations:
         y[i,j] = max(machine_C[i], job_C[j])
