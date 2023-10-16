@@ -39,11 +39,11 @@ def read_instance(file):
 
     # Transform the list of processing times, to align with the conventional
     # p_{ij} notation, where i=machine, j=job.
-    ptime_trans = [[0 for _ in range(n)] for _ in range(m)]
+    ptime_trans = {}
     for j in range(n):
         for o in range(m):
             i = order[j][o]
-            ptime_trans[i][j] = ptime[j][o]
+            ptime_trans[i,j] = ptime[j][o]
 
     return n, m, ptime_trans, order
 
@@ -82,20 +82,20 @@ def solve(n, m, p, o):
     # order operations for each job
     for j in range(n):
         for i, k in zip(o[j][:-1], o[j][1:]):
-            g.addConstr(y[i, j] + p[i][j] <= y[k, j])
+            g.addConstr(y[i, j] + p[i,j] <= y[k, j])
 
     # makespan constraints
     for i, j in product(range(m), range(n)):
-        g.addConstr(y[i, j] + p[i][j] <= makespan)
+        g.addConstr(y[i, j] + p[i,j] <= makespan)
 
     # order operations on each machine
     for i in range(m):
         for j, l in combinations(range(n), 2):
             # j before l
-            g.addConstr(y[i,j] + p[i][j] <= y[i,l] + s[i,j,l] * M)
+            g.addConstr(y[i,j] + p[i,j] <= y[i,l] + s[i,j,l] * M)
 
             # l before j
-            g.addConstr(y[i,l] + p[i][l] <= y[i,j] + (1 - s[i,j,l]) * M)
+            g.addConstr(y[i,l] + p[i,l] <= y[i,j] + (1 - s[i,j,l]) * M)
 
     g.ModelSense = gp.GRB.MINIMIZE
     g.update()
