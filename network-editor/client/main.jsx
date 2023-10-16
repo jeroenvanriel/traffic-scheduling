@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Meteor } from 'meteor/meteor';
+import { Home } from '/imports/ui/Home.jsx';
 import { Network } from '/imports/ui/Network.jsx'
 import { NetworkList } from '/imports/ui/NetworkList';
 import { Schedule } from '/imports/ui/Schedule';
@@ -14,6 +15,10 @@ import {
 const router = createBrowserRouter([
   {
     path: "/",
+    element: <Home />,
+  },
+  {
+    path: "/network",
     element: <NetworkList />,
   },
   {
