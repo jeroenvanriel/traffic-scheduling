@@ -16,8 +16,6 @@ const ScheduleName = ({schedule}) => {
 export const ScheduleList = () => {
   const schedules = useTracker(() => SchedulesCollection.find().fetch());
 
-  console.log(schedules)
-
   return (
     <div>
       <h2>Schedules</h2>
