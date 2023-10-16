@@ -5,3 +5,5 @@
 *.fls
 *.pdf
 *.synctex.gz
+
+.auctex-auto
