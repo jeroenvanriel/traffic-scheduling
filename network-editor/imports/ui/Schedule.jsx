@@ -46,8 +46,6 @@ export const Schedule = () => {
     items.current.clear()
     groups.current.clear()
 
-    const ptime = schedule.ptime;
-
     for (let key in schedule.y) {
       // match "(i, j)" tuples
       const re = /\(\s*(\d+)\s*\,\s*(\d+)\)/;
@@ -55,12 +53,27 @@ export const Schedule = () => {
       const node = key.match(re)[1];
       const vehicle = key.match(re)[2];
       const start = moment().startOf('day').add(schedule.y[key], 's');
+
+      let ptime = null;
+      if (Object.hasOwn(schedule, 'ptime')) {
+        // global fixed ptime for all jobs
+        ptime = schedule.ptime;
+      } else if (Object.hasOwn(schedule, 'ptimes')) {
+        // each job has its own ptime
+        ptime = schedule.ptimes[key];
+      } else {
+        throw "No processing times specified."
+      }
       const end = start.clone().add(ptime, 's')
 
       // Create groups corresponding to machines (if not yet exists).
       let style = "";
-      if (schedule.entrypoints.includes(Number(node))) { style += "color: grey; background-color: #eeeeff;" }
-      if (schedule.exitpoints.includes(Number(node))) { style += "color: grey; background-color: #ffeeee;" }
+      if (Object.hasOwn(schedule, 'entrypoints') && schedule.entrypoints.includes(Number(node))) {
+        style += "color: grey; background-color: #eeeeff;"
+      }
+      if (Object.hasOwn(schedule, 'exitpoints') && schedule.exitpoints.includes(Number(node))) {
+        style += "color: grey; background-color: #ffeeee;"
+      }
       groups.current.update([{ id: node, content: node, style: style }])
 
       // Create items from y variables.
