@@ -1,5 +1,12 @@
 \documentclass{article}
 \usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\theoremstyle{definition}
+\newtheorem{eg}{Example}[section]
 
 \title{Traffic Scheduling}
 \author{Jeroen van Riel}
@@ -9,7 +16,162 @@
 
 \maketitle
 
-\section{Job Shop Scheduling}
+\section{Preliminaries}
+
+\subsection{Single Machine Scheduling}
+
+% total completion time and SPT rule
+Suppose we have $n$ jobs that need processing on a single machine. The time
+required for each job $j \in \{1, \dots, n\}$ is called the \textit{processing
+  time} $p_{j}$. Once started, jobs may not be \textit{preempted}. In order to
+obtain a valid \textit{schedule}, we need to determine the start time $y_{j}$
+for each job $j$, such that at most one job is processing on the machine at all
+times. Let $C_{j} = y_{j} + p_{j}$ denote the \textit{completion time} of job
+$j$. Our objective is to minimize the \textit{total completion time}
+$C_{1} + \dots + C_{n}$. By means of an \textit{interchange argument}, it can be
+easily shown that an optimal solution is given by sorting the jobs according to
+increasing processing times, which is known as the Shortest Processing Time
+first (SPT) rule.
+
+% release dates and non-delay schedules
+Now suppose that job $j$ becomes available at its \textit{release date} $r_{j}$,
+then a valid schedule requires $y_{j} \geq r_{j}$. It is not difficult to see
+that non-uniform release dates may require us to introduce \textit{idle time} to
+obtain an optimal schedule. For example, consider $n=2$ jobs with processing
+times $p_{1}=2, p_{2}=1$ and release dates $r_{1}=0, r_{2}=\epsilon > 0$.
+Processing job 1 before job 2 results in a schedule with total completion time
+$\sum C_{j} = 2 + 3 = 5$. However, scheduling job 2 first requires us to
+introduce $\epsilon$ idle time, but has a better total completion time of
+$\sum C_{j} = (\epsilon + 1) + (\epsilon + 1 + 2) = 4 + 2 \epsilon$. Schedules
+without idle time are called \textit{non-delay}.
+
+% job families, precedence chains
+Next, we consider \textit{precedence constraints} between jobs. Suppose that job
+$j$ needs to be processed before job $l$, denoted as $j \rightarrow{} l$, then
+we simply require that $y_{l} \geq C_{j}$ in any feasible schedule. In
+particular, we may consider \textit{chains} of precedence constraints. Let
+$J_{1}, \dots, J_{k}$ be a partition of jobs into $k$ non-empty families. For
+each family, we require that their jobs $J_{l} = \{ j_{1}, \dots, j_{n_{l}}\}$
+are processed in the order
+$j_{1} \rightarrow{} j_{2} \rightarrow{} \dots \rightarrow{} j_{n_{l}}$, without
+loss of generality. Note that the order between jobs from different families is
+unspecified, which means that chains may be \textit{merged} arbitrarily.
+
+% setup (switch-over) times
+When job $j$ is directly followed by job $l$, we might want to introduce
+\textit{sequence-dependent setup time} $s_{jl}$, by requiring that
+$y_{l} \geq C_{j} + s_{jl}$. For our purposes, we will only consider setup times
+depending on the family to which jobs belong. Formally, for any pair of jobs
+$j_{1} \in J_{l_{1}}$ and $j_{2} \in J_{l_{2}}$ belonging to distinct families, we
+require that either
+\begin{align*}
+y_{j_{2}} \geq C_{j_{1}} + s_{l_{1},l_{2}} ,
+\end{align*}
+is satisfied or
+\begin{align*}
+y_{j_{1}} \geq C_{j_{2}} + s_{l_{2},l_{1}} .
+\end{align*}
+
+\subsection{Single Intersection Scheduling}
+
+We are interested in the task of assigning arriving vehicles to a time slot on a
+single intersection. Using the modelling ingredients introduced above, we can
+now pose this task as a scheduling problem. Let vehicles be represented by jobs.
+We will refer to $y_{j}$ as the \textit{crossing time}, since it represents the
+time at which the vehicle starts crossing the intersection, which is modelled by
+the single machine. The time it takes before the next vehicle can enter the
+intersection is modelled by the processing time $p_{j}$. The earliest possible
+crossing time of a vehicle is modelled by its release date $r_{j}$. All vehicles
+that arrive to the intersection from the same lane belong to the same family. We
+assume that vehicles are driving on single-lane roads, which means that we do
+not allow \textit{overtaking}. We model this by introducing chain precedence
+constraints based on the order of arrival (release dates). To guarantee safety,
+we require a setup time $s_{l_{1},l_{2}}$ between vehicles coming from different
+lanes. As the optimization objective, we consider the total completion time,
+since this is equivalent to minimizing the total delay experienced by all
+vehicles.
+
+% complexity
+The problem of minimizing the total completion time with release dates (written
+as $1 | r_{j} | \sum C_{j}$ in the three-field notation
+\cite{grahamOptimizationApproximationDeterministic1979}) has been long known to
+be NP-hard \cite{lenstraComplexityMachineScheduling1977}, so there is no hope in
+finding a polynomial algorithm for our more general problem unless
+$\mathcal{P} = \mathcal{NP}$. Therefore, we must resort to exhaustive
+branch-and-bound methods or heuristics.
+
+% assumptions
+From here on, we will assume uniform processing time $p$ and uniform setup time
+$s$, which is accurate enough to model vehicles that cross the intersection
+without turning. For each job family $J = \{ 1, \dots, n \}$, observe that we
+may assume that $r_{i} = \max\{ r_{i}, r_{i-1} + p \}$, without loss of
+generality, because of the chain precedence constraints. Before discussing
+solution methods, let us first consider some simple examples.
+
+% examples
+\begin{eg}
+  Consider the situation with $J_{1} = \{ 1 \}, J_{2} = \{ 2 \}$. When both
+  vehicles have the same release dates $r_{1} = r_{2} = r$, the order in which
+  they cross the intersection does not influence the optimal total completion
+  time of $\sum C_{j} = p + (p + S + p) = 3p + S$. Now, assume that vehicle 1
+  has a earlier release date, then it is easily seen that an optimal schedule
+  requires vehicle 1 to go first.
+\end{eg}
+%
+\begin{eg}
+  \label{example2}
+  Consider the situation with $J_{1} = \{ 1 \}, J_{2} = \{ 2, 3 \}$. We are
+  interested in how the release dates influence the order of the jobs in an
+  optimal schedule. We assume that $r_{3} = r_{2} + p$. Suppose $r_{1} = r_{2}$,
+  then we see that $2, 3, 1$ is optimal, which resembles some sort of ``longest
+  chain first'' rule (\textit{\color{blue} relate this to Algorithm 3.1.4 of
+    Pinedo}). Now assume that $r_{2} < r_{1} + p + s$, otherwise $1, 2, 3$ is
+  simply optimal, because there is no \textit{conflict} between the two lanes
+  (\textit{\color{blue}we will make this more precise later}). Furthermore, set
+  $r_{1} = 0$, without loss of generality. We compare the sequence $1, 2, 3$
+  with $2, 3, 1$. The first has optimal
+  $\sum C_{j} = p + (p+s+p) + (p+s+p+p) = 6p + 2s$, while the second sequence
+  has optimal
+  $\sum C_{j} = (r_{2} + p) + (r_{2} + p + p) + (r_{2} + p + p + s + p) = 3 r_{2} + 6p + s$.
+  Therefore, we conclude that the first sequence is optimal if and only if
+  \begin{align*}
+    r_{2} >= s/3 ,
+  \end{align*}
+  which roughly means that the ``longest chain first'' rule becomes optimal
+  whenever the release dates are ``close enough''.
+\end{eg}
+
+\begin{figure}
+  \centering
+  \includegraphics{123.pdf}
+  \caption{Illustration of the two possible sequences in Example~\ref{example2}.}
+  \label{fig:example2}
+\end{figure}
+
+
+
+\subsection{Branch-and-Bound}
+
+Formulate the problem as a MIP and solve using branch-and-bound. Argue that
+imposing maximum vehicle delay allows us to limit the set of disjunctions that
+we need to consider.
+
+\vspace{0.5em}
+\noindent
+\textit{\color{blue}lazy row generation}\\
+\textit{\color{blue}define conflicts}
+
+
+\subsection{Insertion Heuristic}
+
+We propose a heuristic that constructs a schedule by considering the vehicles in
+order of arrival and iteratively inserting each next vehicle in the current
+partial schedule.
+
+
+\section{Traffic Scheduling in Networks}
+
+\subsection{Job Shop Scheduling}
 
 This section shortly introduces the classical \textit{job shop} scheduling
 problem. Assume there are $m$ machines and $n$ jobs. A job $j$ consists of
@@ -47,8 +209,8 @@ they model that we need to choose between jobs $j$ and $l$ to be scheduled first
 on machine $i$. The next constraints are used to define the makespan and the
 last line enforces non-negative start times.
 
-\section{Traffic Scheduling}
 
+\subsection{MIP Formulation}
 % TODO: introduce multiple lanes, opposing lanes on the same arc and consider
 % multiple phases at intersections
 % TODO: use ``arc'' instead of ``arc''
@@ -163,7 +325,7 @@ In order to solve this program using existing solvers, we use the well-known
 and \eqref{3} are active for specific values of the binary variables $s$.
 
 
-\section{Structure in Schedules}
+\subsection{Structure in Network Schedules}
 
 Before we start experimenting with the above problem (see if the MIP method
 scales and later trying to learn policies with (MA)RL), we first should try to
@@ -178,19 +340,17 @@ scheduling rules.
 
 \subsection{Platoon Splitting}
 
-In the single intersection case, platoon splitting is never necessary, in the
-sense that the exhaustive policy is optimal in terms of minimizing total delay.
-So in this context, platoon splitting can only become necessary from using a
-different performance metric, e.g., one that takes into account fairness.
-
-Once we start looking at the network-level interactions, however, we can show
-that platoon splitting is sometimes necessary to obtain an optimal schedule. The
-main idea is that delaying a job $j$ might require to also delay further
-downstream jobs. Therefore, it might be cheaper overall to not delay $j$, but
-interrupt some already running job $l$ instead.
-
-\section{Scaling up the MIP}
+In the single intersection case, platoon splitting is never necessary. So in
+this context, platoon splitting can only become necessary from using a different
+performance metric, e.g., one that takes into account fairness. Once we start
+looking at the network-level interactions, however, we can show that platoon
+splitting is sometimes necessary to obtain an optimal schedule. The main idea is
+that delaying a job $j$ might require to also delay further downstream jobs.
+Therefore, it might be cheaper overall to not delay $j$, but interrupt some
+already running job $l$ instead.
 
 
+\bibliography{references}
+\bibliographystyle{ieeetr}
 
 \end{document}
