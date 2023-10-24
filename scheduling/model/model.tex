@@ -144,21 +144,52 @@ solution methods, let us first consider some simple examples.
   $\sum C_{j} = p + (p+s+p) + (p+s+p+p) = 6p + 2s$, while the second sequence
   has optimal
   $\sum C_{j} = (r_{2} + p) + (r_{2} + p + p) + (r_{2} + p + p + s + p) = 3 r_{2} + 6p + s$.
-  Therefore, we conclude that the first sequence is optimal if and only if
+  Therefore, we conclude that the second sequence is optimal if and only if
   \begin{align*}
-    r_{2} >= s/3 ,
+    r_{2} \leq s/3 ,
   \end{align*}
   which roughly means that the ``longest chain first'' rule becomes optimal
   whenever the release dates are ``close enough''.
 \end{eg}
-
+%
 \begin{figure}
   \centering
   \includegraphics{123.pdf}
   \caption{Illustration of the two possible sequences in Example~\ref{example2}.}
   \label{fig:example2}
 \end{figure}
-
+%
+\begin{eg}
+  \label{example3}
+  Suppose we have exactly two ``platoons'' of vehicles
+  $J_{A} = \{ 1, \dots, n_{A}\}, J_{B} = \{ n_{A} + 1, \dots, n_{A} + n_{B}\}$,
+  consisting of vehicles that satisfy $r_{i} = r_{i-1} + p$ for
+  $i\in\{2, \dots, n_{A}, n_{A}+2, \dots, n_{A} + n_{B}\}$. Assuming that
+  $n_{A} < n_{B}$ and $r_{1} \leq r_{n_{A}+1}$, consider the ways the two platoons can merge by splitting A.
+  Let $k$ denote the number of vehicles of platoon A that go after platoon B and
+  let $\sum C_{j}(k)$ denote the resulting total completion time. We have
+  \begin{align*}
+    \sum C_{j}(0) = \sum_{i=1}^{n_{A}+n_{B}} ip + n_{B}s ,
+  \end{align*}
+  when A goes first and
+  \begin{align*}
+    \sum C_{j}(n_{A}+n_{B}) = \sum_{i=1}^{n_{A}+n_{B}} ip + n_{A}s ,
+  \end{align*}
+  when B goes first. For all the other cases, we have
+  \begin{align*}
+    \sum C_{j}(k) = \sum_{i=1}^{n_{A}+n_{B}} ip + n_{B}s + 2ks .
+  \end{align*}
+  From this analysis, we observe that it is not beneficial to split platoon A under the current assumptions. Moreover, we see that platoon B should go first, whenever
+  \begin{align*}
+    r_{n_{A} + 1} \leq (n_{B} - n_{A}) s / (n_{A} + n_{B}) .
+  \end{align*}
+\end{eg}
+\begin{figure}
+  \centering
+  \includegraphics{platoons.pdf}
+  \caption{Illustration of splitting platoon A in Example~\ref{example3}.}
+  \label{fig:example3}
+\end{figure}
 
 
 \subsection{Branch-and-Bound}
@@ -326,7 +357,6 @@ common paths. By implicitely letting the indices $j$ and $l$ run over all the
   \label{2} y_{p_{1}j} + p_{p_{1}j} + S &\leq y_{p_{1}l},  &\text{ for all } p \in P_{jl}, s_{p_{1}jl} = 1, \\
   \label{3} y_{ij} + p_{ij} &\leq y_{il}, \text{ for all } i \neq p_{1}, &\text{ for all } p \in P_{jl}, s_{p_{1}jl} = 1, \\
   y_{ij} &\geq 0, & \text{ for all } (i,j) \in N ,
-  %
 \end{align}
 \end{subequations}
 where $P(y)$ denotes some unspecified performance metric, leaving for now the
