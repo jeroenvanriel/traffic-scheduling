@@ -102,7 +102,11 @@ as $1 | r_{j} | \sum C_{j}$ in the three-field notation
 be NP-hard \cite{lenstraComplexityMachineScheduling1977}, so there is no hope in
 finding a polynomial algorithm for our more general problem unless
 $\mathcal{P} = \mathcal{NP}$. Therefore, we must resort to exhaustive
-branch-and-bound methods or heuristics.
+branch-and-bound methods or heuristics. However, note that this only holds for
+the problem in its full generality. It might, for example, be worthwhile to
+consider the complexity when one or more parameters are fixed. Specifically, it
+would be interesting to verify the complexity in case of a fixed number (e.g.,
+two) of families.
 
 % assumptions
 From here on, we will assume uniform processing time $p$ and uniform setup time
