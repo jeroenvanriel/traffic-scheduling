@@ -14,6 +14,7 @@
 \newtheorem{define}{Definition}[section]
 \newtheorem{prop}{Prop}[section]
 \newtheorem{thm}{Theorem}[section]
+\newtheorem{assump}{Assumption}[section]
 
 
 \title{Traffic Scheduling}
@@ -120,12 +121,17 @@ would be interesting to verify the complexity in case of a fixed number (e.g.,
 two) of families.
 
 % assumptions
-From here on, we will assume uniform processing time $p$ and uniform setup time
-$s$, which is accurate enough to model vehicles that cross the intersection
-without turning. For each job family $J = \{ 1, \dots, n \}$, observe that we
-may assume that $r_{i} = \max\{ r_{i}, r_{i-1} + p \}$, without loss of
-generality, because of the chain precedence constraints. Before discussing
-solution methods, let us first consider some simple examples.
+\begin{assump}
+  The processing times $p_{j} = p$ and setup times $s_{l_{1},l_{2}}s$ are all
+  identical, for $j \in \{1, \dots, n\}$ and any pair of lanes $l_{1}$ and
+  $l_{2}$.
+\end{assump}
+For the moment, this is leaves us with an accurate enough model for vehicles
+that cross the intersection without turning. For each job family
+$J = \{ 1, \dots, n \}$, observe that we may assume that
+$r_{i} = \max\{ r_{i}, r_{i-1} + p \}$, without loss of generality, because of
+the chain precedence constraints. Before discussing solution methods, let us
+first consider some simple examples.
 
 % examples
 \begin{eg}
