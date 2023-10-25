@@ -4,13 +4,16 @@
 \usepackage{amsthm}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{datetime}
+
+\newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
 
 \theoremstyle{definition}
 \newtheorem{eg}{Example}[section]
 
 \title{Traffic Scheduling}
 \author{Jeroen van Riel}
-\date{Oktober 2023}
+\date{\monthyeardate\today}
 
 \begin{document}
 
