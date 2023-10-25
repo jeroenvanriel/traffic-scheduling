@@ -52,7 +52,7 @@ first (SPT) rule.
 % release dates and non-delay schedules
 Now suppose that job $j$ becomes available at its \textit{release date} $r_{j}$,
 then a valid schedule requires $y_{j} \geq r_{j}$. It is not difficult to see
-that non-uniform release dates may require us to introduce \textit{idle time} to
+that distinct release dates may require us to introduce \textit{idle time} to
 obtain an optimal schedule. For example, consider $n=2$ jobs with processing
 times $p_{1}=2, p_{2}=1$ and release dates $r_{1}=0, r_{2}=\epsilon > 0$.
 Processing job 1 before job 2 results in a schedule with total completion time
@@ -180,9 +180,8 @@ first consider some simple examples.
 \begin{eg}
   \label{example3}
   Suppose we have exactly two platoons of vehicles
-  $J_{A} = \{ 1, \dots, n_{A}\}, J_{B} = \{ n_{A} + 1, \dots, n_{A} + n_{B}\}$,
-  consisting of vehicles that satisfy $r_{i} = r_{i-1} + p$ for
-  $i\in\{2, \dots, n_{A}, n_{A}+2, \dots, n_{A} + n_{B}\}$. Assuming that
+  $J_{A} = \{ 1, \dots, n_{A}\}$, $J_{B} = \{ n_{A} + 1, \dots, n_{A} + n_{B}\}$,
+  Assuming that
   $n_{A} < n_{B}$ and $r_{1} \leq r_{n_{A}+1}$, consider the ways the two platoons can merge by splitting A.
   Let $k$ denote the number of vehicles of platoon A that go after platoon B and
   let $\sum C_{j}(k)$ denote the resulting total completion time. We have
@@ -296,7 +295,7 @@ each other when traveling on the same arc. We assume that arcs provide
 infinite \textit{buffers} for vehicles, meaning that there is no limit on the
 number of vehicles that are traveling on the same arc at the same time.
 However, we impose a minimum time required to travel along an arc $(x,y)$. By
-assuming uniform maximum speed among vehicles, $d(x,y)$ can be directly
+assuming identical maximum speeds among vehicles, $d(x,y)$ can be directly
 interpreted as this minimum travel time.
 
 Let $y(i,j)$ denote the time vehicle $j$ enters intersection $i$. Crossing an
