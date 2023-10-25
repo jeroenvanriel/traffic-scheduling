@@ -167,9 +167,13 @@ solution methods, let us first consider some simple examples.
   \label{fig:example2}
 \end{figure}
 %
+\begin{define}
+  A sequence of consecutive jobs $n, n+1, \dots, n+m \in F_{l}$ from one lane is called a \normalfont{platoon} if and only if $r_{i+1} = r_{i} + p$ for $n \leq i < m$.
+\end{define}
+%
 \begin{eg}
   \label{example3}
-  Suppose we have exactly two ``platoons'' of vehicles
+  Suppose we have exactly two platoons of vehicles
   $J_{A} = \{ 1, \dots, n_{A}\}, J_{B} = \{ n_{A} + 1, \dots, n_{A} + n_{B}\}$,
   consisting of vehicles that satisfy $r_{i} = r_{i-1} + p$ for
   $i\in\{2, \dots, n_{A}, n_{A}+2, \dots, n_{A} + n_{B}\}$. Assuming that
