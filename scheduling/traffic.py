@@ -167,7 +167,8 @@ def solve(n, m, ptime, switch, release, order, distance, entrypoints, exitpoints
 
 
     ### For each vehicle: enforce machine order (among operations) and travel time.
-    # N.B.: We assume that entrypoints do not require processing time.
+    # N.B.: We assume that entrypoints (and exitpoints, but that is not relevant
+    # for these constraints) do not require processing time.
     for j in range(n):
         for i, k in zip(order[j][0:-1], order[j][1:]):
             g.addConstr(y[i, j] \
