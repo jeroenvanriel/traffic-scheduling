@@ -21,7 +21,7 @@ export const Schedule = () => {
   const vistimeline = useRef(null);
   const container = useRef(null);
 
-  const [showExternal, setShowExternal] = useState(true);
+  const [showExternal, setShowExternal] = useState(false);
 
   // initialize visjs timeline widget
   useEffect(() => {
