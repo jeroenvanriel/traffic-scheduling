@@ -113,8 +113,8 @@ def solve(n, m, ptime, switch, release, order, distance, entrypoints, exitpoints
             # Add the start time of the last operation to the objective.
             #
             # Note that this is not really total completion time, because it
-            # ignore the processing time, but in case of uniform processing
-            # times, this is equivalent.
+            # ignores the processing time at the last machine, but in case of
+            # identical processing times, this is equivalent.
             obj = int(ix == len(order[j]) - 1)
             i = order[j][ix]
             y[(i, j)] = g.addVar(obj=obj, vtype=gp.GRB.CONTINUOUS, name=f"y_{i}_{j}")
