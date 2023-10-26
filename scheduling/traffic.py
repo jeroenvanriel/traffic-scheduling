@@ -112,9 +112,9 @@ def solve(n, m, ptime, switch, release, order, distance, entrypoints, exitpoints
         for ix in range(1, len(order[j])):
             # Add the start time of the last operation to the objective.
             #
-            # Note that this is not really total completion time, because it
-            # ignores the processing time at the last machine, but in case of
-            # identical processing times, this is equivalent.
+            # Note that the total completion time is the start time at the last
+            # intersection, which must be an exitpoint and does not
+            # have any processing time.
             obj = int(ix == len(order[j]) - 1)
             i = order[j][ix]
             y[(i, j)] = g.addVar(obj=obj, vtype=gp.GRB.CONTINUOUS, name=f"y_{i}_{j}")
