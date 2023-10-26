@@ -98,9 +98,6 @@ def solve(n, m, ptime, switch, release, order, distance, entrypoints, exitpoints
 
     ### Variables
 
-    # non-negative makespan
-    makespan = g.addVar(obj=1, vtype=gp.GRB.CONTINUOUS, name="makespan")
-
     # non-negative starting times
     y = {}
     for j in range(n):
@@ -176,11 +173,6 @@ def solve(n, m, ptime, switch, release, order, distance, entrypoints, exitpoints
             g.addConstr(y[i, j] \
                         + (ptime if i not in entrypoints else 0) \
                         + distance[i][k] <= y[k, j])
-
-
-    # makespan constraints
-    for i, j in y.keys():
-        g.addConstr(y[i, j] + ptime <= makespan)
 
 
     g.ModelSense = gp.GRB.MINIMIZE
