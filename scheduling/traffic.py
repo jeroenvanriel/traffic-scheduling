@@ -14,12 +14,12 @@ def read_instance(file):
                 return readline()
 
         n, m = map(int, readline())
-        ptime, switch = map(int, readline())
+        ptime, switch = map(float, readline())
 
         # Read adjacency matrix for machine distance graph.
         distance = [[] for _ in range(m)]
         for i in range(m):
-            distance[i] = list(map(int, readline()))
+            distance[i] = list(map(float, readline()))
 
         order = [[] for _ in range(n)]
         release = [0 for _ in range(n)]
