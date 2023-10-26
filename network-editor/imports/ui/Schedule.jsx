@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTracker } from 'meteor/react-meteor-data';
 
@@ -20,6 +20,8 @@ export const Schedule = () => {
 
   const vistimeline = useRef(null);
   const container = useRef(null);
+
+  const [showExternal, setShowExternal] = useState(true);
 
   // initialize visjs timeline widget
   useEffect(() => {
@@ -68,13 +70,20 @@ export const Schedule = () => {
 
       // Create groups corresponding to machines (if not yet exists).
       let style = "";
-      if (Object.hasOwn(schedule, 'entrypoints') && schedule.entrypoints.includes(Number(node))) {
-        style += "color: grey; background-color: #eeeeff;"
+      let skip = false;
+      if ( Object.hasOwn(schedule, 'entrypoints') && Object.hasOwn(schedule, 'exitpoints') ) {
+        if (schedule.entrypoints.includes(Number(node))) {
+          style += "color: grey; background-color: #eeeeff;"
+          skip = skip || !showExternal;
+        }
+        if (schedule.exitpoints.includes(Number(node))) {
+          style += "color: grey; background-color: #ffeeee;"
+          skip = skip || !showExternal;
+        }
       }
-      if (Object.hasOwn(schedule, 'exitpoints') && schedule.exitpoints.includes(Number(node))) {
-        style += "color: grey; background-color: #ffeeee;"
+      if (!skip) {
+        groups.current.update([{ id: node, content: node, style: style }])
       }
-      groups.current.update([{ id: node, content: node, style: style }])
 
       // Create items from y variables.
       items.current.add({
@@ -89,11 +98,15 @@ export const Schedule = () => {
     }
 
     vistimeline.current.fit();
-  }, [schedule]);
+  }, [schedule, showExternal]);
 
   return (
     <div>
       <h1>Schedule</h1>
+      <label for="showExternal">Show External Nodes </label>
+      <input id="showExternal" type="checkbox" checked={showExternal} onChange={e => setShowExternal(e.target.checked)} />
+      <br />
+      <br />
       <div ref={container}/>
     </div>
   )
