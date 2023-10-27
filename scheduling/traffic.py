@@ -22,16 +22,16 @@ def read_instance(file):
             distance[i] = list(map(float, readline()))
 
         order = [[] for _ in range(n)]
-        release = [0 for _ in range(n)]
+        release = [float(0) for _ in range(n)]
 
         for j in range(n):
-            numbers = list(map(int, readline()))
+            line = readline()
 
             # Read release date for each job.
-            release[j] = numbers[0]
+            release[j] = float(line[0])
 
             # Read machine order for each job.
-            order[j] = numbers[1:]
+            order[j] = list(map(int, line[1:]))
 
     # Verify whether order is a valid permutation of a subset of machines.
     for o in order:
