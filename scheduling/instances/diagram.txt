@@ -1,0 +1,26 @@
+# vehicles, nodes
+8 5
+# processing time, switch-over time
+1 1
+
+# adjacency matrix
+0
+0 0
+0 0 0
+0 0 0 0
+0 0 0 0 0
+
+# list of vehicles, each line containing:
+# release date, list of nodes to visit (entrypoint, intersections, exitpoint)
+
+# lane B goes after the initial A platoon
+4  4 2 5
+5  4 2 5
+6  4 2 5
+7  4 2 5
+
+# lane A
+0  1 2 3
+1  1 2 3
+2  1 2 3
+3  1 2 3
