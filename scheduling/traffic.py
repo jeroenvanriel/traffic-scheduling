@@ -199,7 +199,7 @@ def save_to_mongodb(y, s, ptime, switch, entrypoints, exitpoints):
         'y': {},
         's': {},
         'ptime': ptime,
-        'swtich': switch,
+        'switch': switch,
         'entrypoints': list(one_based(entrypoints)),
         'exitpoints': list(one_based(exitpoints)),
     }
