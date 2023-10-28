@@ -10,6 +10,7 @@
 
 \theoremstyle{definition}
 \newtheorem{eg}{Example}[section]
+\newtheorem{observation}{Observation}[section]
 \theoremstyle{plain}
 \newtheorem{define}{Definition}[section]
 \newtheorem{prop}{Prop}[section]
@@ -208,6 +209,19 @@ first consider some simple examples.
   \caption{Illustration of splitting platoon A in Example~\ref{example3}.}
   \label{fig:example3}
 \end{figure}
+
+\begin{define}
+  As the examples above show, the computation of the total completion time always includes a common term
+  \begin{align*}
+    \sum C_{j} = \sum_{i=1}^{n} ip + \dots ,
+  \end{align*}
+  which happens because of identical processing times
+  (Assumption~\ref{assump1}). Therefore, we will from now on discard this term
+  while comparing different schedules, by defining the {\normalfont total setup delay}
+  \begin{align*}
+    D = \sum C_{j} - \sum_{i=1}^{n} ip .
+  \end{align*}
+\end{define}
 
 \subsection{Single Platoon Positioning}
 
