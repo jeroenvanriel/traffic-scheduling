@@ -13,7 +13,7 @@
 \theoremstyle{plain}
 \newtheorem{define}{Definition}[section]
 \newtheorem{prop}{Prop}[section]
-\newtheorem{thm}{Theorem}[section]
+\newtheorem{theorem}{Theorem}[section]
 \newtheorem{assump}{Assumption}[section]
 
 
@@ -122,6 +122,7 @@ two) of families.
 
 % assumptions
 \begin{assump}
+  \label{assump1}
   The processing times $p_{j} = p$ and setup times $s_{l_{1},l_{2}}s$ are all
   identical, for $j \in \{1, \dots, n\}$ and any pair of lanes $l_{1}$ and
   $l_{2}$.
@@ -208,6 +209,48 @@ first consider some simple examples.
   \label{fig:example3}
 \end{figure}
 
+\subsection{Single Platoon Positioning}
+
+Focus on the problem with two lanes $F_{A}$ and $F_{B}$ where we assume that
+there is only a single platoon arriving on lane $B$, i.e., the \textit{single
+  platoon positioning problem}. In this case, the optimal schedule can be easily
+computed by considering all positions. However, we use this simple case to
+obtain some insight into when vehicles that are close act as if they are
+platoons.
+
+\begin{theorem}
+  Under Assumption~\ref{assump1}, every vehicle scheduling problem must have an
+  optimal schedule $y$ in which every platoon $p=(n, n+1, \dots, n+m)$ satisfies
+  $y_{j+1} = y_{j} + p$ for all $n \leq j < n + m$.
+  \textit{\color{blue}So this is the $x_i=0$ case.}
+\end{theorem}
+\begin{proof}
+  Assume there exists an optimal schedule $y$ in which some platoon
+  $P=(n, n+1, \dots, n+m)$ is \textit{split} in two parts, i.e, there exists
+  some $j > 0$ such that $y_{n+j} > y_{n+j-1} + p$. Whenever the platoon is
+  split in more parts, the following argument can be applied exhaustively.
+
+  Let $P_{1}$ and $P_{2}$ denote the separate parts of the original platoon. Let
+  $B$ denote the set of vehicles that have
+  $C_{n+j-1} + s \leq y_{l} \leq y_{n+j} - s$, i.e., those that are scheduled
+  between the two parts of $P$. Similarly, let $A$ be the set of vehicles that
+  have $y_{l} \geq C_{n+m} + s$, i.e., those that are scheduled after $P_{2}$.
+
+  Let $x$ be the time between the end of $P_{1}$ and the start of the first job
+  in $B$. The time between the last job of $B$ and the first job of $P_{2}$ must
+  be $s$, otherwise the total completion time can be simply decreased by
+  shifting $P_{2}$ earlier in time. Let $y$ be the time between the end of
+  $P_{2}$ and the start of the first job in $A$.
+
+  Now put $P_{2}$ right after the end of $P_{1}$, such that
+  $y_{n+j} = y_{n+j-1} + p$ and consider the resulting change in total
+  completion time.
+
+  \textit{\color{blue}explain our method of idle time times number of jobs method}
+\end{proof}
+
+\noindent
+\textit{\textit{\color{blue}illustrate the two job case with the ``decision'' diagram}}
 
 \subsection{Branch-and-Bound}
 
