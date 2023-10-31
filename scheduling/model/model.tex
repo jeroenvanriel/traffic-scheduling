@@ -13,7 +13,7 @@
 \newtheorem{observation}{Observation}[section]
 \theoremstyle{plain}
 \newtheorem{define}{Definition}[section]
-\newtheorem{prop}{Prop}[section]
+\newtheorem{proposition}{Proposition}[section]
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{assump}{Assumption}[section]
 
@@ -266,6 +266,20 @@ platoons.
 
   \textit{\color{blue}explain our method of idle time times number of jobs method}
 \end{proof}
+
+Assume that the first vehicle on the intersection arrives from lane $A$.
+We provide a criterium for vehicles from $A$ to be candidates for going before the $B$-platoon, with length (number of vehicles) $n_{B}$.
+
+\begin{proposition}
+  Assume there is a vehicle $0 \in F_{A}$ starting at $y_{0} = 0$. Let $x_{i}$
+  denote the finish-start delay between vehicle $i-1$ and $i$ when scheduled as
+  early as possible, so let
+  \begin{align*}
+    x_{i} = r_{i} - (r_{i-1} + p) .
+  \end{align*}
+  If there exists a smallest integer $i'$ such that $x_{i'} \geq 2s + n_{B}p$,
+  then any vehicle $i \geq i'$ needs to go after $B$ in any optimal schedule.
+\end{proposition}
 
 \noindent
 \textit{\textit{\color{blue}illustrate the two job case with the ``decision'' diagram}}
