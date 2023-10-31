@@ -342,6 +342,16 @@ corresponds to a clique of double arcs between all the operations that need to
 be performed on that machine.
 \textit{\color{blue}see example illustration of disjunctive graph}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{../../report/disjunctive-graph.pdf}
+  \caption{Disjunctive graph corresponding to a job shop instance with three
+    jobs and three machines. Operations that need to be scheduled on the same
+    machine have been given the same color, emphasizing the cliques formed by
+    their disjunctive arcs (drawn as dashed lines).}
+  \label{fig:disjunctive-graph-example}
+\end{figure}
+
 For each machine $k$, we need to order the operations that need processing on
 $k$. This corresponds to choosing exactly one arc from every pair of opposite
 disjunctive arcs. Let $\mathcal{D}' \subset \mathcal{D}$ be such a selection of
