@@ -1,6 +1,13 @@
-.DS_Store
-.idea
+## Core latex/pdflatex auxiliary files:
+*.aux
+*.out
 *.log
-tmp/
+*.fdb_latexmk
+*.fls
+*.bbl
+*.blg
+*.dvi
+*.synctex.gz
 
-**/__pycache__/
+.auctex-auto
+references.bib
