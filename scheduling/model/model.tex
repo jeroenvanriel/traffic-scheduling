@@ -284,9 +284,24 @@ we need to consider.
 
 \subsection{Insertion Heuristic}
 
-We propose a heuristic that constructs a schedule by considering the vehicles in
-order of arrival and iteratively inserting each next vehicle in the current
-partial schedule.
+We propose a heuristic that constructs a schedule for two lanes by considering
+the vehicles in order of arrival and iteratively inserting each next vehicle in
+the current partial schedule.
+
+As in the single platoon scheduling problem, let $F_{A}$ and $F_{B}$ denote two
+lanes, but now we allow lane $B$ to have arbitrary ariving vehicles. For the
+first platoon of $B$, find the single platoon position among vehicles of $A$.
+Then for every next platoon of $B$, solve the single platoon positioning
+problem, while treating the position of the previously scheduled platoons fixed.
+
+
+The following example shows that the resulting schedule may not be optimal,
+because the position of earlier scheduled platoons restricts the possible
+positions of later platoons.
+\begin{eg}
+  \textit{\color{blue}come up with example}
+\end{eg}
+
 
 \newpage
 
