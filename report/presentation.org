@@ -63,6 +63,28 @@ based on [cite:@bengioMachineLearningCombinatorial2020]
 - $n$ jobs
 - fixed machine order for each job
 
+* Job shop
+
+- example schedule
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/job-shop-schedule.pdf}
+\end{figure}
+
+* Job shop
+
+- job $j$ on machine $i$ is operation $(i,j)$
+- operations $N$
+- order of operations for particular job $j$ is fixed
+  \begin{align*}
+  (i,j) \rightarrow (k,j) \in \mathcal{C}
+  \end{align*}
+- order among jobs $j$ and $l$ is optimization decision
+  \begin{align*}
+  (i,j) \rightarrow (k,l) \quad \text{ or } \quad (i,l) \rightarrow (k,j)
+  \end{align*}
+
 * Disjunctive graph
 
 - directed graph $G=(N, \mathcal{C}, \mathcal{D})$
@@ -71,7 +93,7 @@ based on [cite:@bengioMachineLearningCombinatorial2020]
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/disjunctive-graph.pdf}
+  \includegraphics[width=0.5\textwidth]{figures/disjunctive-graph.pdf}
 \end{figure}
 
 * Job shop MILP
