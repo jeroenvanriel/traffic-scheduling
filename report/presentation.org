@@ -71,7 +71,7 @@ based on [cite:@bengioMachineLearningCombinatorial2020]
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.9\textwidth]{disjunctive-graph.pdf}
+  \includegraphics[width=0.9\textwidth]{figures/disjunctive-graph.pdf}
 \end{figure}
 
 * Job shop MILP

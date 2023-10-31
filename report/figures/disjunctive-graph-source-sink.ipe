@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE ipe SYSTEM "ipe.dtd">
 <ipe version="70218" creator="Ipe 7.2.24">
-<info created="D:20231031194528" modified="D:20231031201652"/>
+<info created="D:20231031194528" modified="D:20231031201638"/>
 <ipestyle name="basic">
 <symbol name="arrow/arc(spx)">
 <path stroke="sym-stroke" fill="sym-stroke" pen="sym-pen">
@@ -408,6 +408,38 @@ h
 142.139 696.511 m
 184 608
 273.682 583.141 c
+</path>
+<path stroke="black" pen="heavier">
+16 0 0 16 48 640 e
+</path>
+<text transformations="translations" pos="48 640" stroke="black" type="label" width="3.93" height="4.289" depth="0" halign="center" valign="center">s</text>
+<path stroke="black" pen="heavier" arrow="normal/normal">
+59.4503 651.175 m
+112 704 l
+</path>
+<path stroke="black" pen="heavier" arrow="normal/normal">
+64 640 m
+112 640 l
+</path>
+<path stroke="black" pen="heavier" arrow="normal/normal">
+59.3276 628.7 m
+112 576 l
+</path>
+<path matrix="1 0 0 1 320 0" stroke="black" pen="heavier">
+16 0 0 16 48 640 e
+</path>
+<text matrix="1 0 0 1 320 0" transformations="translations" pos="48 640" stroke="black" type="label" width="3.874" height="6.128" depth="0" halign="center" valign="center">t</text>
+<path stroke="black" pen="heavier" arrow="normal/normal">
+304 640 m
+352 640 l
+</path>
+<path stroke="black" pen="heavier" arrow="normal/normal">
+304 704 m
+357.882 652.394 l
+</path>
+<path stroke="black" pen="heavier" arrow="normal/normal">
+304 576 m
+356.125 629.277 l
 </path>
 </page>
 </ipe>
