@@ -1,0 +1,107 @@
+#+options: ':t *:t -:t ::t <:t H:1 \n:nil ^:t arch:headline author:t
+#+options: broken-links:nil c:nil creator:nil d:(not "LOGBOOK") date:t e:t
+#+options: email:nil f:t inline:t num:t p:nil pri:nil prop:nil stat:t tags:t
+#+options: tasks:t tex:t timestamp:t title:t toc:nil todo:t |:t
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LaTeX_CLASS_OPTIONS: [bigger]
+#+LATEX_HEADER: \usepackage{graphicx}
+#+language: en
+#+select_tags: export
+#+exclude_tags: noexport
+#+creator: Emacs 28.1 (Org mode 9.7)
+#+cite_export: natbib
+#+bibliography: references.bib
+#+title: Learning to Control Traffic
+#+date: November 2023
+#+author: Jeroen van Riel
+#+email: jeroenvanriel@outlook.com
+
+* Learning problem
+- set of problem instances $\mathcal{I}$
+- distribution $P$ over instances
+- set of algorithms $\mathcal{A}$
+- measure of optimality $m : \mathcal{I} \times \mathcal{A} \rightarrow \mathbb{R}$
+
+\vfill
+based on [cite:@bengioMachineLearningCombinatorial2020] 
+* Learning problem
+- general learning objective
+\begin{align}
+\min_{a \in \mathcal{A}} \mathbb{E}_{i \sim P} \; m(i, a)
+\end{align}
+
+- no access to $\mathcal{I}$ or $P$, so use samples
+\begin{align}
+\min_{a \in \mathcal{A}} \sum_{i \in D_{\mathit{train}}} \frac{1}{|D_\mathit{train}|} m(i, a)
+\end{align}
+
+* Learning problem
+
+- demonstration
+- experience
+
+
+* Demonstration
+
+- parameterization of algorithms, e.g., by using neural network with weights $\theta \in \mathbb{R}^p$
+\begin{align}
+\min_{\theta \in R^p} \mathbb{E}_{i \sim P} m(i, a(\theta))
+\end{align}
+
+* Experience
+
+- greedy TSP heuristic = picking next node
+
+* Learning to cut (example)
+
+
+* Job shop
+
+- $m$ machines
+- $n$ jobs
+- fixed machine order for each job
+
+* Disjunctive graph
+
+- directed graph $G=(N, \mathcal{C}, \mathcal{D})$
+- conjunctive arcs
+- disjunctive arcs
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{disjunctive-graph.pdf}
+\end{figure}
+
+* Job shop MILP
+
+- makespan objective
+- mixed-integer linear program
+
+#+begin_export latex
+\scalebox{0.85}{\parbox{.9\linewidth}{
+\begin{align*}
+\text{minimize } & C_{\text{max}} \\
+y_{ij} + p_{ij} &\leq y_{kj}  & \text{ for all } (i,j) \xrightarrow{} (k,j) \in \mathcal{C} \\
+y_{il} + p_{il} &\leq  y_{ij} \text{ or } y_{ij} + p_{ij} \leq y_{il}  & \text{ for all } (i,l) \text{ and } (i,j), i =1, \dots,m \\
+y_{ij} + p_{ij} &\leq C_{\text{max}} & \text{ for all } (i,j) \in N \\
+y_{ij} &\geq 0 & \text{ for all } (i,j) \in N
+\end{align*}
+}}
+#+end_export
+
+* Traffic scheduling problem
+- total completion time
+- release dates
+- chains
+- setup times (switch-over)
+
+* References
+  \begingroup
+  \renewcommand{\section}[2]{}
+  \bibliography{references}
+  \bibliographystyle{plainnat}
+  \endgroup
+
+  $\;$
