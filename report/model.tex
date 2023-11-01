@@ -359,7 +359,9 @@ last line enforces non-negative start times.
 
 % disjunctive graph
 A common way of representing job shop problems is through the corresponding
-\textit{disjunctive graph} \textit{\color{blue}cite! is there a more accessible reference than this original french paper?}. Let
+\textit{disjunctive graph} \textit{\color{blue}cite! is there a more accessible
+  reference than this original french paper?}, see
+Figure~\ref{fig:disjunctive-graph-example} for an example. Let
 $(N, \mathcal{C}, \mathcal{D})$ be a directed graph with nodes corresponding to
 all the operations and two types of arcs. The \textit{conjunctive} arcs
 $\mathcal{C}$ encode the given machine order for each job. If
@@ -371,11 +373,10 @@ need to be processed on the same machine $i$, there is a pair of arcs in
 opposite directions between $(i,j)$ and $(i,l)$. Therefore, each machine
 corresponds to a clique of double arcs between all the operations that need to
 be performed on that machine.
-\textit{\color{blue}see example illustration of disjunctive graph}
 
-\begin{figure}
+\begin{figure}[t]
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/disjunctive-graph.pdf}
+  \includegraphics[width=0.6\textwidth]{figures/disjunctive-graph.pdf}
   \caption{Disjunctive graph corresponding to a job shop instance with three
     jobs and three machines. Operations that need to be scheduled on the same
     machine have been given the same color, emphasizing the cliques formed by
