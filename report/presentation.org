@@ -146,9 +146,27 @@ y_{ij} &\geq 0 & \text{ for all } (i,j) \in N
 \begin{figure}
   \adjustbox{margin=1cm 0 0 0}{
     \includegraphics[height=2cm,left]{figures/zhang-schedule-1.pdf}
+  }
+  \adjustbox{margin=1cm 0 0 0}{
     \includegraphics[height=2cm,left]{figures/zhang-schedule-2.pdf}
   }
 \end{figure}
+
+* Schdule classes
+
+\textbf{Active Schedule}. A feasible non-preemptive schedule is called active if
+it is not possible to construct another schedule, through changes in the order
+of processing on the machines, with at least one operation finishing earlier and
+no operation finishing later.
+
+\vspace{1em}
+
+\textbf{Semi-Active Schedule}. A feasible non-preemptive schedule is called
+semi-active if no operation can be completed earlier without changing the order
+of processing on any one of the machines.
+
+\vfill
+taken from [cite:@pinedoScheduling2016]
 
 * Tassel et al.
 
