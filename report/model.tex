@@ -319,9 +319,7 @@ positions of later platoons.
 
 \newpage
 
-\section{Traffic Scheduling in Networks}
-
-\subsection{Job Shop Scheduling}
+\section{Job Shop Scheduling}
 
 This section discusses the classical \textit{job shop} scheduling environment.
 Assume there are $m$ machines and $n$ jobs. A job $j$ consists of exactly $m$
@@ -397,6 +395,123 @@ Every arc leaving an operations node has the processing time of that operation
 as weight.
 \textit{\color{blue}read Pinedo 7.3 to see how to adapt for total completion time}
 
+\subsection{Schedule generation}
+There are some classes of schedules that are relevant for job shop problems. The
+following definitions are taken from the textbook by Pinedo
+\cite{pinedoSchedulingTheoryAlgorithms2016}.
+
+\begin{define}[Non-Delay Schedule]
+A feasible schedule is called non-delay if no
+machine is kept idle while an operation is waiting for processing.
+\end{define}
+
+\begin{define}[Active Schedule]
+A feasible non-preemptive schedule is called active if
+it is not possible to construct another schedule, through changes in the order
+of processing on the machines, with at least one operation finishing earlier and
+no operation finishing later.
+\end{define}
+
+\begin{define}[Semi-Active Schedule]
+A feasible non-preemptive schedule is called
+semi-active if no operation can be completed earlier without changing the order
+of processing on any one of the machines.
+\end{define}
+
+It is clear that active schedules are necessarily semi-active, but the converse
+does not always hold. Furthermore, when preemption is not allowed, non-delay
+schedules are necessarily active. For some scheduling problems, it can be shown
+that an optimal schedule exists that belongs to such classes.
+
+\begin{eg}
+  \label{eg:job-shop-non-delay}
+  Consider two jobs on three machines with processing times
+  $p_{\cdot 1} = \begin{pmatrix} 2 & 2 & 4 \end{pmatrix}^T$ and
+  $p_{\cdot 2} = \begin{pmatrix} 1 & 2 & 1 \end{pmatrix}^T$. It is easily seen
+  that the makespan is determined by
+  $C_\text{max} = p_{11} + p_{21} + p_{31} = 8$ and an optimal schedule is given
+  in Figure~\ref{fig:job-shop-delay}. This schedule is not non-delay, because
+  machine 2 is kept idle from time 2 to 3, but operation $(2,2)$ could be
+  scheduled here.
+\end{eg}
+
+\begin{figure}
+  \centering
+  \label{fig:job-shop-delay}
+  \includegraphics[width=0.5\textwidth]{figures/job-shop-delay.pdf}
+  \caption{Optimal schedule for Example~\ref{eg:job-shop-non-delay}. Machine 2
+    is kept idle, while operation $(2,2)$ could have already been scheduled at
+    time 1.}
+\end{figure}
+
+For job shop problems, the optimal schedule is not necessarily non-delay, as the
+example illustrates for the makespan objective. However, it can be
+shown that $Jm || \gamma$ has an active optimal schedule, when $\gamma$ is a
+regular objective, which means that it is a non-decreasing function of the
+completion times $C_1, C_2, \dots, C_n$. The makespan and total completion time
+are examples of regular objectives. Because of this result, branch \& bound
+methods have been proposed based on enumeration of all active schedules.
+
+\textit{\color{blue}Include here our solution of Exercise 7.11 from Pinedo,
+i.e., a branching scheme for generating all schedules based on inserting
+disjunctive arcs. From the resulting disjunctive graph, all semi-active
+schedules follow by applying the machine makespan rule, introduced in the next
+section.}
+
+\textit{\color{blue}also active optimal schedule for $Jm | r_j | \gamma$?}
+
+\subsection{Priority dispatching}
+
+We are now interested in whether scheduling with dispatching rules can generate
+all necessary schedules. More precisely, we wonder whether all active schedules
+can be generated from a dispatching rule.
+
+A \textit{priority dispatching rule} selects a job from a list of currently
+available (unscheduled) jobs to be scheduled next. The exact starting time of
+this job is determined by a \textit{placement rule}.
+
+Manually crafted priority dispatching rules are mostly based on elementary
+features of the current partial schedule. Well-known examples include the job
+with the most/least work remaining (MWR/LWR) or the job with the
+shortest/longest processing time (SPT/LPT).
+
+A sensible placement rule would be to put the job in the earliest gap of idle
+time where this job fits, i.e., where it can be placed without violating any
+constraints. We call this the \textit{earliest gap} rule.
+
+Alternatively, consider the straightforward placement rule that chooses as
+starting time $y_j = \max_{l \in \mathcal{J}_i} y_l + p_l$ where $\mathcal{J}_i$
+denotes the operations that have already been placed on machine $i$ in the
+current partial schedule. We call this the \textit{machine makespan} rule,
+because it essentially chooses the makespan of the machine as the starting time.
+
+For every feasible semi-active schedule, there exists a sequence $\chi$ that
+generates it using the machine makespan rule. This sequence can simply be
+obtained by repeatedly taking the operation with the earliest starting time.
+
+
+\newpage
+
+\section{Dispatching for Job Shop with Reinforcement Learning}
+
+\subsection{Zhang et al.}
+
+Considers the job shop problem with makespan objective $Jm || C_\text{max}$.
+
+The state transition example shown in Figure~2 of
+\cite{zhangLearningDispatchJob2020} suggests yet another placement rule, because
+operation $O_{32}$ is placed before $O_{22}$, but it does not fit the gap.
+Consequently, operation $O_{22}$ has to be delayed by three time steps.
+
+\textit{\color{blue}Formalize the placement rule that Zhang et al. use and argue
+that this does not guarantee that all active schedules can be generated in this
+way.}
+
+
+
+\newpage
+
+\section{Traffic Scheduling in Networks}
 
 \subsection{MIP Formulation}
 % TODO: introduce multiple lanes, opposing lanes on the same arc and consider
