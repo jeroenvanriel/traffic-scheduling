@@ -7,6 +7,7 @@
 #+LaTeX_CLASS: beamer
 #+LaTeX_CLASS_OPTIONS: [bigger]
 #+LATEX_HEADER: \usepackage{graphicx}
+#+LATEX_HEADER: \usepackage[export]{adjustbox}
 #+language: en
 #+select_tags: export
 #+exclude_tags: noexport
@@ -112,6 +113,44 @@ y_{ij} &\geq 0 & \text{ for all } (i,j) \in N
 \end{align*}
 }}
 #+end_export
+
+* Zhang et al.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/Zhang-disjunctive-graph.png}
+\end{figure}
+
+* Zhang et al.
+
+\begin{figure}
+  \centering
+  \includegraphics[height=4cm]{figures/Zhang-disjunctive-graph-s4.png}
+  \adjustbox{margin=1cm 0 0 .5cm}{
+    \includegraphics[height=2cm,left]{figures/zhang-schedule-0.pdf}
+  }
+\end{figure}
+
+* Zhang et al.
+
+\begin{figure}
+  \centering
+  \includegraphics[height=4cm]{figures/Zhang-disjunctive-graph-s5.png}
+  \adjustbox{margin=1cm 0 0 .5cm}{
+    \includegraphics[height=2cm,left]{figures/zhang-schedule-1.pdf}
+  }
+\end{figure}
+
+* Zhang et al.
+
+\begin{figure}
+  \adjustbox{margin=1cm 0 0 0}{
+    \includegraphics[height=2cm,left]{figures/zhang-schedule-1.pdf}
+    \includegraphics[height=2cm,left]{figures/zhang-schedule-2.pdf}
+  }
+\end{figure}
+
+* Tassel et al.
 
 * Traffic scheduling problem
 - total completion time
