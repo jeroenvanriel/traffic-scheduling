@@ -166,7 +166,7 @@ semi-active if no operation can be completed earlier without changing the order
 of processing on any one of the machines.
 
 \vfill
-taken from [cite:@pinedoScheduling2016]
+taken from [cite:@pinedoSchedulingTheoryAlgorithms2016]
 
 * Tassel et al.
 
