@@ -47,7 +47,6 @@
 \min_{\theta \in R^p} \mathbb{E}_{i \sim P} m(i, a(\theta))
 \end{align}
 
-
 * Motivations for ML in CO [cite:@bengioMachineLearningCombinatorial2020]
 - fast approximations
   - derived in generic way
@@ -84,15 +83,16 @@
   \includegraphics[width=0.75\textwidth]{figures/Bengio-reinforcement-learning.png}
 \end{figure}
 
-
 * Job shop (= $\mathcal{I}$)
 
 - $m$ machines
 - $n$ jobs
 - fixed machine order for each job
 
-* Job shop (= $\mathcal{I}$)
+\vfill
+(closely related to the traffic scheduling variant)
 
+* Job shop (= $\mathcal{I}$)
 - example schedule
 
 \begin{figure}
@@ -113,17 +113,6 @@
   (i,j) \rightarrow (k,l) \quad \text{ or } \quad (i,l) \rightarrow (k,j)
   \end{align*}
 
-* Disjunctive graph
-
-- directed graph $G=(N, \mathcal{C}, \mathcal{D})$
-- conjunctive arcs
-- disjunctive arcs
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.5\textwidth]{figures/disjunctive-graph.pdf}
-\end{figure}
-
 * Job shop MILP
 
 - makespan objective
@@ -140,6 +129,31 @@ y_{ij} &\geq 0 & \text{ for all } (i,j) \in N
 \end{align*}
 }}
 #+end_export
+
+* Disjunctive graph
+
+- directed graph $G=(N, \mathcal{C}, \mathcal{D})$
+- conjunctive arcs
+- disjunctive arcs
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/disjunctive-graph.pdf}
+\end{figure}
+
+* Dispatching rule
+
+- widely used in practice
+- examples
+  - SPT/LPT
+  - MWR/LWR
+
+* Zhang et al.
+
+- job shop
+- learn dispatching rule
+- GNN on disjunctive graph
+  - removing-arc or adding-arc strategy
 
 * Zhang et al.
 
@@ -198,10 +212,10 @@ taken from [cite:@pinedoSchedulingTheoryAlgorithms2016]
 * Tassel et al.
 
 * Traffic scheduling problem
-- total completion time
-- release dates
-- chains
-- setup times (switch-over)
+- total completion time $\sum C_j$
+- release dates $r_j$
+- chains $j_1 \rightarrow j_2 \rightarrow \dots \rightarrow j_k$
+- setup times (switch-over) $s_{ij}$
 
 * References
   \begingroup
