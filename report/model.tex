@@ -551,7 +551,15 @@ can be generated from dispatching.
 
 \subsection{Zhang et al.}
 
-Considers the job shop problem with makespan objective $Jm || C_\text{max}$.
+The authors of \cite{zhangLearningDispatchJob2020} use reinforcement learning to
+solve the job shop problem with makespan objective $Jm || C_\text{max}$.
+Specificaly, the method learns dispatching rules, so actions correspond to
+selecting which (unfinished) job to schedule next. States are represented by a
+disjunctive graph corresponding to the partial schedule. The policy is
+parameterized by a graph neural network that reads the current disjunctive
+graph. They use a dense reward based on the current lower bound of the makespan.
+
+
 
 The state transition example shown in Figure~2 of
 \cite{zhangLearningDispatchJob2020} suggests yet another placement rule, because
