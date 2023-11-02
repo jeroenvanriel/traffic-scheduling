@@ -388,14 +388,11 @@ be performed on that machine.
 For each machine $k$, we need to order the operations that need processing on
 $k$. This corresponds to choosing exactly one arc from every pair of opposite
 disjunctive arcs. Let $\mathcal{D}' \subset \mathcal{D}$ be such a selection of
-disjunctive arcs and let $G(\mathcal{D}')$ denote the resulting graph. It it not
-hard to see that any feasible schedule corresponds to a selection $\mathcal{D}'$
-of disjunctive arcs such that $G(\mathcal{D}')$ is acyclic.
+disjunctive arcs and let $G(\mathcal{D}')$ denote the resulting graph, to which
+we will refer as a \textit{complete} disjunctive graph. It it not hard to see
+that any feasible schedule corresponds to an acyclic complete disjunctive
+graph.
 
-% source, sink and weights corresponding to processing time
-Every arc leaving an operations node has the processing time of that operation
-as weight.
-\textit{\color{blue}read Pinedo 7.3 to see how to adapt for total completion time}
 
 \subsection{Schedule generation}
 There are some classes of schedules that are relevant for job shop problems. The
@@ -454,42 +451,89 @@ completion times $C_1, C_2, \dots, C_n$. The makespan and total completion time
 are examples of regular objectives. Because of this result, branch \& bound
 methods have been proposed based on enumeration of all active schedules.
 
+\vspace{0.5em}
+\noindent
+\textit{\color{blue}also active optimal schedule for $Jm | r_j | \gamma$?}
+
+\begin{proposition}
+  \label{prop:disjunctive-graph-semi-active}
+  Every complete disjunctive graph corresponds to a unique semi-active schedule.
+\end{proposition}
+\begin{proof}
+  Given some semi-active schedule, it is obvious that the corresponding
+  disjunctive graph can be constructed by simply encoding the ordering of the
+  operations in the schedule by the disjunctive arcs.
+
+  We now argue that every complete disjunctive graph cannot correspond to more than
+  one semi-active schedule.
+  % introduce the longest path method lower bound on y = earliest starting time
+  Recursively compute a lower bound on the starting time
+  $LB(O_{jk}) = \max_{n \in O_{jk}^{-}} LB(n) + p_{jk}$ where $O_{jk}^{-}$ denotes
+  the set of in-neighbors. In other words, $LB(O_{jk})$ is the longest path, when
+  we associate weight $p_{jk}$ with every incoming arc of node $O_{jk}$ and add a
+  dummy node $s$ with arcs to all first operations. Every feasible schedule $y$
+  must satisfy $y_{jk} \geq LB(O_{jk})$. Hence, if any $y_{jk} > LB(O_{jk})$, then
+  it is not semi-active.
+\end{proof}
+
+\begin{remark}
+  After adding another dummy \textit{sink} node $t$ and adding arcs with weight
+  zero from all the last operations to it, it is clear that
+  $LB(t) = C_\text{max}$.
+\end{remark}
+
+\noindent
+\textit{\color{blue}show how to adapt for total completion time (see Pinedo 7.3)}
+\vspace{0.5em}
+
+\noindent
 \textit{\color{blue}Include here our solution of Exercise 7.11 from Pinedo,
 i.e., a branching scheme for generating all schedules based on inserting
 disjunctive arcs. From the resulting disjunctive graph, all semi-active
 schedules follow by applying the machine makespan rule, introduced in the next
 section.}
 
-\textit{\color{blue}also active optimal schedule for $Jm | r_j | \gamma$?}
 
 \subsection{Priority dispatching}
 
+A \textit{priority dispatching rule} selects a job from a list of currently
+available (unscheduled) jobs to be scheduled next. This produces a sequence
+$\chi$ of jobs that are placed in a \textit{partial schedule}. Manually crafted
+priority dispatching rules are mostly based on elementary features of the
+current partial schedule. Well-known examples include the job with the
+most/least work remaining (MWR/LWR) or the job with the shortest/longest
+processing time (SPT/LPT).
+
+Determining the dispatching sequence alone is not enough to obtain a schedule
+$y$. The exact starting times are determined by a \textit{placement rule}. A
+sensible placement rule would be to put the job in the earliest gap of idle time
+where this job fits, i.e., where it can be placed without violating any
+constraints. We call this the \textit{earliest gap} rule. Alternatively,
+consider the straightforward placement rule that chooses the smallest starting
+time $y_{ij}$ that satisfies $y_{ij} \geq y_{il} + p_{il}$ for all jobs $l$ that
+have already been placed on machine $i$ in the current partial schedule and
+$y_{ij} \geq y_{kj} + p_{kj}$, when $(k,j)$ is the preceding operation. We call
+this the \textit{last position} rule, because the job is placed as the last job
+on the machine.
+
+% can dispatching rules generate all semi-active schedules?
 We are now interested in whether scheduling with dispatching rules can generate
 all necessary schedules. More precisely, we wonder whether all active schedules
-can be generated from a dispatching rule.
+can be generated from dispatching.
 
-A \textit{priority dispatching rule} selects a job from a list of currently
-available (unscheduled) jobs to be scheduled next. The exact starting time of
-this job is determined by a \textit{placement rule}.
-
-Manually crafted priority dispatching rules are mostly based on elementary
-features of the current partial schedule. Well-known examples include the job
-with the most/least work remaining (MWR/LWR) or the job with the
-shortest/longest processing time (SPT/LPT).
-
-A sensible placement rule would be to put the job in the earliest gap of idle
-time where this job fits, i.e., where it can be placed without violating any
-constraints. We call this the \textit{earliest gap} rule.
-
-Alternatively, consider the straightforward placement rule that chooses as
-starting time $y_j = \max_{l \in \mathcal{J}_i} y_l + p_l$ where $\mathcal{J}_i$
-denotes the operations that have already been placed on machine $i$ in the
-current partial schedule. We call this the \textit{machine makespan} rule,
-because it essentially chooses the makespan of the machine as the starting time.
-
-For every feasible semi-active schedule, there exists a sequence $\chi$ that
-generates it using the machine makespan rule. This sequence can simply be
-obtained by repeatedly taking the operation with the earliest starting time.
+\begin{proposition}
+  For every feasible semi-active schedule, there exists a sequence $\chi$ that
+  generates it using the last position rule.
+\end{proposition}
+\begin{proof}
+  Consider an arbitrary semi-active schedule $y$ and let $G$ be the
+  corresponding complete disjunctive graph, which is unique by
+  Proposition~\ref{prop:disjunctive-graph-semi-active} and has
+  $y_{jk} = LB(O_{jk})$ for each node $O_{jk} \in N$. Because $G$ must be
+  acyclic, there exists some topological ordering $\chi$ of the nodes.
+  Therefore, dispatching in order of $\chi$ with the machine makespan rule will
+  produce exactly the schedule with $y_{jk} = LB(O_{jk})$.
+\end{proof}
 
 
 \newpage
