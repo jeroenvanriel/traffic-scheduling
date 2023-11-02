@@ -16,6 +16,7 @@
 \newtheorem{proposition}{Proposition}[section]
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{assump}{Assumption}[section]
+\newtheorem{remark}{Remark}[section]
 
 
 \title{Traffic Scheduling}
@@ -341,7 +342,7 @@ the above requirements are met. There are various measures for how \textit{good}
 a given schedule is. For the purpose of this example, let us consider the
 well-known makespan objective $C_{\text{max}} := \max_{j} C_{j}$, which is often
 related to efficient use of the available machines. Minimizing the makespan can
-now be formulated as a Mixed-Integer Program (MIP) as follows:
+now be formulated as a Mixed-Integer Linear Program (MILP) as follows:
 %
 \begin{align*}
   \text{minimize } C_{\text{max}} \\
@@ -359,8 +360,8 @@ last line enforces non-negative start times.
 
 % disjunctive graph
 A common way of representing job shop problems is through the corresponding
-\textit{disjunctive graph} \textit{\color{blue}cite! is there a more accessible
-  reference than this original french paper?}, see
+\textit{disjunctive graph} \textit{\color{blue}(cite! is there a more accessible
+  reference than this original french paper?)}, see
 Figure~\ref{fig:disjunctive-graph-example} for an example. Let
 $(N, \mathcal{C}, \mathcal{D})$ be a directed graph with nodes corresponding to
 all the operations and two types of arcs. The \textit{conjunctive} arcs
@@ -493,7 +494,7 @@ obtained by repeatedly taking the operation with the earliest starting time.
 
 \newpage
 
-\section{Dispatching for Job Shop with Reinforcement Learning}
+\section{Job Shop with Reinforcement Learning}
 
 \subsection{Zhang et al.}
 
