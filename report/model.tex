@@ -444,11 +444,11 @@ that an optimal schedule exists that belongs to such classes.
 
 \begin{figure}
   \centering
-  \label{fig:job-shop-delay}
   \includegraphics[width=0.5\textwidth]{figures/job-shop-delay.pdf}
-  \caption{Optimal schedule for Example~\ref{eg:job-shop-non-delay}. The dotted
+  \caption{Optimal schedule for Example~\ref{eg:job-shop-non-delay}. The dashed
     lines indicate unit time steps. Machine 2 is kept idle, while operation
     $(2,2)$ could have already been scheduled at time 1.}
+  \label{fig:job-shop-delay}
 \end{figure}
 
 For job shop problems, the optimal schedule is not necessarily non-delay, as the
@@ -487,16 +487,19 @@ methods have been proposed based on enumeration of all active schedules.
 \begin{remark}
   After adding another dummy \textit{sink} node $t$ and adding arcs with weight
   zero from all the last operations to it, it is clear that
-  $LB(t) = C_\text{max}$.
+  $LB(t) = C_\text{max}$. This augmented disjunctive graph is shown in
+  Figure~\ref{fig:augmented-graph} for the optimal schedule for
+  Example~\ref{eg:job-shop-non-delay}.
 \end{remark}
 
 \begin{figure}
   \centering
-  \includegraphics[widht=0.9\textwidth]{figures/disjunctive-graph-source-sink.pdf}
+  \includegraphics[width=0.9\textwidth]{figures/disjunctive-graph-source-sink.pdf}
   \caption{Disjunctive graph corresponding to
     Example~\ref{eg:job-shop-non-delay} augmented with source, sink and weights.
     The longest path determining the makespan $C_{\text{max}} = LB(t)$ is
     highlighted.}
+  \label{fig:augmented-graph}
 \end{figure}
 
 \noindent
