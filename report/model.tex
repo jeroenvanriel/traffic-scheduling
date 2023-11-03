@@ -8,8 +8,16 @@
 
 \newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
 
+\newcommand{\newmarkedtheorem}[1]{%
+  \newenvironment{#1}
+    {\pushQED{\qed}\csname inner@#1\endcsname}
+    {\popQED\csname endinner@#1\endcsname}%
+  \newtheorem{inner@#1}%
+}
+
 \theoremstyle{definition}
-\newtheorem{eg}{Example}[section]
+%\newtheorem{eg}{Example}[section]
+\newmarkedtheorem{eg}{Example}[section]
 \newtheorem{observation}{Observation}[section]
 \theoremstyle{plain}
 \newtheorem{define}{Definition}[section]
