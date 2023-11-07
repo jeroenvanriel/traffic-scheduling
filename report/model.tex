@@ -35,88 +35,212 @@
 
 \maketitle
 
-\noindent
-\textit{\color{blue}comments are in blue italics}
+\section{Single Intersection}
 
-\section{Preliminaries}
+% earliest crossing time
+Consider a single isolated intersection with vehicles arriving from different
+lanes. Vehicles arrive at the system at some fixed distance $h$ from the
+intersection at some moment in time $a_{j}$. The earliest time at which a
+vehicle $j$ can reach the conflict zone, assuming that the vehicle can drive at
+maximum speed $v_{\text{max}}$ and does not encounter other vehicles, is denoted
+by $r_{j} = a_{j} + h / v_{\text{max}}$. It would be great if we could allow each
+vehicle $j$ to arrive at this \textit{earliest crossing time}. In general,
+however, vehicles need to be delayed by some amount $d_{j} \geq 0$ in order to
+meet some safety constraints. We consider the following two types of
+constraints.
 
-This section discusses the task of assigning arriving (platoons of) vehicles to
-time slots on a single intersection, which already gives rise to an interesting
-combinatorial optimization problem.
+% same lane
+Let the actual \textit{crossing time} of vehicle $j$ be denoted by
+$y_{j} = r_{j} + d_{j}$. Consider a pair $j,l$ of consecutive vehicles on the
+same lane and assume $j$ drives before $l$, which means that $r_{j} < r_{l}$. We
+assume that vehicles on the same lane do not \textit{overtake} each other, so we
+require $y_{j} < y_{l}$. Even stronger, in order to guarantee safety, we require
+a minimum amount of time $p_{j}$ after the moment vehicle $j$ crosses, so the first type
+of constraint is given by
+\begin{align}
+  \label{eq:traffic-constr-1}
+  y_{j} + p_{j} \leq y_{l} .
+\end{align}
+
+% distinct lanes
+Now consider a pair of vehicles $j,l$ originating from distinct lanes. In order
+to guarantee safety, we require an additional minimum amount of time $s$ between
+the crossing moments, so the second type of constraint is given by
+\begin{align}
+  \label{eq:traffic-constr-2}
+  y_{j} + p_{j} + s \leq y_{l} \; \text{ or } \; y_{l} + p_{l} + s \leq y_{j} .
+\end{align}
+This contraint features a choice, because the order of the two vehicles is free
+to choose by the traffic controller.
+
+% feasible schedule
+It is the task of the traffic controller to determine $y$ that satisfies these
+constraints, while optimizing some kind of performance metric.
+% total delay objective
+The difference $y_{j} - r_{j}$ between the earliest crossing time and the actual
+crossing time defines the \textit{delay} experienced by vehicle $j$. A sensible
+choice for the optimization objective is to minimize the \textit{total delay}
+\begin{align}
+  \label{eq:total-delay}
+  \sum_{j} y_{j} - r_{j} .
+\end{align}
+
+% speed control -> scheduling problem
+Note that determining $y$ does not determine the exact trajectories of the
+vehicles. That is, the continuous control of the speed of each vehicle is not
+yet determined. For the current project, we assume that a safe trajectory can be
+computed from $y$ by applying an appropriate Speed Profile Algorithm (SFA), as
+discussed in \cite{timmermanPlatoonFormingAlgorithms2021}. Under this
+assumption, it turns out that the problem can be adequately stated in terms of a
+single machine scheduling problem. Therefore, we will first introduce some basic
+modelling elements from the scheduling literature, before restating the problem
+in this framework.
 
 \subsection{Single Machine Scheduling}
 
 % total completion time and SPT rule
-Suppose we have $n$ jobs that need processing on a single machine. The time
-required for each job $j \in \{1, \dots, n\}$ is called the \textit{processing
-  time} $p_{j}$. Once started, jobs may not be \textit{preempted}. In order to
-obtain a valid \textit{schedule}, we need to determine the start time $y_{j}$
-for each job $j$, such that at most one job is processing on the machine at all
-times. Let $C_{j} = y_{j} + p_{j}$ denote the \textit{completion time} of job
-$j$. Our objective is to minimize the \textit{total completion time}
-$C_{1} + \dots + C_{n}$. By means of an \textit{interchange argument}, it can be
-easily shown that an optimal solution is given by sorting the jobs according to
-increasing processing times, which is known as the Shortest Processing Time
-first (SPT) rule.
+Suppose we have $n$ jobs that need processing on a single machine. The machine
+can process at most one job at the same time. The time required for each job
+$j \in \{1, \dots, n\}$ is called the \textit{processing time} $p_{j}$. Once
+started, jobs may not be \textit{preempted}, which means that they occupy the
+machine for exactly $p_{j}$ units of time. By determining the start times
+$y_{j} \geq 0$ for each job $j$, such that at most one job is processing on the
+machine at all times, we obtain a feasible \textit{schedule}.
+
+% total completion time objective
+Let $C_{j} = y_{j} + p_{j}$ denote the \textit{completion time} of job $j$. A
+common objective is to minimize the \textit{total completion time}
+\begin{align*}
+  \sum_{j=1}^{n} C_{j} .
+\end{align*}
+By means of an \textit{interchange argument}, it can be
+easily shown that, for this objective, an optimal solution is given by sorting
+the jobs according to increasing processing times, which is known as the
+Shortest Processing Time first (SPT) rule \cite{pinedoSchedulingTheoryAlgorithms2016}.
 
 % release dates and non-delay schedules
 Now suppose that job $j$ becomes available at its \textit{release date} $r_{j}$,
-then a valid schedule requires $y_{j} \geq r_{j}$. It is not difficult to see
-that distinct release dates may require us to introduce \textit{idle time} to
-obtain an optimal schedule. For example, consider $n=2$ jobs with processing
-times $p_{1}=2, p_{2}=1$ and release dates $r_{1}=0, r_{2}=\epsilon > 0$.
-Processing job 1 before job 2 results in a schedule with total completion time
-$\sum C_{j} = 2 + 3 = 5$. However, scheduling job 2 first requires us to
-introduce $\epsilon$ idle time, but has a better total completion time of
-$\sum C_{j} = (\epsilon + 1) + (\epsilon + 1 + 2) = 4 + 2 \epsilon$. Schedules
-without idle time are called \textit{non-delay}.
+then a valid schedule $y$ requires $y_{j} \geq r_{j}$. It is not difficult to
+see that this might mean we need to introduce some \textit{idle time}. We speak
+of \textit{unforced idle time} whenever the machine is kept idle at time $t$
+while at least one job $j$ is already available for processing, i.e.,
+$t \geq r_{j}$. Schedules without such unforced idle time are called
+\textit{non-delay}.
+
+\begin{eg}
+  \label{eg:non-delay}
+  Consider $n=2$ jobs with processing times $p_{1}=2, p_{2}=1$ and
+  release dates $r_{1}=0, r_{2}=\epsilon > 0$. Processing job 1 before job 2
+  results in a schedule with total completion time $\sum C_{j} = 2 + 3 = 5$.
+  However, scheduling job 2 first requires us to introduce $\epsilon$ idle time,
+  but has a better total completion time of
+  $\sum C_{j} = (\epsilon + 1) + (\epsilon + 1 + 2) = 4 + 2 \epsilon$, for
+  $\epsilon < 1/2$. See Figure~\ref{fig:non-delay} for an illustration of both schedules.
+\end{eg}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.2\textwidth]{figures/non-delay.pdf}
+  \caption{Illustration of the two possible schedules for
+    Example~\ref{eg:non-delay}. The unforced idle time in the second schedule is
+    shaded.}
+  \label{fig:non-delay}
+\end{figure}
 
 % job families, precedence chains
-Next, we consider \textit{precedence constraints} between jobs. Suppose that job
-$j$ needs to be processed before job $l$, denoted as $j \rightarrow{} l$, then
-we simply require that $y_{l} \geq C_{j}$ in any feasible schedule. In
-particular, we may consider \textit{chains} of precedence constraints. Let
-$J_{1}, \dots, J_{k}$ be a partition of jobs into $k$ non-empty families. For
-each family, we require that their jobs $J_{l} = \{ j_{1}, \dots, j_{n_{l}}\}$
-are processed in the order
-$j_{1} \rightarrow{} j_{2} \rightarrow{} \dots \rightarrow{} j_{n_{l}}$, without
-loss of generality. Note that the order between jobs from different families is
-unspecified, which means that chains may be \textit{merged} arbitrarily.
+Next, we consider \textit{precedence constraints} between jobs, which can be
+used to fix a certain order among jobs. Suppose that job $j$ needs to be
+processed before job $l$, denoted as $j \rightarrow{} l$, then we simply require
+that $y_{l} \geq C_{j}$ in any feasible schedule. In particular, we may consider
+\textit{chains} of precedence constraints. Let $F_{1}, \dots, F_{K}$ be a
+partition of jobs into $K$ non-empty families. For each family $F_{k}$, we
+require that their jobs $F_{k} = \{ J_{k1}, \dots, J_{k,n_{k}}\}$ are processed
+in the order
+\begin{align*}
+J_{k1} \rightarrow{} J_{k2} \rightarrow{} \dots \rightarrow{} J_{k,n_{k}} .
+\end{align*}
+Therefore, $J_{km}$ denotes the $m$th job of family $k$.
+Note that the order between jobs from different families is unspecified, which
+means that the scheduler may decide to \textit{merge} these chains arbitrarily.
 
 % setup (switch-over) times
-When job $j$ is directly followed by job $l$, we might want to introduce
-\textit{sequence-dependent setup time} $s_{jl}$, by requiring that
+When job $j$ is directly followed by job $l$, we might want to introduce some
+\textit{sequence-dependent setup time} $s_{jl} \geq 0$, by requiring that
 $y_{l} \geq C_{j} + s_{jl}$. For our purposes, we will only consider setup times
-depending on the family to which jobs belong. Formally, for any pair of jobs
-$j_{1} \in J_{l_{1}}$ and $j_{2} \in J_{l_{2}}$ belonging to distinct families, we
-require that either
+depending on the family to which jobs belong. For $k_{1} \neq k_{2}$, any pair
+of jobs $j_{1} \in F_{k_{1}}$, $j_{2} \in F_{k_{2}}$ must satisfy either
 \begin{align*}
-y_{j_{2}} \geq C_{j_{1}} + s_{l_{1},l_{2}} ,
+y_{j_{2}} \geq C_{j_{1}} + s_{k_{1},k_{2}} ,
 \end{align*}
 is satisfied or
 \begin{align*}
-y_{j_{1}} \geq C_{j_{2}} + s_{l_{2},l_{1}} .
+y_{j_{1}} \geq C_{j_{2}} + s_{k_{2},k_{1}} .
 \end{align*}
+
+\textit{\color{blue}Is this the right moment to discuss generalized precedence
+  constraints? Maybe it is better to defer this to the discussion on augmenting
+  the disjunctive graph.}
 
 \subsection{Single Intersection Scheduling}
 
-We are interested in the task of assigning arriving vehicles to a time slot on a
-single intersection. Using the modelling ingredients introduced above, we can
-now pose this task as a scheduling problem. Let vehicles be represented by jobs.
-We will refer to $y_{j}$ as the \textit{crossing time}, since it represents the
-time at which the vehicle starts crossing the intersection, which is modelled by
-the single machine. The time it takes before the next vehicle can enter the
-intersection is modelled by the processing time $p_{j}$. The earliest possible
-crossing time of a vehicle is modelled by its release date $r_{j}$. All vehicles
-that arrive to the intersection from the same lane belong to the same family. We
-assume that vehicles are driving on single-lane roads, which means that we do
-not allow \textit{overtaking}. We model this by introducing chain precedence
-constraints based on the order of arrival (release dates). To guarantee safety,
-we require a setup time $s_{l_{1},l_{2}}$ between vehicles coming from different
-lanes. As the optimization objective, we consider the total completion time,
-since this is equivalent to minimizing the total delay experienced by all
-vehicles.
+% translate into pure scheduling problem
+Using the modelling elements introduced above, we now pose the traffic control
+problem as a scheduling problem. The intersection is represented as a single
+machine. Let each vehicle be represented by some job $j$ with release date
+$r_{j}$. The starting time $y_{j}$ models the planned crossing time of vehicle
+$j$, which needs to be determined by the traffic controller. We will now show how
+the two types of constraints are formulated.
 
+% constraints
+Let $n_{k}$ denote the total number of vehicles arriving to lane $k$.
+For each lane, we define a familiy $F_{k}$ containing all vehicles that arrive
+to it. We assume, without loss of generality, that the jobs are ordered
+according to non-decreasing release dates. Therefore, the first type of
+constraints~\eqref{eq:traffic-constr-1} for each lane are modelled by the chain
+of precedence constraints by assuming that
+\begin{align*}
+  r_{J_{kn}} \leq r_{J_{km}} \implies n \leq m ,
+\end{align*}
+for any pair of jobs $J_{kn}, J_{km} \in F_{k}$. \textit{\color{blue}This way of writing may seem confusing. Note that $J_{km}$ is really just a permutation, so maybe writing $J_{k}(n)$ is clearer.}
+
+It is not difficult to see
+that the second set of constraints~\eqref{eq:traffic-constr-2} for vehicles from
+different lanes can be directly modelled using setup times $s_{k_{1},k_{2}}$. In
+what follows, we will also refer to this setup time as \textit{switch-over}
+time, because it is similar to the time between switching \textit{phases} in
+convential traffic lights.
+
+% objective
+Because the release dates $r_{j}$ and processing time $p_{j}$ are assumed to be
+known a priori, observe that minimizing the total delay ~\eqref{eq:total-delay}
+experience by all vehicles is equivalent to minimzing the total completion time,
+so this is the objective that we will use from here one.
+
+When vehicles turn at the intersection, the safe switch-over time between
+vehicles depends on the involved lanes, because some turns take more time to
+complete than others, see Figure~\textit{\color{blue}todo (see Limpens' Figure
+  13)} for an illustration. For the moment, we will assume that vehicles cross
+the intersection without turning, which allows us to make the following
+assumption.
+
+\begin{assump}
+  \label{assump1}
+  The processing times $p_{j} = p$ and setup times $s_{k_{1},k_{2}} = s$ are all
+  identical, for $j \in \{1, \dots, n\}$ and any pair of lanes $k_{1}$ and
+  $k_{2}$.
+\end{assump}
+
+The chain precedence constraints require a minimum of $p$ time units between the
+crossing times of two jobs from the same lane. This give rise to an additional
+assumption that can be made on the specification of the release dates.
+
+\begin{assump}
+  For each job family $F_{k} = \{ J_{k1} , \dots, J_{k,n_{k}} \}$, the release
+  dates satisfy $r_{J_{km}} = \max\{ r_{J_{km}}, r_{J_{k,m-1}} + p \}$, for all
+  $m \in \{2, \dots, n_{k}\}$, without loss of generality.
+\end{assump}
+
+\subsubsection{Complexity}
 % complexity
 The problem of minimizing the total completion time with release dates (written
 as $1 | r_{j} | \sum C_{j}$ in the three-field notation
@@ -127,24 +251,26 @@ $\mathcal{P} = \mathcal{NP}$. Therefore, we must resort to exhaustive
 branch-and-bound methods or heuristics. However, note that this only holds for
 the problem in its full generality. It might, for example, be worthwhile to
 consider the complexity when one or more parameters are fixed. Specifically, it
-would be interesting to verify the complexity in case of a fixed number (e.g.,
-two) of families.
+would be interesting to verify the complexity in case of a fixed number of
+lanes.
 
-% assumptions
-\begin{assump}
-  \label{assump1}
-  The processing times $p_{j} = p$ and setup times $s_{l_{1},l_{2}}s$ are all
-  identical, for $j \in \{1, \dots, n\}$ and any pair of lanes $l_{1}$ and
-  $l_{2}$.
-\end{assump}
-For the moment, this is leaves us with an accurate enough model for vehicles
-that cross the intersection without turning. For each job family
-$J = \{ 1, \dots, n \}$, observe that we may assume that
-$r_{i} = \max\{ r_{i}, r_{i-1} + p \}$, without loss of generality, because of
-the chain precedence constraints. Before discussing solution methods, let us
-first consider some simple examples.
 
-% examples
+\subsubsection{Branch-and-Bound}
+
+A common method of solving combinatorial problems in general and scheduling problems in particular is by formulating it as a Mixed-Integer Linear Program.
+
+\vspace{0.5em}
+\noindent
+\textit{\color{blue}Argue that imposing maximum vehicle delay allows us to limit the set of
+disjunctions that we need to consider.} \\
+\textit{\color{blue}lazy row generation}\\
+\textit{\color{blue}define conflicts}
+
+
+
+\subsection{Problem structure}
+Let us consider a couple of simple examples that might help discover some structure in the problem.
+
 \begin{eg}
   Consider the situation with $J_{1} = \{ 1 \}, J_{2} = \{ 2 \}$. When both
   vehicles have the same release dates $r_{1} = r_{2} = r$, the order in which
@@ -232,7 +358,7 @@ first consider some simple examples.
   \end{align*}
 \end{define}
 
-\subsection{Single Platoon Positioning}
+\subsubsection{Single Platoon Positioning}
 
 Focus on the problem with two lanes $F_{A}$ and $F_{B}$ where we assume that
 there is only a single platoon arriving on lane $B$, i.e., the \textit{single
@@ -292,17 +418,6 @@ We provide a criterium for vehicles from $A$ to be candidates for going before t
 
 \noindent
 \textit{\textit{\color{blue}illustrate the two job case with the ``decision'' diagram}}
-
-\subsection{Branch-and-Bound}
-
-Formulate the problem as a MIP and solve using branch-and-bound. Argue that
-imposing maximum vehicle delay allows us to limit the set of disjunctions that
-we need to consider.
-
-\vspace{0.5em}
-\noindent
-\textit{\color{blue}lazy row generation}\\
-\textit{\color{blue}define conflicts}
 
 
 \subsection{Insertion Heuristic}
