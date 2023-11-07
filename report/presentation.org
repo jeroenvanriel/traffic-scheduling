@@ -19,6 +19,24 @@
 #+author: Jeroen van Riel
 #+email: jeroenvanriel@outlook.com
 
+* Combinatorial Optimization
+
+** knapsack (example)
+- finite set of items
+- item $i$ has non-negative weight $w_i$ and value $v_i$
+- choose items to maximize total value while keeping total weight at most $c$
+
+- as a MILP
+
+\begin{equation}
+\begin{align}
+    \text{max} \; & vx \\
+    \text{s.t.} \; & wx \leq c \\
+                    & x \geq 0 \\
+                    & x \in \mathbb{Z}
+\end{align}
+\end{equation}
+
 * Learning problem
 - set of problem instances $\mathcal{I}$
 - distribution $P$ over instances
@@ -28,12 +46,12 @@
 * Learning problem
 - general learning objective
 \begin{align}
-\min_{a \in \mathcal{A}} \mathbb{E}_{i \sim P} \; m(i, a)
+\max_{a \in \mathcal{A}} \mathbb{E}_{i \sim P} \; m(i, a)
 \end{align}
 
-- no access to $\mathcal{I}$ or $P$, so use samples
+- no access to $P$, so use samples
 \begin{align}
-\min_{a \in \mathcal{A}} \sum_{i \in D_{\mathit{train}}} \frac{1}{|D_\mathit{train}|} m(i, a)
+\max_{a \in \mathcal{A}} \sum_{i \in D_{\mathit{train}}} \frac{1}{|D_\mathit{train}|} m(i, a)
 \end{align}
 
 * Learning problem
@@ -44,22 +62,14 @@
   - algorithm parameterized by neural network with weights $\theta \in
     \mathbb{R}^p$
 \begin{align}
-\min_{\theta \in R^p} \mathbb{E}_{i \sim P} m(i, a(\theta))
+\max_{\theta \in R^p} \mathbb{E}_{i \sim P} m(i, a(\theta))
 \end{align}
 
 * Motivations for ML in CO [cite:@bengioMachineLearningCombinatorial2020]
+
 - fast approximations
   - derived in generic way
-- better algorithms
-  - by systematically exploring $\mathcal{A}$
-  - by exploiting instance distribution
-
-\vfill
-- both problems stated in MDP framework
-  - environment is \textbf{internal state of algorithm}
-
-* Main learning settings
-- learning from demonstration $\rightarrow$ fast approximations
+- learning from demonstration
   - imitation learning
   - expert such as MILP solver
 
@@ -69,8 +79,12 @@
   \includegraphics[width=0.6\textwidth]{figures/Bengio-imitation-learning.png}
 \end{figure}
 
-* Main learning settings
-- learning from experience $\rightarrow$ better algorithms
+* Motivations for ML in CO [cite:@bengioMachineLearningCombinatorial2020]
+
+- better algorithms
+  - by systematically exploring $\mathcal{A}$
+  - by exploiting instance distribution
+- learning from experience
   - objective encoded in rewards
   - algorithms (examples)
     - search-based and branch & bound
@@ -82,6 +96,7 @@
   \centering
   \includegraphics[width=0.75\textwidth]{figures/Bengio-reinforcement-learning.png}
 \end{figure}
+
 
 * Job shop (= $\mathcal{I}$)
 
@@ -110,7 +125,7 @@
   \end{align*}
 - order among jobs $j$ and $l$ is optimization decision
   \begin{align*}
-  (i,j) \rightarrow (k,l) \quad \text{ or } \quad (i,l) \rightarrow (k,j)
+  (i,j) \rightarrow (i,l) \quad \text{ or } \quad (i,l) \rightarrow (i,j)
   \end{align*}
 
 * Job shop MILP
@@ -144,25 +159,146 @@ y_{ij} &\geq 0 & \text{ for all } (i,j) \in N
 * Dispatching rule
 
 - widely used in practice
+- order jobs and put in schedule one by one
 - examples
   - SPT/LPT
   - MWR/LWR
 
+* Dispatching rule (example)
+
+\begin{figure}
+    \includegraphics[height=4cm]{figures/dispatch-example/disjunctive-graph/disjunctive-graph-0.pdf}
+    \adjustbox{margin=1cm 0 0 .5cm}{
+        \includegraphics[height=2.3cm,left]{figures/dispatch-example/schedule/job-shop-schedule-0.pdf}
+    }
+\end{figure}
+* Dispatching rule (example)
+
+\begin{figure}
+    \includegraphics[height=4cm]{figures/dispatch-example/disjunctive-graph/disjunctive-graph-1.pdf}
+    \adjustbox{margin=1cm 0 0 .5cm}{
+        \includegraphics[height=2.3cm,left]{figures/dispatch-example/schedule/job-shop-schedule-1.pdf}
+    }
+\end{figure}
+* Dispatching rule (example)
+
+\begin{figure}
+    \includegraphics[height=4cm]{figures/dispatch-example/disjunctive-graph/disjunctive-graph-2.pdf}
+    \adjustbox{margin=1cm 0 0 .5cm}{
+        \includegraphics[height=2.3cm,left]{figures/dispatch-example/schedule/job-shop-schedule-2.pdf}
+    }
+\end{figure}
+* Dispatching rule (example)
+
+\begin{figure}
+    \includegraphics[height=4cm]{figures/dispatch-example/disjunctive-graph/disjunctive-graph-3.pdf}
+    \adjustbox{margin=1cm 0 0 .5cm}{
+        \includegraphics[height=2.3cm,left]{figures/dispatch-example/schedule/job-shop-schedule-3.pdf}
+    }
+\end{figure}
+* Dispatching rule (example)
+
+\begin{figure}
+    \includegraphics[height=4cm]{figures/dispatch-example/disjunctive-graph/disjunctive-graph-4.pdf}
+    \adjustbox{margin=1cm 0 0 .5cm}{
+        \includegraphics[height=2.3cm,left]{figures/dispatch-example/schedule/job-shop-schedule-4.pdf}
+    }
+\end{figure}
+
+* Dispatching rule (example)
+
+\begin{figure}
+    \includegraphics[height=4cm]{figures/dispatch-example/disjunctive-graph/disjunctive-graph-5.pdf}
+    \adjustbox{margin=1cm 0 0 .5cm}{
+        \includegraphics[height=2.3cm,left]{figures/dispatch-example/schedule/job-shop-schedule-5.pdf}
+    }
+\end{figure}
+
+* Dispatching rule (example)
+
+\begin{figure}
+    \includegraphics[height=4cm]{figures/dispatch-example/disjunctive-graph/disjunctive-graph-6.pdf}
+    \adjustbox{margin=1cm 0 0 .5cm}{
+        \includegraphics[height=2.3cm,left]{figures/dispatch-example/schedule/job-shop-schedule-6.pdf}
+    }
+\end{figure}
+* Dispatching rule (example)
+
+\begin{figure}
+    \includegraphics[height=4cm]{figures/dispatch-example/disjunctive-graph/disjunctive-graph-7.pdf}
+    \adjustbox{margin=1cm 0 0 .5cm}{
+        \includegraphics[height=2.3cm,left]{figures/dispatch-example/schedule/job-shop-schedule-7.pdf}
+    }
+\end{figure}
+* Dispatching rule (example)
+
+\begin{figure}
+    \includegraphics[height=4cm]{figures/dispatch-example/disjunctive-graph/disjunctive-graph-8.pdf}
+    \adjustbox{margin=1cm 0 0 .5cm}{
+        \includegraphics[height=2.3cm,left]{figures/dispatch-example/schedule/job-shop-schedule-8.pdf}
+    }
+\end{figure}
+* Dispatching rule (example)
+
+\begin{figure}
+    \includegraphics[height=4cm]{figures/dispatch-example/disjunctive-graph/disjunctive-graph-9.pdf}
+    \adjustbox{margin=1cm 0 0 .5cm}{
+        \includegraphics[height=2.3cm,left]{figures/dispatch-example/schedule/job-shop-schedule-9.pdf}
+    }
+\end{figure}
+
+* Dispatching rule (example)
+
+\begin{figure}
+    \includegraphics[height=4cm]{figures/dispatch-example/disjunctive-graph/disjunctive-graph-final.pdf}
+    \adjustbox{margin=1cm 0 0 .5cm}{
+        \includegraphics[height=2.3cm,left]{figures/dispatch-example/schedule/job-shop-schedule-9.pdf}
+    }
+\end{figure}
+
+* Placement rule
+
+- dispatching rule is not sufficient
+- the example applied /last position rule/
+- alternatively use /earliest gap rule/
+
+\vfill
+\begin{figure}
+    \includegraphics{figures/job-shop-earliest-gap-1.pdf}
+    \includegraphics{figures/job-shop-earliest-gap-2.pdf}
+\end{figure}
+
+
 * Zhang et al.
+``Learning to Dispatch for Job Shop Scheduling via Deep Reinforcement Learning''
+\vfill
 
 - job shop
 - learn dispatching rule
 - GNN on disjunctive graph
-  - removing-arc or adding-arc strategy
+- remarkable placement rule
 
-* Zhang et al.
+* Notation
+
+- operation $O_{jk}$ for /k/'th operation of job $j$
+- example
+  - $O_{11} = (1, 1)$
+  - $O_{12} = (2, 1)$
+  - $O_{21} = (2, 2)$
+
+\vfill
+\begin{figure}
+    \includegraphics{figures/job-shop-earliest-gap-2.pdf}
+\end{figure}
+
+* State transition
 
 \begin{figure}
   \centering
   \includegraphics[width=1.0\textwidth]{figures/Zhang-disjunctive-graph.png}
 \end{figure}
 
-* Zhang et al.
+* State transition
 
 \begin{figure}
   \centering
@@ -172,7 +308,7 @@ y_{ij} &\geq 0 & \text{ for all } (i,j) \in N
   }
 \end{figure}
 
-* Zhang et al.
+* State transition
 
 \begin{figure}
   \centering
@@ -182,7 +318,7 @@ y_{ij} &\geq 0 & \text{ for all } (i,j) \in N
   }
 \end{figure}
 
-* Zhang et al.
+* State transition
 
 \begin{figure}
   \adjustbox{margin=1cm 0 0 0}{
@@ -193,7 +329,10 @@ y_{ij} &\geq 0 & \text{ for all } (i,j) \in N
   }
 \end{figure}
 
-* Schdule classes
+* Schedule classes [cite:@pinedoSchedulingTheoryAlgorithms2016]
+
+\textbf{Non-delay Schedule}
+A feasible schedule is called non-delay if no machine is kept idle while an operation is waiting for processing.
 
 \textbf{Active Schedule}. A feasible non-preemptive schedule is called active if
 it is not possible to construct another schedule, through changes in the order
@@ -206,16 +345,53 @@ no operation finishing later.
 semi-active if no operation can be completed earlier without changing the order
 of processing on any one of the machines.
 
+* Schedule classes [cite:@pinedoSchedulingTheoryAlgorithms2016]
+
+\textbf{Proposition}. Scheduling problem $Jm || \gamma$ has optimal active schedule if $\gamma$ is regular, i.e., non-decreasing function of completion times $C_i$.
+
 \vfill
-taken from [cite:@pinedoSchedulingTheoryAlgorithms2016]
+
+\begin{figure}
+\includegraphics[height=4cm]{figures/schedule_classes.png}
+\end{figure}
+
+* Relation to disjunctive graph
+
+\textbf{Proposition} \\
+Every complete disjunctive graph corresponds to a unique semi-active schedule.
+
+\vfill
+
+\textbf{Proposition} \\
+For every feasible semi-active schedule, there exists a sequence $\chi$ that generates it using the last position rule.
+
 
 * Tassel et al.
+
+``A Reinforcement Learning Environment For Job-Shop Scheduling''
+\vfill
+
+- job shop
+- learn something similar to dispatching rule
+- actions space subset of $\{ J_0, \dots, J_n, \text{No-Op} \}$
+
+* Tassel et al.
+
+\begin{figure}
+    \includegraphics[height=4cm]{figures/Tassel-state.png}
+\end{figure}
 
 * Traffic scheduling problem
 - total completion time $\sum C_j$
 - release dates $r_j$
 - chains $j_1 \rightarrow j_2 \rightarrow \dots \rightarrow j_k$
 - setup times (switch-over) $s_{ij}$
+
+* Next steps
+
+- relate actions in Tassel et al. to disjunctive graph
+- argue that traffic scheduling problem has semi-active optimal schedule
+- implement /gym/ environment for traffic scheduling problem
 
 * References
   \begingroup
