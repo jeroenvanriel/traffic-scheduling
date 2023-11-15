@@ -70,8 +70,8 @@ the crossing moments, so the second type of constraint is given by
   \label{eq:traffic-constr-2}
   y_{j} + p_{j} + s \leq y_{l} \; \text{ or } \; y_{l} + p_{l} + s \leq y_{j} .
 \end{align}
-This contraint features a choice, because the order of the two vehicles is free
-to choose by the traffic controller.
+This contraint features a choice, because the order of the two vehicles is left
+to the traffic controller to decide.
 
 % feasible schedule
 It is the task of the traffic controller to determine $y$ that satisfies these
@@ -87,8 +87,8 @@ choice for the optimization objective is to minimize the \textit{total delay}
 
 % speed control -> scheduling problem
 Note that determining $y$ does not determine the exact trajectories of the
-vehicles. That is, the continuous control of the speed of each vehicle is not
-yet determined. For the current project, we assume that a safe trajectory can be
+vehicles, i.e., the continuous control of the speed of each vehicle is not yet
+determined. For the current project, we assume that a safe trajectory can be
 computed from $y$ by applying an appropriate Speed Profile Algorithm (SFA), as
 discussed in \cite{timmermanPlatoonFormingAlgorithms2021}. Under this
 assumption, it turns out that the problem can be adequately stated in terms of a
@@ -129,21 +129,21 @@ $t \geq r_{j}$. Schedules without such unforced idle time are called
 
 \begin{eg}
   \label{eg:non-delay}
-  Consider $n=2$ jobs with processing times $p_{1}=2, p_{2}=1$ and
-  release dates $r_{1}=0, r_{2}=\epsilon > 0$. Processing job 1 before job 2
-  results in a schedule with total completion time $\sum C_{j} = 2 + 3 = 5$.
-  However, scheduling job 2 first requires us to introduce $\epsilon$ idle time,
-  but has a better total completion time of
-  $\sum C_{j} = (\epsilon + 1) + (\epsilon + 1 + 2) = 4 + 2 \epsilon$, for
-  $\epsilon < 1/2$. See Figure~\ref{fig:non-delay} for an illustration of both schedules.
+  Consider $n=2$ jobs with processing times $p_{1}=2, p_{2}=1$ and release dates
+  $r_{1}=0, r_{2}=\epsilon > 0$. Processing job 1 before job 2 results in a
+  schedule with total completion time $\sum C_{j} = 2 + 3 = 5$. However,
+  scheduling job 2 first requires us to introduce $\epsilon$ idle time, but for
+  $\epsilon < 1/2$, it has a better total completion time of
+  $\sum C_{j} = (\epsilon + 1) + (\epsilon + 1 + 2) = 4 + 2 \epsilon$. See
+  Figure~\ref{fig:non-delay} for an illustration of both schedules.
 \end{eg}
 
 \begin{figure}
   \centering
   \includegraphics[width=0.2\textwidth]{figures/non-delay.pdf}
   \caption{Illustration of the two possible schedules for
-    Example~\ref{eg:non-delay}. The unforced idle time in the second schedule is
-    shaded.}
+    Example~\ref{eg:non-delay}. The first schedule is a non-delay schedule. The
+    unforced idle time in the second schedule is shaded.}
   \label{fig:non-delay}
 \end{figure}
 
@@ -167,14 +167,14 @@ means that the scheduler may decide to \textit{merge} these chains arbitrarily.
 When job $j$ is directly followed by job $l$, we might want to introduce some
 \textit{sequence-dependent setup time} $s_{jl} \geq 0$, by requiring that
 $y_{l} \geq C_{j} + s_{jl}$. For our purposes, we will only consider setup times
-depending on the family to which jobs belong. For $k_{1} \neq k_{2}$, any pair
-of jobs $j_{1} \in F_{k_{1}}$, $j_{2} \in F_{k_{2}}$ must satisfy either
+depending on the family to which jobs belong. For $k_{1} \neq k_{2}$ and any pair
+of jobs $j_{1} \in F_{k_{1}}$, $j_{2} \in F_{k_{2}}$, either the constraint
 \begin{align*}
-y_{j_{2}} \geq C_{j_{1}} + s_{k_{1},k_{2}} ,
+C_{j_{1}} + s_{k_{1},k_{2}} \leq y_{j_{2}}
 \end{align*}
 is satisfied or
 \begin{align*}
-y_{j_{1}} \geq C_{j_{2}} + s_{k_{2},k_{1}} .
+C_{j_{2}} + s_{k_{2},k_{1}} \leq y_{j_{1}}.
 \end{align*}
 
 \textit{\color{blue}Is this the right moment to discuss generalized precedence
@@ -364,7 +364,7 @@ Focus on the problem with two lanes $F_{A}$ and $F_{B}$ where we assume that
 there is only a single platoon arriving on lane $B$, i.e., the \textit{single
   platoon positioning problem}. In this case, the optimal schedule can be easily
 computed by considering all positions. However, we use this simple case to
-obtain some insight into when vehicles that are close act as if they are
+obtain some insight into when vehicles that are close act as if they were
 platoons.
 
 \begin{theorem}
