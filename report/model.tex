@@ -181,7 +181,7 @@ C_{j_{2}} + s_{k_{2},k_{1}} \leq y_{j_{1}}.
   constraints? Maybe it is better to defer this to the discussion on augmenting
   the disjunctive graph.}
 
-\subsection{Single Intersection Scheduling}
+\subsection{Problem Formulation}
 
 % translate into pure scheduling problem
 Using the modelling elements introduced above, we now pose the traffic control
@@ -192,12 +192,12 @@ $j$, which needs to be determined by the traffic controller. We will now show ho
 the two types of constraints are formulated.
 
 % constraints
-Let $n_{k}$ denote the total number of vehicles arriving to lane $k$.
-For each lane, we define a familiy $F_{k}$ containing all vehicles that arrive
-to it. We assume, without loss of generality, that the jobs are ordered
-according to non-decreasing release dates. Therefore, the first type of
-constraints~\eqref{eq:traffic-constr-1} for each lane are modelled by the chain
-of precedence constraints by assuming that
+Let $n_{k}$ denote the total number of vehicles arriving to lane $k$. For each
+lane, we define a family $F_{k}$ consisting of all vehicles that arrive to it.
+We assume, without loss of generality, that the jobs are ordered according to
+non-decreasing release dates. Therefore, the first type of
+constraints~\eqref{eq:traffic-constr-1} for each lane are modelled by a chain
+of precedence constraints on each family by assuming that
 \begin{align*}
   r_{J_{kn}} \leq r_{J_{km}} \implies n \leq m ,
 \end{align*}
@@ -213,10 +213,11 @@ convential traffic lights.
 % objective
 Because the release dates $r_{j}$ and processing time $p_{j}$ are assumed to be
 known a priori, observe that minimizing the total delay ~\eqref{eq:total-delay}
-experience by all vehicles is equivalent to minimzing the total completion time,
+experienced by all vehicles is equivalent to minimzing the total completion time,
 so this is the objective that we will use from here one.
 
 \begin{define}[Single Intersection Scheduling Problem]
+  \label{def:single-problem}
   The single machine scheduling problem with release dates, job families with
   chain precedence constraints, family-dependent setup times and total
   completion time objective is called the {\normalfont single intersection
@@ -244,41 +245,78 @@ crossing times of two jobs from the same lane. This give rise to an additional
 assumption that can be made on the specification of the release dates.
 
 \begin{assump}
+  \label{assump2}
   For each job family $F_{k} = \{ J_{k1} , \dots, J_{k,n_{k}} \}$, the release
   dates satisfy $r_{J_{km}} = \max\{ r_{J_{km}}, r_{J_{k,m-1}} + p \}$, for all
   $m \in \{2, \dots, n_{k}\}$, without loss of generality.
 \end{assump}
 
-\textit{\color{blue}At this point, we should have defined the Single Intersection Scheduling Problem clearly and completely. If you don't agree, please indicate }
+\textit{\color{blue}At this point, we should have defined the Single Intersection Scheduling Problem clearly and completely. If you don't agree, please indicate what is missing or unclear. Also note that giving a MILP formulation is not always the best way to state a problem in general, because different formulations, although mathematically equivalent, can have very different solving time complexity.}
 
+
+\subsubsection{Mixed-Integer Linear Progam}
+
+A common method of solving combinatorial problems in general and scheduling
+problems in particular is by formulating a Mixed-Integer Linear Program (MILP)
+and solving it using branch-and-bound methods. Let $\mathcal{C}$ denote the set
+of all single precedence constraints $j \rightarrow l$, collected from all
+family chains and let
+$\mathcal{D} = \{ \{j,l\} : j \in F_{k_{1}}, l \in F_{k_{2}}, k_{1} \neq k_{2} \}$
+denote all pairs of jobs from distinct families, to which we will refer as
+\textit{conflict pairs}. The problem from Definition~\ref{def:single-problem}
+under Assumptions~\ref{assump1} and \ref{assump2} can be stated as
+%
+\begin{subequations}
+\begin{align}
+  \text{minimize } & \sum_{j=1}^{n} C_{j} & \\
+  \text{s.t. } & r_{j} \leq y_{j} & \text{ for all } j=1, \dots, n, \\
+              & C_{j} \leq y_{l} & \text{ for all } j \rightarrow l \in \mathcal{C}, \\
+              & C_{j} + s \leq y_{l} \text{ or } C_{l} + s \leq y_{j} & \text{ for all } \{j,l\} \in \mathcal{D}. \label{eq:natural-disjunctions}
+\end{align}
+\end{subequations}
+
+Observe that the above so-called \textit{natural formulation} is not yet a
+proper MILP, because of disjunctive constraints~\eqref{eq:natural-disjunctions}.
+One way to resolve this issue is to explicitly encode the ordering decisions.
+For each $(j,l) \in \mathcal{D}$, we could introduce a binary decision variable
+$o_{jl}$. A value of $o_{jl} = 0$ indicates that vehicle $j$ goes before vehicle
+$l$ and a value of $o_{jl} = 1$ indicates that $l$ goes before $j$. However,
+note that this introduces unnecessary redundancy into the formulation, because
+$o_{jl} = 1 - o_{lj}$ should always hold. We only need one variable for each
+(unordered) pair of these vehicles, so we make an explicity selection by
+defining $\bar{\mathcal{D}} = \{ (j,l) \in \mathcal{D} : j < l \}$. Let $M > 0$
+denote a sufficiently large constant (which may depend on the current problem
+instance), then using the well-known \textit{big-M method}, we transform the
+above natural formulation into
+%
+\begin{subequations}
+\begin{align}
+  \text{minimize } & \sum_{j=1}^{n} C_{j} & \\
+  \text{s.t. } & r_{j} \leq y_{j} & \text{ for all } j=1, \dots, n, \\
+              & C_{j} \leq y_{l} & \text{ for all } j \rightarrow l \in \mathcal{C}, \\
+              & C_{j} + s \leq y_{l} + o_{jl}M  & \text{ for all } (j,l) \in \bar{\mathcal{D}}, \label{eq:disjunctive-constraints} \\
+              & o_{jl} \in \{ 0, 1 \} & \text{ for all } (j,l) \in \bar{\mathcal{D}} ,
+\end{align}
+\end{subequations}
+which is now a proper MILP.
 
 \subsubsection{Complexity}
 % complexity
 The problem of minimizing the total completion time with release dates (written
-as $1 | r_{j} | \sum C_{j}$ in the three-field notation
+as $1 \, | \, r_{j} \, | \sum C_{j}$ in the three-field notation
 \cite{grahamOptimizationApproximationDeterministic1979}) has been long known to
 be NP-hard \cite{lenstraComplexityMachineScheduling1977}, so there is no hope in
 finding a polynomial algorithm for our more general problem unless
 $\mathcal{P} = \mathcal{NP}$. Therefore, we must resort to exhaustive
 branch-and-bound methods or heuristics. However, note that this only holds for
-the problem in its full generality. It might, for example, be worthwhile to
-consider the complexity when one or more parameters are fixed. Specifically, it
-would be interesting to verify the complexity in case of a fixed number of
-lanes.
+the problem in its full generality. It might be worthwhile to further study the
+parameterized complexity, i.e., the complexity of the problem as a function of
+one or more of its parameters \cite{cyganParameterizedAlgorithms2015}.
+Specifically, it would be interesting to verify the complexity in case of a
+fixed number of lanes.
 
 
-\subsubsection{Branch-and-Bound}
-
-A common method of solving combinatorial problems in general and scheduling problems in particular is by formulating it as a Mixed-Integer Linear Program.
-
-\vspace{0.5em}
-\noindent
-\textit{\color{blue}Argue that imposing maximum vehicle delay allows us to limit the set of
-disjunctions that we need to consider.} \\
-\textit{\color{blue}lazy row generation}\\
-\textit{\color{blue}define conflicts}
-
-
+\newpage
 
 \subsection{Problem structure}
 Let us consider a couple of simple examples that might help discover some structure in the problem.
@@ -370,7 +408,28 @@ Let us consider a couple of simple examples that might help discover some struct
   \end{align*}
 \end{define}
 
-\subsubsection{Single Platoon Positioning}
+\subsubsection{Maximum vehicle delay}
+
+Suppose we require that vehicles may not be delayed for longer than a fixed
+maximum time $d_{\text{max}} \geq 0$. This means that the delay must satify
+$y_{j} - r_{j} \leq d_{\text{max}}$, which implies that
+$r_{j} \leq y_{j} \leq r_{j} + d_{\text{max}}$. A potential benefit of
+introducing this maximum delay is that it could reduce the number of conflicts
+between vehicles, which could make solving the MILP easier. However, it can also
+cause the problem to become infeasible.
+
+Consider a pair of conflicting vehicles $j, l$ and assume $r_{j} \leq r_{l}$,
+without loss of generality. Observe that for
+$d_{\text{max}} < r_{l} - r_{j} - p - s$, we do not need to worry about the
+conflict anymore, because
+$C_{j} + s = y_{j} + p + s \leq r_{j} + d_{\text{max}} + p + s < r_{l} \leq y_{l}$,
+so the disjunctive constraint in \eqref{eq:disjunctive-constraints} can only
+hold for $o_{jl} = 0$. In other words, the order of $j$ and $l$ is already
+fixed, because the schedule is infeasible otherwise. Therefore, there is no real
+conflict between vehicles $j$ and $l$, so $\{j, l\} \notin \mathcal{D}$.
+
+
+\subsection{Single Platoon Positioning}
 
 Focus on the problem with two lanes $F_{A}$ and $F_{B}$ where we assume that
 there is only a single platoon arriving on lane $B$, i.e., the \textit{single
@@ -431,8 +490,7 @@ We provide a criterium for vehicles from $A$ to be candidates for going before t
 \noindent
 \textit{\textit{\color{blue}illustrate the two job case with the ``decision'' diagram}}
 
-
-\subsection{Insertion Heuristic}
+\subsubsection{Insertion Heuristic}
 
 We propose a heuristic that constructs a schedule for two lanes by considering
 the vehicles in order of arrival and iteratively inserting each next vehicle in
@@ -455,7 +513,9 @@ positions of later platoons.
 
 \newpage
 
-\section{Job Shop Scheduling}
+\section{Network of Intersections}
+
+\subsection{Job Shop Scheduling}
 
 This section discusses the classical \textit{job shop} scheduling environment.
 Assume there are $m$ machines and $n$ jobs. A job $j$ consists of exactly $m$
@@ -851,6 +911,14 @@ splitting is sometimes necessary to obtain an optimal schedule. The main idea is
 that delaying a job $j$ might require to also delay further downstream jobs.
 Therefore, it might be cheaper overall to not delay $j$, but interrupt some
 already running job $l$ instead.
+
+
+\section{Discussion}
+
+We assumed that it is always possible to compute a speed profile, given a
+feasible schedule $y$ for the scheduling problem. However, I think that certain
+parameters like maximum acceleration and breaking influence the processing time
+$p$ and the switch-over time $s$ that are necessary for this assumption to hold.
 
 
 \bibliography{references}
