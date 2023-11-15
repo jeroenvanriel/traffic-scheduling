@@ -216,6 +216,15 @@ known a priori, observe that minimizing the total delay ~\eqref{eq:total-delay}
 experience by all vehicles is equivalent to minimzing the total completion time,
 so this is the objective that we will use from here one.
 
+\begin{define}[Single Intersection Scheduling Problem]
+  The single machine scheduling problem with release dates, job families with
+  chain precedence constraints, family-dependent setup times and total
+  completion time objective is called the {\normalfont single intersection
+    scheduling problem}. In the three-field notation
+  \cite{grahamOptimizationApproximationDeterministic1979}, we will denote it as
+  $1 \, | \, r_{j}, \text{fmls}, \text{chains}, s_{gh} \, | \sum C_{j}$.
+\end{define}
+
 When vehicles turn at the intersection, the safe switch-over time between
 vehicles depends on the involved lanes, because some turns take more time to
 complete than others, see Figure~\textit{\color{blue}todo (see Limpens' Figure
@@ -239,6 +248,9 @@ assumption that can be made on the specification of the release dates.
   dates satisfy $r_{J_{km}} = \max\{ r_{J_{km}}, r_{J_{k,m-1}} + p \}$, for all
   $m \in \{2, \dots, n_{k}\}$, without loss of generality.
 \end{assump}
+
+\textit{\color{blue}At this point, we should have defined the Single Intersection Scheduling Problem clearly and completely. If you don't agree, please indicate }
+
 
 \subsubsection{Complexity}
 % complexity
