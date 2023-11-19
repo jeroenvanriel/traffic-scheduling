@@ -540,78 +540,314 @@ positions of later platoons.
 
 \section{Network of Intersections}
 
+% structure (of the network)
+We now leave the single intersection case and turn to vehicles traveling through
+a network of intersections. The network is modeled as a weighted directed graph
+$G=(V,E)$, with nodes and arcs representing intersections and roads,
+respectively. Vehicles can travel along a series of arcs that are connected. Let
+$d(x,y)$ be defined as the \textit{distance} between nodes $x$ and $y$. We
+assume there are no nodes of degree two, since their two incident arcs $(x,y)$
+and $(y,z)$ could be merged into one arc $(x,z)$ with
+$d(x,z) = d(x,y) + d(y,z)$, without loss of expressiveness. Each node of degree
+one is called an \textit{external node} and models the location where vehicles
+enter (\textit{entrypoint}) or exit (\textit{exitpoint}) the network. A node of
+degree at least three is called an \textit{internal node} and models an
+intersection.
+
+% behavior (traveling through the network)
+Let the route of vehicle $j$ be denoted by $R_{j}$, which is encoded as a
+sequence of nodes. Vehicle $j$ enters the network at some external node
+$R_{j}(0)$ at time $r_{j}$ and then visits the $n_{j}$ nodes
+$R_{j}(1), \dots, R_{j}(n_{j})$ until it reaches the exitpoint
+$R_{j}(n_{j} + 1)$, where it leaves the network.
+% define common path and merge point
+Given two routes $R_{j}$ and $R_{l}$, we define a common path
+$p=(i_{1},\dots,i_{L})$ as a substring of length $L$ of both routes (including
+external nodes). We refer to the first node $i_{1}$ of a common path as a
+\textit{merge point}. The set of all common paths for vehicles $j$ and $l$ is
+denoted by $P_{jl}$. The set of all merge points for vehicles $j$ and $l$ is
+denoted by $M_{jl}$.
+
+\vspace{0.5em}
+\noindent
+\textit{\color{blue}Illustrate common paths and merge points with a small
+  example (figure).}
+\vspace{0.5em}
+
+% behavior on lanes
+Vehicles are not able to overtake each other when traveling on the same arc. We
+assume that arcs provide infinite \textit{buffers} for vehicles, meaning that
+there is no limit on the number of vehicles that are traveling on the same arc
+at the same time. However, we impose a minimum time required to travel along an
+arc $(x,y)$. By assuming identical maximum speeds among vehicles, $d(x,y)$ can
+be directly interpreted as this minimum travel time.
+
+% constraints
+Let $y_{ij}$ denote the time vehicle $j$ enters intersection $i$. Crossing the
+intersection takes $p_{ij}$ time. Like in the single intersection case, we have
+again two types of constraints. At most one vehicle can cross an intersection at
+the same time (i), so when two consecutive vehicles crossing an intersection
+originate from the same arc, they may pass immediately after each other. When a
+vehicle $l$ that is about to cross next comes from a different arc than the
+vehicle $j$ that last crossed the intersection, we require that there is at
+least a \textit{switch-over time} $s_{jl}$ between the moment $j$ leaves and the
+moment $l$ enters the intersection (ii).
+
+% (scheduling) problem
+Assuming that arrival times and routes of all vehicles are fixed and given, the
+task of the traffic controller is to decide when individual vehicles should
+cross intersections by determining $y$, while minimizing some measure of
+optimality. This problem is similar to the classical job shop scheduling
+setting, with intersections and vehicles now taking the roles of machines and
+jobs, respectively. Therefore, we will first discuss this classical problem
+before discussing how it should be adapted to fit the above setting.
+
+
 \subsection{Job Shop Scheduling}
 
-This section discusses the classical \textit{job shop} scheduling environment.
-Assume there are $m$ machines and $n$ jobs. A job $j$ consists of exactly $m$
-operations, one for each of the machines. We let $(i,j)$ denote the operation of
-job $j$ that needs to be processed on machine $i$. The time required for
-processing operation $(i,j)$ is denoted by $p_{ij}$. The operations of a job
-need to be executed in a fixed given order, which may be different among jobs,
-and an operation may only start once its predecessor has completed processing.
-Each machine can process at most one operation at the same time and, once
-started, operations cannot be preempted.
+Assume there are $m$ machines and $n$ jobs that need to be processed on these
+machines. A job $j$ consists of exactly $m$ operations, one for each of the
+machines. We use the notation $(i,j)$ to denote the operation of job $j$ that
+needs to be processed on machine $i$. The time required for processing operation
+$(i,j)$ is denoted by $p_{ij}$. When a job only needs processing on a subset of
+the machines, we can simply assume that $p_{ij} = 0$ for the machines that are
+not involved. Like in the single machine case, we may define a release date
+$r_{ij}$ for each operation, specifying the earliest time processing may start.
+Let the set of all operations be denoted by $N$.
 
-Let the set of all operations be denoted by $N$. Furthermore, we encode the job
-routes by defining the set $\mathcal{C}$ of precedence constraints
-$(i,j) \xrightarrow{} (k,j)$. Let $y_{ij}$ denote the start of operation
-$(i,j)$. The completion time of job $j$ is defined as
-$C_{j} := y_{lj} + p_{lj}$, where $l$ is the last machine on which $j$ must be
-processed. A valid schedule is given by setting values for $y_{ij}$ such that
-the above requirements are met. There are various measures for how \textit{good}
-a given schedule is. For the purpose of this example, let us consider the
-well-known makespan objective $C_{\text{max}} := \max_{j} C_{j}$, which is often
-related to efficient use of the available machines. Minimizing the makespan can
-now be formulated as a Mixed-Integer Linear Program (MILP) as follows:
+% machine order constraints
+The order in which a job visits the machines is called the \textit{machine
+  order} of this job. The machine order is given as part of the problem
+specification and may be different for each job. An operation $(k,j)$ may only
+start once its predecessor $(i,j)$ has completed processing, which means that
+the precedence constraint $(i,j) \rightarrow (k,j)$ must be satisfied. In
+general, machine order of a job is encoded as a chain of precedence constraints.
+The set of all the pairs of operations to which such constraint applies is
+denoted by $\mathcal{C}$.
+
+% machine sequence constraints
+Each machine $i$ can process at most one operation at the same time and, once
+started, operations cannot be preempted. Therefore, the scheduler needs to order
+the operations that need processing on $i$. We define the set of
+\textit{conflict pairs}
+\begin{align}
+  \mathcal{D} = \{ \{(i,j), (i,l)\} : (i,j), (i,l) \in N \},
+\end{align}
+which generalizes the conflict pairs that we defined for the single intersection
+in Section~\ref{sec:single-MILP}.
+
+% problem formulation for makespan
+Let $y_{ij}$ denote the time when operation $(i,j)$ starts processing, which
+needs to be determined by the scheduler. A valid schedule is given by setting
+values for $y_{ij}$ such that the above requirements are met. There are various
+measures for how \textit{good} a given schedule is. For the purpose of the
+discussion that follows, let us consider the well-known makespan objective
+\begin{align}
+\max_{(i,j) \in N} C_{ij},
+\end{align}
+where $C_{ij} = y_{ij} + p_{ij}$ is the completion time of
+operation $(i,j)$. Minimizing the makespan often results in schedules that make
+efficient use of the available machines and can now be formulated as
 %
-\begin{align*}
+\begin{subequations}
+  \label{eq:job-shop-natural}
+\begin{align}
   \text{minimize } C_{\text{max}} \\
-  y_{ij} + p_{ij} &\leq y_{kj}  & \text{ for all } (i,j) \xrightarrow{} (k,j) \in \mathcal{C} \\
-  y_{il} + p_{il} &\leq  y_{ij} \text{ or } y_{ij} + p_{ij} \leq y_{il}  & \text{ for all } (i,l) \text{ and } (i,j), i =1, \dots,m \\
-  y_{ij} + p_{ij} &\leq C_{\text{max}} & \text{ for all } (i,j) \in N \\
-  y_{ij} &\geq 0 & \text{ for all } (i,j) \in N
-\end{align*}
+  \text{s.t. } C_{ij} &\leq y_{kj}  & \text{ for all } (i,j) \xrightarrow{} (k,j) \in \mathcal{C}, \\
+  C_{il} &\leq  y_{ij} \text{ or } C_{ij} \leq y_{il}  & \text{ for all } \{(i,l), (i,j)\} \in \mathcal{D}, \label{eq:disjunctive-constraints} \\
+  C_{ij} &\leq C_{\text{max}} & \text{ for all } (i,j) \in N, \\
+  y_{ij} &\geq r_{ij} & \text{ for all } (i,j) \in N.
+\end{align}
+\end{subequations}
 %
-The first set of constraints enforce the order of operations belonging to the
-same job. The second set of constraints are called \textit{disjunctive}, because
-they model that we need to choose between jobs $j$ and $l$ to be scheduled first
-on machine $i$. The third set of constraints are used to define the makespan and the
-last line enforces non-negative start times.
+The first set of constraints enforces the machine order for each job. The second
+set of constraints are called \textit{disjunctive}, because they model the
+choice between jobs $j$ and $l$ to be scheduled first on machine $i$. The third
+set of constraints are used to define the makespan and the last line enforces
+the release dates.
+
+% introduce s(i,j,l)
+To support the following discussion, we introduce some additional notation.
+Consider again the set of conflict pairs $\mathcal{D}$. For each conflict pair
+$\{ (i,j), (i,l) \} \in \mathcal{D}$, the scheduler needs to make a binary
+decision, i.e., it needs to decide whether jobs $j$ goes before job $l$ or vice
+versa. Similarly to what we did in Section~\ref{sec:single-MILP}, we define the
+auxilliary set
+\begin{align}
+  \bar{\mathcal{D}} = \{ (i,j,l) : \{ (i,j), (i,l) \} \in \mathcal{D}, j < l \} .
+\end{align}
+For each $(i,j,l) \in \bar{\mathcal{D}}$, we define the binary variable
+$o(i,j,l)$ to encode the decision in the disjunctive constraints
+\eqref{eq:disjunctive-constraints}. A value of zero corresponds to $j$ crossing
+first and a value of one indicates that $l$ crosses first.
+
+% travel time
+Jobs may represent physical objects that need to be processed on machines.
+Suppose we want to model the \textit{travel time} that is necessary to move the
+job physically to the next machine. We can use so-called \textit{generalized
+  precedence constraints} for this. We use the notation
+\begin{align*}
+  (i,j) \xrightarrow{d} (k,j)
+\end{align*}
+to indicate that operation $(i,j)$ is followed by operation $(k,j)$ and it takes
+$d$ time to move the job from machine $i$ to $k$. This constraint can also be
+formulated as
+\begin{align}
+  C_{ij} + d \leq y_{kj} .
+\end{align}
+Clearly, this generalizes the type of precedence constraints that we have been
+using up till now (the original type is obtained by setting $d=0$).
+
+\subsection{Problem Formulation}
+
+The traffic control problem on a network of intersections can be modeled as a
+job shop problem with generalized precedence constraints modeling the travel
+times of vehicles and additional restrictions on the ordering of operations. As
+in the single intersection case, intersections and vehicles are represented by
+machines and jobs, respectively. Note that external nodes in $G$ are not
+considered to be intersections.
+
+% route and travel time (generalized prec. constraints)
+For each job $j$, the machine order is given by the route $R_{j}$ of the
+corresponding vehicle. The release date $r_{j}$ models the arrivals of vehicle
+$j$ at its entrypoint $R_{j}(0)$. At internal nodes
+$i \in \{R_{j}(1), \dots, R_{j}(n_{j})\}$, the starting time $y_{ij}$ models the
+planned crossing time of vehicle $j$ at this intersection. The processing time
+$p_{ij}$ models the amount of time necessary for safe crossing. Consider a pair
+of consecutive nodes $(i,k)$ on the route $R_{j}$. The minimum time required to
+travel is modeled by the generalized precedence constraint
+\begin{align}
+  (i,j) \xrightarrow{d(i,k)} (k,j) .
+\end{align}
+Again, we denote the set of all pairs of operations
+$((R_{j}(n), j), (R_{j}(n+1), j))$ on consecutive pairs of nodes by
+$\mathcal{C}$.
+
+
+% restricting allowed orderings s
+Now consider the decisions that need to be made regarding the ordering of
+operations on the same machine, encoded by $o \in \{0,1\}^{\bar{\mathcal{D}}}$.
+First of all, note that some binary vectors do not correspond to a feasible
+schedule, because they encode a cycle of precedence constraints. By assuming
+that vehicles cannot overtake each other while driving on the same lane, we are
+further restricting the possible values of $o$. Consider a pair of vehicles
+$j,l$. On each common path $(i_{1}, i_{2}, \dots, i_{L}) \in P_{jl}$, the order
+cannot change, so we must have
+\begin{align}
+  o(i_{1},j,l) = o(i_{2},j,l) = \dots = o(i_{L},j,l).
+\end{align}
+% merge point if external node
+A special case is when the merge point $i_{1}$ is an external node. In that
+case, $i_{1}$ must be the entrypoint of both vehicles. That means that the order
+on $p$ is determined by the order of arrival, which is determined by the release
+dates. Therefore, we require $o(i_{1},j,l) = 1$ if $r_{j} > r_{l}$, and
+$o(i_{1},j,l) = 0$ otherwise.
+% summarize
+Finally, let $\mathcal{O} \subset \{0,1\}^{\bar{\mathcal{D}}}$ denote the set of
+all valid assignments to $o$.
+
+% relation between o and y
+We will now explain how the ordering decisions are related to the starting times $y$.
+Note that $y_{ij}$ is only defined for internal nodes $i$.
+% merge point is internal node
+Consider an arbitrary triple $(i,j,l) \in \bar{\mathcal{D}}$. Suppose
+$i \in M_{jl}$. In that case, the vehicles $j$ and $l$ approach $i$ from
+different arcs, which means that switch-over time must be enforced, so we have
+\begin{align}
+  \begin{cases}
+    (i,j) \xrightarrow{s} (i,l) & \text{ if } o(i,j,l) = 0 , \\
+    (i,l) \xrightarrow{s} (i,j) & \text{ if } o(i,j,l) = 1 .
+  \end{cases}
+\end{align}
+When $i$ is not a merge point, but it lies on some common path of $j$ and $l$,
+then both vehicles are driving on the same lane, so we simply have
+\begin{align}
+  \begin{cases}
+    (i,j) \xrightarrow{} (i,l) & \text{ if } o(i,j,l) = 0 , \\
+    (i,l) \xrightarrow{} (i,j) & \text{ if } o(i,j,l) = 1 .
+  \end{cases}
+\end{align}
+We merge these two cases by defining the switch-over time as
+\begin{align}
+  s(i,j,l) =
+  \begin{cases}
+    s & \text{ if } i \in M_{jl}, \\
+    0 & \text{ otherwise },
+  \end{cases}
+\end{align}
+%
+which allows us to now compactly formulate the problem of minimizing total delay
+in the network as
+%
+\begin{subequations}
+\begin{align}
+  \text{minimize } & \sum_{(i,j) \in N} C_{ij} \\
+  \text{s.t. } & y_{ij} \geq r_{ij} & \text{ for all } (i,j) \in N, \\
+  & (i,j) \xrightarrow{d(i,k)} (k,j) & \text{ for all } ((i,j), (k,j)) \in \mathcal{C} , \label{eq:travel-constraints} \\
+  & (i,j) \xrightarrow{s(i,j,l)} (i,l) & \text{ if } o(i,j,l) = 0 , \text{ for } (i,j,l) \in \bar{\mathcal{D}}, \label{eq:common-path-constraints-1} \\
+  & (i,l) \xrightarrow{s(i,j,l)} (i,j) & \text{ if } o(i,j,l) = 1 , \text{ for } (i,j,l) \in \bar{\mathcal{D}}, \label{eq:common-path-constraints-2} \\
+  & o \in \mathcal{O}. \label{eq:common-path-order-constraints}
+\end{align}
+\end{subequations}
+
+\begin{define}[Multi-Intersection Scheduling Problem]
+  Given an intersection graph $G$, the job shop problem with release dates,
+  graph travel time constraints \eqref{eq:travel-constraints}, machine-dependent
+  setup times and no-overtaking constraint~\eqref{eq:common-path-constraints-1},
+  \eqref{eq:common-path-constraints-2} and
+  \eqref{eq:common-path-order-constraints} with total completion time objective
+  is called the {\normalfont multi-intersection scheduling problem}. In the
+  three-field notation, it could be denoted as \\
+  $Jm \, | \, r_{j}, \text{graph}, s_{ijk}, \text{no-overtaking} \; | \sum C_{j}$.
+\end{define}
+
+In what follows, we will also make the following assumption.
+\begin{assump}
+The graph $G$ on which vehicles are travelling is acyclic and connected.
+\end{assump}
+
+
+\newpage
+
+\subsection{Disjunctive graph}
 
 % disjunctive graph
-A common way of representing job shop problems is through the corresponding
-\textit{disjunctive graph} \textit{\color{blue}(cite! is there a more accessible
-  reference than this original french paper?)}, see
-Figure~\ref{fig:disjunctive-graph-example} for an example. Let
-$(N, \mathcal{C}, \mathcal{D})$ be a directed graph with nodes corresponding to
-all the operations and two types of arcs. The \textit{conjunctive} arcs
-$\mathcal{C}$ encode the given machine order for each job. If
+As an alternative to the natural formulation~\eqref{eq:job-shop-natural}, job
+shop instance we can also be represented very clearly by their corresponding
+\textit{disjunctive graph} (see Section 7.1 of
+\cite{pinedoSchedulingTheoryAlgorithms2016} for a textbook introduction). Let
+$(N, \mathcal{C}, \mathcal{D})$ be a directed graph with nodes $N$ corresponding
+to operations and two types of arcs. The \textit{conjunctive} arcs $\mathcal{C}$
+encode the given machine order for each job. If
 $(i,j) \rightarrow (k, j) \in \mathcal{C}$ then job $j$ needs to be processed on
 machine $i$ before it may be processed on machine $k$. The \textit{disjunctive}
 arcs $\mathcal{D}$ are used to encode the decisions regarding the ordering of
-jobs on a particular machine. For every pair of different jobs $j$ and $l$ that
-need to be processed on the same machine $i$, there is a pair of arcs in
-opposite directions between $(i,j)$ and $(i,l)$. Therefore, each machine
-corresponds to a clique of double arcs between all the operations that need to
-be performed on that machine.
+jobs on a particular machine. For every conflict pair $\{(i,j), (i,l)\}$ of
+different jobs $j$ and $l$ that need to be processed on the same machine $i$,
+there is a pair of arcs in opposite directions between $(i,j)$ and $(i,l)$.
+Therefore, each machine corresponds to a clique of double arcs between all the
+operations that need to be performed on that machine.
+
+For each machine $i$, the scheduler needs to order the operations that need processing on
+$i$. This corresponds to choosing exactly one arc from every pair of opposite
+disjunctive arcs. Let $\mathcal{D}' \subset \mathcal{D}$ be such a selection of
+disjunctive arcs and let $G(\mathcal{D}')$ denote the resulting graph, to which
+we will refer as a \textit{complete} disjunctive graph. It it not hard to see
+that any feasible schedule corresponds to an acyclic complete disjunctive
+graph.
+
+Suppose we have $m=3$ machines and $n=3$ jobs. The first job has a machine order of 1,2,3 and the other two jobs have a machine order of 2,3,1.
+Figure~\ref{fig:disjunctive-graph-example} shows the corresponding disjunctive graph for this instance.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.6\textwidth]{figures/disjunctive-graph.pdf}
+  \includegraphics[width=0.5\textwidth]{figures/disjunctive-graph.pdf}
   \caption{Disjunctive graph corresponding to a job shop instance with three
     jobs and three machines. Operations that need to be scheduled on the same
     machine have been given the same color, emphasizing the cliques formed by
     their disjunctive arcs (drawn as dashed lines).}
   \label{fig:disjunctive-graph-example}
 \end{figure}
-
-For each machine $k$, we need to order the operations that need processing on
-$k$. This corresponds to choosing exactly one arc from every pair of opposite
-disjunctive arcs. Let $\mathcal{D}' \subset \mathcal{D}$ be such a selection of
-disjunctive arcs and let $G(\mathcal{D}')$ denote the resulting graph, to which
-we will refer as a \textit{complete} disjunctive graph. It it not hard to see
-that any feasible schedule corresponds to an acyclic complete disjunctive
-graph.
 
 
 \subsection{Schedule generation}
@@ -668,7 +904,7 @@ example illustrates for the makespan objective. However, it can be
 shown that $Jm || \gamma$ has an active optimal schedule, when $\gamma$ is a
 regular objective, which means that it is a non-decreasing function of the
 completion times $C_1, C_2, \dots, C_n$. The makespan and total completion time
-are examples of regular objectives. Because of this result, branch \& bound
+are examples of regular objectives. Because of this result, branch-and-bound
 methods have been proposed based on enumeration of all active schedules.
 
 \vspace{0.5em}
@@ -795,124 +1031,6 @@ way.}
 
 
 
-\newpage
-
-\section{Traffic Scheduling in Networks}
-
-\subsection{MIP Formulation}
-% TODO: introduce multiple lanes, opposing lanes on the same arc and consider
-% multiple phases at intersections
-% TODO: use ``arc'' instead of ``arc''
-We now turn to vehicles traveling through a network of intersections. The
-network may be thought of as a weighted directed graph $G=(V,E)$, with nodes and
-arcs representing intersections and roads, respectively. \textbf{For now, we
-  assume that the graph is acyclic}. Let $d(x,y)$ be defined as the
-\textit{distance} between nodes $x$ and $y$. We assume there are no nodes of
-degree two, since their two incident arcs $(x,y)$ and $(y,z)$ could be merged
-into one arc $(x,z)$ with $d(x,z) = d(x,y) + d(y,z)$, without loss of
-expressiveness. Furthermore, we assume the graph is connected. Each node of
-degree one is called an \textit{external node} and models the location where
-vehicles enter (\textit{entrypoint}) or exit (\textit{exitpoint}) the network. A
-node of degree at least three is called an \textit{internal node} and models an
-intersection.
-
-Each vehicle $j$ enters the network at some external node $s$ and follows a
-predetermined sequence of arcs
-$R = ((s,i_{1}), (i_{1},i_{2}), \dots, (i_{n-1},i_{n}), (i_{n},d))$ towards an
-external node $d$ where it leaves the network. Vehicles are not able to overtake
-each other when traveling on the same arc. We assume that arcs provide
-infinite \textit{buffers} for vehicles, meaning that there is no limit on the
-number of vehicles that are traveling on the same arc at the same time.
-However, we impose a minimum time required to travel along an arc $(x,y)$. By
-assuming identical maximum speeds among vehicles, $d(x,y)$ can be directly
-interpreted as this minimum travel time.
-
-Let $y(i,j)$ denote the time vehicle $j$ enters intersection $i$. Crossing an
-intersection takes $p$ time per vehicle and at most one vehicle can cross an
-intersection at the same time. When two consecutive vehicles crossing an
-intersection originate from the same arc, they may pass immediately after each
-other. However, when a vehicle $j_{1}$ that wants to cross comes from a
-different arc than the vehicle $j_{0}$ that last crossed the intersection, we
-require that there is at least a \textit{switch-over time} $S$ between the
-moment $j_{0}$ leaves and the moment $j_{1}$ enters the intersection.
-
-Assuming that arrival times and routes of all vehicles are fixed and given, our
-task is to determine when individual vehicles should cross intersections by
-setting values for $y(i,j)$. This problem is similar to job shop scheduling,
-with intersections and vehicles now taking the roles of machines and jobs, and
-can also be formulated as a MIP, as we will show below.
-
-% lane order is main difference with job shop
-The main difference with job shop scheduling is related to the ordering of
-vehicles. In the job shop model, every order $o \in \sigma_{n}$ of jobs on a
-machine $i$ was allowed. By assuming that vehicles cannot overtake each other,
-we are limiting the valid orderings.
-% define common path and merge point
-Given two routes $R_{j}$ and $R_{l}$, we define a common path
-$p=(i_{1},\dots,i_{L})$ as a substring of both routes. We refer to the first
-node $i_{1}$ of a common path as a \textit{merge point}. The set of all common
-paths is denoted by $P_{jl}$.
-
-Consider a common path $p$ whose merge point $i_{1}$ is an external node.
-In this case, $i_{1}$ must be the entrypoint of both vehicles.
-% first merge point
-That means that the order on $p$ is determined by the order or arrival.
-Let $r_{j}$ denote the arrival time (called the \textit{release date} in
-scheduling) of vehicle $j$.
-If $r_{j} < r_{l}$, then we require that $j$ goes first, formally stated as
-\begin{align*}
-  y_{ij} + p_{ij} \leq y_{il} \text{ for all } i \in p.
-\end{align*}
-
-% internal merge points are conflicts
-Now suppose that $j$ and $l$ have a mergepoint $i_{1} \in p$ that is not an
-external node, then these vehicles approach $i_{1}$ from different arcs,
-which means that we have what we will call a \textit{conflict} between $j$ and
-$l$, because the scheduler must choose which vehicle crosses the intersection
-first. Furthermore, the switch-over time should be respected at $i_{0}$.
-Requiring that vehicle $j$ must cross first can be formally stated as
-\begin{align*}
-  y_{i_{1}j} + p_{i_{1}j} + S \leq y_{i_{1}l} \text{ and } y_{ij} + p_{ij} \leq y_{il} \text{ for all } i_{1} \neq i \in p .
-\end{align*}
-
-% introduce s-variables
-In order to model the above decision making with a MIP, we introduce binary
-decision variables $s_{i,j,l}$ to encode the relative order of $j$ and $l$ at some common
-node $i \in p \in P_{jl}$. A value of zero corresponds to $j$ crossing first and
-a value of one indicates that $l$ crosses first.
-In the case of $i_{1}$ being an external node, we treat $s_{i,j,l}$ as a fixed
-parameter of the MIP.
-For each common path $p \in P_{jl}$, we must have
-\begin{align*}
-s_{i_{1},j,l} = s_{i_{2},j,l} = \dots = s_{i_{L},j,l}.
-\end{align*}
-
-Let $N$ denote the set of operations like in the job shop example, but now pairs
-correspond to vehicles and the intersections they encounter along their route.
-Also similarly, let $A$ encode the route constraints of each vehicle. We use
-$p_{1}$ to denote the merge point of path $p$. Let $P_{jl}^{e}$ denote all the
-common paths that have an external merge point and let $P_{jl}$ denote the other
-common paths. By implicitely letting the indices $j$ and $l$ run over all the
-\textit{ordered pairs} of vehicles, we write
-%
-\begin{subequations}
-\begin{align}
-  \text{maximize } P(y) \\
-  y_{ij} + p_{ij} + t_{ik} &\leq y_{kj}, & \text{ for all } (i,j) \xrightarrow{} (k,j) \in A, \\
-  \label{1} y_{ij} + p_{ij} &\leq y_{il}, \text{ for all } i \in p, &\text{ for all } p \in P_{jl}^{e}, s_{p_{1}jl} = 1, \\
-  \label{2} y_{p_{1}j} + p_{p_{1}j} + S &\leq y_{p_{1}l},  &\text{ for all } p \in P_{jl}, s_{p_{1}jl} = 1, \\
-  \label{3} y_{ij} + p_{ij} &\leq y_{il}, \text{ for all } i \neq p_{1}, &\text{ for all } p \in P_{jl}, s_{p_{1}jl} = 1, \\
-  y_{ij} &\geq 0, & \text{ for all } (i,j) \in N ,
-\end{align}
-\end{subequations}
-where $P(y)$ denotes some unspecified performance metric, leaving for now the
-question of what it means for a schedule to be \textit{good}.
-% explain how these 'if s=1' constraints can be implemented using the big-M technique
-In order to solve this program using existing solvers, we use the well-known
-\textit{big-M} method to encode which constraints from sets \eqref{1}, \eqref{2}
-and \eqref{3} are active for specific values of the binary variables $s$.
-
-
 \subsection{Structure in Network Schedules}
 
 Before we start experimenting with the above problem (see if the MIP method
@@ -944,6 +1062,10 @@ We assumed that it is always possible to compute a speed profile, given a
 feasible schedule $y$ for the scheduling problem. However, I think that certain
 parameters like maximum acceleration and breaking influence the processing time
 $p$ and the switch-over time $s$ that are necessary for this assumption to hold.
+
+\vspace{0.5em}
+\noindent
+\textit{\color{blue}discuss multiple lanes, opposing lanes on the same arc and consider multiple phases at intersections}
 
 
 \bibliography{references}
