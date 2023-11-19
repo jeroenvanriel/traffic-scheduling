@@ -274,13 +274,16 @@ assumption that can be made on the specification of the release dates.
 
 
 \subsubsection{Mixed-Integer Linear Progam}
+\label{sec:single-MILP}
 
 A common method of solving combinatorial problems in general and scheduling
 problems in particular is by formulating a Mixed-Integer Linear Program (MILP)
 and solving it using branch-and-bound methods. Let $\mathcal{C}$ denote the set
 of all single precedence constraints $j \rightarrow l$, collected from all
-family chains and let
-$\mathcal{D} = \{ \{j,l\} : j \in F_{k_{1}}, l \in F_{k_{2}}, k_{1} \neq k_{2} \}$
+family chains. Furthermore, let
+\begin{align}
+  \mathcal{D} = \{ \{j,l\} : j \in F_{k_{1}}, l \in F_{k_{2}}, k_{1} \neq k_{2} \}
+\end{align}
 denote all pairs of jobs from distinct families, to which we will refer as
 \textit{conflict pairs}. The problem from Definition~\ref{def:single-problem}
 under Assumptions~\ref{assump1} and \ref{assump2} can be stated as
@@ -302,11 +305,14 @@ $o_{jl}$. A value of $o_{jl} = 0$ indicates that vehicle $j$ goes before vehicle
 $l$ and a value of $o_{jl} = 1$ indicates that $l$ goes before $j$. However,
 note that this introduces unnecessary redundancy into the formulation, because
 $o_{jl} = 1 - o_{lj}$ always hold. Therefore, we only need one variable for each
-(unordered) pair of vehicles, so we make an explicity selection by
-defining $\bar{\mathcal{D}} = \{ (j,l) \in \mathcal{D} : j < l \}$. Let $M > 0$
-denote a sufficiently large constant (which may depend on the current problem
-instance), then using the well-known \textit{big-M method}, we transform the
-above natural formulation into
+(unordered) pair of vehicles, so we make an explicity selection by defining
+\begin{align}
+  \bar{\mathcal{D}} = \{ (j,l) : \{ j,l \} \in \mathcal{D}, j < l \}.
+\end{align}
+Let
+$M > 0$ denote a sufficiently large constant (which may depend on the current
+problem instance), then using the well-known \textit{big-M method}, we transform
+the above natural formulation into
 %
 \begin{subequations}
 \begin{align}
