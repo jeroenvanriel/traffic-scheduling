@@ -46,7 +46,7 @@ maximum speed $v_{\text{max}}$ and does not encounter other vehicles, is denoted
 by $r_{j} = a_{j} + h / v_{\text{max}}$. It would be great if we could allow each
 vehicle $j$ to arrive at this \textit{earliest crossing time}. In general,
 however, vehicles need to be delayed by some time $d_{j} \geq 0$ in order to
-meet some safety constraints. We consider the following two types of
+meet safety constraints. We consider the following two types of
 constraints.
 
 % same lane
@@ -55,8 +55,9 @@ $y_{j} = r_{j} + d_{j}$. Consider a pair $j,l$ of consecutive vehicles on the
 same lane and assume $j$ drives before $l$, which means that $r_{j} < r_{l}$. We
 assume that vehicles on the same lane do not \textit{overtake} each other, so we
 require $y_{j} < y_{l}$. Even stronger, in order to guarantee safety, we require
-a minimum amount of time $p_{j}$ after the moment vehicle $j$ crosses, so the first type
-of constraint is given by
+a minimum amount of time $p_{j}$ after the moment vehicle $j$ crosses, which may
+depend on the particular vehicle, e.g., a long truck needs more time than a
+short passenger car. The first type of constraint is given by
 \begin{align}
   \label{eq:traffic-constr-1}
   y_{j} + p_{j} \leq y_{l} .
@@ -64,26 +65,44 @@ of constraint is given by
 
 % distinct lanes
 Now consider a pair of vehicles $j,l$ originating from distinct lanes. In order
-to guarantee safety, we require an additional minimum amount of time $s$ between
-the crossing moments, so the second type of constraint is given by
+to guarantee safety, we require an additional minimum amount of time between the
+crossing moments. In general, this time may depend on the particular pair of
+vehicles, so the second type of constraint is given by
 \begin{align}
   \label{eq:traffic-constr-2}
-  y_{j} + p_{j} + s \leq y_{l} \; \text{ or } \; y_{l} + p_{l} + s \leq y_{j} .
+  y_{j} + p_{j} + s_{jl} \leq y_{l} \; \text{ or } \; y_{l} + p_{l} + s_{lj} \leq y_{j} .
 \end{align}
 This contraint features a choice, because the order of the two vehicles is left
 to the traffic controller to decide.
 
-% feasible schedule
+% optimization setting
 It is the task of the traffic controller to determine $y$ that satisfies these
-constraints, while optimizing some kind of performance metric.
+constraints, while optimizing some kind of performance metric. We first need to
+make assumptions on information that is available to the traffic controller. In
+the most straightforward case, the traffic controller is given full information
+about a finite number of arrivals, to which we will refer as \textit{offline
+  optimization}. It is also possible to assume that arrival times $a_{j}$ become
+gradually known to the traffic controller as time passes. We will not consider
+such an \textit{online optimization} setting.
+
 % total delay objective
-The difference $y_{j} - r_{j}$ between the earliest crossing time and the actual
+In the context of offline optimization, we can simply define an objective in
+terms of the $y$, which is a finite vector in this case. The difference
+$y_{j} - r_{j} = d_{j}$ between the earliest crossing time and the actual
 crossing time defines the \textit{delay} experienced by vehicle $j$. A sensible
 choice for the optimization objective is to minimize the \textit{total delay}
 \begin{align}
   \label{eq:total-delay}
-  \sum_{j} y_{j} - r_{j} .
+  \sum_{j} d_{j} = \sum_{j} y_{j} - r_{j} .
 \end{align}
+
+% fairness
+The total delay objective does not take into account issues of fairness. This
+means that optimal solutions are not guaranteed to have an even distribution of
+delay among vehicles, which may not be desirable in practice. In online
+optimization, these issues can become even more pronounced, as simple examples are
+easily constructed in which it is optimal to have at least a single vehicle wait
+indefinetely.
 
 % speed control -> scheduling problem
 Note that determining $y$ does not determine the exact trajectories of the
@@ -93,7 +112,7 @@ computed from $y$ by applying an appropriate Speed Profile Algorithm (SFA), as
 discussed in \cite{timmermanPlatoonFormingAlgorithms2021}. Under this
 assumption, it turns out that the problem can be adequately stated in terms of a
 single machine scheduling problem. Therefore, we will first introduce some basic
-modelling elements from the scheduling literature, before restating the problem
+modeling elements from the scheduling literature, before restating the problem
 in this framework.
 
 \subsection{Single Machine Scheduling}
