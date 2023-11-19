@@ -100,9 +100,9 @@ choice for the optimization objective is to minimize the \textit{total delay}
 The total delay objective does not take into account issues of fairness. This
 means that optimal solutions are not guaranteed to have an even distribution of
 delay among vehicles, which may not be desirable in practice. In online
-optimization, these issues can become even more pronounced, as simple examples are
-easily constructed in which it is optimal to have at least a single vehicle wait
-indefinetely.
+optimization, these issues can become even more pronounced, as simple examples
+are easily constructed in which it is optimal to have at least a single vehicle
+wait indefinetely.
 
 % speed control -> scheduling problem
 Note that determining $y$ does not determine the exact trajectories of the
@@ -134,7 +134,7 @@ common objective is to minimize the \textit{total completion time}
 \end{align*}
 By means of an \textit{interchange argument}, it can be
 easily shown that, for this objective, an optimal solution is given by sorting
-the jobs according to increasing processing times, which is known as the
+the jobs according to non-decreasing processing times, which is known as the
 Shortest Processing Time first (SPT) rule \cite{pinedoSchedulingTheoryAlgorithms2016}.
 
 % release dates and non-delay schedules
@@ -203,28 +203,28 @@ C_{j_{2}} + s_{k_{2},k_{1}} \leq y_{j_{1}}.
 \subsection{Problem Formulation}
 
 % translate into pure scheduling problem
-Using the modelling elements introduced above, we now pose the traffic control
-problem as a scheduling problem. The intersection is represented as a single
-machine. Let each vehicle be represented by some job $j$ with release date
-$r_{j}$. The starting time $y_{j}$ models the planned crossing time of vehicle
-$j$, which needs to be determined by the traffic controller. We will now show how
-the two types of constraints are formulated.
+Using the modeling elements introduced above, we now pose the traffic control
+problem as a single machine scheduling problem. The intersection is represented
+as the single machine. Let each of the $n$ vehicles be represented by some job
+$j$ with release date $r_{j}$. The starting time $y_{j}$ models the planned
+crossing time of vehicle $j$, which needs to be determined by the traffic
+controller. We will now show how the two types of constraints are formulated.
 
 % constraints
 Let $n_{k}$ denote the total number of vehicles arriving to lane $k$. For each
 lane, we define a family $F_{k}$ consisting of all vehicles that arrive to it.
 We assume, without loss of generality, that the jobs are ordered according to
 non-decreasing release dates. Therefore, the first type of
-constraints~\eqref{eq:traffic-constr-1} for each lane are modelled by a chain
+constraints~\eqref{eq:traffic-constr-1} for each lane is modeled by a chain
 of precedence constraints on each family by assuming that
 \begin{align*}
-  r_{J_{kn}} \leq r_{J_{km}} \implies n \leq m ,
+  r_{J_{kn}} < r_{J_{km}} \implies n < m ,
 \end{align*}
-for any pair of jobs $J_{kn}, J_{km} \in F_{k}$. \textit{\color{blue}This way of writing may seem confusing. Note that $J_{km}$ is really just a permutation, so maybe writing $J_{k}(n)$ is clearer.}
+for any pair of jobs $J_{kn}, J_{km} \in F_{k}$. \textit{\color{blue}This way of writing may seem confusing. Note that $J_{km}$ is really just a ``partial'' permutation, so maybe writing $J_{k}(n)$ is clearer.}
 
 It is not difficult to see
 that the second set of constraints~\eqref{eq:traffic-constr-2} for vehicles from
-different lanes can be directly modelled using setup times $s_{k_{1},k_{2}}$. In
+different lanes can be directly modeled using setup times $s_{k_{1},k_{2}}$. In
 what follows, we will also refer to this setup time as \textit{switch-over}
 time, because it is similar to the time between switching \textit{phases} in
 convential traffic lights.
@@ -301,8 +301,8 @@ For each $(j,l) \in \mathcal{D}$, we could introduce a binary decision variable
 $o_{jl}$. A value of $o_{jl} = 0$ indicates that vehicle $j$ goes before vehicle
 $l$ and a value of $o_{jl} = 1$ indicates that $l$ goes before $j$. However,
 note that this introduces unnecessary redundancy into the formulation, because
-$o_{jl} = 1 - o_{lj}$ should always hold. We only need one variable for each
-(unordered) pair of these vehicles, so we make an explicity selection by
+$o_{jl} = 1 - o_{lj}$ always hold. Therefore, we only need one variable for each
+(unordered) pair of vehicles, so we make an explicity selection by
 defining $\bar{\mathcal{D}} = \{ (j,l) \in \mathcal{D} : j < l \}$. Let $M > 0$
 denote a sufficiently large constant (which may depend on the current problem
 instance), then using the well-known \textit{big-M method}, we transform the
@@ -325,7 +325,7 @@ The problem of minimizing the total completion time with release dates (written
 as $1 \, | \, r_{j} \, | \sum C_{j}$ in the three-field notation
 \cite{grahamOptimizationApproximationDeterministic1979}) has been long known to
 be NP-hard \cite{lenstraComplexityMachineScheduling1977}, so there is no hope in
-finding a polynomial algorithm for our more general problem unless
+finding a polynomial algorithm for the current more general problem unless
 $\mathcal{P} = \mathcal{NP}$. Therefore, we must resort to exhaustive
 branch-and-bound methods or heuristics. However, note that this only holds for
 the problem in its full generality. It might be worthwhile to further study the
