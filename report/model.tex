@@ -649,17 +649,28 @@ in Section~\ref{sec:single-MILP}.
 % problem formulation for makespan
 Let $y_{ij}$ denote the time when operation $(i,j)$ starts processing, which
 needs to be determined by the scheduler. In the alternative notation of
-operation $O_{jk}$, we denote the starting time as $y(O_{jk})$. A valid schedule
-is given by setting values for $y_{ij}$ such that the above requirements are
-met. There are various measures for how \textit{good} a given schedule is. For
-the purpose of the discussion that follows, let us consider the well-known
-makespan objective
+operation $O_{jk}$, we denote the starting time and processing time as
+$y(O_{jk})$ and $p(O_{jk})$, respectively. The completion time of operation
+$(i,j)$ is defined as
 \begin{align}
-\max_{(i,j) \in N} C_{ij},
+  C_{ij} = y_{ij} + p_{ij} ,
 \end{align}
-where $C_{ij} = y_{ij} + p_{ij}$ is the completion time of
-operation $(i,j)$. Minimizing the makespan often results in schedules that make
-efficient use of the available machines and can now be formulated as
+We define the completion time of job $j$ to be
+\begin{align}
+  C_{j} = y_{i^{*}j} + p_{i^{*}j}
+\end{align}
+where $i^{*}$ denotes the machine on which the last operation of $j$ is
+performed.
+
+A valid schedule is given by setting values for $y_{ij}$ such that the above
+requirements are met. There are various measures for how \textit{good} a given
+schedule is. For the purpose of the discussion that follows, let us consider the
+well-known makespan objective
+\begin{align}
+\max_{1 \leq j \leq n} C_{j},
+\end{align}
+Minimizing the makespan often results in schedules that make efficient use of
+the available machines and can now be formulated as
 %
 \begin{subequations}
   \label{eq:job-shop-natural}
@@ -818,7 +829,7 @@ in the network as
 %
 \begin{subequations}
 \begin{align}
-  \text{minimize } & \sum_{(i,j) \in N} C_{ij} \\
+  \text{minimize } & \sum_{1 \leq j \leq n} C_{j} \\
   \text{s.t. } & y_{ij} \geq r_{ij} & \text{ for all } (i,j) \in N, \\
   & (i,j) \xrightarrow{d(i,k)} (k,j) & \text{ for all } ((i,j), (k,j)) \in \mathcal{C} , \label{eq:travel-constraints} \\
   & (i,j) \xrightarrow{s(i,j,l)} (i,l) & \text{ if } o(i,j,l) = 0 , \text{ for } (i,j,l) \in \bar{\mathcal{D}}, \label{eq:common-path-constraints-1} \\
