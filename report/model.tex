@@ -633,6 +633,7 @@ order of a job is encoded as a chain of precedence constraints. The set of all
 the pairs of operations to which such constraint applies is denoted by
 \begin{align}
   \mathcal{C} = \{ (O_{jk}, O_{j,k+1}) : 1 \leq j \leq n, 1 \leq k < m \} .
+  \label{eq:conjunctive-C}
 \end{align}
 
 % machine sequence constraints
@@ -642,6 +643,7 @@ the operations that need processing on $i$. We define the set of
 \textit{conflict pairs}
 \begin{align}
   \mathcal{D} = \{ \{(i,j), (i,l)\} : (i,j), (i,l) \in N \},
+  \label{eq:disjunctive-D}
 \end{align}
 which generalizes the conflict pairs that we defined for the single intersection
 in Section~\ref{sec:single-MILP}.
@@ -876,48 +878,63 @@ shop instances can also be represented very clearly by their corresponding
 \cite{pinedoSchedulingTheoryAlgorithms2016} for a textbook introduction). Let
 $(N, \mathcal{C}, \mathcal{D})$ be a directed graph with nodes $N$ corresponding
 to operations and two types of arcs. The \textit{conjunctive} arcs $\mathcal{C}$
-encode the given machine order for each job. If
-$(i,j) \rightarrow (k, j) \in \mathcal{C}$ then job $j$ needs to be processed on
-machine $i$ before it may be processed on machine $k$. The \textit{disjunctive}
-arcs $\mathcal{D}$ are used to encode the decisions regarding the ordering of
-jobs on a particular machine. For every conflict pair $\{(i,j), (i,l)\}$ of
-distinct jobs $j$ and $l$ that need to be processed on the same machine $i$,
-there is a pair of arcs in opposite directions between $(i,j)$ and $(i,l)$.
-Therefore, each machine corresponds to a clique of double arcs between all the
-operations that need to be performed on that machine.
+encode the given machine order for each job and this is parallel to
+\eqref{eq:conjunctive-C}. If $(i,j) \rightarrow (k, j) \in \mathcal{C}$ then job
+$j$ needs to be processed on machine $i$ before it may be processed on machine
+$k$. The \textit{disjunctive} arcs $\mathcal{D}$ are used to encode the
+decisions regarding the ordering of jobs on a particular machine, which is
+parallel to \eqref{eq:disjunctive-D}. For every conflict pair
+$\{(i,j), (i,l)\} \in \mathcal{D}$ of distinct jobs $j$ and $l$ that need to be
+processed on the same machine $i$, there is a pair of arcs in opposite
+directions between $(i,j)$ and $(i,l)$. Therefore, each machine corresponds to a
+clique of double arcs between all the operations that need to be performed on
+that machine.
 
-For each machine $i$, the scheduler needs to order the operations that need processing on
-$i$. This corresponds to choosing exactly one arc from every pair of opposite
-disjunctive arcs. Let $\mathcal{D}' \subset \mathcal{D}$ be such a selection of
-disjunctive arcs and let $G(\mathcal{D}')$ denote the resulting graph, to which
-we will refer as a \textit{complete} disjunctive graph. It it not hard to see
-that any feasible schedule corresponds to an acyclic complete disjunctive
-graph.
+For each machine $i$, the scheduler needs to order the operations that need
+processing on $i$. This corresponds to choosing exactly one arc from every pair
+of opposite disjunctive arcs. Let $\mathcal{D}' \subset \mathcal{D}$ be such a
+selection of disjunctive arcs and let $G(\mathcal{D}')$ denote the resulting
+graph, to which we will refer as a \textit{complete} disjunctive graph. It it
+not hard to see that any feasible schedule corresponds to an acyclic complete
+disjunctive graph.
 
-Suppose we have $m=3$ machines and $n=3$ jobs. The first job has a machine order of 1,2,3 and the other two jobs have a machine order of 2,3,1.
-Figure~\ref{fig:disjunctive-graph-example} shows the corresponding disjunctive graph for this instance.
+Suppose we have $m=3$ machines and $n=3$ jobs. The first job has a machine order
+of 1,2,3 and the other two jobs have a machine order of 2,3,1.
+Figure~\ref{fig:disjunctive-graph-example} shows the structure of the
+corresponding disjunctive graph for this instance. Note that this graph does not
+yet fully characterize a problem instance, because the information on processing
+times is not encoded, The next section shows how to resolve this issue.
 
-\subsubsection{Augmented disjunctive graph}
+In addition to encoding operation ordering decisions, the disjunctive graph
+contains information about the processing times. We add a \textit{source} $S$
+and a \textit{sink} $T$, which are dummy nodes. The source has outgoing arcs
+with weight zero to every first operation of each job. Every last operation of
+each job is connected to the sink. Each outgoing arc of a node $(i,j)$ is set to
+have weight equal to $p_{ij}$.
 
-In addition to encoding operation ordering decisions, the disjunctive graph can
-also be used to compute lower bounds on the completion times by extending it as
-follows. We add a \textit{source} $S$ and a \textit{sink} $T$, which are dummy
-nodes. The source has outgoing arcs with weight zero to every first operation of
-each job. Every last operation of each job is connected to the sink. Each
-outgoing arc of a node $(i,j)$ is set to have weight equal to $p_{ij}$.
-
-Given a complete disjunctive graph, we can now recursively calculate a lowerbound $LB(O_{jk})$ on the completion time of operation $O_{jk}$ from the following relationship
+Given a complete disjunctive graph, we can recursively calculate a lowerbound
+$LB(O_{jk})$ on the starting time of operation $O_{jk}$ from the following
+relationship
 \begin{align}
   LB(O_{jk}) = \max_{n \in O_{jk}^{-}} LB(n) + p_{n} ,
 \end{align}
 using $v^{-}$ to denote the set of in-neighbors of node $v$. Put in other words,
 $LB(O_{jk})$ is the length of the longest path from $S$ to $O_{jk}$. By
-similarly defining
+similarly computing
 \begin{align}
   LB(T) = \max_{n \in T^{-}} LB(n) + p_{n} ,
 \end{align}
 we obtain the makespan objective for the current schedule, see
 Figure~\ref{fig:augmented-graph} for an example.
+
+Similarly, the job completion time can be calculated as follows.
+Instead of $t$, we add $n$ dummy nodes $t_{1}, \dots, t_{n}$ and connect each $t_{j}$ to the last operation $(i^{*},j)$ of job $j$ by an arc with weight $p_{i^{*}j}$.
+Defining
+\begin{align}
+  LB(t_{j}) = LB((i^{*},j)) + p_{i^{*}j} ,
+\end{align}
+we obtain the completion time of each job $j$, which also allows us to express
+the total completion time.
 
 \begin{figure}
   \centering
@@ -929,14 +946,9 @@ Figure~\ref{fig:augmented-graph} for an example.
   \label{fig:augmented-graph}
 \end{figure}
 
-\vspace{0.5em}
-\noindent
-\textit{\color{blue}explain disjunctive graph in case of generalized prec. constraints}
-
-\vspace{0.4em}
-\noindent
-\textit{\color{blue}show how to adapt for total completion time (see Pinedo 7.3)}
-
+In case of generalized precedence constraints, the above method should be
+adapted slightly. Every arc $(i,j) \xrightarrow{d} (k,l)$ (either conjunctive or
+disjunctive) gets weight $p_{ij} + d$ instead. The arcs to the sink(s) keep their weight.
 
 
 \subsection{Schedule generation}
