@@ -624,14 +624,19 @@ $r_{ij}$ for each operation, specifying the earliest time processing may start.
 Let the set of all operations be denoted by $N$.
 
 % machine order constraints
+% alternative O_jk notation for operations
 The order in which a job visits the machines is called the \textit{machine
   order} of this job. The machine order is given as part of the problem
-specification and may be different for each job. An operation $(k,j)$ may only
-start once its predecessor $(i,j)$ has completed processing, which means that
-the precedence constraint $(i,j) \rightarrow (k,j)$ must be satisfied. In
-general, machine order of a job is encoded as a chain of precedence constraints.
-The set of all the pairs of operations to which such constraint applies is
-denoted by $\mathcal{C}$.
+specification and may be different for each job. Instead of directly writing
+$(i,j)$, we sometimes use the alternative notation $O_{jk}$ to denote the $k$'th
+operation of job $j$. An operation $O_{j,k+1}$ may only start once its
+predecessor $O_{jk}$ has completed processing, which means that the precedence
+constraint $O_{jk} \rightarrow O_{j,k+1}$ must be satisfied. In general, machine
+order of a job is encoded as a chain of precedence constraints. The set of all
+the pairs of operations to which such constraint applies is denoted by
+\begin{align}
+  \mathcal{C} = \{ (O_{jk}, O_{j,k+1}) : 1 \leq j \leq n, 1 \leq k < m \} .
+\end{align}
 
 % machine sequence constraints
 Each machine $i$ can process at most one operation at the same time and, once
@@ -661,7 +666,7 @@ efficient use of the available machines and can now be formulated as
   \label{eq:job-shop-natural}
 \begin{align}
   \text{minimize } C_{\text{max}} \\
-  \text{s.t. } C_{ij} &\leq y_{kj}  & \text{ for all } (i,j) \xrightarrow{} (k,j) \in \mathcal{C}, \\
+  \text{s.t. } C_{ij} &\leq y_{kj}  & \text{ for all } ((i,j), (k,j)) \in \mathcal{C}, \\
   C_{il} &\leq  y_{ij} \text{ or } C_{ij} \leq y_{il}  & \text{ for all } \{(i,l), (i,j)\} \in \mathcal{D}, \label{eq:disjunctive-constraints} \\
   C_{ij} &\leq C_{\text{max}} & \text{ for all } (i,j) \in N, \\
   y_{ij} &\geq r_{ij} & \text{ for all } (i,j) \in N.
