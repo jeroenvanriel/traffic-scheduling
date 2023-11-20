@@ -648,10 +648,12 @@ in Section~\ref{sec:single-MILP}.
 
 % problem formulation for makespan
 Let $y_{ij}$ denote the time when operation $(i,j)$ starts processing, which
-needs to be determined by the scheduler. A valid schedule is given by setting
-values for $y_{ij}$ such that the above requirements are met. There are various
-measures for how \textit{good} a given schedule is. For the purpose of the
-discussion that follows, let us consider the well-known makespan objective
+needs to be determined by the scheduler. In the alternative notation of
+operation $O_{jk}$, we denote the starting time as $y(O_{jk})$. A valid schedule
+is given by setting values for $y_{ij}$ such that the above requirements are
+met. There are various measures for how \textit{good} a given schedule is. For
+the purpose of the discussion that follows, let us consider the well-known
+makespan objective
 \begin{align}
 \max_{(i,j) \in N} C_{ij},
 \end{align}
@@ -676,20 +678,25 @@ choice between jobs $j$ and $l$ to be scheduled first on machine $i$. The third
 set of constraints are used to define the makespan and the last line enforces
 the release dates.
 
-% introduce s(i,j,l)
-To support the following discussion, we introduce some additional notation.
-Consider again the set of conflict pairs $\mathcal{D}$. For each conflict pair
-$\{ (i,j), (i,l) \} \in \mathcal{D}$, the scheduler needs to make a binary
-decision, i.e., it needs to decide whether jobs $j$ goes before job $l$ or vice
-versa. Similarly to what we did in Section~\ref{sec:single-MILP}, we define the
-auxilliary set
-\begin{align}
-  \bar{\mathcal{D}} = \{ (i,j,l) : \{ (i,j), (i,l) \} \in \mathcal{D}, j < l \} .
-\end{align}
-For each $(i,j,l) \in \bar{\mathcal{D}}$, we define the binary variable
-$o(i,j,l)$ to encode the decision in the disjunctive constraints
-\eqref{eq:disjunctive-constraints}. A value of zero corresponds to $j$ crossing
-first and a value of one indicates that $l$ crosses first.
+\begin{eg}
+  \label{eg:job-shop-non-delay}
+  Consider two jobs on three machines with processing times
+  $p_{\cdot 1} = \begin{pmatrix} 2 & 2 & 4 \end{pmatrix}^T$,
+  $p_{\cdot 2} = \begin{pmatrix} 1 & 2 & 1 \end{pmatrix}^T$ and machine orders
+  $(1,1) \rightarrow (2,1) \rightarrow (3,1)$ and
+  $(3,2) \rightarrow (2,2) \rightarrow (1,2)$. It is easily seen that the
+  optimal makespan is given by $C_\text{max} = p_{11} + p_{21} + p_{31} = 8$ and
+  an optimal schedule is shown in Figure~\ref{fig:job-shop-delay}.
+\end{eg}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/job-shop-delay.pdf}
+  \caption{Optimal schedule for Example~\ref{eg:job-shop-non-delay}. The dashed
+    lines indicate unit time steps. Note that machine 2 is kept idle, while operation
+    $(2,2)$ could have already been scheduled at time 1.}
+  \label{fig:job-shop-delay}
+\end{figure}
 
 % travel time
 Let us discuss a simple extension to the job shop setting introduced above.
@@ -708,6 +715,22 @@ formulated as
 \end{align}
 Clearly, this generalizes the type of precedence constraints that we have been
 using up till now (the original type is obtained by setting $d=0$).
+
+% introduce s(i,j,l)
+To support the following discussion, let us introduce some additional notation.
+Consider again the set of conflict pairs $\mathcal{D}$. For each conflict pair
+$\{ (i,j), (i,l) \} \in \mathcal{D}$, the scheduler needs to make a binary
+decision, i.e., it needs to decide whether jobs $j$ goes before job $l$ or vice
+versa. Similarly to what we did in Section~\ref{sec:single-MILP}, we define the
+auxilliary set
+\begin{align}
+  \bar{\mathcal{D}} = \{ (i,j,l) : \{ (i,j), (i,l) \} \in \mathcal{D}, j < l \} .
+\end{align}
+For each $(i,j,l) \in \bar{\mathcal{D}}$, we define the binary variable
+$o(i,j,l)$ to encode the decision in the disjunctive constraints
+\eqref{eq:disjunctive-constraints}. A value of zero corresponds to $j$ crossing
+first and a value of one indicates that $l$ crosses first.
+
 
 \subsection{Problem Formulation}
 
@@ -825,6 +848,16 @@ The graph $G$ on which vehicles are travelling is acyclic and connected.
 
 \subsection{Disjunctive graph}
 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/disjunctive-graph.pdf}
+  \caption{Disjunctive graph corresponding to a job shop instance with three
+    jobs and three machines. Operations that need to be scheduled on the same
+    machine have been given the same color, emphasizing the cliques formed by
+    their disjunctive arcs (drawn as dashed lines).}
+  \label{fig:disjunctive-graph-example}
+\end{figure}
+
 % disjunctive graph
 As an alternative to the natural formulation~\eqref{eq:job-shop-natural}, job
 shop instances can also be represented very clearly by their corresponding
@@ -853,15 +886,46 @@ graph.
 Suppose we have $m=3$ machines and $n=3$ jobs. The first job has a machine order of 1,2,3 and the other two jobs have a machine order of 2,3,1.
 Figure~\ref{fig:disjunctive-graph-example} shows the corresponding disjunctive graph for this instance.
 
-\begin{figure}[t]
+\subsubsection{Augmented disjunctive graph}
+
+In addition to encoding operation ordering decisions, the disjunctive graph can
+also be used to compute lower bounds on the completion times by extending it as
+follows. We add a \textit{source} $S$ and a \textit{sink} $T$, which are dummy
+nodes. The source has outgoing arcs with weight zero to every first operation of
+each job. Every last operation of each job is connected to the sink. Each
+outgoing arc of a node $(i,j)$ is set to have weight equal to $p_{ij}$.
+
+Given a complete disjunctive graph, we can now recursively calculate a lowerbound $LB(O_{jk})$ on the completion time of operation $O_{jk}$ from the following relationship
+\begin{align}
+  LB(O_{jk}) = \max_{n \in O_{jk}^{-}} LB(n) + p_{n} ,
+\end{align}
+using $v^{-}$ to denote the set of in-neighbors of node $v$. Put in other words,
+$LB(O_{jk})$ is the length of the longest path from $S$ to $O_{jk}$. By
+similarly defining
+\begin{align}
+  LB(T) = \max_{n \in T^{-}} LB(n) + p_{n} ,
+\end{align}
+we obtain the makespan objective for the current schedule, see
+Figure~\ref{fig:augmented-graph} for an example.
+
+\begin{figure}
   \centering
-  \includegraphics[width=0.5\textwidth]{figures/disjunctive-graph.pdf}
-  \caption{Disjunctive graph corresponding to a job shop instance with three
-    jobs and three machines. Operations that need to be scheduled on the same
-    machine have been given the same color, emphasizing the cliques formed by
-    their disjunctive arcs (drawn as dashed lines).}
-  \label{fig:disjunctive-graph-example}
+  \includegraphics[width=0.9\textwidth]{figures/disjunctive-graph-source-sink.pdf}
+  \caption{Disjunctive graph corresponding to
+    Example~\ref{eg:job-shop-non-delay} augmented with source, sink and weights.
+    The longest path determining the makespan $C_{\text{max}} = LB(t)$ is
+    highlighted.}
+  \label{fig:augmented-graph}
 \end{figure}
+
+\vspace{0.5em}
+\noindent
+\textit{\color{blue}explain disjunctive graph in case of generalized prec. constraints}
+
+\vspace{0.4em}
+\noindent
+\textit{\color{blue}show how to adapt for total completion time (see Pinedo 7.3)}
+
 
 
 \subsection{Schedule generation}
@@ -889,37 +953,20 @@ of processing on any one of the machines.
 
 It is clear that active schedules are necessarily semi-active, but the converse
 does not always hold. Furthermore, when preemption is not allowed, non-delay
-schedules are necessarily active. For some scheduling problems, it can be shown
-that an optimal schedule exists that belongs to such classes.
+schedules are necessarily active. Consider again
+Example~\ref{eg:job-shop-non-delay}. The optimal schedule shown in
+Figure~\ref{fig:job-shop-delay} is not non-delay, because machine 2 is kept
+idle from time 2 to 3, but operation $(2,2)$ could be scheduled here.
 
-\begin{eg}
-  \label{eg:job-shop-non-delay}
-  Consider two jobs on three machines with processing times
-  $p_{\cdot 1} = \begin{pmatrix} 2 & 2 & 4 \end{pmatrix}^T$ and
-  $p_{\cdot 2} = \begin{pmatrix} 1 & 2 & 1 \end{pmatrix}^T$. It is easily seen
-  that the makespan is determined by
-  $C_\text{max} = p_{11} + p_{21} + p_{31} = 8$ and an optimal schedule is given
-  in Figure~\ref{fig:job-shop-delay}. This schedule is not non-delay, because
-  machine 2 is kept idle from time 2 to 3, but operation $(2,2)$ could be
-  scheduled here.
-\end{eg}
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.5\textwidth]{figures/job-shop-delay.pdf}
-  \caption{Optimal schedule for Example~\ref{eg:job-shop-non-delay}. The dashed
-    lines indicate unit time steps. Machine 2 is kept idle, while operation
-    $(2,2)$ could have already been scheduled at time 1.}
-  \label{fig:job-shop-delay}
-\end{figure}
-
-For job shop problems, the optimal schedule is not necessarily non-delay, as the
-example illustrates for the makespan objective. However, it can be
-shown that $Jm || \gamma$ has an active optimal schedule, when $\gamma$ is a
-regular objective, which means that it is a non-decreasing function of the
-completion times $C_1, C_2, \dots, C_n$. The makespan and total completion time
-are examples of regular objectives. Because of this result, branch-and-bound
-methods have been proposed based on enumeration of all active schedules.
+For some scheduling problems, it can be shown that an optimal schedule exists
+that belongs to such classes. For job shop problems, the optimal schedule is not
+necessarily non-delay, as the example illustrates for the makespan objective.
+However, it can be shown that $Jm || \gamma$ has an active optimal schedule,
+when $\gamma$ is a regular objective, which means that it is a non-decreasing
+function of the completion times $C_1, C_2, \dots, C_n$. The makespan and total
+completion time are examples of regular objectives. Because of this result,
+branch-and-bound methods have been proposed based on enumeration of all active
+schedules.
 
 \vspace{0.5em}
 \noindent
@@ -930,43 +977,19 @@ methods have been proposed based on enumeration of all active schedules.
   Every complete disjunctive graph corresponds to a unique semi-active schedule.
 \end{proposition}
 \begin{proof}
-  Given some semi-active schedule, it is obvious that the corresponding
-  disjunctive graph can be constructed by simply encoding the ordering of the
-  operations in the schedule by the disjunctive arcs.
+  Given some semi-active schedule $y$, it is obvious that the disjunctive graph
+  can be constructed by simply encoding the corresponding ordering $o$ of the
+  operations by the disjunctive arcs.
 
-  We now argue that every complete disjunctive graph cannot correspond to more than
-  one semi-active schedule.
-  % introduce the longest path method lower bound on y = earliest starting time
-  Recursively compute a lower bound on the starting time
-  $LB(O_{jk}) = \max_{n \in O_{jk}^{-}} LB(n) + p_{jk}$ where $O_{jk}^{-}$ denotes
-  the set of in-neighbors. In other words, $LB(O_{jk})$ is the longest path, when
-  we associate weight $p_{jk}$ with every incoming arc of node $O_{jk}$ and add a
-  dummy node $s$ with arcs to all first operations. Every feasible schedule $y$
-  must satisfy $y_{jk} \geq LB(O_{jk})$. Hence, if any $y_{jk} > LB(O_{jk})$, then
-  it is not semi-active.
+  Suppose we are given a complete disjunctive graph encoding some ordering $o$.
+  Let $O_{jk}$ and $O_{j,k+1}$ be a pair of consecutive operations. Note that
+  $LB(O_{jk})$ is a lower bound on the starting time of operation $O_{j,k+1}$,
+  i.e., every feasible schedule $y$ must satisfy $y(O_{j,k+1}) \geq LB(O_{jk})$.
+  Now observe that by setting $y(O_{j,k+1}) = LB(O_{jk})$ for any such
+  consecutive pairs, we obtain a valid semi-active schedule with ordering $o$.
+  Therefore, any other schedule that satisfies $o$ must have some
+  $y_{kj} > LB((i,j))$, hence is not semi-active.
 \end{proof}
-
-\begin{remark}
-  After adding another dummy \textit{sink} node $t$ and adding arcs with weight
-  zero from all the last operations to it, it is clear that
-  $LB(t) = C_\text{max}$. This augmented disjunctive graph is shown in
-  Figure~\ref{fig:augmented-graph} for the optimal schedule for
-  Example~\ref{eg:job-shop-non-delay}.
-\end{remark}
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\textwidth]{figures/disjunctive-graph-source-sink.pdf}
-  \caption{Disjunctive graph corresponding to
-    Example~\ref{eg:job-shop-non-delay} augmented with source, sink and weights.
-    The longest path determining the makespan $C_{\text{max}} = LB(t)$ is
-    highlighted.}
-  \label{fig:augmented-graph}
-\end{figure}
-
-\noindent
-\textit{\color{blue}show how to adapt for total completion time (see Pinedo 7.3)}
-\vspace{0.5em}
 
 \noindent
 \textit{\color{blue}Include here our solution of Exercise 7.11 from Pinedo,
