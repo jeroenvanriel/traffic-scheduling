@@ -562,17 +562,25 @@ $R_{j}(1), \dots, R_{j}(n_{j})$ until it reaches the exitpoint
 $R_{j}(n_{j} + 1)$, where it leaves the network.
 % define common path and merge point
 Given two routes $R_{j}$ and $R_{l}$, we define a common path
-$p=(i_{1},\dots,i_{L})$ as a substring of length $L$ of both routes (including
-external nodes). We refer to the first node $i_{1}$ of a common path as a
-\textit{merge point}. The set of all common paths for vehicles $j$ and $l$ is
-denoted by $P_{jl}$. The set of all merge points for vehicles $j$ and $l$ is
-denoted by $M_{jl}$.
+$p=(i_{1},\dots,i_{L})$ as a substring of some length $L$ of both routes
+(including external nodes). We refer to the first node $i_{1}$ of a common path
+as a \textit{merge point}. The set of all common paths for vehicles $j$ and $l$
+is denoted by $P_{jl}$. The set of all merge points for vehicles $j$ and $l$ is
+denoted by $M_{jl}$. See Figure~\ref{fig:intersection-graph-example} for an
+illustration of the above concepts.
 
-\vspace{0.5em}
-\noindent
-\textit{\color{blue}Illustrate common paths and merge points with a small
-  example (figure).}
-\vspace{0.5em}
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/intersection-graph-example.pdf}
+  \label{fig:intersection-graph-example}
+  \caption{Example graph with three intersection $i_{1}, i_{2}, i_{3}$ and three
+    vehicles, for which the routes are indicated by $R_{1}, R_{2}$ and $R_{3}$.
+    The external nodes are labeled as $e_{1}, \dots, e_{6}$. The weight
+    (distance) of each arc is indicated next to it. The common paths are
+    $P_{12} = \{ (i_{1}, i_{2}) \}$, $P_{13} = \{ (i_{2}, i_{3}) \}$
+    $P_{23} = \{ (i_{2}) \}$ and the corresponding merge points are
+    $M_{12} = \{ i_{1} \}, M_{13} = \{ i_{2} \}, M_{23} = \{ i_{2} \}$.}
+\end{figure}
 
 % behavior on lanes
 Vehicles are not able to overtake each other when traveling on the same arc. We
