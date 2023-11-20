@@ -35,6 +35,12 @@
 
 \maketitle
 
+\noindent
+\textit{\color{blue} comments are in blue}
+
+\noindent
+\textit{\color{red} sections in red are incomplete and should be skipped}
+
 \section{Single Intersection}
 
 % earliest crossing time
@@ -138,13 +144,13 @@ the jobs according to non-decreasing processing times, which is known as the
 Shortest Processing Time first (SPT) rule \cite{pinedoSchedulingTheoryAlgorithms2016}.
 
 % release dates and non-delay schedules
-Now suppose that job $j$ becomes available at its \textit{release date} $r_{j}$,
-then a valid schedule $y$ requires $y_{j} \geq r_{j}$. It is not difficult to
-see that this might mean we need to introduce some \textit{idle time}. We speak
-of \textit{unforced idle time} whenever the machine is kept idle at time $t$
-while at least one job $j$ is already available for processing, i.e.,
-$t \geq r_{j}$. Schedules without such unforced idle time are called
-\textit{non-delay}.
+Now suppose that job $j$ becomes available at its \textit{release date} $r_{j}$
+(sometimes also written as $r(j)$), then a valid schedule $y$ requires
+$y_{j} \geq r_{j}$. It is not difficult to see that this might mean we need to
+introduce some \textit{idle time}. We speak of \textit{unforced idle time}
+whenever the machine is kept idle at time $t$ while at least one job $j$ is
+already available for processing, i.e., $t \geq r_{j}$. Schedules without such
+unforced idle time are called \textit{non-delay}.
 
 \begin{eg}
   \label{eg:non-delay}
@@ -173,12 +179,12 @@ processed before job $l$, denoted as $j \rightarrow{} l$, then we simply require
 that $y_{l} \geq C_{j}$ in any feasible schedule. In particular, we may consider
 \textit{chains} of precedence constraints. Let $F_{1}, \dots, F_{K}$ be a
 partition of jobs into $K$ non-empty families. For each family $F_{k}$, we
-require that their jobs $F_{k} = \{ J_{k1}, \dots, J_{k,n_{k}}\}$ are processed
+require that their jobs $F_{k} = \{ J_{k}(1), \dots, J_{k}(n_{k})\}$ are processed
 in the order
 \begin{align*}
-J_{k1} \rightarrow{} J_{k2} \rightarrow{} \dots \rightarrow{} J_{k,n_{k}} .
+J_{k}(1) \rightarrow{} J_{k}(2) \rightarrow{} \dots \rightarrow{} J_{k}(n_{k}) ,
 \end{align*}
-Therefore, $J_{km}$ denotes the $m$th job of family $k$.
+such that $J_{k}(m)$ denotes the $m$'th job of family $k$.
 Note that the order between jobs from different families is unspecified, which
 means that the scheduler may decide to \textit{merge} these chains arbitrarily.
 
@@ -215,9 +221,9 @@ non-decreasing release dates. Therefore, the first type of
 constraints~\eqref{eq:traffic-constr-1} for each lane is modeled by a chain
 of precedence constraints on each family by assuming that
 \begin{align*}
-  r_{J_{kn}} < r_{J_{km}} \implies n < m ,
+  r(J_{k}(n)) < r(J_{k}(m)) \implies n < m ,
 \end{align*}
-for any pair of jobs $J_{kn}, J_{km} \in F_{k}$. \textit{\color{blue}This way of writing may seem confusing. Note that $J_{km}$ is really just a ``partial'' permutation, so maybe writing $J_{k}(n)$ is clearer.}
+for any pair of jobs $J_{k}(n), J_{k}(m) \in F_{k}$.
 
 It is not difficult to see
 that the second set of constraints~\eqref{eq:traffic-constr-2} for vehicles from
@@ -1143,7 +1149,8 @@ $p$ and the switch-over time $s$ that are necessary for this assumption to hold.
   $C_{j}$ & completion time of job $j$ \\
 
   $F_{1}, \dots, F_{K}$ & partition of jobs into $K$ families \\
-  $J_{k1} \rightarrow \dots \rightarrow J_{k,n_{k}}$ & job order of family $F_k$ \\
+  $n_{k} = |F_{k}|$ & number of jobs in family $k$ \\
+  $J_{k}(1) \rightarrow{} \dots \rightarrow{} J_{k}(n_{k})$ & job order of family $F_{k}$ \\
 
   $G=(V,E)$ & intersection graph \\
   $R_{j}(1), \dots, R_{j}(n_{j})$ & route of vehicle $j$ \\
