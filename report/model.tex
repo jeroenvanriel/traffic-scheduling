@@ -1127,6 +1127,31 @@ $p$ and the switch-over time $s$ that are necessary for this assumption to hold.
 \noindent
 \textit{\color{blue}discuss multiple lanes, opposing lanes on the same arc and consider multiple phases at intersections}
 
+\section{Overview of Notation}
+
+\begin{center}
+\begin{tabular}{c c}
+  symbol & description \\
+  \hline
+  $n$ & number of jobs \\
+  $m$ & number of machines \\
+  $(i,j)$ & operation of job $j$ on machine $i$ \\
+  $O_{jk}$ & $k$'th operation of job $j$ \\
+  $p_{ij}$ or $p(O_{jk})$ & processing time of operation $(i,j)$ or $O_{jk}$, resp.\\
+  $y_{ij}$ or $y(O_{jk})$ & starting time of operation $(i,j)$ or $O_{jk}$, resp. \\
+  $C_{ij}$ & completion time of operation $(i,j)$ \\
+  $C_{j}$ & completion time of job $j$ \\
+
+  $F_{1}, \dots, F_{K}$ & partition of jobs into $K$ families \\
+  $J_{k1} \rightarrow \dots \rightarrow J_{k,n_{k}}$ & job order of family $F_k$ \\
+
+  $G=(V,E)$ & intersection graph \\
+  $R_{j}(1), \dots, R_{j}(n_{j})$ & route of vehicle $j$ \\
+  $M_{jl}$ & merge points for routes of vehicles $j$ and $l$ \\
+  $d(x,y)$ & distance between nodes $x$ and $y$ \\
+\end{tabular}
+\end{center}
+
 
 \bibliography{references}
 \bibliographystyle{ieeetr}
