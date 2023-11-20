@@ -605,7 +605,7 @@ cross intersections by determining $y$, while minimizing some measure of
 optimality. This problem is similar to the classical job shop scheduling
 setting, with intersections and vehicles now taking the roles of machines and
 jobs, respectively. Therefore, we will first discuss this classical problem
-before discussing how it should be adapted to fit the above setting.
+before discussing how it should be extended to fit the above setting.
 
 
 \subsection{Job Shop Scheduling}
@@ -692,6 +692,7 @@ $o(i,j,l)$ to encode the decision in the disjunctive constraints
 first and a value of one indicates that $l$ crosses first.
 
 % travel time
+Let us discuss a simple extension to the job shop setting introduced above.
 Jobs may represent physical objects that need to be processed on machines.
 Suppose we want to model the \textit{travel time} that is necessary to move the
 job physically to the next machine. We can use so-called \textit{generalized
@@ -750,8 +751,11 @@ cannot change, so we must have
 A special case is when the merge point $i_{1}$ is an external node. In that
 case, $i_{1}$ must be the entrypoint of both vehicles. That means that the order
 on $p$ is determined by the order of arrival, which is determined by the release
-dates. Therefore, we require $o(i_{1},j,l) = 1$ if $r_{j} > r_{l}$, and
-$o(i_{1},j,l) = 0$ otherwise.
+dates. Therefore, we require
+\begin{align}
+  o(i_{1},j,l) = 1 \text{ if } r_{j} > r_{l} ,
+\end{align}
+and $o(i_{1},j,l) = 0$ otherwise.
 % summarize
 Finally, let $\mathcal{O} \subset \{0,1\}^{\bar{\mathcal{D}}}$ denote the set of
 all valid assignments to $o$.
@@ -823,7 +827,7 @@ The graph $G$ on which vehicles are travelling is acyclic and connected.
 
 % disjunctive graph
 As an alternative to the natural formulation~\eqref{eq:job-shop-natural}, job
-shop instance we can also be represented very clearly by their corresponding
+shop instances can also be represented very clearly by their corresponding
 \textit{disjunctive graph} (see Section 7.1 of
 \cite{pinedoSchedulingTheoryAlgorithms2016} for a textbook introduction). Let
 $(N, \mathcal{C}, \mathcal{D})$ be a directed graph with nodes $N$ corresponding
@@ -833,7 +837,7 @@ $(i,j) \rightarrow (k, j) \in \mathcal{C}$ then job $j$ needs to be processed on
 machine $i$ before it may be processed on machine $k$. The \textit{disjunctive}
 arcs $\mathcal{D}$ are used to encode the decisions regarding the ordering of
 jobs on a particular machine. For every conflict pair $\{(i,j), (i,l)\}$ of
-different jobs $j$ and $l$ that need to be processed on the same machine $i$,
+distinct jobs $j$ and $l$ that need to be processed on the same machine $i$,
 there is a pair of arcs in opposite directions between $(i,j)$ and $(i,l)$.
 Therefore, each machine corresponds to a clique of double arcs between all the
 operations that need to be performed on that machine.
@@ -972,7 +976,7 @@ schedules follow by applying the machine makespan rule, introduced in the next
 section.}
 
 
-\subsection{Priority dispatching}
+\subsubsection{Priority dispatching}
 
 A \textit{priority dispatching rule} selects a job from a list of currently
 available (unscheduled) jobs to be scheduled next. This produces a sequence
