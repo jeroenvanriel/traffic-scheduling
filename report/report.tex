@@ -183,14 +183,19 @@ processed before job $l$, denoted as $j \rightarrow{} l$, then we simply require
 that $y_{l} \geq C_{j}$ in any feasible schedule. In particular, we may consider
 \textit{chains} of precedence constraints. Let $F_{1}, \dots, F_{K}$ be a
 partition of jobs into $K$ non-empty families. For each family $F_{k}$, we
-require that their jobs $F_{k} = \{ J_{k}(1), \dots, J_{k}(n_{k})\}$ are processed
-in the order
+require that their jobs $F_{k} = \{ J_{k}(1), \dots, J_{k}(n_{k})\}$ are
+processed in the order
 \begin{align*}
 J_{k}(1) \rightarrow{} J_{k}(2) \rightarrow{} \dots \rightarrow{} J_{k}(n_{k}) ,
 \end{align*}
-such that $J_{k}(m)$ denotes the $m$'th job of family $k$.
-Note that the order between jobs from different families is unspecified, which
-means that the scheduler may decide to \textit{merge} these chains arbitrarily.
+such that $J_{k}(m)$ denotes the $m$'th job of family $k$. With a little abuse
+of notation, we will use
+\begin{align*}
+  F_{k} = (J_{k}(1), \dots, J_{k}(n_{k}))
+\end{align*}
+to immediately fix the order of a family. Note that the order between jobs from
+different families is unspecified, which means that the scheduler may decide to
+\textit{merge} these chains arbitrarily.
 
 % setup (switch-over) times
 When job $j$ is directly followed by job $l$, we might want to introduce some
@@ -286,8 +291,8 @@ assumption that can be made on the specification of the release dates.
 A common method of solving combinatorial problems in general and scheduling
 problems in particular is by formulating a Mixed-Integer Linear Program (MILP)
 and solving it using branch-and-bound methods. Let $\mathcal{C}$ denote the set
-of all single precedence constraints $j \rightarrow l$, collected from all
-family chains. Furthermore, let
+of all pairs of jobs $(j,l)$ involved in single precedence constraints
+$j \rightarrow l$, collected from all family chains. Furthermore, let
 \begin{align}
   \mathcal{D} = \{ \{j,l\} : j \in F_{k_{1}}, l \in F_{k_{2}}, k_{1} \neq k_{2} \}
 \end{align}
@@ -299,7 +304,7 @@ under Assumptions~\ref{assump1} and \ref{assump2} can be stated as
 \begin{align}
   \text{minimize } & \sum_{j=1}^{n} C_{j} & \\
   \text{s.t. } & r_{j} \leq y_{j} & \text{ for all } j=1, \dots, n, \\
-              & C_{j} \leq y_{l} & \text{ for all } j \rightarrow l \in \mathcal{C}, \\
+              & C_{j} \leq y_{l} & \text{ for all } (j,l) \in \mathcal{C}, \\
               & C_{j} + s \leq y_{l} \text{ or } C_{l} + s \leq y_{j} & \text{ for all } \{j,l\} \in \mathcal{D}. \label{eq:natural-disjunctions}
 \end{align}
 \end{subequations}
@@ -307,7 +312,7 @@ under Assumptions~\ref{assump1} and \ref{assump2} can be stated as
 Observe that the above so-called \textit{natural formulation} is not yet a
 proper MILP, because of disjunctive constraints~\eqref{eq:natural-disjunctions}.
 One way to resolve this issue is to explicitly encode the ordering decisions.
-For each $(j,l) \in \mathcal{D}$, we could introduce a binary decision variable
+For each $\{j,l\} \in \mathcal{D}$, we could introduce a binary decision variable
 $o_{jl}$. A value of $o_{jl} = 0$ indicates that vehicle $j$ goes before vehicle
 $l$ and a value of $o_{jl} = 1$ indicates that $l$ goes before $j$. However,
 note that this introduces unnecessary redundancy into the formulation, because
@@ -316,16 +321,15 @@ $o_{jl} = 1 - o_{lj}$ always hold. Therefore, we only need one variable for each
 \begin{align}
   \bar{\mathcal{D}} = \{ (j,l) : \{ j,l \} \in \mathcal{D}, j < l \}.
 \end{align}
-Let
-$M > 0$ denote a sufficiently large constant (which may depend on the current
-problem instance), then using the well-known \textit{big-M method}, we transform
-the above natural formulation into
+Let $M > 0$ denote a sufficiently large constant (which may depend on the
+current problem instance), then using the well-known \textit{big-M method}, we
+transform the above natural formulation into
 %
 \begin{subequations}
 \begin{align}
   \text{minimize } & \sum_{j=1}^{n} C_{j} & \\
   \text{s.t. } & r_{j} \leq y_{j} & \text{ for all } j=1, \dots, n, \\
-              & C_{j} \leq y_{l} & \text{ for all } j \rightarrow l \in \mathcal{C}, \\
+              & C_{j} \leq y_{l} & \text{ for all } (j,l) \in \mathcal{C}, \\
               & C_{j} + s \leq y_{l} + o_{jl}M  & \text{ for all } (j,l) \in \bar{\mathcal{D}}, \label{eq:disjunctive-constraints} \\
               & o_{jl} \in \{ 0, 1 \} & \text{ for all } (j,l) \in \bar{\mathcal{D}} ,
 \end{align}
@@ -1026,8 +1030,8 @@ schedules.
 \comment{Include here our solution of Exercise 7.11 from Pinedo,
 i.e., a branching scheme for generating all schedules based on inserting
 disjunctive arcs. From the resulting disjunctive graph, all semi-active
-schedules follow by applying the machine makespan rule, introduced in the next
-section.}
+schedules follow by applying the last position rule, introduced in the next
+subsection.}
 
 
 \subsubsection{Priority dispatching}
