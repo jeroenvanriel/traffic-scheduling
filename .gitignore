@@ -7,6 +7,8 @@
 *.bbl
 *.blg
 *.dvi
+*.toc
+*.tdo
 *.synctex.gz
 
 .auctex-auto
