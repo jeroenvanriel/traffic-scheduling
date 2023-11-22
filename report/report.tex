@@ -5,6 +5,15 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{datetime}
+\usepackage{todonotes}
+
+% inline comments
+% you could use \listoftodos to print an overview
+\newcommand{\inline}[1]{ {\color{blue}{#1}}\addcontentsline{tdo}{todo}{#1}}
+\newcommand{\comment}[1]{{\color{blue}\noindent{#1}\\}\addcontentsline{tdo}{todo}{#1}}
+% use this one to disable
+%\newcommand{\inline}[1]{\ignorespaces}
+
 
 \newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
 
@@ -35,11 +44,6 @@
 
 \maketitle
 
-\noindent
-\textit{\color{blue} comments are in blue}
-
-\noindent
-\textit{\color{red} sections in red are incomplete and should be skipped}
 
 \section{Single Intersection}
 
@@ -250,8 +254,8 @@ so this is the objective that we will use from here one.
 
 When vehicles turn at the intersection, the safe switch-over time between
 vehicles depends on the involved lanes, because some turns take more time to
-complete than others, see Figure~\textit{\color{blue}todo (see Limpens' Figure
-  13)} for an illustration. For the moment, we will assume that vehicles cross
+complete than others, see Figure\inline{(see Figure
+  13 in Limpens' report)} for an illustration. For the moment, we will assume that vehicles cross
 the intersection without turning, which allows us to make the following
 assumption.
 
@@ -273,7 +277,7 @@ assumption that can be made on the specification of the release dates.
   $m \in \{2, \dots, n_{k}\}$, without loss of generality.
 \end{assump}
 
-\textit{\color{blue}At this point, we should have defined the Single Intersection Scheduling Problem clearly and completely. If you don't agree, please indicate what is missing or unclear. Also note that giving a MILP formulation is not always the best way to state a problem in general, because different formulations, although mathematically equivalent, can have very different solving time complexity.}
+\comment{At this point, we should have defined the Single Intersection Scheduling Problem clearly and completely. If you don't agree, please indicate what is missing or unclear. Also note that giving a MILP formulation is not always the best way to state a problem in general, because different formulations, although mathematically equivalent, can have very different solving time complexity.}
 
 
 \subsubsection{Mixed-Integer Linear Progam}
@@ -478,7 +482,7 @@ platoons.
   some $j > 0$ such that $y_{n+j} > y_{n+j-1} + p$. Whenever the platoon is
   split in more parts, the following argument can be applied exhaustively.
 
-  \textit{\color{blue}instead of considering parts P1 and P2, just show how a
+  \inline{instead of considering parts P1 and P2, just show how a
     single vehicle can be scheduled earlier and argue that this argument may be
     applied exhaustively}
 
@@ -497,8 +501,6 @@ platoons.
   Now put $P_{2}$ right after the end of $P_{1}$, such that
   $y_{n+j} = y_{n+j-1} + p$ and consider the resulting change in total
   completion time.
-
-  \textit{\color{blue}explain our method of idle time times number of jobs method}
 \end{proof}
 
 Assume that the first vehicle on the intersection arrives from lane $A$.
@@ -516,7 +518,7 @@ We provide a criterium for vehicles from $A$ to be candidates for going before t
 \end{proposition}
 
 \noindent
-\textit{\textit{\color{blue}illustrate the two job case with the ``decision'' diagram}}
+\inline{illustrate the two job case with the ``decision'' diagram}
 
 \subsubsection{Insertion Heuristic}
 
@@ -535,7 +537,7 @@ The following example shows that the resulting schedule may not be optimal,
 because the position of earlier scheduled platoons restricts the possible
 positions of later platoons.
 \begin{eg}
-  \textit{\color{blue}come up with example}
+  \inline{come up with example}
 \end{eg}
 
 
@@ -999,7 +1001,7 @@ schedules.
 
 \vspace{0.5em}
 \noindent
-\textit{\color{blue}also active optimal schedule for $Jm | r_j | \gamma$?}
+\inline{also active optimal schedule for $Jm | r_j | \gamma$?}
 
 \begin{proposition}
   \label{prop:disjunctive-graph-semi-active}
@@ -1021,7 +1023,7 @@ schedules.
 \end{proof}
 
 \noindent
-\textit{\color{blue}Include here our solution of Exercise 7.11 from Pinedo,
+\comment{Include here our solution of Exercise 7.11 from Pinedo,
 i.e., a branching scheme for generating all schedules based on inserting
 disjunctive arcs. From the resulting disjunctive graph, all semi-active
 schedules follow by applying the machine makespan rule, introduced in the next
@@ -1091,7 +1093,7 @@ The state transition example shown in Figure~2 of
 operation $O_{32}$ is placed before $O_{22}$, but it does not fit the gap.
 Consequently, operation $O_{22}$ has to be delayed by three time steps.
 
-\textit{\color{blue}Formalize the placement rule that Zhang et al. use and argue
+\comment{Formalize the placement rule that Zhang et al. use and argue
 that this does not guarantee that all active schedules can be generated in this
 way.}
 
@@ -1131,7 +1133,7 @@ $p$ and the switch-over time $s$ that are necessary for this assumption to hold.
 
 \vspace{0.5em}
 \noindent
-\textit{\color{blue}discuss multiple lanes, opposing lanes on the same arc and consider multiple phases at intersections}
+\comment{discuss multiple lanes, opposing lanes on the same arc and consider multiple phases at intersections}
 
 \section{Overview of Notation}
 
