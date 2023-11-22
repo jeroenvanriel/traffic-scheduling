@@ -336,114 +336,6 @@ transform the above natural formulation into
 \end{subequations}
 which is now a proper MILP.
 
-\subsubsection{Complexity}
-% complexity
-The problem of minimizing the total completion time with release dates (written
-as $1 \, | \, r_{j} \, | \sum C_{j}$ in the three-field notation
-\cite{grahamOptimizationApproximationDeterministic1979}) has been long known to
-be NP-hard \cite{lenstraComplexityMachineScheduling1977}, so there is no hope in
-finding a polynomial algorithm for the current more general problem unless
-$\mathcal{P} = \mathcal{NP}$. Therefore, we must resort to exhaustive
-branch-and-bound methods or heuristics. However, note that this only holds for
-the problem in its full generality. It might be worthwhile to further study the
-parameterized complexity, i.e., the complexity of the problem as a function of
-one or more of its parameters \cite{cyganParameterizedAlgorithms2015}.
-Specifically, it would be interesting to verify the complexity in case of a
-fixed number of lanes.
-
-
-\newpage
-
-\subsection{Problem structure}
-Let us consider a couple of simple examples that might help discover some structure in the problem.
-
-\begin{eg}
-  Consider the situation with $J_{1} = \{ 1 \}, J_{2} = \{ 2 \}$. When both
-  vehicles have the same release dates $r_{1} = r_{2} = r$, the order in which
-  they cross the intersection does not influence the optimal total completion
-  time of $\sum C_{j} = p + (p + S + p) = 3p + S$. Now, assume that vehicle 1
-  has a earlier release date, then it is easily seen that an optimal schedule
-  requires vehicle 1 to go first.
-\end{eg}
-%
-\begin{eg}
-  \label{example2}
-  Consider the situation with $J_{1} = \{ 1 \}, J_{2} = \{ 2, 3 \}$. We are
-  interested in how the release dates influence the order of the jobs in an
-  optimal schedule. We assume that $r_{3} = r_{2} + p$. Suppose $r_{1} = r_{2}$,
-  then we see that $2, 3, 1$ is optimal, which resembles some sort of ``longest
-  chain first'' rule (\textit{\color{blue} relate this to Algorithm 3.1.4 of
-    Pinedo}). Now assume that $r_{2} < r_{1} + p + s$, otherwise $1, 2, 3$ is
-  simply optimal, because there is no \textit{conflict} between the two lanes
-  (\textit{\color{blue}we will make this more precise later}). Furthermore, set
-  $r_{1} = 0$, without loss of generality. We compare the sequence $1, 2, 3$
-  with $2, 3, 1$. The first has optimal
-  $\sum C_{j} = p + (p+s+p) + (p+s+p+p) = 6p + 2s$, while the second sequence
-  has optimal
-  $\sum C_{j} = (r_{2} + p) + (r_{2} + p + p) + (r_{2} + p + p + s + p) = 3 r_{2} + 6p + s$.
-  Therefore, we conclude that the second sequence is optimal if and only if
-  \begin{align*}
-    r_{2} \leq s/3 ,
-  \end{align*}
-  which roughly means that the ``longest chain first'' rule becomes optimal
-  whenever the release dates are ``close enough''.
-\end{eg}
-%
-\begin{figure}
-  \centering
-  \includegraphics{figures/123.pdf}
-  \caption{Illustration of the two possible sequences in Example~\ref{example2}.}
-  \label{fig:example2}
-\end{figure}
-%
-\begin{define}
-  A sequence of consecutive jobs $n, n+1, \dots, n+m \in F_{l}$ from one lane is called a platoon if and only if $r_{i+1} = r_{i} + p$ for $n \leq i < n + m$.
-\end{define}
-%
-\begin{eg}
-  \label{example3}
-  Suppose we have exactly two platoons of vehicles
-  $J_{A} = \{ 1, \dots, n_{A}\}$, $J_{B} = \{ n_{A} + 1, \dots, n_{A} + n_{B}\}$,
-  Assuming that
-  $n_{A} < n_{B}$ and $r_{1} \leq r_{n_{A}+1}$, consider the ways the two platoons can merge by splitting A.
-  Let $k$ denote the number of vehicles of platoon A that go after platoon B and
-  let $\sum C_{j}(k)$ denote the resulting total completion time. We have
-  \begin{align*}
-    \sum C_{j}(0) = \sum_{i=1}^{n_{A}+n_{B}} ip + n_{B}s ,
-  \end{align*}
-  when A goes first and
-  \begin{align*}
-    \sum C_{j}(n_{A}+n_{B}) = \sum_{i=1}^{n_{A}+n_{B}} ip + n_{A}s ,
-  \end{align*}
-  when B goes first. For all the other cases, we have
-  \begin{align*}
-    \sum C_{j}(k) = \sum_{i=1}^{n_{A}+n_{B}} ip + n_{B}s + 2ks .
-  \end{align*}
-  From this analysis, we observe that it is not beneficial to split platoon A under the current assumptions. Moreover, we see that platoon B should go first, whenever
-  \begin{align*}
-    r_{n_{A} + 1} \leq (n_{B} - n_{A}) s / (n_{A} + n_{B}) .
-  \end{align*}
-\end{eg}
-\begin{figure}
-  \centering
-  \includegraphics{figures/platoons.pdf}
-  \caption{Illustration of splitting platoon A in Example~\ref{example3}.}
-  \label{fig:example3}
-\end{figure}
-
-\begin{define}
-  As the examples above show, the computation of the total completion time always includes a common term
-  \begin{align*}
-    \sum C_{j} = \sum_{i=1}^{n} ip + \dots ,
-  \end{align*}
-  which happens because of identical processing times
-  (Assumption~\ref{assump1}). Therefore, we will from now on discard this term
-  while comparing different schedules, by defining the {\normalfont total setup delay}
-  \begin{align*}
-    D = \sum C_{j} - \sum_{i=1}^{n} ip .
-  \end{align*}
-\end{define}
-
 \subsubsection{Maximum vehicle delay}
 
 Suppose we require that vehicles may not be delayed for longer than a fixed
@@ -465,20 +357,142 @@ fixed, because the schedule is infeasible otherwise. Therefore, there is no real
 conflict between vehicles $j$ and $l$, so $\{j, l\} \notin \mathcal{D}$.
 
 
-\subsection{Single Platoon Positioning}
+\subsubsection{Complexity}
+% complexity
+The problem of minimizing the total completion time with release dates (written
+as $1 \, | \, r_{j} \, | \sum C_{j}$ in the three-field notation
+\cite{grahamOptimizationApproximationDeterministic1979}) has been long known to
+be NP-hard \cite{lenstraComplexityMachineScheduling1977}, so there is no hope in
+finding a polynomial algorithm for the current more general problem unless
+$\mathcal{P} = \mathcal{NP}$. Therefore, we must resort to exhaustive
+branch-and-bound methods or heuristics. However, note that this only holds for
+the problem in its full generality. It might be worthwhile to further study the
+parameterized complexity, i.e., the complexity of the problem as a function of
+one or more of its parameters \cite{cyganParameterizedAlgorithms2015}.
+Specifically, it would be interesting to verify the complexity in case of a
+fixed number of lanes.
 
-Focus on the problem with two lanes $F_{A}$ and $F_{B}$ where we assume that
-there is only a single platoon arriving on lane $B$, i.e., the \textit{single
-  platoon positioning problem}. In this case, the optimal schedule can be easily
-computed by considering all positions. However, we use this simple case to
-obtain some insight into when vehicles that are close act as if they were
-platoons.
+
+\subsection{Problem structure}
+Let us consider a couple of simple examples that might help discover some structure in the problem.
+
+\begin{eg}
+  Consider the situation with $F_{1} = \{ 1 \}, F_{2} = \{ 2 \}$. When both
+  vehicles have the same release dates $r_{1} = r_{2} = r$, the order in which
+  they cross the intersection does not influence the optimal total completion
+  time of $\sum C_{j} = p + (p + s + p) = 3p + s$. Now, assume that vehicle 1
+  has a strictly earlier release date, then it is easily seen that vehicle 1
+  must go first in the optimal schedule.
+\end{eg}
+%
+\begin{eg}
+  \label{example2}
+  Consider the situation with $F_{1} = \{ 1 \}, F_{2} = ( 2, 3 )$. We are
+  interested in how the release dates influence the order of the jobs in an
+  optimal schedule. We set $r_{1} = 0$, without loss of generality, and assume
+  that $r_{3} = r_{2} + p$. Suppose $r_{1} = r_{2}$, then we see that $2, 3, 1$
+  is optimal, which resembles some sort of ``longest chain first'' rule. Now
+  suppose that $r_{1} < r_{2}$. For $r_{2} \geq r_{1} + p + s$, the sequence
+  $1, 2, 3$ is simply optimal. For $r_{2} < r_{1} + p + s$, we compare the
+  sequence $1, 2, 3$ with $2, 3, 1$, which are illustrated in
+  Figure~\ref{fig:example2}. The first has optimal
+  $\sum C_{j} = p + (p+s+p) + (p+s+p+p) = 6p + 2s$, while the second sequence
+  has optimal
+  $\sum C_{j} = (r_{2} + p) + (r_{2} + p + p) + (r_{2} + p + p + s + p) = 3 r_{2} + 6p + s$.
+  Therefore, we conclude that the second sequence is optimal if and only if
+  \begin{align}
+    r_{2} \leq s/3 ,
+    \label{eq:before-condition}
+  \end{align}
+  which roughly means that the ``longest chain first'' rule becomes optimal
+  whenever the release dates are ``close enough''.
+\end{eg}
+%
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.65\textwidth]{figures/123.pdf}
+  \caption{Illustration of the two possible sequences in Example~\ref{example2}.}
+  \label{fig:example2}
+\end{figure}
+
+\comment{This longest chain first rule can be related to Algorithm 3.1.4 of Pinedo.}
+
+In the previous example, we see that it does not make sense to schedule vehicle
+1 in between vehicles 2 and 3, because that would add unnecessary switch-over
+time. This raises the question whether splitting such ``platoons'' of vehicles
+is ever necessary to achieve an optimal schedule. Let us first give a precise
+definition of this important notion, before slightly generalizing the example.
+%
+\begin{define}
+  A sequence of consecutive jobs $J_{k}(n), J_{k}(n+1), \dots, J_{k}(n+m)$ from
+  a lane $k$ is called a {\normalfont platoon} if and only if $r(J_{k}(i+1)) = r(J_{k}(i)) + p$ for
+  $n \leq i < n + m$ (under Assumption~\ref{assump2}).
+\end{define}
+%
+\begin{eg}
+  \label{example3}
+  Suppose we have exactly two platoons of vehicles $F_{A} = (1, \dots, n_{A})$,
+  $F_{B} = (n_{A} + 1, \dots, n_{A} + n_{B})$. To clarify notation, we write
+  $r_{A} = r_{1}$ and $r_{B} = r_{n_{A} + 1}$. We assume $r_{A} = 0$, without
+  loss of generality, and suppose that $n_{A} < n_{B}$ and
+  $r_{A} \leq r_{B} < n_{A}p + s$. Consider the ways the two platoons can merge
+  by splitting A. Let $k$ denote the number of vehicles of platoon A that go
+  before platoon B and let $\sum C_{j}(k)$ denote the resulting total completion
+  time. See Figure~\ref{example3} for a illustration the situation in case of
+  $r_{A} = r_{B}$. For $0 < k \leq n_{A}$, we have
+  \begin{align*}
+    \sum C_{j} (k) = \max\{ s, r_{B} - kp\} (n_{B} + n_{A} - k) + s (n_{A} - k) + \sum_{i=1}^{n_{A}+n_{B}} ip ,
+  \end{align*}
+  so when platoon A goes completely before platoon B, we get
+  \begin{align}
+    \sum C_{j} (n_{A}) = s n_{B} + \sum_{i=1}^{n_{A}+n_{B}} ip ,
+    \label{eq:A-before-B}
+  \end{align}
+  since $\max\{ s, r_{B} - kp \} = s$ by the assumption on $r_{B}$. It is easily
+  seen that we have $\sum C_{j}(k) > \sum C_{j} (n_{A})$ for $0 < k < n_{A}$. In
+  words, if we decide to put one of platoon A's jobs before platoon B, it is
+  always even better to put all of them in front. Later, we will show that this
+  principle holds in general.
+
+  For $k=0$, so when we schedule platoon A completly after platoon B, the total
+  completion time becomes
+  \begin{align*}
+    \sum C_{j} (0) = r_{B} (n_{A} + n_{B}) + s n_{A} + \sum_{i=1}^{n_{A}+n_{B}} ip .
+  \end{align*}
+  Comparing this to~\eqref{eq:A-before-B}, we conclude that placing B in front
+  is optimal whenever
+  \begin{align*}
+    r_{B} \leq s (n_{B} - n_{A}) s / (n_{A} + n_{B}) ,
+  \end{align*}
+  which directly generalizes the condition~\eqref{eq:before-condition} that we
+  derived for the case with $n_{A} = 1$ and $n_{B} = 2$.
+\end{eg}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.65\textwidth]{figures/platoons.pdf}
+  \caption{Illustration of splitting platoon A in Example~\ref{example3}.}
+  \label{fig:example3}
+\end{figure}
+
+\begin{define}
+  As the examples above show, the computation of the total completion time always includes a common term
+  \begin{align*}
+    \sum C_{j} = \sum_{i=1}^{n} ip + \dots ,
+  \end{align*}
+  which happens because of identical processing times
+  (Assumption~\ref{assump1}). Therefore, we can ignore this term while comparing
+  different schedules, by defining the {\normalfont total setup delay}
+  \begin{align*}
+    D = \sum C_{j} - \sum_{i=1}^{n} ip .
+  \end{align*}
+\end{define}
 
 \begin{theorem}
   Under Assumption~\ref{assump1}, every vehicle scheduling problem must have an
   optimal schedule $y$ in which every platoon $p=(n, n+1, \dots, n+m)$ satisfies
   $y_{j+1} = y_{j} + p$ for all $n \leq j < n + m$.
-  \textit{\color{blue}So this is the $x_i=0$ case.}
+  \inline{So this is the $x_i=0$ case.}
 \end{theorem}
 \begin{proof}
   Assume there exists an optimal schedule $y$ in which some platoon
@@ -506,6 +520,18 @@ platoons.
   $y_{n+j} = y_{n+j-1} + p$ and consider the resulting change in total
   completion time.
 \end{proof}
+
+
+\newpage
+
+\subsection{Single Platoon Positioning}
+
+Focus on the problem with two lanes $F_{A}$ and $F_{B}$ where we assume that
+there is only a single platoon arriving on lane $B$, i.e., the \textit{single
+  platoon positioning problem}. In this case, the optimal schedule can be easily
+computed by considering all positions. However, we use this simple case to
+obtain some insight into when vehicles that are close act as if they were
+platoons.
 
 Assume that the first vehicle on the intersection arrives from lane $A$.
 We provide a criterium for vehicles from $A$ to be candidates for going before the $B$-platoon, with length (number of vehicles) $n_{B}$.
