@@ -424,9 +424,17 @@ is ever necessary to achieve an optimal schedule. Let us first give a precise
 definition of this important notion, before slightly generalizing the example.
 %
 \begin{define}
-  A sequence of consecutive jobs $J_{k}(n), J_{k}(n+1), \dots, J_{k}(n+m)$ from
-  a lane $k$ is called a {\normalfont platoon} if and only if $r(J_{k}(i+1)) = r(J_{k}(i)) + p$ for
-  $n \leq i < n + m$ (under Assumption~\ref{assump2}).
+  A sequence of consecutive jobs $J_{k}(m), J_{k}(m+1), \dots, J_{k}(m+l)$ from
+  some lane $k$ is called a {\normalfont platoon} if and only if
+  \begin{align}
+  r(J_{k}(i)) + p = r(J_{k}(i+1))
+  \end{align}
+  for $n \leq i < n + m$ (under Assumption~\ref{assump2}). We say that the
+  platoon is {\normalfont split} in a given schedule $y$, if
+  \begin{align}
+  y(J_{k}(j)) + p < y(J_{k}(j+1))
+  \end{align}
+  for some $m \leq j < m + l$.
 \end{define}
 %
 \begin{eg}
@@ -451,8 +459,8 @@ definition of this important notion, before slightly generalizing the example.
   since $\max\{ s, r_{B} - kp \} = s$ by the assumption on $r_{B}$. It is easily
   seen that we have $\sum C_{j}(k) > \sum C_{j} (n_{A})$ for $0 < k < n_{A}$. In
   words, if we decide to put one of platoon A's jobs before platoon B, it is
-  always even better to put all of them in front. Later, we will show that this
-  principle holds in general.
+  always even better to put all of them in front. After this example, we will
+  show that this principle holds in general.
 
   For $k=0$, so when we schedule platoon A completly after platoon B, the total
   completion time becomes
@@ -475,50 +483,71 @@ definition of this important notion, before slightly generalizing the example.
   \label{fig:example3}
 \end{figure}
 
+As the examples above show, the computation of the total completion time always includes a common term
+\begin{align*}
+  \sum C_{j} = \sum_{i=1}^{n} ip + \dots ,
+\end{align*}
+which happens because of identical processing times
+(Assumption~\ref{assump1}).
+The other contribution to the total completion time is due to the idle time between jobs.
+
 \begin{define}
-  As the examples above show, the computation of the total completion time always includes a common term
-  \begin{align*}
-    \sum C_{j} = \sum_{i=1}^{n} ip + \dots ,
-  \end{align*}
-  which happens because of identical processing times
-  (Assumption~\ref{assump1}). Therefore, we can ignore this term when comparing
-  different schedules, by defining the {\normalfont total setup delay}
-  \begin{align*}
-    D = \sum C_{j} - \sum_{i=1}^{n} ip .
-  \end{align*}
+  Any feasible schedule $y$ induces an ordering of the jobs, so let $\pi_{y}(j)$ denote the $j$th job in this order. We define the {\normalfont gap after the $j$th vehicle} as
+  \begin{align}
+    g_{y}(j) = y(\pi_{y}(j+1)) - y(\pi_{y}(j)) ,
+  \end{align}
+  for $0 \leq j < n$ and $g_{y}(n) = 0$.
 \end{define}
 
+Using this definition, we see that the total completion time for a schedule $y$ can be expressed (under Assumption~\ref{assump1}) as
+\begin{align}
+  \sum_{j=1}^{n} C_{j}(y) = \sum_{j=1} ^{n} jp + (n-j) g(j) .
+\end{align}
+This observation is the basis of the following theorem.
+
 \begin{theorem}
-  Under Assumption~\ref{assump1}, every vehicle scheduling problem must have an
-  optimal schedule $y$ in which every platoon $p=(n, n+1, \dots, n+m)$ satisfies
-  $y_{j+1} = y_{j} + p$ for all $n \leq j < n + m$.
-  \inline{So this is the $x_i=0$ case.}
+  Under Assumption~\ref{assump1}, every Single Intersection Scheduling Problem has an
+  optimal schedule $y$ in which no platoon is split.
+  %This is the ``$x_i=0$'' case in the more general setting.
 \end{theorem}
 \begin{proof}
-  Assume there exists an optimal schedule $y$ in which some platoon
-  $P=(n, n+1, \dots, n+m)$ is \textit{split} in two parts, i.e, there exists
-  some $j > 0$ such that $y_{n+j} > y_{n+j-1} + p$. Whenever the platoon is
-  split in more parts, the following argument can be applied exhaustively.
+  Consider an optimal schedule $y$ in which some platoon is \textit{split}, so
+  assume there exists some smallest $j \geq 1$ such that
+  $y(J_{k}(j)) + p < y(J_{k}(j+1)) $. To simplify notation, let $i^{*}=J_{k}(j)$
+  and $j^{*}=J_{k}(j+1)$. We show how to derive a $y'$ schedule that satisfies
+  $y'(i^{*}) + p = y'(j^{*})$ but has no larger total completion time. Exhaustively
+  applying this argument proves the theorem.
 
-  \inline{instead of considering parts P1 and P2, just show how a
-    single vehicle can be scheduled earlier and argue that this argument may be
-    applied exhaustively}
-
-  Let $P_{1}$ and $P_{2}$ denote the separate parts of the original platoon. Let
-  $B$ denote the set of vehicles that have
-  $C_{n+j-1} + s \leq y_{l} \leq y_{n+j} - s$, i.e., those that are scheduled
-  between the two parts of $P$. Similarly, let $A$ be the set of vehicles that
-  have $y_{l} \geq C_{n+m} + s$, i.e., those that are scheduled after $P_{2}$.
-
-  Let $x$ be the time between the end of $P_{1}$ and the start of the first job
-  in $B$. The time between the last job of $B$ and the first job of $P_{2}$ must
-  be $s$, otherwise the total completion time can be simply decreased by
-  shifting $P_{2}$ earlier in time. Let $y$ be the time between the end of
-  $P_{2}$ and the start of the first job in $A$.
-
-  Now put $P_{2}$ right after the end of $P_{1}$, such that
-  $y_{n+j} = y_{n+j-1} + p$ and consider the resulting change in total
-  completion time.
+  We let the selected vehicle \textit{join the platoon} by setting
+  $y'(j^{*}) = y(i^{*}) + p$. Consider the set of vehicles $B$ that were
+  scheduled between $i^{*}$ and $j^{*}$ in the original schedule. For $|B| = 0$,
+  it is clear that $y'$ is feasible and has strictly lower total completion
+  time. When $|B| > 0$, we additionally move these jobs forward by setting
+  $y'(b) = y(b) + p$ for $b \in B$.
+  % Effectively, we put vehicles $j^{*}$ earlier in the schedule by $|B|$ places.
+  % It is not difficult to see that this results again in a feasible schedule, so
+  % we are left with showing that the total completion time did not increase.
+  Consider the gaps in this new schedule. The jobs at positions
+  \begin{align*}
+    l\in\{1,\dots, b-1\} \cup \{b + |B| + 2, \dots, n\} ,
+  \end{align*}
+  did not change, so we have $g_{y'}(l) = g_{y}(l)$.
+  Furthermore, we have $g_{y'}(b) = 0$ (because $j^{*}$ follows $i^{*}$ immediately) and for
+  \begin{align*}
+    l \in \{b+1, \dots, b+|B|\} ,
+  \end{align*}
+  we have $g_{y'}(l) = g_{y}(l-1)$. Finally, we have
+  $g_{y'}(b+|B|+1) = g_{y}(b+|B|) + g_{y}(b+|B|+1)$. We can now simply determine
+  the change in total completion time, by calculating (almost telescoping sum)
+  \begin{align*}
+    \sum_{j=1}^{n} C_{j}(y) - \sum_{j=1}^{n} C_{j}(y') &= \sum_{j=b+1}^{b+|B|} (n-j) (g_{y}(j) - g_{y}(j-1)) \\
+    &\quad \quad + (n-b) g_{y}(b) - (n-b-|B|-1) g_{y}(b+|B|) \\
+    &= \sum_{j=b+1}^{b+|B|-1} g_{y}(j) \\
+    &\quad \quad - (n-b-1)g_{y}(b) + (n-b-|B|) g_{y}(b+|B|) \\
+    &\quad \quad + (n-b) g_{y}(b) - (n-b-|B|-1) g_{y}(b+|B|) \\
+    &= \sum_{j=b}^{b+|B|} g_{y}(j) \geq 0 ,
+  \end{align*}
+  showing that it did indeed not increase.
 \end{proof}
 
 
