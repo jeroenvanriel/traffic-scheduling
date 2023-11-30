@@ -427,9 +427,9 @@ definition of this important notion, before slightly generalizing the example.
   A sequence of consecutive jobs $J_{k}(m), J_{k}(m+1), \dots, J_{k}(m+l)$ from
   some lane $k$ is called a {\normalfont platoon} if and only if
   \begin{align}
-  r(J_{k}(i)) + p = r(J_{k}(i+1))
+  r(J_{k}(j)) + p = r(J_{k}(j+1))
   \end{align}
-  for $n \leq i < n + m$ (under Assumption~\ref{assump2}). We say that the
+  for $n \leq j < n + m$ (under Assumption~\ref{assump2}). We say that the
   platoon is {\normalfont split} in a given schedule $y$, if
   \begin{align}
   y(J_{k}(j)) + p < y(J_{k}(j+1))
@@ -449,11 +449,11 @@ definition of this important notion, before slightly generalizing the example.
   time. See Figure~\ref{example3} for an illustration of the situation in case of
   $r_{A} = r_{B}$. For $0 < k \leq n_{A}$, we have
   \begin{align*}
-    \sum C_{j} (k) = \max\{ s, r_{B} - kp\} (n_{B} + n_{A} - k) + s (n_{A} - k) + \sum_{i=1}^{n_{A}+n_{B}} ip ,
+    \sum C_{j} (k) = \max\{ s, r_{B} - kp\} (n_{B} + n_{A} - k) + s (n_{A} - k) + \sum_{j=1}^{n_{A}+n_{B}} jp ,
   \end{align*}
   so when platoon A goes completely before platoon B, we get
   \begin{align}
-    \sum C_{j} (n_{A}) = s n_{B} + \sum_{i=1}^{n_{A}+n_{B}} ip ,
+    \sum C_{j} (n_{A}) = s n_{B} + \sum_{j=1}^{n_{A}+n_{B}} jp ,
     \label{eq:A-before-B}
   \end{align}
   since $\max\{ s, r_{B} - kp \} = s$ by the assumption on $r_{B}$. It is easily
@@ -465,7 +465,7 @@ definition of this important notion, before slightly generalizing the example.
   For $k=0$, so when we schedule platoon A completly after platoon B, the total
   completion time becomes
   \begin{align*}
-    \sum C_{j} (0) = r_{B} (n_{A} + n_{B}) + s n_{A} + \sum_{i=1}^{n_{A}+n_{B}} ip .
+    \sum C_{j} (0) = r_{B} (n_{A} + n_{B}) + s n_{A} + \sum_{j=1}^{n_{A}+n_{B}} jp .
   \end{align*}
   Comparing this to~\eqref{eq:A-before-B}, we conclude that placing B in front
   is optimal whenever
@@ -485,7 +485,7 @@ definition of this important notion, before slightly generalizing the example.
 
 As the examples above show, the computation of the total completion time always includes a common term
 \begin{align*}
-  \sum C_{j} = \sum_{i=1}^{n} ip + \dots ,
+  \sum C_{j} = \sum_{j=1}^{n} jp + \dots ,
 \end{align*}
 which happens because of identical processing times
 (Assumption~\ref{assump1}).
