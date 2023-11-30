@@ -418,7 +418,7 @@ Let us consider a couple of simple examples that might help discover some struct
 \comment{This longest chain first rule can be related to Algorithm 3.1.4 of Pinedo.}
 
 In the previous example, we see that it does not make sense to schedule vehicle
-1 in between vehicles 2 and 3, because that would add unnecessary switch-over
+1 between vehicles 2 and 3, because that would add unnecessary switch-over
 time. This raises the question whether splitting such ``platoons'' of vehicles
 is ever necessary to achieve an optimal schedule. Let us first give a precise
 definition of this important notion, before slightly generalizing the example.
@@ -438,7 +438,7 @@ definition of this important notion, before slightly generalizing the example.
   $r_{A} \leq r_{B} < n_{A}p + s$. Consider the ways the two platoons can merge
   by splitting A. Let $k$ denote the number of vehicles of platoon A that go
   before platoon B and let $\sum C_{j}(k)$ denote the resulting total completion
-  time. See Figure~\ref{example3} for a illustration the situation in case of
+  time. See Figure~\ref{example3} for an illustration of the situation in case of
   $r_{A} = r_{B}$. For $0 < k \leq n_{A}$, we have
   \begin{align*}
     \sum C_{j} (k) = \max\{ s, r_{B} - kp\} (n_{B} + n_{A} - k) + s (n_{A} - k) + \sum_{i=1}^{n_{A}+n_{B}} ip ,
@@ -481,7 +481,7 @@ definition of this important notion, before slightly generalizing the example.
     \sum C_{j} = \sum_{i=1}^{n} ip + \dots ,
   \end{align*}
   which happens because of identical processing times
-  (Assumption~\ref{assump1}). Therefore, we can ignore this term while comparing
+  (Assumption~\ref{assump1}). Therefore, we can ignore this term when comparing
   different schedules, by defining the {\normalfont total setup delay}
   \begin{align*}
     D = \sum C_{j} - \sum_{i=1}^{n} ip .
