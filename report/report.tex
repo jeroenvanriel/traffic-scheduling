@@ -282,8 +282,6 @@ assumption that can be made on the specification of the release dates.
   $m \in \{2, \dots, n_{k}\}$, without loss of generality.
 \end{assump}
 
-\comment{At this point, we should have defined the Single Intersection Scheduling Problem clearly and completely. If you don't agree, please indicate what is missing or unclear. Also note that giving a MILP formulation is not always the best way to state a problem in general, because different formulations, although mathematically equivalent, can have very different solving time complexity.}
-
 
 \subsubsection{Mixed-Integer Linear Progam}
 \label{sec:single-MILP}
@@ -410,12 +408,10 @@ Let us consider a couple of simple examples that might help discover some struct
 %
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.65\textwidth]{figures/123.pdf}
+  \includegraphics[width=0.67\textwidth]{figures/123.pdf}
   \caption{Illustration of the two possible sequences in Example~\ref{example2}.}
   \label{fig:example2}
 \end{figure}
-
-\comment{This longest chain first rule can be related to Algorithm 3.1.4 of Pinedo.}
 
 In the previous example, we see that it does not make sense to schedule vehicle
 1 between vehicles 2 and 3, because that would add unnecessary switch-over
@@ -424,7 +420,7 @@ is ever necessary to achieve an optimal schedule. Let us first give a precise
 definition of this important notion, before slightly generalizing the example.
 %
 \begin{define}
-  A sequence of consecutive jobs $J_{k}(m), J_{k}(m+1), \dots, J_{k}(m+l)$ from
+  A sequence of consecutive vehicles $J_{k}(m), J_{k}(m+1), \dots, J_{k}(m+l)$ from
   some lane $k$ is called a {\normalfont platoon} if and only if
   \begin{align}
   r(J_{k}(j)) + p = r(J_{k}(j+1))
@@ -458,7 +454,7 @@ definition of this important notion, before slightly generalizing the example.
   \end{align}
   since $\max\{ s, r_{B} - kp \} = s$ by the assumption on $r_{B}$. It is easily
   seen that we have $\sum C_{j}(k) > \sum C_{j} (n_{A})$ for $0 < k < n_{A}$. In
-  words, if we decide to put one of platoon A's jobs before platoon B, it is
+  words, if we decide to put one of platoon A's vehicles before platoon B, it is
   always even better to put all of them in front. After this example, we will
   show that this principle holds in general.
 
@@ -478,8 +474,8 @@ definition of this important notion, before slightly generalizing the example.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.65\textwidth]{figures/platoons.pdf}
-  \caption{Illustration of splitting platoon A in Example~\ref{example3}.}
+  \includegraphics[width=0.70\textwidth]{figures/platoons.pdf}
+  \caption{Illustration of splitting platoon A (with $n_{A}=3$ and some arbitrary, not shown, $n_{B}$) in Example~\ref{example3}.}
   \label{fig:example3}
 \end{figure}
 
