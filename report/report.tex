@@ -506,6 +506,7 @@ Using this definition, we see that the total completion time for a schedule $y$ 
 This observation is the basis of the following theorem.
 
 \begin{theorem}
+  \label{prop:platoon-preservation}
   Under Assumption~\ref{assump1}, every Single Intersection Scheduling Problem has an
   optimal schedule $y$ in which no platoon is split.
   %This is the ``$x_i=0$'' case in the more general setting.
@@ -523,11 +524,13 @@ This observation is the basis of the following theorem.
   scheduled between $i^{*}$ and $j^{*}$ in the original schedule. For $|B| = 0$,
   it is clear that $y'$ is feasible and has strictly lower total completion
   time. When $|B| > 0$, we additionally move these jobs forward by setting
-  $y'(b) = y(b) + p$ for $b \in B$.
+  $y'(j) = y(j) + p$ for $j \in B$.
   % Effectively, we put vehicles $j^{*}$ earlier in the schedule by $|B|$ places.
   % It is not difficult to see that this results again in a feasible schedule, so
   % we are left with showing that the total completion time did not increase.
-  Consider the gaps in this new schedule. The jobs at positions
+  Consider the gaps in this new schedule, please see Figure~\ref{fig:platoon-preservation} for a sketch of the situation.
+  Let $b$ denote the position of $i^{*}$, so formally $b = \pi_{y}^{-1}(i^{*})$.
+  The jobs at positions
   \begin{align*}
     l\in\{1,\dots, b-1\} \cup \{b + |B| + 2, \dots, n\} ,
   \end{align*}
@@ -549,6 +552,16 @@ This observation is the basis of the following theorem.
   \end{align*}
   showing that it did indeed not increase.
 \end{proof}
+
+\begin{figure}[b]
+  \centering
+  \includegraphics[width=1.00\textwidth]{figures/platoon-preservation-thm.pdf}
+  \caption{Sketch of schedules $y$ (top) and $y'$ (bottom) used in the proof of
+    Theorem~\ref{prop:platoon-preservation}. The position numbers of the jobs
+    are written above and below.}
+  \label{fig:platoon-preservation}
+\end{figure}
+
 
 
 \newpage
