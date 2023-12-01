@@ -259,10 +259,16 @@ so this is the objective that we will use from here one.
 
 When vehicles turn at the intersection, the safe switch-over time between
 vehicles depends on the involved lanes, because some turns take more time to
-complete than others, see Figure\inline{(see Figure
-  13 in Limpens' report)} for an illustration. For the moment, we will assume that vehicles cross
-the intersection without turning, which allows us to make the following
-assumption.
+complete than others, see Figure~\ref{fig:limpens-turning} for an illustration.
+For the moment, we will assume that vehicles cross the intersection without
+turning, which allows us to make the following assumption.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\textwidth]{figures/Limpens-turning.png}
+  \caption{Illustration of how lane-switching constraints need to be adapted in case of vehicle turning (taken from \cite{limpensOnlinePlatoonForming2023} with permission of the author).}
+  \label{fig:limpens-turning}
+\end{figure}
 
 \begin{assump}
   \label{assump1}
@@ -408,7 +414,7 @@ Let us consider a couple of simple examples that might help discover some struct
 %
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.67\textwidth]{figures/123.pdf}
+  \includegraphics[width=0.65\textwidth]{figures/123.pdf}
   \caption{Illustration of the two possible sequences in Example~\ref{example2}.}
   \label{fig:example2}
 \end{figure}
@@ -501,6 +507,15 @@ Using this definition, we see that the total completion time for a schedule $y$ 
 \end{align}
 This observation is the basis of the following theorem.
 
+\begin{figure}
+  \centering
+  \includegraphics[width=1.00\textwidth]{figures/platoon-preservation-thm.pdf}
+  \caption{Sketch of schedules $y$ (top) and $y'$ (bottom) used in the proof of
+    Theorem~\ref{prop:platoon-preservation}. The position numbers of the jobs
+    are written above and below.}
+  \label{fig:platoon-preservation}
+\end{figure}
+
 \begin{theorem}
   \label{prop:platoon-preservation}
   Under Assumption~\ref{assump1}, every Single Intersection Scheduling Problem has an
@@ -549,14 +564,9 @@ This observation is the basis of the following theorem.
   showing that it did indeed not increase.
 \end{proof}
 
-\begin{figure}[b]
-  \centering
-  \includegraphics[width=1.00\textwidth]{figures/platoon-preservation-thm.pdf}
-  \caption{Sketch of schedules $y$ (top) and $y'$ (bottom) used in the proof of
-    Theorem~\ref{prop:platoon-preservation}. The position numbers of the jobs
-    are written above and below.}
-  \label{fig:platoon-preservation}
-\end{figure}
+A more general version of this theorem, without Assumption~\ref{assump1}, was
+proven by Limpens~\cite{limpensOnlinePlatoonForming2023}.
+
 
 
 
