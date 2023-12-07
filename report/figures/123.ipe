@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE ipe SYSTEM "ipe.dtd">
 <ipe version="70218" creator="Ipe 7.2.24">
-<info created="D:20231023150322" modified="D:20231023150322"/>
+<info created="D:20231023150322" modified="D:20231207143741"/>
 <ipestyle name="basic">
 <symbol name="arrow/arc(spx)">
 <path stroke="sym-stroke" fill="sym-stroke" pen="sym-pen">
@@ -312,7 +312,35 @@ h
 <page>
 <layer name="alpha"/>
 <view layers="alpha" active="alpha"/>
-<text layer="alpha" matrix="1 0 0 1 16 -16" transformations="translations" pos="80 720" stroke="black" type="label" width="4.981" height="6.42" depth="0" valign="baseline">1</text>
+<path layer="alpha" matrix="1 0 0 1 100 0" stroke="black" fill="black" opacity="10%" stroke-opacity="opaque" tiling="falling">
+68 716 m
+68 700 l
+128 700 l
+128 716 l
+h
+</path>
+<path matrix="1 0 0 1 160 0" stroke="black" fill="black" opacity="10%" stroke-opacity="opaque" tiling="falling">
+68 716 m
+68 700 l
+128 700 l
+128 716 l
+h
+</path>
+<path matrix="1 0 0 1 20 -28" stroke="black" fill="black" opacity="10%" stroke-opacity="opaque" tiling="falling">
+68 716 m
+68 700 l
+128 700 l
+128 716 l
+h
+</path>
+<path matrix="1 0 0 1 80 -28" stroke="black" fill="black" opacity="10%" stroke-opacity="opaque" tiling="falling">
+68 716 m
+68 700 l
+128 700 l
+128 716 l
+h
+</path>
+<text matrix="1 0 0 1 16 -16" transformations="translations" pos="80 720" stroke="black" type="label" width="4.981" height="6.42" depth="0" valign="baseline">1</text>
 <path stroke="black">
 68 716 m
 68 700 l
@@ -321,21 +349,7 @@ h
 h
 </path>
 <text matrix="1 0 0 1 116 -16" transformations="translations" pos="80 720" stroke="black" type="label" width="4.981" height="6.42" depth="0" valign="baseline">2</text>
-<path matrix="1 0 0 1 100 0" stroke="black">
-68 716 m
-68 700 l
-128 700 l
-128 716 l
-h
-</path>
 <text matrix="1 0 0 1 176 -16" transformations="translations" pos="80 720" stroke="black" type="label" width="4.981" height="6.42" depth="0" valign="baseline">3</text>
-<path matrix="1 0 0 1 160 0" stroke="black">
-68 716 m
-68 700 l
-128 700 l
-128 716 l
-h
-</path>
 <path stroke="black" arrow="normal/tiny" rarrow="normal/tiny">
 128 708 m
 168 708 l
@@ -350,21 +364,7 @@ h
 88 664 l
 </path>
 <text matrix="1 0 0 1 36 -44" transformations="translations" pos="80 720" stroke="black" type="label" width="4.981" height="6.42" depth="0" valign="baseline">2</text>
-<path matrix="1 0 0 1 20 -28" stroke="black">
-68 716 m
-68 700 l
-128 700 l
-128 716 l
-h
-</path>
 <text matrix="1 0 0 1 96 -44" transformations="translations" pos="80 720" stroke="black" type="label" width="4.981" height="6.42" depth="0" valign="baseline">3</text>
-<path matrix="1 0 0 1 80 -28" stroke="black">
-68 716 m
-68 700 l
-128 700 l
-128 716 l
-h
-</path>
 <path matrix="1 0 0 1 80 -28" stroke="black" arrow="normal/tiny" rarrow="normal/tiny">
 128 708 m
 168 708 l
@@ -378,7 +378,7 @@ h
 128 716 l
 h
 </path>
-<text matrix="1 0 0 1 -0.154759 -1.39283" transformations="translations" pos="64 660" stroke="black" type="label" width="8.964" height="4.294" depth="1.49" valign="baseline">$r_1$</text>
-<text matrix="1 0 0 1 -0.154759 -1.39283" transformations="translations" pos="84 660" stroke="black" type="label" width="8.964" height="4.294" depth="1.49" valign="baseline">$r_2$</text>
+<text matrix="1 0 0 1 -0.154759 -1.39283" transformations="translations" pos="64 660" stroke="black" type="label" width="8.964" height="4.294" depth="1.49" valign="baseline" style="math">r_1</text>
+<text matrix="1 0 0 1 -0.154759 -1.39283" transformations="translations" pos="84 660" stroke="black" type="label" width="8.964" height="4.294" depth="1.49" valign="baseline" style="math">r_2</text>
 </page>
 </ipe>
