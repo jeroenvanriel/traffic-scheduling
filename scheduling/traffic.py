@@ -187,7 +187,6 @@ def solve(n, m, ptime, switch, release, order, distance, entrypoints, exitpoints
 
 
 def save_to_mongodb(y, s, ptime, switch, entrypoints, exitpoints):
-    # load network from mongodb
     client = MongoClient("mongodb://127.0.0.1:3001/meteor")
     db = client.meteor
 
