@@ -5,6 +5,11 @@ from pymongo import MongoClient
 from datetime import datetime
 import sys
 
+##
+# Currently, k=2 lanes is hardcoded. This can be easily generalized, where the
+# most important change would be related to the disjunctions.
+##
+
 def read_instance(file):
     with open(file, 'r') as f:
         def readline():
@@ -20,6 +25,7 @@ def read_instance(file):
         release = np.empty((2, n))
         length = np.empty((2, n))
 
+        # each lane has n arrivals
         for j in range(2 * n):
             line = readline()
             l = j // n
@@ -29,8 +35,6 @@ def read_instance(file):
 
             # Read machine order for each job.
             length[l, j % n] = float(line[1])
-
-    # TODO: Verify arrival times are not overlapping with earlier platoons
 
     return n, switch, release, length
 
