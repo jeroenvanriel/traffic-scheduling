@@ -2,30 +2,35 @@ import gymnasium as gym
 import pygame
 import numpy as np
 
+##
+# Only 2 lanes are currently supported!
+##
+
 class SingleIntersectionEnv(gym.Env):
 
-    def __init__(self, n_lanes=2, n_arrivals=30, horizon=10, switch_over=2, platoon_generator=None):
+    def __init__(self, platoon_generator=None, n_lanes=2, horizon=10, switch_over=2):
         self.n_lanes = n_lanes
-        self.n_arrivals = n_arrivals
         self.horizon = horizon
         self.switch_over = switch_over
 
-        if platoon_generator is not None:
-            self._generate_platoons = platoon_generator
-        else:
-            self._generate_platoons = self._generate_platoons_default
+        assert platoon_generator is not None, "Platoon generator function must be provided."
+        self._generate_platoons = platoon_generator
 
-        self.observation_space = gym.spaces.Box(low=0, high=1e6, shape=(n_lanes * horizon * 2,))
+        self.observation_space = gym.spaces.Box(low=-1e3, high=1e6, shape=(n_lanes * horizon * 2,))
         self.action_space = gym.spaces.Discrete(2)
 
         self.lane_color = { 0: (255, 0, 0), 1: (0, 255, 0) }
         self.scale = 15
+
 
     def reset(self, seed=None, options=None):
         self.current_lane = 0
         self.completion_time = 0
 
         self.arrival, self.length = self._generate_platoons()
+
+        assert self.arrival.shape == self.arrival.shape
+        self.n_arrivals = self.arrival.shape[-1]
 
         # action history
         self.action_sequence = []
@@ -44,24 +49,6 @@ class SingleIntersectionEnv(gym.Env):
 
         return observation, info
 
-    def _generate_platoons_default(self):
-        rng = np.random.default_rng()
-
-        # interarrival[lane][platoon id] = time after preceding platoon
-        interarrival = rng.exponential(scale=5, size=(self.n_lanes, self.n_arrivals))
-        #interarrival = rng.integers(1, 4, size=(self.lanes, self.arrivals))
-
-        # length[lane][platoon id] = number of vehicles
-        platoon_range=[1, 3]
-        length = rng.integers(*platoon_range, size=(self.n_lanes, self.n_arrivals))
-
-        length_shifted = np.roll(length, 1, axis=1)
-        length_shifted[:, 0] = 0
-
-        # arrivals[lane][platoon id] = arrival time
-        arrival = np.cumsum(interarrival + length_shifted, axis=1)
-
-        return arrival, length
 
     def step(self, action):
         if action == 0:
@@ -69,7 +56,8 @@ class SingleIntersectionEnv(gym.Env):
         else:
             l = (self.current_lane + 1) % self.n_lanes
 
-        # temporary hack: always serve other lane, when no more arrivals (assuming self.lanes == 2)
+        # TODO: (temporary hack) always serve other lane, when no more arrivals
+        # (assuming self.lanes == 2)
         if self.platoons_scheduled[l] == self.n_arrivals:
             l = 1 - l
 
@@ -99,12 +87,12 @@ class SingleIntersectionEnv(gym.Env):
         info = self._get_info()
 
         terminated = (self.platoons_scheduled == np.full(self.n_lanes, self.n_arrivals)).all()
-        if terminated:
-            print("terminated")
 
         return observation, reward, terminated, False, info
 
+
     def _get_obs(self):
+        # last axis contains (arrival, length), hence dim=2 features
         obs = np.zeros((self.n_lanes, self.horizon, 2), dtype=np.float32)
 
         # shift the observations to be from perspective of the current lane
@@ -116,10 +104,13 @@ class SingleIntersectionEnv(gym.Env):
             for j in range(self.horizon):
                 if i + j >= self.n_arrivals:
                     break
-                obs[ix, j][0] = self.arrival[l, i + j] - self.completion_time
-                obs[ix, j][1] = self.length[l, i + j]
+                obs[ix, j, 0] = self.arrival[l, i + j] - self.completion_time
+                obs[ix, j, 1] = self.length[l, i + j]
 
         return obs.flatten()
 
+
     def _get_info(self):
-        return { "action_sequence": self.action_sequence, "lane_sequence": self.lane_sequence, "platoons_scheduled": self.platoons_scheduled }
+        return { "action_sequence": self.action_sequence,
+                 "lane_sequence": self.lane_sequence,
+                 "platoons_scheduled": self.platoons_scheduled }
