@@ -4,7 +4,7 @@ import numpy as np
 from scheduling.single_intersection import read_instance, check_platoons, solve
 
 
-class SingleIntersection(unittest.TestCase):
+class SingleIntersectionExactTest(unittest.TestCase):
 
     def test_exact_read_from_file(self):
         file = "./scheduling/instances/single1.txt"
