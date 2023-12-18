@@ -62,7 +62,7 @@ def check_platoons(release, length):
         raise Exception("There are overlapping platoons.")
 
 
-def solve(n, switch, release, length, gap=0, log=True):
+def solve(n, switch, release, length, gap=0.0, log=True):
     env = gp.Env(empty=True)
     if not log:
         # disable console logging and license information
@@ -110,7 +110,7 @@ def solve(n, switch, release, length, gap=0, log=True):
     # otherwise the Gurobi variables don't expose the .X attribute anymore.
     return { k : (v.X if hasattr(v, 'X') else v) for k, v in y.items() }, \
            { k : (v.X if hasattr(v, 'X') else v) for k, v in o.items() }, \
-            g.getObjective().getValue() - (release * length).sum()
+            - (g.getObjective().getValue() - (release * length).sum())
 
 
 def print_solution(y, o, obj):
