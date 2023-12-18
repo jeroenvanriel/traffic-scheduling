@@ -85,6 +85,11 @@ export const Schedule = () => {
         groups.current.update([{ id: node, content: node, style: style }])
       }
 
+      // For single intersection case, we want to color distinct lanes.
+      if (Object.hasOwn(schedule, 'colors')) {
+        style += `background-color: ${schedule.colors[key]}; color: white;`;
+      }
+
       // Create items from y variables.
       items.current.add({
         id: key,
