@@ -13,3 +13,7 @@
 
 .auctex-auto
 references.bib
+
+## python binary files
+**/__pycache__/
+**/.env/
