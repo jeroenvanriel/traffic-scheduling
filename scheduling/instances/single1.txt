@@ -7,8 +7,8 @@
 # release date, length of platoon
 0  1
 2  1
-4  1
+4  2
 
 0  1
-2  1
-5  1
+2  2
+7  3

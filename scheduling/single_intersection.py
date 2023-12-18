@@ -8,6 +8,11 @@ import sys
 ##
 # Currently, k=2 lanes is hardcoded. This can be easily generalized, where the
 # most important change would be related to the disjunctions.
+#
+# Currently, each lane has precisely n arrivals.
+#
+# The objective returned here is \sum_{i} d_i = \sum_{i} (y_i - r_i) * l_i
+# where r_i, l_i are release date and length of platoon i, respectively.
 ##
 
 def read_instance(file):
@@ -36,11 +41,35 @@ def read_instance(file):
             # Read machine order for each job.
             length[l, j % n] = float(line[1])
 
+    check_platoons(release, length)
+
     return n, switch, release, length
 
 
-def solve(n, switch, release, length, gap=1):
-    g = gp.Model()
+def check_platoons(release, length):
+    """Check whether release and length specify non-overlapping platoons for
+    each lane (so overlap may exist between lanes, but not on the same lane)."""
+
+    if not (length > 0).all():
+        raise Exception("Platoon lengths should be positive.")
+
+    end_times = release + length
+
+    end_times = np.roll(end_times, 1, axis=1)
+    end_times[:,0] = 0
+
+    if not (release >= end_times).all():
+        raise Exception("There are overlapping platoons.")
+
+
+def solve(n, switch, release, length, gap=0, log=True):
+    env = gp.Env(empty=True)
+    if not log:
+        # disable console logging and license information
+        env.setParam('OutputFlag', 0)
+
+    env.start()
+    g = gp.Model(env=env)
 
     # big-M
     M = 1000
@@ -56,6 +85,8 @@ def solve(n, switch, release, length, gap=1):
 
     o = {}
 
+    ### Constraints
+
     # conjunctions
     for k in range(2):
         for j in range(n - 1):
@@ -68,24 +99,18 @@ def solve(n, switch, release, length, gap=1):
         g.addConstr(y[0, j] + length[0, j] + switch <= y[1, l] + o[j, l] * M)
         g.addConstr(y[1, l] + length[1, l] + switch <= y[0, j] + (1 - o[j, l]) * M)
 
+    ### Solving
+
     g.ModelSense = gp.GRB.MINIMIZE
     g.Params.MIPGap = gap
     g.update()
     g.optimize()
 
-    print(np.multiply(release, length).sum())
-    c = 0
-    for k in range(2):
-        for j in range(n):
-            c += release[k, j] * length[k, j]
-    print(c)
-    obj = g.getObjective().getValue() - c
-
     # Somehow, we need to do this inside the current function definition,
     # otherwise the Gurobi variables don't expose the .X attribute anymore.
     return { k : (v.X if hasattr(v, 'X') else v) for k, v in y.items() }, \
            { k : (v.X if hasattr(v, 'X') else v) for k, v in o.items() }, \
-           obj
+            g.getObjective().getValue() - (release * length).sum()
 
 
 def print_solution(y, o, obj):
