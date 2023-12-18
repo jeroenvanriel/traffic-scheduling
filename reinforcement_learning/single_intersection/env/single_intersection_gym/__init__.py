@@ -1,5 +1,5 @@
 from gymnasium.envs.registration import register
-from single_intersection_gym.env import SingleIntersectionEnv
+from .env import SingleIntersectionEnv
 
 register(
      id="SingleIntersectionEnv",

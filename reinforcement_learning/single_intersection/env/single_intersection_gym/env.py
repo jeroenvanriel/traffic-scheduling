@@ -62,7 +62,7 @@ class SingleIntersectionEnv(gym.Env):
         #interarrival = rng.integers(1, 4, size=(self.lanes, self.arrivals))
 
         # length[lane][platoon id] = number of vehicles
-        platoon_range=[1, 3],
+        platoon_range=[1, 3]
         length = rng.integers(*platoon_range, size=(self.n_lanes, self.n_arrivals))
 
         length_shifted = np.roll(length, 1, axis=1)
