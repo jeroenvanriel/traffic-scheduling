@@ -1,9 +1,8 @@
 import gurobipy as gp
 import numpy as np
 from itertools import product
-from pymongo import MongoClient
-from datetime import datetime
-import sys
+from glob import glob
+import re, time
 
 ##
 # Currently, k=2 lanes is hardcoded. This can be easily generalized, where the
@@ -14,36 +13,6 @@ import sys
 # The objective returned here is \sum_{i} d_i = \sum_{i} (y_i - r_i) * l_i
 # where r_i, l_i are release date and length of platoon i, respectively.
 ##
-
-def read_instance(file):
-    with open(file, 'r') as f:
-        def readline():
-            l = f.readline().strip()
-            if l and len(l) > 0 and l[0] != '#':
-                return l.split()
-            else:
-                return readline()
-
-        n, = map(int, readline())
-        switch, = map(float, readline())
-
-        release = np.empty((2, n))
-        length = np.empty((2, n))
-
-        # each lane has n arrivals
-        for j in range(2 * n):
-            line = readline()
-            l = j // n
-
-            # Read release date for each job.
-            release[l, j % n] = float(line[0])
-
-            # Read machine order for each job.
-            length[l, j % n] = float(line[1])
-
-    check_platoons(release, length)
-
-    return n, switch, release, length
 
 
 def check_platoons(release, length):
@@ -109,55 +78,26 @@ def solve(n, switch, release, length, gap=0.0, log=True):
     # Somehow, we need to do this inside the current function definition,
     # otherwise the Gurobi variables don't expose the .X attribute anymore.
     return { k : (v.X if hasattr(v, 'X') else v) for k, v in y.items() }, \
-           { k : (v.X if hasattr(v, 'X') else v) for k, v in o.items() }, \
             - (g.getObjective().getValue() - (release * length).sum())
 
 
-def print_solution(y, o, obj):
-    print(10*"-" + "solution (rounded)" + 10*"-")
-    print(f"total completion time: {obj}")
-
-    def one_based(k):
-        return [x + 1 for x in k]
-
-    for k, v in y.items():
-        print(f"y{one_based(k)}: {round(v, 4)}")
-
-    for k, v in o.items():
-        print(f"o{one_based(k)}: {v}")
-
-
-def save_to_mongodb(n, y, switch, release, length):
-    client = MongoClient("mongodb://127.0.0.1:3001/meteor")
-    db = client.meteor
-
-    schedule = {
-        'date': datetime.now(),
-        'switch': switch,
-        'y': {},
-        'ptimes': {},
-        'release': {},
-        'colors': {},
-    }
-
-    for l in range(2):
-        for i in range(n):
-            key = (1, l * n + i)
-
-            schedule['y'][str(key)] = float(y[l, i])
-            schedule['release'][str(key)] = float(release[l][i])
-            schedule['ptimes'][str(key)] = float(length[l][i])
-            schedule['colors'][str(key)] = 'red' if l == 0 else 'blue'
-
-    db.schedules.insert_one(schedule)
-
-
 if __name__ == "__main__":
-    instance = sys.argv[1]
-    n, switch, release, length = read_instance(instance)
 
-    y, o, obj = solve(n, switch, release, length)
+    log = True
+    gap = 0.1 # optimality gap
 
-    print_solution(y, o, obj)
+    # solve all the instances
+    for in_file in glob("./instances/*.npz"):
+        m = re.match(r".\/instances\/instance\_(\d+)\_(\d+)\.npz", in_file)
+        if m is None:
+           raise Exception("Incorrect instance file name.")
+        ix = m.group(1) # experiment number
+        i = m.group(2)  # sample number
 
-    save_to_mongodb(n, y, switch, release, length)
+        p = np.load(in_file)
+        start = time.time()
+        y, obj = solve(p['n'], p['s'], p['arrival'], p['length'], log=log, gap=gap)
+        wall_time = time.time() - start
+
+        out_file = f"./schedules/exact_{ix}_{i}.npz"
+        np.savez(out_file, y=y, obj=obj, time=wall_time, gap=gap)
