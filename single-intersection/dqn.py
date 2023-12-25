@@ -2,7 +2,9 @@
 import os
 import random
 import time
+import re
 from dataclasses import dataclass
+import tyro
 
 import gymnasium as gym
 import numpy as np
@@ -10,31 +12,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import tyro
+import stable_baselines3 as sb3
 from stable_baselines3.common.buffers import ReplayBuffer
 from torch.utils.tensorboard import SummaryWriter
 
-
 import single_intersection_gym
-
-n_lanes = 2
-n_arrivals = 30   # total number of platoons per lane
-mean_interarrival = 5
-platoon_range = [1, 3]
-
-seed=31307741687469044381975587942973893579
-rng = np.random.default_rng(seed)
-
-
-def generate_instance():
-    length = rng.integers(*platoon_range, size=(n_lanes, n_arrivals))
-    length_shifted = np.roll(length, 1, axis=1)
-    length_shifted[:, 0] = 0
-
-    interarrival = rng.exponential(scale=mean_interarrival, size=(n_lanes, n_arrivals))
-    arrival = np.cumsum(interarrival + length_shifted, axis=1)
-
-    return arrival, length
+from instances.generate import instance_params, generate_instance
 
 
 @dataclass
@@ -51,7 +34,7 @@ class Args:
     """if toggled, this experiment will be tracked with Weights and Biases"""
     wandb_project_name: str = "cleanRL"
     """the wandb's project name"""
-    wandb_entity: str = None
+    wandb_entity: str = ""
     """the entity (team) of wandb's project"""
     capture_video: bool = False
     """whether to capture videos of the agent performances (check out `videos` folder)"""
@@ -69,8 +52,6 @@ class Args:
     """total timesteps of the experiments"""
     learning_rate: float = 2.5e-4
     """the learning rate of the optimizer"""
-    num_envs: int = 1
-    """the number of parallel game environments"""
     buffer_size: int = 10000
     """the replay memory buffer size"""
     gamma: float = 0.99
@@ -93,13 +74,10 @@ class Args:
     """the frequency of training"""
 
 
-def make_env(env_id, seed, idx, capture_video, run_name):
+def make_env(env_id, platoon_generator, seed):
+
     def thunk():
-        if capture_video and idx == 0:
-            env = gym.make(env_id, platoon_generator=generate_instance, render_mode="rgb_array")
-            env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
-        else:
-            env = gym.make(env_id, platoon_generator=generate_instance)
+        env = gym.make(env_id, platoon_generator=platoon_generator)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         env.action_space.seed(seed)
 
@@ -129,19 +107,9 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
     return max(slope * t + start_e, end_e)
 
 
-if __name__ == "__main__":
-    import stable_baselines3 as sb3
 
-    if sb3.__version__ < "2.0":
-        raise ValueError(
-            """Ongoing migration: run the following command to install the new dependencies:
-
-poetry run pip install "stable_baselines3==2.0.0a1"
-"""
-        )
-    args = tyro.cli(Args)
-    assert args.num_envs == 1, "vectorized envs are not supported at the moment"
-    run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
+def train(platoon_generator, seed, args):
+    run_name = f"{args.env_id}__{args.exp_name}__{seed}__{int(time.time())}"
     if args.track:
         import wandb
 
@@ -161,17 +129,15 @@ poetry run pip install "stable_baselines3==2.0.0a1"
     )
 
     # TRY NOT TO MODIFY: seeding
-    random.seed(args.seed)
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
     torch.backends.cudnn.deterministic = args.torch_deterministic
 
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # env setup
-    envs = gym.vector.SyncVectorEnv(
-        [make_env(args.env_id, args.seed + i, i, args.capture_video, run_name) for i in range(args.num_envs)]
-    )
+    envs = gym.vector.SyncVectorEnv([make_env(args.env_id, platoon_generator, seed)])
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
     q_network = QNetwork(envs).to(device)
@@ -189,7 +155,7 @@ poetry run pip install "stable_baselines3==2.0.0a1"
     start_time = time.time()
 
     # TRY NOT TO MODIFY: start the game
-    obs, _ = envs.reset(seed=args.seed)
+    obs, _ = envs.reset(seed=seed)
     for global_step in range(args.total_timesteps):
         # ALGO LOGIC: put action logic here
         epsilon = linear_schedule(args.start_e, args.end_e, args.exploration_fraction * args.total_timesteps, global_step)
@@ -271,9 +237,28 @@ poetry run pip install "stable_baselines3==2.0.0a1"
         if args.upload_model:
             from cleanrl_utils.huggingface import push_to_hub
 
-            repo_name = f"{args.env_id}-{args.exp_name}-seed{args.seed}"
+            repo_name = f"{args.env_id}-{args.exp_name}-seed{seed}"
             repo_id = f"{args.hf_entity}/{repo_name}" if args.hf_entity else repo_name
             push_to_hub(args, episodic_returns, repo_id, "DQN", f"runs/{run_name}", f"videos/{run_name}-eval")
 
     envs.close()
     writer.close()
+
+
+if __name__ == "__main__":
+    args = tyro.cli(Args)
+
+    seed = args.seed
+
+    # solve all the instances
+    for ix, params in enumerate(instance_params):
+        def platoon_generator():
+            return generate_instance(params)
+
+        start = time.time()
+        train(platoon_generator, seed, args)
+        wall_time = time.time() - start
+
+        # report
+
+        seed += 1
