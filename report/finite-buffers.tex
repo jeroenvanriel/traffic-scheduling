@@ -51,7 +51,7 @@ intersection have finite capacity. We need to incorporate this aspect in order
 to develop a model that could be used for practical applications. Under high
 traffic loads, lanes with finite buffer capacity can give rise to
 \textit{blocking} of upstream intersections. Therefore, the traffic controller
-need to take into account these additional dynamics.
+needs to take into account these additional dynamics.
 
 We start with a very simple extension of the single intersection scheduling
 model that incorporates additional \textit{locations} on each lane. Instead of
@@ -97,7 +97,7 @@ $\bar{y}_{j} = y_{i-1,j} + \Delta t$ with $i = m_{k(j)}$. From
 constraints~\eqref{eq:constr2}, we see that it makes sense to say that vehicle
 $j$ occupies the intersection during the interval
 \begin{align}
-  [\bar{y}_{ij}, y_{ij} + p] .
+  [\bar{y}_{j}, y_{j} + p] .
 \end{align}
 Like in the single intersection scheduling problem, we require an additional
 \textit{switch-over time} $s$ whenever the next vehicle to occupy the
@@ -130,6 +130,32 @@ scheduling problem can be stated as
 \end{subequations}
 where we let $k \in \{1, \dots, K\}$ implicitly to simplify notation.
 
+\begin{define}
+  \label{def:finite-buffer-problem}
+  The problem defined be~\eqref{eq:finite-buffer-problem} is called the
+  {\normalfont single intersection problem with finite buffers}.
+\end{define}
+
+\subsection{Alternative formulation}
+
+We obtain a different perspective on the problem when we formulate it in terms of delay at locations instead of arrival and departure times.
+For a vehicle $j$, we let
+\begin{align*}
+  d_{0j} = y_{0j} - r_{j}
+\end{align*}
+be the delay at its entrypoint.
+For the remaining locations, we simply define
+\begin{align*}
+  d_{ij} = y_{ij} - \bar{y}_{ij} .
+\end{align*}
+It is not difficult to see that this is completely equivalent, based on the relationship
+\begin{align}
+  y_{ij} = r_{j} + i \cdot \Delta t + \sum_{n=0}^{i} d_{ij} .
+\end{align}
+When defining a reinforcement learning agent for generating trajectories, it
+might be more sensible to generate $d$ instead of $y$.
+
+
 \section{Solution}
 
 We can solve~\eqref{eq:finite-buffer-problem} by formulating it as a MILP using
@@ -152,11 +178,64 @@ let us consider a small example.
 \end{eg}
 
 \begin{figure}
-  \label{fig:finite-buffer-example-schedule}
+  \centering
   \includegraphics[width=0.9\textwidth]{figures/finite-buffer-schedule.pdf}
   \caption{Optimal schedule for Example~\ref{eg:finite-buffers}. The x-axis
     represents time and the location numbers are on the y-axis.}
+  \label{fig:finite-buffer-example-schedule}
 \end{figure}
+
+
+\subsection{Active schedules}
+
+We will show now that the problem above can be reduced to the single
+intersection scheduling problem that we already discussed. Recall the definition
+of a semi-active schedule. It turns out that there is always a schedule $y$ that
+is \textit{semi-active} at all locations except the intersection. This means
+that we can solve the single intersection problem to obtain $y_{j}$ and then
+derive the rest of $y_{ij}$ from a simple recursive calculation.
+
+\begin{proposition}
+  The single intersection problem with finite buffers has an optimal schedule
+  that is semi-active at all locations except the intersection.
+\end{proposition}
+\begin{proof}
+  Suppose $y$ is some optimal schedule. We show how to derive from this a
+  schedule $y'$ that is semi-active at all locations other than the intersection
+  without increasing the objective.
+
+  We set $y'_{j} = y_{j}$ for all $j$, so the objective does not change. Now for
+  each lane $k$, we derive $y_{ij}$ for the vehicles on this lane. We denote
+  these vehicles by
+  \begin{align*}
+    j_{1} \rightarrow j_{2} \rightarrow \dots \rightarrow j_{n_{k}} .
+  \end{align*}
+  First of all, we do not wait at the intersection, so we set $d_{m(k), j} = 0$
+  for all $j_{1},\dots, j_{n_{k}}$. Therefore, we have
+  $y'_{m(k)-1,j} = y'_{m(k),j} - \Delta t = y_{j} - \Delta t$. For all other
+  locations $i$, for every pair of consecutive vehicles $j \rightarrow l$, we
+  have
+  \begin{align*}
+    y'_{il} = \min \{ y'_{i+1, l} - \Delta t, y'_{i+1, j} + p - \Delta t  \}.
+  \end{align*}
+  From this recursive equation, all values of $y'$ can be determined by dynamic
+  programming.
+\end{proof}
+
+
+\section{Second order constraints}
+
+Our initial formulation was to simplistic, because it allows, in some sense, infinite acceleration.
+In order to model bounded acceleration, we will consider additional constraints on the difference between delay at consecutive locations.
+More specifically, we require
+\begin{align*}
+  d_{i-1,j} - d_{ij} \leq a ,
+\end{align*}
+for all vehicles $j$ and locations $i \in \mathcal{L}(k) \setminus \{ 1 \}$.
+In terms of $y$, this would be
+\begin{align*}
+  y_{ij} - 2 y_{i-1,j} + y_{i-2,j} \leq a .
+\end{align*}
 
 
 {\color{gray}
