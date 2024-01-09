@@ -47,10 +47,12 @@ def generate_instance(p):
     return arrival, length
 
 
-for ix, params in enumerate(instance_params):
-    for i in range(samples):
-        arrival, length = generate_instance(params)
+if __name__=="__main__":
 
-        filename = f"./instances/instance_{ix}_{i}.npz"
+    for ix, params in enumerate(instance_params):
+        for i in range(samples):
+            arrival, length = generate_instance(params)
 
-        np.savez(filename, arrival=arrival, length=length, **params)
+            filename = f"./instances/instance_{ix}_{i}.npz"
+
+            np.savez(filename, arrival=arrival, length=length, **params)
