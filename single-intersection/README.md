@@ -19,6 +19,10 @@ The Python environment created by Poetry can be activated by running
 
 `poetry shell`
 
+Furthermore, our custom Gymnasium environment has to be installed as a package by running
+
+`pip install -e env`
+
 After this, you are able to run any scripts, for example
 
 `cd single-intersection && python dqn.py`
