@@ -172,7 +172,7 @@ def train(platoon_generator, seed, args):
         if "final_info" in infos:
             for info in infos["final_info"]:
                 if info and "episode" in info:
-                    print(f"global_step={global_step}, episodic_return={info['episode']['r']}")
+                    #print(f"global_step={global_step}, episodic_return={info['episode']['r']}")
                     writer.add_scalar("charts/episodic_return", info["episode"]["r"], global_step)
                     writer.add_scalar("charts/episodic_length", info["episode"]["l"], global_step)
                     writer.add_scalar("charts/epsilon", epsilon, global_step)
@@ -200,7 +200,7 @@ def train(platoon_generator, seed, args):
                 if global_step % 100 == 0:
                     writer.add_scalar("losses/td_loss", loss, global_step)
                     writer.add_scalar("losses/q_values", old_val.mean().item(), global_step)
-                    print("SPS:", int(global_step / (time.time() - start_time)))
+                    #print("SPS:", int(global_step / (time.time() - start_time)))
                     writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
 
                 # optimize the model
@@ -250,15 +250,20 @@ if __name__ == "__main__":
 
     seed = args.seed
 
+    wall_times = []
+
     # solve all the instances
     for ix, params in enumerate(instance_params):
+        print(f"instance {ix}")
         def platoon_generator():
             return generate_instance(params)
 
         start = time.time()
         train(platoon_generator, seed, args)
-        wall_time = time.time() - start
-
-        # report
+        wall_times.append(time.time() - start)
 
         seed += 1
+
+    # report
+    print(f"wall times: {wall_times}")
+
