@@ -186,18 +186,22 @@ let us consider a small example.
 \end{figure}
 
 
-\subsection{Active schedules}
+\subsection{Reduction to single intersection scheduling problem}
+
+{\color{gray} Recall the definition of a semi-active schedule. It turns out that
+  there is always a schedule $y$ that is \textit{semi-active} at all locations
+  except the intersection. <- This was my first thought, but it is not correct.}
 
 We will show now that the problem above can be reduced to the single
-intersection scheduling problem that we already discussed. Recall the definition
-of a semi-active schedule. It turns out that there is always a schedule $y$ that
-is \textit{semi-active} at all locations except the intersection. This means
+intersection scheduling problem that we already discussed. It turns out that
+there is always a schedule $y$ in which each vehicle always stays as close to
+the next intersection as possible. -> find a definition for this! This means
 that we can solve the single intersection problem to obtain $y_{j}$ and then
 derive the rest of $y_{ij}$ from a simple recursive calculation.
 
 \begin{proposition}
   The single intersection problem with finite buffers has an optimal schedule
-  that is semi-active at all locations except possibly at the intersection.
+  that is [insert definition here].
 \end{proposition}
 \begin{proof}
   Suppose $y$ is some optimal schedule. We show how to derive from this a
@@ -205,47 +209,52 @@ derive the rest of $y_{ij}$ from a simple recursive calculation.
   without increasing the objective.
 
   We set $y'_{j} = y_{j}$ for all $j$, so the objective does not change. Now for
-  each lane $k$, we derive $y_{ij}$ for the vehicles on this lane. We denote
-  these vehicles by
+  each lane $k$, we derive the remaining $y_{ij}$ for the vehicles
   \begin{align*}
     j_{1} \rightarrow j_{2} \rightarrow \dots \rightarrow j_{n_{k}} .
   \end{align*}
-  First of all, we do not wait at the intersection, so we set $d_{m(k), j} = 0$
-  for all $j_{1},\dots, j_{n_{k}}$. Therefore, we have
-  $y'_{m(k)-1,j} = y'_{m(k),j} - \Delta t = y_{j} - \Delta t$. For all other
-  locations $i$, for every pair of consecutive vehicles $j \rightarrow l$, we
-  have
+  on this lane. Let $\mathcal{C}_{k}$ denote the set of all precedence
+  constraints between vehicles of this lane.
+
+  Since the intersection is the last location, a vehicle can always continue
+  immediately after reaching it. Therefore, we do not have to wait at the
+  intersection, so we set $y'_{m(k),j} = \bar{y}'_{m(k),j}$ for all $j_{1},\dots, j_{n_{k}}$, so
+  that we have $y'_{m(k)-1,j} = y'_{m(k),j} - \Delta t = y_{j} - \Delta t$.
+
+  For the first vehicle $j_1$, we can simply set
   \begin{align*}
-    y'_{il} = \min \{ y'_{i+1, l} - \Delta t, y'_{i+1, j} + p - \Delta t  \}.
+    y'_{ij_{1}} = y'_{i+1, j_{1}} - \Delta t ,
   \end{align*}
-  From this recursive equation, all values of $y'$ can be determined by dynamic
-  programming.
+  for $i \in \{1, \dots, m(k) -1 \}$.
+  For every pair of consecutive vehicles
+  $j \rightarrow l \in \mathcal{C}_{k}$, we set
+  \begin{align*}
+    y'_{il} = \min \{ y'_{i+1, l} - \Delta t, y'_{i+1, j} + p - \Delta t  \},
+  \end{align*}
+  for $i \in \{1, \dots, m(k) -1 \}$
+
+  From these recursive equations, all values of $y'$ can be determined. It is
+  not difficult to see that $y'_{il}$ cannot be made smaller without increasing
+  another entry of $y'$, because it needs to satisfy
+  $y'_{il} + \Delta t = \bar{y}'_{i+1,l} \leq y'_{i+1,l}$ and
+  $y'_{il} + p \leq \bar{y}_{il}$.
 \end{proof}
 
 
-\section{Second order constraints}
 
-Our initial formulation was to simplistic, because it allows, in some sense, infinite acceleration.
-In order to model bounded acceleration, we will consider additional constraints on the difference between delay at consecutive locations.
-More specifically, we require
-\begin{align*}
-  d_{i-1,j} - d_{ij} \leq a ,
-\end{align*}
-for all vehicles $j$ and locations $i \in \mathcal{L}(k) \setminus \{ 1 \}$.
-In terms of $y$, this would be
-\begin{align*}
-  y_{ij} - 2 y_{i-1,j} + y_{i-2,j} \leq a .
-\end{align*}
-
-
-{\color{gray}
 \section{Extending to network}
 
-For every lane $(x_{0}, x_{1})$, let $m(x_{0}, x_{1})$ denote the number of
-locations between both endpoints. Consider vehicle $j$ with route $R_{j}$. Let
-$y_{ij}$ denote the time at which vehicle $j$ departs from location
-$i = R_{j}(k)$ for some $k$, then $y_{ij} + \Delta t$ is the arrival time of
-vehicle $j$ at location $R_{j}(k+1)$. To simplify notation, we define
+It is not a surprise that we can reduce the problem back to the variant with
+infinite buffer space, because we essentially still have infinite buffer space
+at the entrypoints. The only difference is that the movement is now somewhat
+more explicitly modelled. As we move on to consider more than one intersections,
+we will see that the model is really different.
+
+{\color{gray} For every lane $(x_{0}, x_{1})$, let $m(x_{0}, x_{1})$ denote the
+  number of locations between both endpoints. Consider vehicle $j$ with route
+  $R_{j}$. Let $y_{ij}$ denote the time at which vehicle $j$ departs from
+  location $i = R_{j}(k)$ for some $k$, then $y_{ij} + \Delta t$ is the arrival
+  time of vehicle $j$ at location $R_{j}(k+1)$. To simplify notation, we define
 \begin{align}
   \bar{y}_{ij} = y_{R_{j}(k-1),j} + \Delta t
 \end{align}
@@ -268,6 +277,23 @@ location $i_{0} = R_{j}(0)$ on the route of vehicle $j$ satisfies
 \end{align}
 in order to model the \textit{release date}.
 }
+
+
+\section{Second order constraints}
+
+Our initial formulation is rather unrealistic, because it allows, in some sense,
+infinite acceleration. In order to model bounded acceleration, we will consider
+additional constraints on the difference between delay at consecutive locations.
+More specifically, we require
+\begin{align*}
+  d_{i-1,j} - d_{ij} \leq a ,
+\end{align*}
+for all vehicles $j$ and locations $i \in \mathcal{L}(k) \setminus \{ 1 \}$.
+In terms of $y$, we obtain the usual finite differences
+\begin{align*}
+  y_{ij} - 2 y_{i-1,j} + y_{i-2,j} \leq a .
+\end{align*}
+often seen in numerical analysis.
 
 
 % \bibliography{references}
