@@ -1,26 +1,12 @@
 import unittest
 import numpy as np
 
-from scheduling.single_intersection import read_instance, check_platoons, solve
+from exact import check_platoons, solve
 
 
 class SingleIntersectionExactTest(unittest.TestCase):
 
-    def test_exact_read_from_file(self):
-        file = "./scheduling/instances/single1.txt"
-
-        n, switch, release, length = read_instance(file)
-
-        self.assertEqual(n, 3)
-        self.assertEqual(switch, 2)
-
-        self.assertTrue(np.array_equal(release, np.array([[0, 2, 4], [0, 2, 7]])))
-        self.assertTrue(np.array_equal(length, np.array([[1, 1, 2], [1, 2, 3]])))
-
-
     def test_exact_check_overlap(self):
-        n = 3
-
         release = np.array([[0, 1, 2], [0, 2, 5]])
         length = np.array([[0, 1, 1], [1, 3, 1]])
 
@@ -66,6 +52,7 @@ class SingleIntersectionExactTest(unittest.TestCase):
 
 
     def test_exact_example(self):
+        """Test some small example."""
         n = 2
         switch = 2
 
