@@ -51,6 +51,9 @@ if __name__=="__main__":
     # number of samples from each instance specification
     samples = 100
 
+    # write the instances here
+    os.makedirs(os.path.dirname("./instances/"), exist_ok=True)
+
     for ix, params in enumerate(instance_params):
         for i in range(samples):
             # TODO: currently two lanes are hardcoded, also in the .npz file
