@@ -2,10 +2,10 @@ import gurobipy as gp
 import numpy as np
 from itertools import product
 from glob import glob
-import re, time
+import re, time, os
 
 ##
-# Currently, k=2 lanes is hardcoded. This can be easily generalized, where the
+# Currently, K=2 lanes is hardcoded. This can be easily generalized, where the
 # most important change would be related to the disjunctions.
 #
 # Currently, each lane has precisely n arrivals.
@@ -47,6 +47,7 @@ def solve(n, switch, release, length, gap=0.0, log=True):
 
     # non-negative starting times
     y = {}
+    # TODO: K=2 lanes hardcoded
     for k in range(2):
         for j in range(n):
             y[k, j] = g.addVar(obj=length[k, j], vtype=gp.GRB.CONTINUOUS, name=f"y_{k}_{j}")
@@ -57,6 +58,7 @@ def solve(n, switch, release, length, gap=0.0, log=True):
     ### Constraints
 
     # conjunctions
+    # TODO: K=2 lanes hardcoded
     for k in range(2):
         for j in range(n - 1):
             g.addConstr(y[k, j] + length[k, j] <= y[k, j + 1])
@@ -78,13 +80,17 @@ def solve(n, switch, release, length, gap=0.0, log=True):
     # Somehow, we need to do this inside the current function definition,
     # otherwise the Gurobi variables don't expose the .X attribute anymore.
     return { k : (v.X if hasattr(v, 'X') else v) for k, v in y.items() }, \
-            - (g.getObjective().getValue() - (release * length).sum())
+            { k : (v.X if hasattr(v, 'X') else v) for k, v in o.items() }, \
+            g.getObjective().getValue() - (release * length).sum()
 
 
 if __name__ == "__main__":
 
     log = True
     gap = 0.1 # optimality gap
+
+    # write the schedules here
+    os.makedirs(os.path.dirname("./schedules/"), exist_ok=True)
 
     # solve all the instances
     for in_file in glob("./instances/*.npz"):
@@ -96,7 +102,13 @@ if __name__ == "__main__":
 
         p = np.load(in_file)
         start = time.time()
-        y, obj = solve(p['n'], p['s'], p['arrival'], p['length'], log=log, gap=gap)
+
+        # TODO: currently two lanes are hardcoded in the .npz file, also see generate.py
+        # we first need to repack the arrivals
+        arrivals = np.stack((p['arrival1'], p['arrival2']))
+        lengths = np.stack((p['length1'], p['length2']))
+
+        y, _, obj = solve(p['n'], p['s'], arrivals, lengths, log=log, gap=gap)
         wall_time = time.time() - start
 
         out_file = f"./schedules/exact_{ix}_{i}.npz"
