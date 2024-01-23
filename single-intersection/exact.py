@@ -1,6 +1,6 @@
 import gurobipy as gp
 import numpy as np
-from itertools import product
+from itertools import product, combinations
 from glob import glob
 import re, time, os
 
@@ -15,23 +15,49 @@ import re, time, os
 ##
 
 
-def check_platoons(release, length):
+def check_platoons(releases, lengths):
     """Check whether release and length specify non-overlapping platoons for
     each lane (so overlap may exist between lanes, but not on the same lane)."""
 
-    if not (length > 0).all():
-        raise Exception("Platoon lengths should be positive.")
+    for release, length in zip(releases, lengths):
+        if not (length > 0).all():
+            raise Exception("Platoon lengths should be positive.")
 
-    end_times = release + length
+        end_times = release + length
 
-    end_times = np.roll(end_times, 1, axis=1)
-    end_times[:,0] = 0
+        end_times = np.roll(end_times, 1)
+        end_times[0] = 0
 
-    if not (release >= end_times).all():
-        raise Exception("There are overlapping platoons.")
+        if not (release >= end_times).all():
+            raise Exception("There are overlapping platoons.")
 
 
-def solve(n, switch, release, length, gap=0.0, log=True):
+def solve(switch, release, length, gap=0.0, log=True):
+    """Solve the single intersection problem with complete knowledge of future
+    as a MILP.
+
+    Args:
+
+    switch = switch-over time
+
+    release = earliest arrival times, given as list of K arrays of length n_k
+    (number of arrivals on lane k)
+
+    length = platoon lengths, list of K arrays of length n_k (number of arrivals
+    on lane k)
+
+    Returns: (y, o, obj)
+
+    y = The starting times y[k, j] for each vehicle j on lane k.
+
+    o = The binary
+    decisions o[k1, k2, j, l] for each combinations of lanes k1 and k2 with
+    vehicle j on lane k1 and vehicle l on lane k2.
+
+    obj = The objective is the sum of y[k, j] - release[k][j] over all lanes and
+    corresponding vehicles.
+    """
+
     env = gp.Env(empty=True)
     if not log:
         # disable console logging and license information
@@ -40,6 +66,12 @@ def solve(n, switch, release, length, gap=0.0, log=True):
     env.start()
     g = gp.Model(env=env)
 
+    # number of lanes
+    K = len(release)
+
+    # number of arrivals per lane
+    n = [len(r) for r in release]
+
     # big-M
     M = 1000
 
@@ -47,28 +79,27 @@ def solve(n, switch, release, length, gap=0.0, log=True):
 
     # non-negative starting times
     y = {}
-    # TODO: K=2 lanes hardcoded
-    for k in range(2):
-        for j in range(n):
-            y[k, j] = g.addVar(obj=length[k, j], vtype=gp.GRB.CONTINUOUS, name=f"y_{k}_{j}")
-            g.addConstr(y[k, j] >= release[k, j])
-
-    o = {}
+    for k in range(K):
+        for j in range(n[k]):
+            y[k, j] = g.addVar(obj=length[k][j], vtype=gp.GRB.CONTINUOUS, name=f"y_{k}_{j}")
+            g.addConstr(y[k, j] >= release[k][j])
 
     ### Constraints
 
     # conjunctions
-    # TODO: K=2 lanes hardcoded
-    for k in range(2):
-        for j in range(n - 1):
-            g.addConstr(y[k, j] + length[k, j] <= y[k, j + 1])
+    for k in range(K):
+        for j in range(n[k] - 1):
+            g.addConstr(y[k, j] + length[k][j] <= y[k, j + 1])
 
     # disjunctions
-    for j, l in product(range(n), range(n)):
-        o[j, l] = g.addVar(obj=0, vtype=gp.GRB.BINARY, name=f"o_{j}_{l}")
+    o = {}
+    for k1, k2 in combinations(range(K), 2):
+        for j, l in product(range(n[k1]), range(n[k2])):
+            oc = g.addVar(obj=0, vtype=gp.GRB.BINARY, name=f"o_{j}_{l}")
+            o[k1, k2, j, l] = oc
 
-        g.addConstr(y[0, j] + length[0, j] + switch <= y[1, l] + o[j, l] * M)
-        g.addConstr(y[1, l] + length[1, l] + switch <= y[0, j] + (1 - o[j, l]) * M)
+            g.addConstr(y[0, j] + length[0][j] + switch <= y[1, l] + oc * M)
+            g.addConstr(y[1, l] + length[1][l] + switch <= y[0, j] + (1 - oc) * M)
 
     ### Solving
 
@@ -77,11 +108,16 @@ def solve(n, switch, release, length, gap=0.0, log=True):
     g.update()
     g.optimize()
 
+    # total travel time that is always induced, so not part of objective
+    travel_time = 0
+    for k in range(K):
+        travel_time += (release[k] * length[k]).sum()
+
     # Somehow, we need to do this inside the current function definition,
     # otherwise the Gurobi variables don't expose the .X attribute anymore.
     return { k : (v.X if hasattr(v, 'X') else v) for k, v in y.items() }, \
             { k : (v.X if hasattr(v, 'X') else v) for k, v in o.items() }, \
-            g.getObjective().getValue() - (release * length).sum()
+            g.getObjective().getValue() - travel_time
 
 
 if __name__ == "__main__":
@@ -103,12 +139,14 @@ if __name__ == "__main__":
         p = np.load(in_file)
         start = time.time()
 
-        # TODO: currently two lanes are hardcoded in the .npz file, also see generate.py
-        # we first need to repack the arrivals
-        arrivals = np.stack((p['arrival1'], p['arrival2']))
-        lengths = np.stack((p['length1'], p['length2']))
+        # extract arrivals for each lanes
+        arrivals = []
+        lengths = []
+        for k in range(p['K']):
+            arrivals.append(p[f"arrival{k}"])
+            lengths.append(p[f"length{k}"])
 
-        y, _, obj = solve(p['n'], p['s'], arrivals, lengths, log=log, gap=gap)
+        y, _, obj = solve(p['s'], arrivals, lengths, log=log, gap=gap)
         wall_time = time.time() - start
 
         out_file = f"./schedules/exact_{ix}_{i}.npz"
