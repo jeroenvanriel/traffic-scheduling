@@ -4,16 +4,6 @@ from itertools import product, combinations
 from glob import glob
 import re, time, os
 
-##
-# Currently, K=2 lanes is hardcoded. This can be easily generalized, where the
-# most important change would be related to the disjunctions.
-#
-# Currently, each lane has precisely n arrivals.
-#
-# The objective returned here is \sum_{i} d_i = \sum_{i} (y_i - r_i) * l_i
-# where r_i, l_i are release date and length of platoon i, respectively.
-##
-
 
 def check_platoons(releases, lengths):
     """Check whether release and length specify non-overlapping platoons for
@@ -54,8 +44,8 @@ def solve(switch, release, length, gap=0.0, log=True):
     decisions o[k1, k2, j, l] for each combinations of lanes k1 and k2 with
     vehicle j on lane k1 and vehicle l on lane k2.
 
-    obj = The objective is the sum of y[k, j] - release[k][j] over all lanes and
-    corresponding vehicles.
+    obj = The objective is the sum of (y[k, j] - release[k][j]) * length[k][j]
+    over all lanes and corresponding vehicles.
     """
 
     env = gp.Env(empty=True)
