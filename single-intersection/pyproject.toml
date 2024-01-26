@@ -11,6 +11,7 @@ gymnasium = ">=0.28.1"
 tyro = "^0.5.10"
 torch = ">=1.12.1"
 stable-baselines3 = "^2.2.1"
+gurobipy = "^11.0.0"
 
 [tool.poetry.dev-dependencies]
 

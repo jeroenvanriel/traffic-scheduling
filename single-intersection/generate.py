@@ -6,24 +6,28 @@ rng = np.random.default_rng(seed)
 
 instance_params = [
     {
+        'K': 2,      # number of lanes
         's': 2,      # switch-over time
         'n': 30,     # number of arrivals
         'lambda': 2, # mean interarrival time
         'L': [1, 3], # platoon range
     },
     {
+        'K': 2,      # number of lanes
         's': 2,      # switch-over time
         'n': 30,     # number of arrivals
         'lambda': 3, # mean interarrival time
         'L': [1, 3], # platoon range
     },
     {
+        'K': 2,      # number of lanes
         's': 2,      # switch-over time
         'n': 30,     # number of arrivals
         'lambda': 4, # mean interarrival time
         'L': [1, 3], # platoon range
     },
     {
+        'K': 2,      # number of lanes
         's': 2,      # switch-over time
         'n': 30,     # number of arrivals
         'lambda': 5, # mean interarrival time
@@ -46,7 +50,7 @@ def generate_arrivals(p):
 
 
 if __name__=="__main__":
-
+    import os
 
     # number of samples from each instance specification
     samples = 100
@@ -56,11 +60,12 @@ if __name__=="__main__":
 
     for ix, params in enumerate(instance_params):
         for i in range(samples):
-            # TODO: currently two lanes are hardcoded, also in the .npz file
-            arrival1, length1 = generate_arrivals(params)
-            arrival2, length2 = generate_arrivals(params)
+            data = {}
+            # generate arrivals for each of the lanes
+            for k in range(params['K']):
+                arrival, length = generate_arrivals(params)
+                data[f"arrival{k}"] = arrival
+                data[f"length{k}"] =  length
 
             filename = f"./instances/instance_{ix}_{i}.npz"
-
-            np.savez(filename, arrival1=arrival1, length1=length1,
-                     arrival2=arrival2, length2=length2, **params)
+            np.savez(filename, **data, **params)

@@ -18,13 +18,17 @@ RUN useradd -md /home/${project} ${username} \
 USER ${username}
 WORKDIR /home/${project}
 
-# install poetry
+# install poetry package manager
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH=~/.local/bin:$PATH
 
 # install python dependencies
-COPY pyproject.toml pyproject.toml
-COPY poetry.lock poetry.lock
-RUN ~/.local/bin/poetry install
-RUN rm pyproject.toml poetry.lock
+# N.B. It seems that poetry uses the path to check whether a new virtualenv
+# should be created. Therefore the 'bind mount' (-v flag of docker command)
+# should also be named 'src'.
+RUN mkdir src
+COPY pyproject.toml src/pyproject.toml
+COPY poetry.lock src/poetry.lock
+RUN cd src && ~/.local/bin/poetry install
+RUN rm src/pyproject.toml src/poetry.lock
 

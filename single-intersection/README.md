@@ -11,27 +11,25 @@ for more information. To spin up and attach to a container from the image, run
 
 `docker run --gpus all -it --rm --name learning-container -v $(pwd):/home/learning/src learning`
 
-You still have to install the necessary packages (still need to automate this in the build) via Poetry by running
+The code is located in the src/ folder. The Python environment there (created
+using Poetry) can be activated using
 
-`cd src && poetry install`
+`cd src && poetry shell`
 
-The Python environment created by Poetry can be activated by running
-
-`poetry shell`
-
-Furthermore, our custom Gymnasium environment has to be installed as a package by running
+Furthermore, our custom Gymnasium environment has to be installed as a package
+by running
 
 `pip install -e env`
 
 After this, you are able to run any scripts, for example
 
-`cd single-intersection && python dqn.py`
+`python dqn.py`
 
 To attach to an already running container, use
 
 `docker exec -it learning-container bash`
 
-You might want to use this to start the tensorboard server with 
+This allows you to start the tensorboard server with 
 
 `tensorboard --logdir runs --bind_all`
 
