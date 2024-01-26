@@ -286,12 +286,12 @@ infinite acceleration. In order to model bounded acceleration, we will consider
 additional constraints on the difference between delay at consecutive locations.
 More specifically, we require
 \begin{align*}
-  d_{i-1,j} - d_{ij} \leq a ,
+  d_{i-1,j} - d_{ij} \leq a_{\text{max}} ,
 \end{align*}
 for all vehicles $j$ and locations $i \in \mathcal{L}(k) \setminus \{ 1 \}$.
 In terms of $y$, we obtain the usual finite differences
 \begin{align*}
-  y_{ij} - 2 y_{i-1,j} + y_{i-2,j} \leq a .
+  y_{ij} - 2 y_{i-1,j} + y_{i-2,j} \leq a_{\text{max}} .
 \end{align*}
 often seen in numerical analysis.
 

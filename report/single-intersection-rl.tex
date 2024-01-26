@@ -118,7 +118,7 @@ platoon is necessary for the state to be Markovian.
 Furthermore, the state transitions are very simple. Whenever the same lane is
 served, $a^{(t)}=0$, we have $c^{(t+1)} = c^{(t)}$, when serving the next lane,
 $a^{(t)}=1$, we have $c^{(t+1)} = c^{(t)} + 1 \mod K$. The completion time
-$T^{(t+1)}$ is calculated as follows. To simplify notation, let
+$T^{(t+1)}$ is updated as follows. To simplify notation, let
 $i^{(t)} = c^{(t+1)}$ and $j^{(t)} = m_{i^{(t)}}^{(t)} + 1$, then
 \begin{align}
   T^{(t+1)} = T^{(t)} + s a^{(t)} + p_{i^{(t)}j^{(t)}} ,
