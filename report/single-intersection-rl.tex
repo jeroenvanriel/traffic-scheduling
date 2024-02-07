@@ -38,7 +38,7 @@
 \newtheorem{remark}{Remark}[section]
 
 
-\title{Single Intersection Scheduling with Deep Q-Learning}
+\title{Learning dispatching policies for the Single Intersection Scheduling problem}
 \author{Jeroen van Riel}
 \date{\monthyeardate\today}
 
@@ -48,135 +48,220 @@
 
 \section{Introduction}
 
-Recall our definition of the Single Interesection Scheduling Problem. We saw
-that it can be concisely formulated as a Mixed-Integer Linear Program.
-Therefore, one direct solution approach is to apply standard software for
-solving this class of problems. We will use the commercial Gurobi solver.
-Alternatively, we will show how the problem can be formulated in terms of
-\textit{dispatching} jobs. We will argue that this formulation allows us to
-tackle the problem with reinforcement learning techniques and compare the
-performance of these methods to that of the exact procedure.
-
-\section{Environment}
-
-We are interested in whether we can learn a procedure to generate good
-schedules. To start with, we propose to focus on dispatching procedures, which
-means that the schedule is constructed by inserting jobs one by one. Therefore,
-we will define this procedure in terms of a Markov Decision Process (MDP).
-
-% basic setup
-Assume we have a single intersection with $K$ lanes. Because this corresponds
-with a single machine in the machine scheduling context, we will use the first
-index to refer to the lane, so we use $r_{ij}$ and $p_{ij}$ to denote the
-release date and processing time, respectively, of the $j$th platoon of vehicles
-on lane $i$. Note that it is not necessary to specify the number of vehicles of
-a platoon, because of the Platoon Preservation Theorem. Instead, we only
-consider the total processing time.
-
+Recall our definition of the Single Interesection Scheduling Problem. Suppose we
+have a single intersection with $K$ incoming lanes. Let
+$i \in \{0, \dots, K - 1\}$ be an arbitrary lane and let $n_{i}$ denote the
+(possibly infinite) number of total arriving platoons to this lane. We will
+refer to the $j$-th platoon of vehicles on lane $i$ as \textit{platoon}
+$(i, j)$, and we let $Z_{ij} = (R_{ij}, P_{ij})$ be its full specification,
+where $R_{ij}$ and $P_{ij}$ denote the release date and platoon length,
+respectively. Note that we do not need to treat vehicles individually due to the
+Platoon Preservation Theorem.
 % arrival processes
-Let $i \in \{0, \dots, K - 1\}$ be an arbitrary lane and let $n_{i}$ denote the
-(possibly infinite) number of total arrivals to this lane. The release dates and
-processing times can be considered part of the specification of the MDP, which
-means that $(r_{ij})_{j=1}^{n_{i}}$ and $(p_{ij})_{j=1}^{n_{i}}$ are fixed. In
-the following experiments, we assume that the arrival process is as follows.
-% processing times
-We assume the processing times are integers distributed as $p_{ij} \sim \text{Uni}[L, H]$.
-{\color{gray}
-The processing times are distributed as $p_{ij} \sim \text{Geom}(\theta)$ such
-that $P(p_{ij} = n) = (1-\theta)^{n-1}\theta$, so it is the required number of
-Bernoulli trials before the first success, where $\theta$ is the success
-probability.
-}
-% release dates
-We define interarrival times $X_{ij} \sim \text{Exp}(\lambda)$, parameterized
-such that $\mathbb{E}[X_{ij}] = \lambda$. The release dates are given by
+The \textit{arrival process} of lane $i$ is defined as the collection of random variables
 \begin{align}
-r_{ij} = \sum_{l=1}^{j-1} p_{il} + \sum_{l=1}^{j} X_{il} .
+  Z_{i} = { (Z_{ij}) }_{j=1}^{n_{i}} .
+\end{align}
+We saw that the Single Intersection Scheduling Problem corresponding to a
+particular sample
+\begin{align}
+  z = {( z_{i} )}_{i=0}^{K-1} \sim Z = {( Z_{i} )}_{i=0}^{K-1} ,
+\end{align}
+can be concisely formulated as a Mixed-Integer Linear Program. Therefore, one
+direct solution approach is to apply standard software for solving this
+well-defined class of problems.
+
+Recall that the objective of the Single Intersection Scheduling Problem was to minimize the total completion time
+\begin{align}
+  \sum_{i=0}^{K-1} \sum_{j=1}^{n_{i}} C_{ij}
+\end{align}
+over all vehicles and lanes.
+%
+To make comparing objective values a bit easier, we will focus on the total delay, defined as
+\begin{align}
+  D_{z}(y) = \sum_{i=0}^{K-1} \sum_{j=1}^{n_{i}} y_{ij} - r_{ij} .
+\end{align}
+for some problem instance $z$ and some feasible schedule $y$.
+
+
+\section{Markov Decision Process}
+
+% main idea: dispatching
+An alternative approach is to cast the problem in terms of iteratively deciding
+which platoon crosses the intersection next, to which we will refer as
+\textit{dispatching}. The resulting sequential decision problem can be formulated as a
+Markov Decision Process, which allows us to apply reinforcement learning
+techniques.
+
+% states
+\noindent
+\textbf{States.}
+For each time step $t=0,1,2,\dots$, let $x^{(t)}$ denote the lane that was last
+served and let $C^{(t)}$ denote the completion time of the last platoon that was
+dispatched. Furthermore, let $m^{(t)}$ be a vector where entry $m_{i}^{(t)}$ counts the number of dispatched
+platoons from lane $i$.
+The state at step $t$ can then be written as
+\begin{align}
+   s^{(t)} = (x^{(t)}, C^{(t)}, m^{(t)}, z) .
+\end{align}
+In particular, the initial state is given by
+\begin{align}
+   s^{(0)} = (0, 0, 0, z ) .
 \end{align}
 
 % actions
-In a dispatching approach, platoons are assigned to a timeslot one by one.
-Because of the precedence constraints between platoons on the same lane, this is
-equivalent to deciding in which order to serve the lanes. Therefore, the action
-$a$ of the scheduler is to decide whether to keep serving the current lane
-($a = 0$), or to serve the next lane ($a = 1$).
-% state space
-At step $t$, let $c^{(t)}$ denote the lane that was last served and let
-$m_{i}^{(t)}$ denote the number of scheduled platoons from lane $i$. Let
-$T^{(t)}$ denote the completion time of the last scheduled platoon at step $t$,
-so before any platoons are scheduled, we have $T^{(0)} = 0$. The state at step
-$t$ can then simply be written as
-\begin{align}
-   s^{(t)} = (c^{(t)}, T^{(t)}, m_{1}^{(t)}, \dots, m_{K}^{(t)} ) \in \{1, \dots, K\} \times \mathbb{R} \times \mathbb{N}^{K} .
-\end{align}
+\noindent
+\textbf{Actions.}
+At every state transition, some platoon is dispatched.
+The action $a$ is to decide whether to keep serving the
+current lane ($a = 0$), or to serve the next lane ($a = 1$).
+
 % compute the starting times from the state
-Note that we do not consider the starting times $y_{ij}$ to be explicitly part
-of the state, because only completion time $T^{(t)}$ of the last scheduled
-platoon is necessary for the state to be Markovian.
+% Note that we do not consider the starting times $z_{ij}$ to be explicitly part
+% of the state, because only completion time $C^{(t)}$ of the last scheduled
+% platoon is necessary for the state to be Markovian.
 
 % transitions
-Furthermore, the state transitions are very simple. Whenever the same lane is
-served, $a^{(t)}=0$, we have $c^{(t+1)} = c^{(t)}$, when serving the next lane,
-$a^{(t)}=1$, we have $c^{(t+1)} = c^{(t)} + 1 \mod K$. The completion time
-$T^{(t+1)}$ is updated as follows. To simplify notation, let
-$i^{(t)} = c^{(t+1)}$ and $j^{(t)} = m_{i^{(t)}}^{(t)} + 1$, then
+\noindent
+\textbf{Transitions.}
+The value of $x^{(t)}$ is simply updated as
 \begin{align}
-  T^{(t+1)} = T^{(t)} + s a^{(t)} + p_{i^{(t)}j^{(t)}} ,
+  x^{(t+1)} = \begin{cases}
+                x^{(t)} \; & \text{ if } a^{(t)} = 0, \\
+                x^{(t)} + 1 \mod K \; & \text{ if } a^{(t)} = 1.
+              \end{cases}
 \end{align}
-where $s$ is the switch-over time. Observe that the pair $(i^{(t)}, j^{(t)})$
-identifies the platoon that is scheduled in the transition from $t$ to $t+1$
-with starting time given by
+The platoon that is dispatched in the transition from $t$ to $t+1$ is identified by the indices $(i^{(t)},j^{(t)})$, defined as
+\begin{subequations}
 \begin{align}
-  y_{i^{(t)}j^{(t)}} = T^{(t)} + s a^{(t)} .
+i^{(t)} &= x^{(t+1)} , \\
+j^{(t)} &= m_{i^{(t)}}^{(t)} + 1 .
 \end{align}
-For the remaining part of the state, with $i \in \{0, \dots, K\}$, we always
-have
+\end{subequations}
+Therefore, the completion time $C^{(t+1)}$ of the dispatched platoon is given by
+\begin{align}
+  \label{eq:completion_time_update}
+  C^{(t+1)} = \max\left( C^{(t)} + s a^{(t)} , \; r_{i^{(t)}j^{(t)}} \right) + p_{i^{(t)}j^{(t)}} ,
+\end{align}
+where $s$ is the switch-over time.
+The platoon counters are simply updated as
 \begin{align}
   m_{i}^{(t+1)} = m_{i}^{(t)} + \mathbb{1}\{ i = i^{(t)} \} .
 \end{align}
+The remaining part of the state does not change.
 
 % reward
-Recall that we defined the objective for optimal schedules as minimizing the
-total delay for platoons. When assuming $n_{i} < \infty$ for all lanes $i$, we
-could decide to only define episodic reward according to total delay in the
-complete schedule. However, to deal with possibly infinite episodes and to
-provide the scheduler with earlier reward signals, we define the reward to be
+\noindent
+\textbf{Rewards.} Recall that we assumed for the Single Intersection Scheduling Problem
+that all processing times are identical $p_{j} = p = 1$. In the current MDP, we
+allow platoons of arbitrary \textit{processing time}, so in order to compare
+results, we assume that $p_{ij}$ is always a positive integer.
+%
+Observe that the delay for each vehicle in the dispatched platoon
+is equal and given by
 \begin{align}
-  r^{(t)} = (y_{i^{(t)}j^{(t)}} - r_{i^{(t)}j^{(t)}}) \cdot p_{i^{(t)}j^{(t)}} .
+  C^{(t)} - p_{i^{(t)}j^{(t)}} - r_{i^{(t)}j^{(t)}} ,
 \end{align}
+so the total contribution of $(i^{(t)},j^{(t)})$ to the total delay is given by
+\begin{align}
+  d^{(t)} = p_{i^{(t)}j^{(t)}} ( C^{(t)} - p_{i^{(t)}j^{(t)}} - r_{i^{(t)}j^{(t)}}) ,
+\end{align}
+which is the negative reward (cost) of step $t$. Let $N = n_{0} + \cdots + n_{K-1}$ be
+the total number of platoons. Assuming $N < \infty$, the total negative reward is
+precisely the total delay
+\begin{align}
+  D_{z}(y) = \sum_{t=1}^{N} d^{(t)}
+\end{align}
+for the resulting schedule $y$.
 
-% partial observability: horizon
-As we indicated above, the exact arrivals $\{(p_{ij}, l_{ij})_{j=1}^{\infty}\}_{i=1}^{K}$ can
-be considered a fixed part of the specification of a particular instance of the
-MDP. Therefore, we regard it as a constant part of the state. When the scheduler
-has no access to these arrivals in any way, it is not very interesting to solve
-the MDP. Therefore, we should further specify what information is available to
-the scheduler. By defining the exact \textit{observations} that become available
-to the scheduler, we obtain a Partially Observable Markov Decision Process
-(POMDP).
+\subsection{Partial observability}
+
+% where is the randomness?
+Note that the exact arrivals $z$ are a constant part of the state and that all
+transitions are deterministic. The only randomness in the MDP stems from the
+distribution of the initial state, which is essentially the distribution of $Z$.
+This model fits the assumption that all future arrivals are known to the
+scheduler in advance. Alternatively, we could assume that the number of known
+future arrivals is limited. Let us first model this in terms of
+\textit{observations}, thereby obtaining a Partially Observable Markov Decision
+Process (POMDP).
 
 % observations
-We assume that the scheduler does not know about all arrivals upfront, but sees
-a certain number $h_{i}^{(t)}$ of next arrivals at lane $i$. Thefore, the
+Assume that the scheduler does not know about all arrivals upfront, but sees
+a certain number $h$ of next arrivals at every lane $i$, then the
 visible \textit{horizon} of lane $i$ at step $t$ consists of the release dates
 and processing times
 \begin{align}
-  \mathcal{H}_{i}^{(t)} = \{ (p_{ij}, l_{ij}) : j \in \{ m_{i}^{(t)}, m_{i}^{(t)} + 1, \dots, m_{i}^{(t)} + h_{i}^{(t)} \} \} .
+  \label{eq:observations}
+  h_{i}^{(t)} = ( z_{ij} : m_{i}^{(t)} \leq j \leq m_{i}^{(t)} + h ) .
+  % h_{i}^{(t)} = {( z_{i})}_{j=m_{i}^{(t)}}^{m_{i}^{(t)} + h} .
 \end{align}
 Therefore, the observation at step $t$ is deterministic and given by
 \begin{align}
-  o^{(t)} = \{ \mathcal{H}_{i}^{(t)} \}_{i=1}^{K} .
+  h^{(t)} = {( h_{i}^{(t)} )}_{i=0}^{K-1} .
 \end{align}
-In general, the length $h_{i}^{(t)}$ of the horizon may depend on the arrival
-times. This would be the case when we want to model a fixed look-ahead time
-$t_{a}$. However, in what follows, we will assume that $h_{i}^{(t)} = h$ for
-some fixed $h$. This makes the implementation simpler, because the vector that
-encodes the horizon has fixed dimensions in this case, so we do not have to
-implement some sort of \textit{masking}.
+
+% POMDP -> MDP
+Because the arrival process is independent of the actions that are taken by the
+scheduler, the POMDP can simply be reformulated as a MDP\@. Instead of sampling
+the full arrival process at the initial state, we can assume that some next
+platoon is sampled at every transition.
+In that case, the states should be written as
+\begin{align}
+  s^{(t)} = (x^{(t)}, C^{(t)}, m^{(t)}, z^{(t)}) .
+\end{align}
+%
+In the initial state, we have
+\begin{align}
+  z_{i}^{(0)} = {( Z_{ij} )}_{j=1}^{h} ,
+\end{align}
+for each lane $i$.
+%
+For the lane $i=i^{(t)}$ that was served in the transition from step $t$,
+we have the following simple shift
+\begin{align}
+  \label{eq:horizon_shift}
+  (z_{i}^{(t+1)})_{j} = \begin{cases}
+                          {(z_{i}^{(t)})}_{j+1} & \text{ if } 1 \leq j \leq h - 1 , \\
+                          Z_{i,m_{i}^{(t)} + h + 1}              & \text{ if } j = h ,
+                       \end{cases}
+\end{align}
+and we have $z_{i}^{(t+1)} = z_{i}^{(t)}$ for all the other lanes.
+Equation~\eqref{eq:horizon_shift} shows that only the last component of the
+updated horizon representation is a new random sample.
+
+\subsection{Discussion}
+
+% platoons as units
+Note that we have exploited the Platoon Preservation Theorem implicitly in the design of
+the MDP by modeling platoons as single units. Once we start considering a
+network of intersections, this theorem no longer holds, which means that optimal
+schedules could require some platoons to be \textit{split}.
+
+% round robin serving of lanes
+The current definition of the action space imposes a linear order of
+the served lanes, sometimes also called \textit{round robin}. For $K>2$, we may
+want to consider arbitrary orders. For example, we could redefine the actions
+such that $a^{(t)} \in \{ 0, \dots, K-1 \}$ indicates the next lane to be
+served, so that we simply have $x^{(t+1)} = a^{(t)}$.
+Furthermore, the completion time update from equation~\ref{eq:completion_time_update} should be changed to
+\begin{align}
+  C^{(t+1)} = \max\left( C^{(t)} + s \cdot \mathbb{1} \{ x^{(t)} \neq a^{(t)} \} , \; r_{i^{(t)}j^{(t)}} \right) + p_{i^{(t)}j^{(t)}} .
+\end{align}
+
+% time-dependent horizon length
+We defined the length $h$ of the horizon in terms of the number of next platoons
+that are visible. This makes the implementation simpler, because the horizon
+vector has fixed dimensions. Alternatively, we could want to model a fixed
+look-ahead time, which would require that the horizon $h_{i}^{(t)}$ of lane $i$
+depends on the current timestep. This would require some additional care in
+dealing with the resulting feature vectors, which can now differ in length
+across lanes and steps.
 
 
+\section{Method}
 
-\section{Deep Q-Learning}
+\subsection{Deep Q-Learning}
 
 Let the \textit{total discounted return} from step $t$ be defined as
 \begin{align}
@@ -202,40 +287,75 @@ which is known as the \textit{Bellman equation}.
 
 The main goal of Q-learning is to estimate the optimal q-values. This is done using the following \textit{temporal difference update}
 \begin{align}
-  \hat{q}(s_{t}, a_{t}) \leftarrow  \hat{q}(s_{t}, a_{t}) + \alpha [ r_{t+1} + \gamma \max_{a} \hat{q}(s_{t+1}, a) - \hat{q}(s_{t}, a_{t}) ] .
+  \hat{q}(s_{t}, a_{t}) \leftarrow \hat{q}(s_{t}, a_{t}) + \alpha [ r_{t+1} + \gamma \max_{a} \hat{q}(s_{t+1}, a) - \hat{q}(s_{t}, a_{t}) ] .
 \end{align}
 This method is an \textit{off-policy} method, because it can be shown that
 $\hat{q}$ will converge to $q_{*}$ regardless of the policy $\pi$ that is being
-followed, as long as all states are visited infidelity often.
+followed, as long as all states are visited infinitely often.
 
-\subsection{Function approximation}
+The deep Q-learning implementation that we are using also employs an experience
+replay mechanism.
 
 
-\subsection{Experience replay}
+\subsection{Observations}
+
+
+We apply deep Q-learning on the observations defined in~\eqref{eq:observations}.
+% horizon length < h near end of episode => fill with zeros
+Note that the size of the vector $h_{i}^{(t)}$ becomes smaller than $h$ whenever
+less than $h$ platoons are waiting on lane $i$. In order to keep the dimensions
+of the feature vector fixed, we fill the remaining entries with zeros.
+% state shifting
+Furthermore, we do not use $h^{(t)}$ as the state feature at step $t$.
+Instead, we apply a simple shift to obtain
+\begin{align}
+  \hat{h}_{i}^{(t)} = h_{x^{(t)} + i \; \text{mod} K}^{(t)} .
+\end{align}
+This makes sure that the $i$-th entry of the feature always corresponds to the
+$i$-th lane from the current lane.
 
 
 \section{Experiments}
 
-Assume we have two lanes, with fixed switch-over time $s=2$ and a fixed number
-of arrivals $n=30$ for each lane. We assume that $p_{ij} \sim \text{Uni}[1, 3]$.
-Consider four scenarios with
-$\lambda_{1} = 2, \lambda_{2} = 3, \lambda_{3} = 4, \lambda_{4} = 5$.
-
-We ue the commercial Gurobi solver to obtain an estimate for the optimal
-expected objective. More precisely, we estimate
+We define a couple of different problem instance classes by specifying the
+distribution of $Z$. For each problem class, we train a dispatching rule using
+deep Q-learning by sampling episodes according to the given distribution. Next,
+we compare the performance of the learned dispatching rules to the solutions
+found by solving the corresponding MILP formulations. More precisely, we
+estimate
 \begin{align}
-\mathbb{E}\left[ \sum_{j} C_{j} \right] ,
+  \label{eq:optimal_performance}
+  \mathbb{E}_{z \sim Z}\left[ D_{z}(y^{*}(z)) \right] ,
 \end{align}
-where the expectation is given over the distribution of the arrival process
+where $y^{*}(z)$ denotes an exact solution for $z$. For some trained policy
+$\pi$, let $y_{\pi}(z)$ denote the schedule that results from dispatching the
+vehicles from $z$ according to $\pi$, then we compare the performance of $\pi$,
+given by
 \begin{align}
-\{(p_{ij}, l_{ij})_{j=1}^{\infty}\}_{i=1}^{K}
+  \mathbb{E}_{z \sim Z}\left[ D_{z}(y_{\pi}(z)) \right] ,
 \end{align}
-as defined above. To estimate this quantity, we solve \textbf{100} randomly generated
-instances with an optimality gap of $g = 0.1$.
+to the optimal performance in~\eqref{eq:optimal_performance}.
 
-For the DQN, we use a fixed horizon of $h = 10$. The smoothed return obtained by
-a \textbf{single run} of the DQN algorithm for each scenario is shown in
-Figure~\ref{fig:dqn-learning-rates}.
+For all the experiments, the distribution of $Z$ is parameterized as follows.
+% processing times
+We assume the processing times are integers distributed as
+$P_{ij} \sim \text{Uni}[1, \theta_{i}]$.
+% release dates
+We define interarrival times $X_{ij} \sim \text{Exp}(\lambda_{i})$, parameterized
+such that $\mathbb{E}[X_{ij}] = \lambda_{i}$. The release dates are given by
+\begin{align}
+R_{ij} = \sum_{l=1}^{j-1} P_{il} + \sum_{l=1}^{j} X_{il} .
+\end{align}
+
+\subsection{Effect of arrival rate}
+%
+Assume we have $K=2$ lanes, with fixed switch-over time $s=2$ and a fixed number
+of arrivals $n_{i}=n=30$ for each lane. We set $\theta_{i} = \theta = 3$ and
+equal arrival rates $\lambda_{i} = \lambda$ for each lane, for the following
+four scenarios $\lambda^{(1)} = 2, \lambda^{(2)} = 3, \lambda^{(3)} = 4, \lambda^{(4)} = 5$.
+
+\newpage
+
 
 \begin{table}
   \centering
@@ -256,6 +376,9 @@ Figure~\ref{fig:dqn-learning-rates}.
 \begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{../single-intersection/comparison.pdf}
+  \caption{For the DQN, we use a fixed horizon of $h = 10$. The smoothed return
+    obtained by a \textbf{single run} of the DQN algorithm is shown for each
+    scenario.}
   \label{fig:dqn-learning-rates}
 \end{figure}
 
