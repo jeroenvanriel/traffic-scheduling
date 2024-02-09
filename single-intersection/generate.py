@@ -4,34 +4,59 @@ import numpy as np
 seed=31307741687469044381975587942973893579
 rng = np.random.default_rng(seed)
 
-instance_params = [
+# theta
+arrival_params = [
     {
-        'K': 2,      # number of lanes
-        's': 2,      # switch-over time
         'n': 30,     # number of arrivals
         'lambda': 2, # mean interarrival time
         'L': [1, 3], # platoon range
     },
     {
-        'K': 2,      # number of lanes
-        's': 2,      # switch-over time
         'n': 30,     # number of arrivals
         'lambda': 3, # mean interarrival time
         'L': [1, 3], # platoon range
     },
     {
-        'K': 2,      # number of lanes
-        's': 2,      # switch-over time
         'n': 30,     # number of arrivals
         'lambda': 4, # mean interarrival time
         'L': [1, 3], # platoon range
     },
     {
-        'K': 2,      # number of lanes
-        's': 2,      # switch-over time
         'n': 30,     # number of arrivals
         'lambda': 5, # mean interarrival time
         'L': [1, 3], # platoon range
+    },
+]
+
+# instance specifications
+instance_specs = [
+    {
+        's': 2,
+        'lanes': [
+            lambda: generate_arrivals(arrival_params[0]),
+            lambda: generate_arrivals(arrival_params[0]),
+        ]
+    },
+    {
+        's': 2,
+        'lanes': [
+            lambda: generate_arrivals(arrival_params[1]),
+            lambda: generate_arrivals(arrival_params[1]),
+        ]
+    },
+    {
+        's': 2,
+        'lanes': [
+            lambda: generate_arrivals(arrival_params[2]),
+            lambda: generate_arrivals(arrival_params[2]),
+        ]
+    },
+    {
+        's': 2,
+        'lanes': [
+            lambda: generate_arrivals(arrival_params[3]),
+            lambda: generate_arrivals(arrival_params[3]),
+        ]
     },
 ]
 
@@ -58,14 +83,14 @@ if __name__=="__main__":
     # write the instances here
     os.makedirs(os.path.dirname("./instances/"), exist_ok=True)
 
-    for ix, params in enumerate(instance_params):
+    for ix, spec in enumerate(instance_specs):
         for i in range(samples):
             data = {}
             # generate arrivals for each of the lanes
-            for k in range(params['K']):
-                arrival, length = generate_arrivals(params)
+            for k, lane in enumerate(spec['lanes']):
+                arrival, length = lane()
                 data[f"arrival{k}"] = arrival
                 data[f"length{k}"] =  length
 
             filename = f"./instances/instance_{ix}_{i}.npz"
-            np.savez(filename, **data, **params)
+            np.savez(filename, **data, s=spec['s'], K=len(spec['lanes']))

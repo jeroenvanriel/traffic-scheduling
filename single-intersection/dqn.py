@@ -17,7 +17,6 @@ from stable_baselines3.common.buffers import ReplayBuffer
 from torch.utils.tensorboard import SummaryWriter
 
 import single_intersection_gym
-from instances.generate import instance_params, generate_instance
 
 
 @dataclass
@@ -38,10 +37,6 @@ class Args:
     """the entity (team) of wandb's project"""
     capture_video: bool = False
     """whether to capture videos of the agent performances (check out `videos` folder)"""
-    save_model: bool = False
-    """whether to save model into the `runs/{run_name}` folder"""
-    upload_model: bool = False
-    """whether to upload the saved model to huggingface"""
     hf_entity: str = ""
     """the user or org name of the model repository from the Hugging Face Hub"""
 
@@ -74,10 +69,10 @@ class Args:
     """the frequency of training"""
 
 
-def make_env(env_id, platoon_generator, seed):
+def make_env(env_id, platoon_generators, switch_over, seed):
 
     def thunk():
-        env = gym.make(env_id, platoon_generator=platoon_generator)
+        env = gym.make(env_id, platoon_generators=platoon_generators, switch_over=switch_over)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         env.action_space.seed(seed)
 
@@ -88,14 +83,14 @@ def make_env(env_id, platoon_generator, seed):
 
 # ALGO LOGIC: initialize agent here:
 class QNetwork(nn.Module):
-    def __init__(self, env):
+    def __init__(self, in_shape, out_shape):
         super().__init__()
         self.network = nn.Sequential(
-            nn.Linear(np.array(env.single_observation_space.shape).prod(), 120),
+            nn.Linear(np.array(in_shape).prod(), 120),
             nn.ReLU(),
             nn.Linear(120, 84),
             nn.ReLU(),
-            nn.Linear(84, env.single_action_space.n),
+            nn.Linear(84, out_shape),
         )
 
     def forward(self, x):
@@ -108,8 +103,9 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
 
 
 
-def train(platoon_generator, seed, args):
-    run_name = f"{args.env_id}__{args.exp_name}__{seed}__{int(time.time())}"
+def train(spec_id, platoon_generators, switch_over, seed, args):
+    #run_name = f"{spec_id}__{args.exp_name}__{seed}__{int(time.time())}"
+    run_name = f"{spec_id}__dqn"
     if args.track:
         import wandb
 
@@ -137,12 +133,12 @@ def train(platoon_generator, seed, args):
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # env setup
-    envs = gym.vector.SyncVectorEnv([make_env(args.env_id, platoon_generator, seed)])
+    envs = gym.vector.SyncVectorEnv([make_env(args.env_id, platoon_generators, switch_over, seed)])
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
-    q_network = QNetwork(envs).to(device)
+    q_network = QNetwork(env.single_observation_space.shape, env.single_action_space.n).to(device)
     optimizer = optim.Adam(q_network.parameters(), lr=args.learning_rate)
-    target_network = QNetwork(envs).to(device)
+    target_network = QNetwork(env.single_observation_space.shape, env.single_action_space.n).to(device)
     target_network.load_state_dict(q_network.state_dict())
 
     rb = ReplayBuffer(
@@ -215,54 +211,30 @@ def train(platoon_generator, seed, args):
                         args.tau * q_network_param.data + (1.0 - args.tau) * target_network_param.data
                     )
 
-    if args.save_model:
-        model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
-        torch.save(q_network.state_dict(), model_path)
-        print(f"model saved to {model_path}")
-        from cleanrl_utils.evals.dqn_eval import evaluate
-
-        episodic_returns = evaluate(
-            model_path,
-            make_env,
-            args.env_id,
-            eval_episodes=10,
-            run_name=f"{run_name}-eval",
-            Model=QNetwork,
-            device=device,
-            epsilon=0.05,
-        )
-        for idx, episodic_return in enumerate(episodic_returns):
-            writer.add_scalar("eval/episodic_return", episodic_return, idx)
-
-        if args.upload_model:
-            from cleanrl_utils.huggingface import push_to_hub
-
-            repo_name = f"{args.env_id}-{args.exp_name}-seed{seed}"
-            repo_id = f"{args.hf_entity}/{repo_name}" if args.hf_entity else repo_name
-            push_to_hub(args, episodic_returns, repo_id, "DQN", f"runs/{run_name}", f"videos/{run_name}-eval")
+    model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
+    torch.save(q_network.state_dict(), model_path)
+    print(f"model saved to {model_path}")
 
     envs.close()
     writer.close()
 
 
 if __name__ == "__main__":
+    from generate import instance_specs
+
     args = tyro.cli(Args)
 
     seed = args.seed
 
     wall_times = []
 
-    # solve all the instances
-    for ix, params in enumerate(instance_params):
+    # train for each instance distribution
+    for ix, spec in enumerate(instance_specs):
         print(f"instance {ix}")
-        def platoon_generator():
-            return generate_instance(params)
 
         start = time.time()
-        train(platoon_generator, seed, args)
+        train(ix, spec['lanes'], spec['s'], seed, args)
         wall_times.append(time.time() - start)
-
-        seed += 1
 
     # report
     print(f"wall times: {wall_times}")
