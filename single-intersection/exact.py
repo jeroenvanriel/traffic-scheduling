@@ -113,14 +113,14 @@ def solve(switch, release, length, gap=0.0, log=True):
 if __name__ == "__main__":
 
     log = True
-    gap = 0.1 # optimality gap
+    gap = 0.05 # optimality gap
 
     # write the schedules here
-    os.makedirs(os.path.dirname("./schedules/"), exist_ok=True)
+    os.makedirs(os.path.dirname("./data/schedules/"), exist_ok=True)
 
     # solve all the instances
-    for in_file in glob("./instances/*.npz"):
-        m = re.match(r".\/instances\/instance\_(\d+)\_(\d+)\.npz", in_file)
+    for in_file in glob("./data/instances/*.npz"):
+        m = re.match(r".\/data/instances\/instance\_(\d+)\_(\d+)\.npz", in_file)
         if m is None:
            raise Exception("Incorrect instance file name.")
         ix = m.group(1) # experiment number
@@ -130,14 +130,14 @@ if __name__ == "__main__":
         start = time.time()
 
         # extract arrivals for each lanes
-        arrivals = []
-        lengths = []
+        release = []
+        length = []
         for k in range(p['K']):
-            arrivals.append(p[f"arrival{k}"])
-            lengths.append(p[f"length{k}"])
+            release.append(p[f"arrival{k}"])
+            length.append(p[f"length{k}"])
 
-        y, _, obj = solve(p['s'], arrivals, lengths, log=log, gap=gap)
+        y, _, obj = solve(p['s'], release, length, log=log, gap=gap)
         wall_time = time.time() - start
 
-        out_file = f"./schedules/exact_{ix}_{i}.npz"
+        out_file = f"./data/schedules/exact_{ix}_{i}.npz"
         np.savez(out_file, y=y, obj=obj, time=wall_time, gap=gap)

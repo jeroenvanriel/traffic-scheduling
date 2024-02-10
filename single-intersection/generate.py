@@ -78,10 +78,10 @@ if __name__=="__main__":
     import os
 
     # number of samples from each instance specification
-    samples = 100
+    samples = 10
 
     # write the instances here
-    os.makedirs(os.path.dirname("./instances/"), exist_ok=True)
+    os.makedirs(os.path.dirname("./data/instances/"), exist_ok=True)
 
     for ix, spec in enumerate(instance_specs):
         for i in range(samples):
@@ -92,5 +92,5 @@ if __name__=="__main__":
                 data[f"arrival{k}"] = arrival
                 data[f"length{k}"] =  length
 
-            filename = f"./instances/instance_{ix}_{i}.npz"
+            filename = f"./data/instances/instance_{ix}_{i}.npz"
             np.savez(filename, **data, s=spec['s'], K=len(spec['lanes']))
