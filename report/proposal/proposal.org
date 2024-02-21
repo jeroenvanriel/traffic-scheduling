@@ -1,0 +1,956 @@
+#+title: Research Proposal (preparation phase)
+
+* draft
+** outline
+1. solve the general traffic scheduling problem
+2. try different formulations to solve it with RL
+3. study how well RL is able to adapt to a particular arrival process distribution
+
+Two main aspects:
+- discretization: how to compute/define computable trajectories?
+- optimization: how to compute best trajectory
+  - implicitly learning unknown arrival distribution
+  - generalization: adapt to different situation
+  - online setting: adapt to changing situation
+
+I want to find a suitable (approximate) environment to learn good policies for
+the general traffic control problem through reinforcement learning. To this end,
+I want to study a few different environments of varying courseness and
+computational complexity.
+
+- single intersection with infinite buffers
+  - solve using exact method
+    - formulate as a MILP, solve using solver like Gurobi
+  - learn dispatching rule using reinforcement learning
+    - formulate as MDP with dispatching (choosing phases) at the intersection,
+      solve using DQN
+
+- network with infinite buffers
+  - job shop with additional travel constraints
+  - solve using exact method
+  - learn dispatching rule using reinforcement learning
+  - Zhang et al. method
+
+- (single intersection with finite buffers)
+- network with finite buffers
+  - discrete space
+  - time is continuous, so event-based simulation
+  - solve exact (probably scales very badly)
+  - generate trajectories by periodically setting location delays for each vehicle
+  - generate trajectories by setting speed advice on locations (so agnostic of
+    the number of vehicles in the system)
+
+- cellular model
+  - discrete space like the finite buffers model with locations
+  - discrete time now as well
+  - speed is modelled by skipping locations
+  - controller sets speed (number of locations to skip) for each vehicle
+    - must be /globally valid/, i.e. no more than one vehicle per cell or overtaking
+
+
+For each of these model classes, there are some important aspects that we want
+to consider.
+
+- online problem modeling
+  - arrivals become known over time
+  - anticipation (example in which partial schedule is not part of optimal full schedule)
+  - dealing with periodicity in the arrivals requires some kind of (implicit or
+    explicit) memory mechanism in the scheduler
+
+- network effects
+  - platoon splitting
+  - decisions affect downstream intersections
+
+- generalization
+  - across arrival distributions
+  - across network topologies
+  - across different time scales
+** TODO discretization
+** TODO optimization
+
+How to generate efficient trajectories according to some measure.
+
+Complete future known (offline problem) or limited horizon (online problem,
+anticipation).
+
+Learning (unknown arrival distribution) and generalization (different
+distributions, different network topology).
+
+** analysis
+Before discussing concrete models for solving the general traffic scheduling
+problem, let us discuss some aspects that will be relevant in the analysis of
+all models.
+
+% arrival distribution
+
+First of all, we need to make some assumptions on how vehicles arrive to the
+network. We assume that each vehicle $j$ has an earliest arrival time $r_j$. The
+controller decides the exact arrival time $t^{(0)}_j$ when the vehicle actually
+enters the network. By having this assumption, we make sure that the problem is
+always feasible, because vehicles can be kept waiting at the entrypoints for as
+long as necessary. Would we assumed that vehicle are forced to enter the network
+at their arrival time $r_j$, it is not difficult to see there are instances in
+which no trajectories satisfy the safety constraints.
+
+% network effects
+
+The platoon preservation theorem shows that it is never beneficial to split
+platoons when there is only a single intersection. However, for more than one
+intersections, we have found examples where platoon splitting is necessary in
+the optimal schedule. It would be interesting to understand better why this
+happens and characterize somehow these kind of situations.
+
+% generalization
+
+An interesting aspect of any learned policy is its generalization to similar
+problems. It would be interesting to study generalization across different
+network topologies, but this would require a policy that is agnostic to the
+shape of the network. More straightforward would be the study of generalization
+across different arrival distributions. It is well known that road traffic
+demand fluctuates highly throughout the day. Therefore, it would be nice to have
+a policy that keeps good performance under increased arrival rates. An
+interesting next step would be to see if an explicit memory mechanism could
+improve the ability to adapt to changing arrival rates.
+** single intersection (infinite lane capacity)
+
+% reduction to offline scheduling
+
+A trajectory generating approach for a single intersection has been proposed in
+\cite{Timmerman}. The main idea is to first schedule the times at which vehicles
+cross the intersection and then generate feasible trajectories accordingly. When
+the objective only measures delay at the intersection, this shows that the
+single intersection problem reduces to scheduling crossing times at the
+intersection. Furthermore, the platoon preservation theorem from \cite{Matthijs}
+lowers the complexity of the problem even further. Under the assumption that all
+future arrivals are known, the problem can be solved to optimality by
+formulating it as a Mixed-Integer Linear Program (MILP). Nevertheless, it makes
+sense to study heuristic method that would allow us to tackle larger instances.
+
+% online scheduling
+
+When we drop the assumption of complete knowledge of the future, we are in the
+setting of online scheduling \cite{Vestjens}, in which vehicle arrival times
+become gradually known to the controller over time. There are multiple ways to
+assess the performance of an online scheduler, but the most straightforward way
+is to study the competitive ratio compared with a so-called adversary. In case
+of a deterministic algorithm, the adversary constructs a problem instance based
+on the description of the algorithm and then solves it optimally. The worst-case
+ratio between the objective value of the algorithm and the objective of the
+optimal solution is called the competitive ratio. Following a similar approach
+as in the proof of Theorem 2.1 in \cite{Vestjens}, we might be able to show a
+lower bound on the competitive ratio. After some quick calculations, we found
+that (for some particular problem parameters) this ratio is strictly larger than
+1, which roughly means that knowing the future is beneficial. However, the
+expressions that we obtained do not allow a clean analysis, so obtaining the
+lower bound might require some numerical approximation.
+
+% heuristics
+
+Our goal is to study heuristics for the offline and online single intersection
+scheduling problem. A common approach in the scheduling literature is to
+manually formulate heuristics based on our understanding of the problem
+structure. Instead, we will be using reinforcement learning techniques to
+automatically learn heuristics. In order to apply reinforcement lenaring
+techniques, we first need to precisely specify the interaction between the
+controller and the environment, which is done by formulating a Markov Decision
+Process. We will study an MDP that is based on the idea of /dispatching/, which is
+an idea from scheduling theory in which a schedule is constructed by iteratively
+choosing the next vehicle that is allowed to use a shared resource. In this way,
+the learned policy is applicable in both the offline and online problem setting.
+
+% status and plan
+
+We have a precise definition of the single intersection scheduling problem.
+Furthermore, we formulated a MILP and have some code to solve arbitrary
+instances exactly using the commerical Gurobi solver. We have implemented the
+dispatching MDP as a Gymnasium environment and we have setup a basic DQN agent
+based on the off-the-shelf implementation of CleanRL. What remains to be done is
+a thorough analysis of the learned policies for different distributions of the
+vehicle arrival process. Part of this analysis will be a comparison to the exact
+solutions found via the MILP solver.
+
+** network (infinite lane capacity)
+
+% job shop
+
+Next, we consider multiple intersections in a network. When we neglect the
+dynamics of vehicles on lanes between intersections, a very natural formulation
+of the scheduling problem is given by a job shop scheduling problem with some
+additional constraints to encode the time that a vehicle needs to travel to the
+next intersection on its route. In theory, it is still possible to solve the
+offline variant exactly using a MILP solver. However, we expect that this
+approach does not scale well in terms of the network size and number of
+vehicles. Therefore, in order to solve real-world problems, we want to focus on
+finding good heuristics.
+
+% dispatching reinforcement learning
+
+A natural extension of the dispatching approach that we used in the single
+intersection case would be based on dispatching at every intersection. Like we
+did for the single intersection case, this method could be compared to exact
+solutions, but we expect that the scale of the problem will be prohibitive here.
+
+% disjunctive graph
+
+Some recent works have investigated reinforcement learning method for solving
+job shop problems and showed some promising results. Therefore, we would like to
+investigate how to use these methods to construct an efficient reinforcement
+learning formulation for the offline variant. One of these methods uses the idea
+of a disjunctive graph corresponding to the jobs shop problem. Determining the
+order of vehicles in the schedule is equivalent to determining the directions of
+a certain set of arcs in this disjunctive graph. A reinforcement learning
+controller can be learned to iteratively direct these arcs based on an graph
+neural network embedding of the current disjunctive graph.
+
+** finite buffers
+
+% location delays
+
+In the models discussed above, we assumed that vehicles do not interact on
+lanes, hence it is possible for an unbounded number of vehicles to wait on a
+lane at any given time. However, in real-world traffic networks, the allowed
+number of vehicles is limited by space constraints and even depends non-trivally
+on the speeds of individual vehicles. Therefore, we propose a model that
+incorporates this aspect by considering the position of vehicles on lanes.
+Instead of encoding the precise location in a continuous sense, we divide each
+lane in a finite number $L$ of locations. For a given vehicle, the controller
+has to decide how long it should wait on each location. For large $L$, this
+method allows us to approximate continuous trajectories.
+
+% single intersection
+
+When the objective only measures delay at the intersection, the case of a single
+intersection reduces to the single intersection scheduling problem with infinite
+lane capacity, because the entrypoints still have infinite capacity. Therefore,
+a vehicle can wait as long as necessary at the entrypoint, before entering the
+lane.
+
+% network
+
+Once we consider more than one intersection, the controller needs to start
+taking into account the effects of finite lane capacity. Because of the discrete
+nature of the model, it is straightforward to formulate it as a MILP, which
+allows us to solve the problem exactly. However, as the number of variables
+grows rapidly with $L$, we do not expect this approach to scale well.
+
+% status and plan
+
+At this point, we have written an introduction of the model for a single
+intersection. We have started with proving that the single intersection case
+reduces to the problem with infinite lane capacity. Furthermore, we have a MILP
+formulation that we can solve with Gurobi, which we could use to verify this
+reduction claim. We still need to make precise in what way our model
+approximates the generation of continuous trajectories. Based on a suitable
+definition, we should then prove that a certain error measure can be made
+arbitrily small by choosing $L$ large enough.
+
+Once we are done with the theoretical investigation sketched above, we should be
+ready to start experimenting with reinforcement learning controllers. A major
+question is how to structure the policy for determining location delays for
+vehicles in a online setting. It might seem straightforward to have the
+controller determine the location delays for a fixed number of upstream
+locations, but it is not immediately clear how to define this for a variable
+number of vehicles. One approach would be to have the controller set a location
+delay for each location. Each time a vehicle enters a location, it will stay
+there for the set location delay. This way, we have shifted the focus to the
+infrastructure, similarly like we did in the dispatching environment for the
+single intersection scheduling problem.
+
+* TODO reflection on draft
+- simplify the discussion in Section 2.1
+- literature section
+- include explicit objective function
+  - total delay for single intersection
+  - total delay over visited intersections for network
+  - total trip delay for network
+* current
+** introduction
+*** introduction
+
+% study idealized traffic environment
+Instead of studying how to control traffic through a complex traffic
+microsimulator, we want to focus on the very high-level task of controlling
+traffic under perfect conditions. These conditions include perfect communication
+(no delay, no information lost), perfect knowledge (we know exact vehicle
+position at every time instant, we know vehicle routes, the only uncertainty is
+in the arrival of vehicles) and perfect control (vehicles are fully
+controllable). So instead of having to learn feature extractors for the
+high-dimensional state space of the microsimulator, we can focus on the online
+scheduling problem part.
+
+% neglect spatial constraints
+We propose to study a very simple traffic model in which every vehicle is under
+full control of a central traffic controller. In order to focus on the problem
+of allocating time on intersections to vehicles, we choose to first neglect the
+spatial constraints. This means that we allow vehicle trajectories to cross each
+other, when considered as functions $x_j(t)$.
+
+% first, assume _overlapping trajectories_
+
+% skip straight ahead to the job shop case, because single intersection is just
+a special case, which we do not have to mention in the introduction
+
+% job shop, MILP, approximation algos
+
+When we ignore the fact that lanes have finite capacity and assume that all
+vehicle arrivals are known from the start, this yields a variation of a job shop
+scheduling problem. It is well known that these kind of problems can be solved
+by formulation it as a Mixed-Integer Linear Program. However, as the length of
+the routes and the number of vehicles grows, the time required by the solver
+grows prohibitively fast. Therefore, it is interesting to develop algorithms
+that compute good solutions within a limited amount of time. In the case of a
+single isolated intersection, it might even be possible to find algorithms with
+a fixed approximation ratio.
+
+% reinforcement learning
+
+Instead of finding algorithms that perform well for all possible patterns of
+arriving vehicles (with of without guarantees), we may assume that arrivals
+follow some (unkown) distribution. In that case, we would like to have
+algorithms that learn how to exploit this distribution over time. One way of
+doing this is to make distributional assumptions on the arrival process and
+learn the parameters from data, as is common in classical statistics. This
+learned explicit distribution can then be used as input to the decision making
+algorithm. Alternatively, we can use techniques like reinforcement learning to
+develop algorithms that learn in an end-to-end fashion how to exploit the
+underlying distribution.
+
+% next, study _non-overlapping trajectories_
+
+To obtain traffic control algorithms with practical value, we need to take into
+account the fact that vehicles cannot always overtake and lanes provide limited
+space. Therefore, we extend the network model by introducing a finite number of
+/locations/ on each lane. Each location can be occupied by at most one vehicle at
+all times. For each vehicle $j$ that has location $i$ on its route, the traffic
+controller has to decide how long the vehicle should stay on that location. From
+these dwelling times $d_{ij}$, it is possible to construct a continuous vehicle
+trajectory $x_j(t)$ through interpolation.
+
+In general, the traffic controller could set the location delay for each
+vehicle-location pair. Instead, we propose to study a controller that sets a
+location delay that every passing vehicle must respect. This ensures that the
+policy is agnostic to the number of vehicles in the network and presumably makes
+learning much more efficient.
+*** using previous intro
+% why difficult
+
+Efficiently planning the movements of vehicles through a network is a difficult
+problem because control of one intersection directly influences the arrival
+process of vehicles of other nearby intersections. In dense urban networks,
+these interactions may be highly complex, which makes modeling the dynamics from
+first principles hard. Furthermore, the inherent nonstationarity of traffic
+demand, with fluctuations throughout the day, makes it difficult to design
+controllers that adapt their policy to these changes.
+
+% what is coordination
+
+When traffic signal controllers are explicitly designed to work together, we
+speak of \textit{coordination}. This could possibly increase the overall
+capacity of a network by enabling traffic on arterial roads to flow
+uninterrupted, thereby creating so-called \textit{green waves}.
+
+% reinforcement learning for traffic control (literature)
+
+Interest in the application of reinforcement learning techniques in the traffic
+control domain is steadily increasing
+\cite{noaeenReinforcementLearningUrban2022}. However, achieving and improving
+coordination using reinforcement learning has not yet been fully explored, as
+recognized by the authors of the cited survey. Therefore, the aim of this
+proposal is to explore a new approach to learning coordination using
+reinforcement learning methods. Instead of trying to learn how to coordinate
+without any prior knowledge, we propose to initialize learning with expert
+experience obtained using Mixed Linear Programming (MIP) techniques that
+calculate near-optimal short-term traffic signal plans for multiple
+intersections
+
+*** KILL decomposition
+
+/what is the general question that underlies this decomposition?/
+
+% decomposition
+We like to start with a single intersection, because this is an illustrative
+case. Some structure in the optimal policies has already been found, since it
+has been shown that platoons must be preserved.
+
+single, job shop, finite buffers
+
+*** KILL methods
+
+engineering existing reinforcement learning algorithms, defining suitable
+experiments, inspecting trained policies
+
+% structure in policies (mostly applicable to the single intersection case)
+Can we find additional structure in optimal policies after making some
+assumptions on the arrivals? For example, we know that very long consecutive
+streams of arrival from the same lane are very unlikely, because after some time
+an arrival from another lane is almost sure to arrive. (renewal vehicle
+conjecture)
+** literature review
+
+% introduce section
+
+This section highlights some of the literature on traffic control by discussing
+illustrative classical methods for signalized intersections and giving an
+overview of recent applications of reinforcement learning techniques. The second
+part discusses relevant work on idealized traffic models featuring only
+connected autonomous vehicles (CVs).
+
+
+% subsection
+% traffic prediction and control -> signalized intersection
+
+A vast amount of literature is available on methods for predicting and
+controlling road traffic. In particular, the context with networks of signalized
+intersection has received a substantial amount of attention. In most of these
+works, the main goal is to derive policies for setting traffic light signals
+such that traffic is handled as efficient as possible, which is commonly
+measured in terms of the total delay experienced by all vehicles over some
+period of time. It has often been recognized that efficient control schemes
+should include some degree of coordination among the signal controllers of
+individual intersections, which is commonly refered to as \textit{coordination}.
+A well-known example of such a strategy is given by so-called \textit{green
+waves} on arterial roads.
+
+% MILP methods
+
+Early methods such as MAXBAND \cite{mcshaneTrafficEngineering1990} aimed to
+synchronize multiple neighboring intersections, by tuning the timing offset
+between cyclic signal plans of the intersection, in order to achieve
+coordination. An interesting derivative of the original MAXBAND formulation is
+the PAMSCOD system \cite{hePAMSCODPlatoonbasedArterial2012}, which is a
+framework that consists of a model for identifying platoons and a MILP
+formulation for scheduling these platoons throughout a network in an online
+fashion. Under the assumption that the traffic controller receives actual
+position and speed information from a certain percentage of vehicles, a
+heuristic algorithm is proposed to identify platoons and estimate their size and
+expected arrival time at downstream intersections. The order in which these
+platoons cross the intersections in the network is then optimized using a MILP
+formulation that minimizes a combination of delay experienced at the next two
+encountered intersections. A solution provides the green times of signals for a
+fixed number of cycles in the future, so their method is a form of
+\textit{rolling horizon optimization}.
+
+% microsimulator
+
+Because deploying control policies in existing road infrastructure is often
+non-trivial, evaluation is often done by using a so-called \textit{traffic
+microsimulator} like SUMO \cite{} or VISSIM \cite{}. In contrast to
+\textit{macroscopic models}, which aim to capture traffic dynamics in terms of
+aggregated quantities for large numbers of vehicles, such simulators try to
+capture the behavior of individual vehicles very precisely, such that realistic
+behavior on a larger scale emmerges automatically.
+
+% reinforcement learning
+
+Recently, there has been a growing amount of interest in using reinforcement
+learning algorithms for developing efficient traffic signal control policies
+\cite{Noaeem}. Most of this work builds upon a microsimulator with an
+off-the-shelf reinforcement learning algorithm applied to it in combination with
+some kind of neural function approximation to encode the high-dimensional state
+space.
+%
+The obtained results are often very impressive in terms of pure performance,
+while relying on the availability of lots of computational power. Unfortunately,
+due to the model-free nature of the used learning methods, these studies do not
+provide much insights into the learned policies that could be exploited to
+derive methods that are computationally more efficient.
+%
+Furthermore, the challenge of automatically learning how to achieve coordination
+along arterial roads without any prior knowledge has been identified as one of
+the key remaining issues in this line of research.
+
+
+% subsection
+% full control of vehicles -> trajectory generation
+
+Assuming that that all vehicles in the network are fully connected poses a lot
+of interesting new research questions \cite{survey}. However, the main problem
+of allocating intersection access time to vehicles remains a central issue. In
+this context, classical methods like MILP solving \cite{fayazi} are still an
+important tool for solving such \textit{temporal} optimization problems.
+However, the current setting allows us to consider optimization in the
+\textit{spatio-temporal} domain. With signalized intersections and human
+drivers, trajectories of individual vehicles cannot be directly controlled, but
+under the current assumption \textit{trajectory planning} becomes relevant.
+This issue has already been
+studied for the \textit{conflict zone} of intersections. For example, in
+\cite{Li} the trajectories of vehicles are modelled as volumes in time and space
+that can be used to characterize conflicting trajectories.
+
+% single intersection
+
+For a single intersection, the two-stage approach in \cite{feng} first computes
+access times using dynamic programming and use these to compute conflict-free
+trajectories as solutions to an optimal control problem. A similar approach was
+taken in \cite{Timmerman}, where intersection access times are determined by
+simple policies from queueing theory instead. The performance of their method
+was analyzed using results from \textit{polling theory}.
+
+% temporal domain -> scheduling
+
+When the optimization objective only considers delay at the intersection, i.e.
+only in the temporal domain, these works shows that this particular problem
+reduces to a variant of \textit{single machine scheduling}. More precisely,
+using terminology from the \textit{machine scheduling} literature \cite{pinedo},
+it can be shown that the problem reduces to a single machine scheduling problem
+with release dates, job families with chain precedence constraints
+(corresponding to lanes), family-dependent setup times and total completion time
+objective.
+
+% online scheduling
+
+Machine scheduling is a widely studied subfield of combinatorial optimization
+with a wide range of applications in, for example, manufacturing and healthcare.
+Dealing with situations in which not all information about jobs is available
+upfront is known as \textit{online scheduling} \cite{survey IEEE, vestjens}. The
+performance of an online scheduling policy depends highly on how information is
+disclosed, so different metrics are necessary for evaluation. A common approach
+is to consider the worst-case performance compared an optimal \textit{offline
+algorithm} that has access to all future information. Alternatively, an explicit
+specification of the information disclosure process may be assumed to analyze
+performance in expectation. This kind of analysis is particularly important for
+our current context of road traffic control, because demand for mobility is
+highly unpredictable.
+
+** overall methodology and decomposition
+
+% online optimization
+
+Even when all future vehicle arrivals are known to the traffic controller, there
+are a lot of interesting algorithmic questions. However, we know that demand for
+mobility is highly unpredictable in practice. Therefore, it is very relevant to
+study algorithms for computing schedules from incomplete information. In order
+to analyze the performance of such /online scheduling algorithms/ \cite{vestjens},
+we need a different metric. An approach that is often used is the /competitive
+analysis/, in which it is assumed that an adversary provides inputs to the
+algorithm. The worst-case peformance is measured in terms of the ratio between
+the solution quality of the online algorithm and the solution quality of the
+solution produced by the adversary.
+
+Alternatively, we can analyze the performance of online methods by comparing
+them to each other, given some distribution of the arrivals.
+
+** (overview of three models)
+*** isolated intersection
+**** problem definition and MILP formulation
+**** policy
+finite horizon lookahead policy that sets the phase of the intersection
+**** questions
+- compare to exact solution (MILP)
+- compare to exhaustive and gated policies
+- increased horizon beneficial?
+  - this is an empirical assessment of the worth of knowing the future
+- reaction to example states
+- how well is platoon preservation respected
+  - We could measure how often the learned policy takes the right decision
+   (platoon preservation) for carefully constructed test instances. Because we
+   already build some kind of platoon preservation into the training process by
+   considering platoons as single vehicles with a larger length, such a test
+   could be performed by using platoons that are very close (epsilon > 0) to
+   each other.
+- /generalize among arrival distributions?/
+- /generalize to different number of lanes?/
+*** network
+**** solve as MILP
+**** policies
+***** independent controller per intersection
+multi-agent reinforcement learning
+***** control all intersections at once
+- does not scale well
+- does not generalize to other topologies
+***** use disjunctive graph
+graph neural net
+**** questions
+- platoon splitting
+- coordination
+*** finite buffers
+**** approximates continuous trajectories
+- precisely formulate and prove this
+**** solve as MILP
+**** questions
+- scalability
+- full action space (setting all location delays or "dwelling times")
+  How could we parameterize this?
+- vehicle-agnostic action space (setting "speed rules" per location)
+- interpolation -> how to generate trajectories
+  Can develop a method that always produces non-overlapping trajectories and prove that this is the case.
+** single intersection
+
+Before investigating coordination across multiple of intersections, we first
+define and study the special case with a single isolated intersection. This
+already offers many interesting questions thay may help us later in
+distinguishing which problems arise due to network effects and which problems
+are already present with a single intersection.
+
+- [ ] introduce model
+
+  Suppose there is a single isolated intersection with two incoming lanes $A$ and
+  $B$ on which vehicles arrive. Let the vehicles arriving to lane $A$ be
+  identified as $j \in V_A := \{ 1^{(A)}, 2^{(A)}, \dots, n^{(A)} \}$ and
+  similarly for lane $B$, we have $j \in V_B := \{ 1^{(B)}, 2^{(B)}, \dots, m^{(B)} \}$.
+  Every vehicle $j$ has an earliest crossing time $r(j)$, which is
+  the earliest time of arriving at the intersection when there would be no other
+  vehicles in the system. The traffic controller has to decide the exact crossing
+  time $y(j) \geq r(j)$ for each vehicle, which we refer to as a /schedule/. When
+  vehicle $j$ arrives at the intersection at $y(j)$, it is assumed that crossing
+  the intersection takes $p$ seconds, so the next vehicle $l$ may arrive at the
+  intersection from $C(j) := y(j) + p$ onwards. We write $j \rightarrow l$ for the
+  requirement that $y(l) \geq C(j)$. Because vehicles are not allowed to overtake,
+  this schedule needs to respect the /precedence constraints/
+
+      \begin{align*}
+          1^{(A)} \rightarrow 2^{(A)} \rightarrow \dots \rightarrow n^{(A)} , \\
+          1^{(B)} \rightarrow 2^{(B)} \rightarrow \dots \rightarrow n^{(B)} .
+      \end{align*}
+
+  Furthermore, there needs to be a fixed switch-over time $s$ between the time of
+  crossing of vehicles from distinct lanes, i.e, when some vehicle $j \in V_A$ is
+  immediately followed by a vehicle $l \in V_B$ on the intersection, we require
+  \begin{align*}
+  y(l) \geq C(j) + s .
+  \end{align*}
+
+  Given these simple rules, we want to minimize the total vehicle delay defined as
+  \begin{align*}
+      \sum_{j \in V_A \cup V_B} y(j) - r(j) ,
+  \end{align*}
+  which is equivalent to minimizing the total sum of all values of $y(j)$.
+
+  - [ ] discuss scheduling and MILP
+
+    The above problem can thought of as a variant of a single machine
+    scheduling problem, in which jobs needs to be assigned time on a single
+    machine. Like other single machine problems, the current problem can be
+    rather naturally formulated as a Mixed-Integer Linear Program by
+    introducing binary decision variables for the ordering of vehicles from
+    different lanes. Relying on the current power of MILP solvers, this
+    provides an exact solution to the problem, assuming that all arrivals are
+    known from the start.
+
+  - [ ] mention platoon preservation theorem
+
+    It turns out that optimal schedules must satisfy a simple rule, which has
+    been called the /platoon preservation theorem/. Schedule $y$ is optimal,
+    then for each pair of consecutive vehicles $j^{(L)} \rightarrow l^{(L)}$
+    from the same lane $L \in \{A, B\}$, if $r(l) \leq C(j)$ the $y$ must be
+    such that $y(l) = C(j)$.
+
+- [ ] introduce rl dispatching policy
+
+  In order to apply reinforcement learning, we need to precisely specify the
+  sequential decision making process as a Marko Decision Process (MDP).
+
+  In this case, we propose to first study a simple algorithm that computes a
+  schedule by simulating the behavior of a traditional traffic light. More
+  precisely, the algorithm decides which vehicle is allowed to cross the
+  intersection next in the following way. The agent takes a vector of the next
+  $h$ earliest crossing times for both lanes as input and decides whether to
+  keep serving the current lane or to switch to the other lane. The number $h$
+  of next crossing times the controller sees is referred to as the /horizon/. In a
+  sense, this resembles the way traffic lights switch between /phases/ at most
+  existing signalized intersection.
+
+  % reinforcement learning algorithm
+
+  Choosing the most efficient reinforcement learning algorithm for our current
+  model is not our main concern. Therefore, we will settle with a stock
+  implementation of deep q-learning with experience replay for this single
+  intersection environment.
+
+- [ ] discuss the interesting questions
+    (/some questions are also relevant for the other two model settings/)
+
+    Once a policy has been trained that performs reasonable well in terms of the
+    optimization objective, we can analyze it in the following ways.
+
+    - [ ] comparison
+
+      First of all, we can compute optimal solutions for small instances, so the
+      approximation ratio can be computed precisely in these cases by comparing
+      the objective value to the optimal found by a MILP solver. Furthermore,
+      the performance can be compared to existing policies under the assumption
+      of a fixed distribution of the arrivals $r(j)$. Examples of policies to
+      compare with are exhaustive service, in which the current lane is served
+      as long as vehicles are waiting there, or the gated policy from
+      \cite{Timmerman}.
+
+    - [ ] effect of horizon size
+
+      It is possible to experiment with different sizes of the
+      horizon. For a fixed distribution of the arrivals $r(j)$, we expect that
+      the performance of the learned policy does not improve significantly
+      beyond a certain horizon size.
+
+    - [ ] inspecting the learned policy (only for isolated intersection)
+
+      For learned policies that perform really well, it might be worthwhile to
+      analyze their behavior a bit further in the hope of discovering structure
+      that can be used to define better policy spaces. Two possible ways of
+      doing this are:
+
+      - Provide certain closely related ``test states'' and see which action the
+        policy chooses and at which point this decision changes.
+      - We may also manually provide full test instances for which we know the
+        optimal solution and see how close the schedule produced by the policy
+        is. For example, consider an instances where the vehicles on one lane
+        are so close together that it is always better to serve them all before
+        finally switching to the other lane.
+
+    - [ ] generalization
+
+      A central question in reinforcement learning is the issue of
+      generalization. For example, we could assess how well the trained policy
+      performs with a (slightly) different distributions of $r(j)$. Furthermore,
+      when considering more than two incoming lanes, an interesting question is
+      whether we can train policies that generalize across different numbers of
+      lanes.
+** network job shop
+
+A natural next step is to extend the single intersection model to a network of
+connected intersections. This provides a lot of new interesting question,
+because decisions taken at some intersection influence the arrival process of
+downstream intersections.
+
+- [ ] introduce model
+
+  % infinite buffers and overlapping trajectories
+
+  Before considering a more realistic model in the next section we will again
+  ignore the issues related to spatial constraints. More precisely, we will
+  again assume that there is no limit on the number of vehicles that reside on
+  lanes between intersection and we will allow overlapping trajectories.
+
+  % => job shop
+
+  Under these assumptions, we obtain a variant of the well-known and widely
+  studied job shop scheduling problem \cite{pinedo}. Job shop problems are a
+  particular type of multi-machine scheduling problems in which jobs consist
+  of consecutive stages, where each stage must be executed on a different
+  machine.
+
+  % routes
+
+  To avoid unnecessary complication of the analysis, we assume that vehicles
+  have a fixed route through the network that becomes known to the traffic
+  controller at the same time when the earliest arrival time becomes
+  available.
+
+  % objectives
+
+  /this requires notation for the route and y_ij/
+
+  The network case provides some more freedom in defining the optimization objective. A natural extension of the total completion time over vehicles for a single intersection would be to minimize the total delay of all vehicles at every intersection, which is equivalent to minimizing
+  \begin{align*}
+      \sum_j \sum_{i \in R(j)} y_{ij} .
+  \end{align*}
+  Alternatively, we could ignore the delay at intermediate intersections and focus on the total trip delay, which would be achieved through minimizing
+  \begin{align*}
+      \sum_{j} y_{R(n_j), j} .
+  \end{align*}
+
+  - [ ] solve as MILP
+
+    Again, the offline variant of this problem can be formulated as a MILP and
+    solved to optimality with readily available solvers. However, we expect
+    that this approach does not scal well in terms of the network size and
+    number of vehicles. Therefore, in order to solve problems at a real-world
+    scale, we need to focus on finding good heuristics.
+
+- [ ] introduce possible rl policies
+
+  - each intersection independently (MARL)
+
+    Our results for the single isolated intersection can be readily applied to
+    the current model by controlling each intersection independently by the
+    single intersection dispatching policy. While this is still interesting to
+    try, we expect that a different approach is required in order to obtain
+    coordination among intersections.
+
+  - based on disjunctive graph
+
+    Instances of job shop scheduling can be adequately represented as a graph
+    that encodes the precedence constraints between jobs. This graph is called
+    the /disjunctive graph/, because a subset of the arcs encodes the disjunctive
+    ordering decisions between jobs on the same machine (vehicles on the same
+    intersection in the current context).
+
+- [ ] discuss interesting questions
+
+  - coordination along arterial
+
+    Furthermore, a widely studied phenomeon in traffic signal control is
+    /coordination/ along a series of arterial intersections. The idea is that
+    aligning the timing of traffic signal phases along a series of connected
+    intersections that handle relatively large fraction of total traffic is often
+    a good strategy to optimize overall delay in the network.
+
+    Consider a network with a couple of intersections in series with some
+    minor side roads. By using an instance with a very regular arrival pattern
+    on the main arterial and a limited arrival rate from the minor roads, we
+    could study how well the policy prioritizes the main traffic stream.
+
+    /maybe compare performance to MAXBAND or similar algorithms/
+
+  - platoon splitting
+
+    With a single intersection, splitting platoons of vehicles is never
+    beneficial. However, for more than one interesection, it can be shown that
+    the platoon preservation theorem no longer holds, already in some very
+    simple situations. It would be interesting to understand better why this
+    happens by characterizing these kind of situations.
+
+  - generalization across network topologies
+
+    Train on a certain topology with a distributed policy, i.e. policy is the
+    same for each intersection. But in this case, there is no cooperation.
+    Therefore, this motivates our idea of using the job shop disjunctive graph
+    to construct a topology-agnostic policy that could still learn how to
+    cooperate.
+
+** finite buffers
+
+objective: Learn to generate smooth non-overlapping trajectories satisfying
+some safety constraints while optimizing the total delay experienced by each
+vehicle along their trip through the network.
+
+- [ ] introduce model
+
+  Revise the current formal explanation using Marko's comments on the notation.
+
+  objectives from network discussion are still applicable
+
+  - [ ] solve as MILP
+
+- [ ] goal: generate trajectories from delays
+
+  Before we focus on learning how to set location delays, we should verify that
+  the proposed model can be used for producing non-overlapping smooth
+  trajectories. Interpolation techniques similar to the kind used in
+  \cite{Timmerman} could be used to generate trajectories. This should be done
+  in such a way that there is no overlapping. Regardless of the exact method
+  used, the set of all possible trajectories will generally become larger when
+  the number of locations is increased.
+
+  - [ ] subgoal: show trajectory approximation
+
+    Ideally, we would be able to show that arbitrary smooth trajectories can be
+    approximated using a sufficiently large number of locations.
+
+- [ ] goal: reinforcement learning policy
+
+  Building on the results for the network model without spatial constraints,
+  we would like to develop a reinforcement learning controller for setting
+  location delays.
+
+  % set location delays independently of vehicles
+
+  A major challenge here is to find an efficient action space. The action
+  space should, in principle, be chosen such that each location delay along a
+  vehicle's route can be chosen fully independently. However, this would
+  result in a very high-dimensional action space, for which it could become
+  very difficilt to efficiently train a good policy. Therefore, we need to
+  essentially compress the action space into a smaller space. One step into
+  the right direction would be to set the delay for each location, which each
+  passing vehicle must satisfy. In this way, the policy also becomes agnostic
+  to the number of vehicles in the network.
+
+  % further reduction of action space
+
+  We would like to start with this action space and see if it allows training
+  good policies in reasonable amounts of time. Whenever it turns out that the
+  dimension is still prohibitive, we should look for other techniques for
+  reducing the dimension. One natural candidate for this kind of reduction
+  would be a recurrent neural network.
+
+- [ ] questions
+
+    /...are not that important here, because actually getting this method to do
+    something sensible would be a great achievement in itself/
+
+    - [ ] again coordination
+
+    - [ ] compare to job shop schedules
+
+      Obviously, we expect that the average objective will be much lower when
+      compared to results in the network case, because the latter has more
+      freedom in constructing a schedule. However, it would be interesting to
+      verify whether the generated schedules are similar (in some sense) to the
+      scheduled generated by the methods for the job shop model. Ideally, this
+      could motivate trying to use the disjunctive graph method (when this
+      proves to be effective).
+
+    - [ ] again generalization
+
+** planning
+
+The ordering of parts in the following plan is based on the decomposition above.
+However, we are considering to work on the interpolation method for the finite
+buffers model when we are finished with the analysis of the single intersection,
+because we want to have an early proof of concept to check whether the proposed
+approach actually makes sense.
+
+*** DONE single intersection environment
+Develop a Gymnasium environment for the single intersection dispatching policy.
+*** DONE DQN agent for single intersection
+Using the off-the-shelf DQN implementation provided by CleanRL, we managed to
+train good policies for some examples of arrival distributions.
+*** analyze performance of single intersection policy (2)
+We are currently comparing the performance of the trained policies with optimal
+solutions found by solving the corresponding MILP for small instances. As we
+indicated in Section~\ref{sec:single}, we would also like to study the effect of
+the horizon size $h$ and some basic study of generalization over different
+arrival distributions.
+*** interpret single intersection policy (2)
+We think that there is some particular structure to the optimal policies for the
+simple single intersection scheduling problem. Therefore, we would like to try
+understanding the behavior of the trained policies a bit better in the hope of
+discovering some simple rules that can be used to develop more efficient
+algorithms.
+
+*** adapt disjunctive graph-based scheduling (4)
+The job shop scheduling method based on the disjunctive graph needs some slight
+adaptations in order to be applicable to the variant of job shop that is
+relevant for scheduling in networks. The authors provide reinforcement learning
+code and a Gym environment. However, their code is not very well documented, so
+we are considering a rewrite of the necessary parts.
+*** analyze performance of network policies (1)
+Once we are able to solve the job shop variant in an offline setting, we can do
+some preliminary experimentation and performance analysis.
+*** define how to adapt disjunctive graph for online scheduling (1)
+We have a rough idea of how the disjunctive graph scheduling method could be
+extended to be applicable in an online fashion. The basic idea is to just extend
+the disjunctive graph every time new vehicles (jobs) arrive. Therefore, the main
+challenge is finding a suitable deep learning embedding of this graph that can
+deal with these kinds of extensions.
+*** implement online scheduling (3)
+We expect that to get our intended method working, we need to reconsider the
+graph neural network that is used to learn an embedding of the disjunctive
+graph.
+*** analyze online performance (2)
+Like we did for the single intersection case, the learned policies should be
+analyzed in terms of performance. Furthermore, we should investigate whether the
+policies show some degree of coordination on intersections along arterial roads.
+
+*** define interpolation for finite buffers model (2)
+Our current definition of the finite buffers model does not yet involve
+continuous trajectories. We still need to exactly define how the location delays
+can be used to compute non-overlapping vehicle trajectories.
+*** finite buffers model environment (2)
+Given the interpolation method, we are ready to develop a Gymnasium environment
+of the finite buffers model.
+*** prototype reinforcement learning for finite buffers (2)
+Develop a working reinforcement learning procedure based on policies that set
+the location delays in a vehicle-agnostic fashion.
+
+** (preliminary results)
+- Precise definitions of models under assumption of infinite lane capacity with corresponding MILP formulations.
+- Working DQN controller based on dispatching for the isolated intersection and
+  preliminary comparison of solution quality compared to the optimal (obtained
+  through solving the corresponding MILP).
+** (future work)
+- /learning from expert decisions obtained from MILP solver/
+- /random vehicle routes/
+- disturbances like accidents
+- different vehicle types -> drop p_j = p assumption
+- use an objective that incorporates some measure of fairness among individual vehicles
+  e.g., max waiting time at intersection, max skewness of delay distribution
