@@ -115,8 +115,8 @@ if __name__ == "__main__":
     log = True
     gap = 0.05 # optimality gap
 
-    # write the schedules here
-    os.makedirs(os.path.dirname("./data/schedules/"), exist_ok=True)
+    # write the evaluation and schedules here
+    os.makedirs(os.path.dirname("./data/evaluation/"), exist_ok=True)
 
     # solve all the instances
     for in_file in glob("./data/instances/*.npz"):
@@ -137,7 +137,8 @@ if __name__ == "__main__":
             length.append(p[f"length{k}"])
 
         y, _, obj = solve(p['s'], release, length, log=log, gap=gap)
+        print(f"---- obj = {obj}")
         wall_time = time.time() - start
 
-        out_file = f"./data/schedules/exact_{ix}_{i}.npz"
+        out_file = f"./data/evaluation/{ix}_exact_{i}.npz"
         np.savez(out_file, y=y, obj=obj, time=wall_time, gap=gap)

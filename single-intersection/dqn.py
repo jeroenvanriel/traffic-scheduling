@@ -4,7 +4,6 @@ import random
 import time
 import re
 from dataclasses import dataclass
-import tyro
 
 import gymnasium as gym
 import numpy as np
@@ -21,8 +20,6 @@ import single_intersection_gym
 
 @dataclass
 class Args:
-    exp_name: str = os.path.basename(__file__)[: -len(".py")]
-    """the name of this experiment"""
     seed: int = 1
     """seed of the experiment"""
     torch_deterministic: bool = True
@@ -69,10 +66,11 @@ class Args:
     """the frequency of training"""
 
 
-def make_env(env_id, platoon_generators, switch_over, seed):
+def make_env(env_id, platoon_generators, switch_over, horizon, seed):
 
     def thunk():
-        env = gym.make(env_id, platoon_generators=platoon_generators, switch_over=switch_over)
+        env = gym.make(env_id, platoon_generators=platoon_generators,
+                       switch_over=switch_over, horizon=horizon)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         env.action_space.seed(seed)
 
@@ -103,9 +101,9 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
 
 
 
-def train(spec_id, platoon_generators, switch_over, seed, args):
-    #run_name = f"{spec_id}__{args.exp_name}__{seed}__{int(time.time())}"
-    run_name = f"{spec_id}__dqn"
+def train(run_name, platoon_generators, switch_over, horizon, args):
+    seed = args.seed
+
     if args.track:
         import wandb
 
@@ -118,7 +116,7 @@ def train(spec_id, platoon_generators, switch_over, seed, args):
             monitor_gym=True,
             save_code=True,
         )
-    writer = SummaryWriter(f"runs/{run_name}")
+    writer = SummaryWriter(f"data/runs/{run_name}")
     writer.add_text(
         "hyperparameters",
         "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
@@ -133,12 +131,12 @@ def train(spec_id, platoon_generators, switch_over, seed, args):
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # env setup
-    envs = gym.vector.SyncVectorEnv([make_env(args.env_id, platoon_generators, switch_over, seed)])
+    envs = gym.vector.SyncVectorEnv([make_env(args.env_id, platoon_generators, switch_over, horizon, seed)])
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
-    q_network = QNetwork(env.single_observation_space.shape, env.single_action_space.n).to(device)
+    q_network = QNetwork(envs.single_observation_space.shape, envs.single_action_space.n).to(device)
     optimizer = optim.Adam(q_network.parameters(), lr=args.learning_rate)
-    target_network = QNetwork(env.single_observation_space.shape, env.single_action_space.n).to(device)
+    target_network = QNetwork(envs.single_observation_space.shape, envs.single_action_space.n).to(device)
     target_network.load_state_dict(q_network.state_dict())
 
     rb = ReplayBuffer(
@@ -211,31 +209,11 @@ def train(spec_id, platoon_generators, switch_over, seed, args):
                         args.tau * q_network_param.data + (1.0 - args.tau) * target_network_param.data
                     )
 
-    model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
+    model_path = f"data/runs/{run_name}/dqn.cleanrl_model"
     torch.save(q_network.state_dict(), model_path)
     print(f"model saved to {model_path}")
 
     envs.close()
     writer.close()
 
-
-if __name__ == "__main__":
-    from generate import instance_specs
-
-    args = tyro.cli(Args)
-
-    seed = args.seed
-
-    wall_times = []
-
-    # train for each instance distribution
-    for ix, spec in enumerate(instance_specs):
-        print(f"instance {ix}")
-
-        start = time.time()
-        train(ix, spec['lanes'], spec['s'], seed, args)
-        wall_times.append(time.time() - start)
-
-    # report
-    print(f"wall times: {wall_times}")
-
+    return q_network
