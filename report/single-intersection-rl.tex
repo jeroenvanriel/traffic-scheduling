@@ -187,13 +187,13 @@ future arrivals is limited. Let us first model this in terms of
 Process (POMDP).
 
 % observations
-Assume that the scheduler does not know about all arrivals upfront, but sees
-a certain number $h$ of next arrivals at every lane $i$, then the
-visible \textit{horizon} of lane $i$ at step $t$ consists of the release dates
-and processing times
+Assume that the scheduler does not know about all arrivals upfront, but sees a
+certain number $h$ of next arrivals at every lane $i$, then the visible \textit{horizon}
+of lane $i$ at step $t$ consists of the release dates (adjusted for the current
+time) and processing times
 \begin{align}
   \label{eq:observations}
-  h_{i}^{(t)} = ( z_{ij} : m_{i}^{(t)} \leq j \leq m_{i}^{(t)} + h ) .
+  h_{i}^{(t)} = \left( (r_{ij} - C^{(t)}, \; p_{ij})  : m_{i}^{(t)} \leq j \leq m_{i}^{(t)} + h \right) .
   % h_{i}^{(t)} = {( z_{i})}_{j=m_{i}^{(t)}}^{m_{i}^{(t)} + h} .
 \end{align}
 Therefore, the observation at step $t$ is deterministic and given by
