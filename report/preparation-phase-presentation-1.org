@@ -1,0 +1,79 @@
+#+options: ':t *:t -:t ::t <:t H:1 \n:nil ^:t arch:headline author:t
+#+options: broken-links:nil c:nil creator:nil d:(not "LOGBOOK") date:t e:t
+#+options: email:nil f:t inline:t num:t p:nil pri:nil prop:nil stat:t tags:t
+#+options: tasks:t tex:t timestamp:t title:t toc:nil todo:t |:t
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LaTeX_CLASS_OPTIONS: [bigger]
+#+LATEX_HEADER: \usepackage{graphicx}
+#+LATEX_HEADER: \usepackage[export]{adjustbox}
+#+language: en
+#+select_tags: export
+#+exclude_tags: noexport
+#+creator: Emacs
+#+cite_export: natbib
+#+bibliography: references.bib
+#+title: Trajectory Planning
+#+date: February 2024
+#+author: Jeroen van Riel
+#+email: jeroenvanriel@outlook.com
+
+
+* Offline crossing time scheduling
+
+\vfill
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\textwidth]{figures/123.pdf}
+\end{figure}
+
+- given schedule $y$, there always exist trajectories $x$ that are /safe/
+- solve a MILP to obtain optimal $y$
+- heuristic methods
+  - polling policies such as exhaustive, gated or k-limited
+  - /learning/ method such as RL
+
+* Online trajectory planning (Miculescu & Karaman)
+
+- recalculate trajectories upon new arrivals
+- /regular/ polling policy
+- MotionSynthesize produces /safe/ trajectories
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\textwidth]{figures/MotionSynthesize.png}
+\end{figure}
+
+
+* Offline crossing time scheduling in network
+
+- problem like classical job-shop
+- solve as MILP
+- heuristic methods
+  - Zhang et al. train an RL agent to constructs a job-shop schedule by
+    adding/removing arcs to the corresponding disjunctive arc
+  - their method might also work in an online setting
+
+* Trajectory planning in network
+
+- need to consider finite space between intersection
+- finite buffers can be modeled in the MILP (under some assumptions on vehicle routes)
+
+ \vfill
+- it is not clear that safe trajectories always exist for some crossing time
+  schedule $y$, as was shown for the single intersection case
+
+* Online trajectory planning in network
+
+- generate trajectories based on a crossing time schedule
+
+  \vfill
+- alternatively, the control problem can be stated directly in terms of
+  (approximations of) trajectories
+  - idea: determine the waiting time on fixed /locations/
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\textwidth]{figures/finite-buffer-schedule.pdf}
+\end{figure}
