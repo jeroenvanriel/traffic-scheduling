@@ -347,40 +347,46 @@ such that $\mathbb{E}[X_{ij}] = \lambda_{i}$. The release dates are given by
 R_{ij} = \sum_{l=1}^{j-1} P_{il} + \sum_{l=1}^{j} X_{il} .
 \end{align}
 
-\subsection{Effect of arrival rate}
+\subsection{Effect of arrival rate and horizon}
 %
 Assume we have $K=2$ lanes, with fixed switch-over time $s=2$ and a fixed number
 of arrivals $n_{i}=n=30$ for each lane. We set $\theta_{i} = \theta = 3$ and
 equal arrival rates $\lambda_{i} = \lambda$ for each lane, for the following
 four scenarios $\lambda^{(1)} = 2, \lambda^{(2)} = 3, \lambda^{(3)} = 4, \lambda^{(4)} = 5$.
+%
+For each scenario, we apply the exact procedure and train the DQN agent for
+three different horizon size $h^{(1)} = 10$, $h^{(2)} = 20, h^{(3)} = 30$ (full
+horizon).
 
-\newpage
-
-
-\begin{table}
-  \centering
-\begin{tabular}{|c|r|r|}
-  $\lambda$ & exact ($g=0.1$) & dqn ($h=10$) \\
-  \cline{1-3}
-  2 & -705 & -1012 \\
-  3 & -445 & -375 \\
-  4 & -258 & -251 \\
-  5 & -185 & -201
-\end{tabular}
-\caption{Episodic reward (rounded to integers) for each of the four scenarios
-  for both methods. The results for the exact approach are averaged over 100
-  randomly generated instances. The results for the DQN method are obtained from
-  a single run (consisting of multiple episodes).}
-\end{table}
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.9\textwidth]{../single-intersection/comparison.pdf}
-  \caption{For the DQN, we use a fixed horizon of $h = 10$. The smoothed return
-    obtained by a \textbf{single run} of the DQN algorithm is shown for each
-    scenario.}
+  \includegraphics[width=0.95\textwidth]{../single-intersection/compare.pdf}
+  \caption{We compare the score of a trained DQN controller with horizons of
+    $h^{(1)} = 10, h^{(2)} = 20, h^{(3)} = 30$ to the score of the exact
+    solution for different interarrival time rates
+    $\lambda^{(1)} = 2, \lambda^{(2)} = 3, \lambda^{(3)} = 4, \lambda^{(4)} = 5$. The exact solution
+    uses an optimality gap of 0.05. Results are averaged over $10$ samples for
+    each corresponding problem distribution $Z$.}
   \label{fig:dqn-learning-rates}
 \end{figure}
+
+
+% \begin{table}
+%   \centering
+% \begin{tabular}{|c|r|r|}
+%   $\lambda$ & exact ($g=0.1$) & dqn ($h=10$) \\
+%   \cline{1-3}
+%   2 & -705 & -1012 \\
+%   3 & -445 & -375 \\
+%   4 & -258 & -251 \\
+%   5 & -185 & -201
+% \end{tabular}
+% \caption{Episodic reward (rounded to integers) for each of the four scenarios
+%   for both methods. The results for the exact approach are averaged over 100
+%   randomly generated instances. The results for the DQN method are obtained from
+%   a single run (consisting of multiple episodes).}
+% \end{table}
 
 % \bibliography{references}
 % \bibliographystyle{ieeetr}
