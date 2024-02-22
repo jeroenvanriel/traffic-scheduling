@@ -88,11 +88,15 @@ except IndexError:
 
 ### compute the objective
 obj = 0
+res = {}
 for k in range(K):
     # subtract, because cost
     obj -= sum(instance[f"length{k}"] * (np.array(schedule[k]) - instance[f"arrival{k}"]))
 
+    res[f'start_time_{k}'] = np.array(schedule[k])
+    res[f'end_time_{k}'] = np.array(schedule[k]) + instance[f'length{k}']
+
 print(f"---- exhaustive objective = {obj}")
 
 # save to file
-np.savez(snakemake.output[0], obj=obj)
+np.savez(snakemake.output[0], obj=obj, K=K, **res)

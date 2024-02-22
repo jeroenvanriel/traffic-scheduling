@@ -20,6 +20,7 @@ rule all:
         "data/reports/plot.pdf",
         expand("data/instances/instance_{spec}_{sample}.pdf", spec=specs, sample=samples),
         expand("data/schedules/dqn_{spec}_{sample}.pdf", spec=specs, sample=samples),
+        expand("data/schedules/exhaustive_{spec}_{sample}.pdf", spec=specs, sample=samples),
 
 
 ## data generation
