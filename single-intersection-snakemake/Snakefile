@@ -14,13 +14,21 @@ specs = range(pd.read_csv(exp).shape[0])
 samples = range(N)
 
 
-## target result
+## main targets
+
 rule all:
     input:
         "data/reports/plot.pdf",
         expand("data/instances/instance_{spec}_{sample}.pdf", spec=specs, sample=samples),
         expand("data/schedules/dqn_{spec}_{sample}.pdf", spec=specs, sample=samples),
         expand("data/schedules/exhaustive_{spec}_{sample}.pdf", spec=specs, sample=samples),
+
+# train dqn for all experiments
+# (this might be helpful to manually retrigger training, which may be necessary
+# when we change the gymnasium environment, because this dependency is not
+# explicitly tracked)
+rule train_all:
+    input: expand("data/runs/{spec}/model.pth", spec=specs)
 
 
 ## data generation
