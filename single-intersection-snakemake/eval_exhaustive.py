@@ -6,7 +6,7 @@ instance = np.load(infile)
 K = int(instance['K'])
 switch_over = float(instance['s'])
 
-### generate schedule by applying the exhaustive polling policy
+### schedule by applying exhaustive service and no-wait switching policy
 
 # we maintain a minheap of events
 # event = (time, value, lane, id)
@@ -38,6 +38,9 @@ busy = False
 # produced schedule, list of starting times for each platoon for each lane
 schedule = [[] for k in range(K)]
 
+# keep track of completion time of last completed platoon
+last_completion_time = 0
+
 # discrete event simulation
 try:
     while event := heappop(h):
@@ -46,10 +49,11 @@ try:
         # process arrival
         if p > 0:
             if not busy:
-                s = t + (0 if lane == k else switch_over)
+                s = max(t, last_completion_time + (0 if lane == k else switch_over))
                 schedule[k].append(s) # record starting time
                 C = s + p # completion time
                 # add completion time event
+                last_completion_time = C
                 e = (C, -1, k, i)
                 heappush(h, e)
                 busy = True
@@ -75,6 +79,7 @@ try:
                     schedule[k].append(s) # record starting time
                     C = s + q # completion time
                     # add completion time event
+                    last_completion_time = C
                     e = (C, -1, k, j)
                     heappush(h, e)
                     busy = True
