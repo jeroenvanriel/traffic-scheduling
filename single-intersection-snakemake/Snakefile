@@ -17,7 +17,7 @@ samples = range(N)
 ## target result
 rule all:
     input:
-        "plot.pdf",
+        "data/reports/plot.pdf",
         expand("data/instances/instance_{spec}_{sample}.pdf", spec=specs, sample=samples),
         expand("data/schedules/dqn_{spec}_{sample}.pdf", spec=specs, sample=samples),
 

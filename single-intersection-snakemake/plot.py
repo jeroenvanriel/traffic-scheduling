@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
-n_specs = snakemake.params['n_specs']
-
+import re
+from collections import defaultdict
 
 def average_score(files):
     scores = []
@@ -12,32 +11,31 @@ def average_score(files):
 
     return sum(scores) / len(scores)
 
+# extract policy names from input files
+policies = set()
+for key in snakemake.input.keys():
+    m = re.match(r"(\w+)\_(\d+)", key)
+    if m is None:
+        raise Exception("Incorrect file names (check Snakefile).")
 
-exactscores = []
-dqnscores = []
-exhaustivescores = []
-simplescores = []
-for i in range(n_specs):
-    files = snakemake.input[f"exact_{i}"]
-    exactscores.append(average_score(files))
+    policy = m.group(1) # policy name
+    policies.add(policy)
 
-    files = snakemake.input[f"dqn_{i}"]
-    dqnscores.append(average_score(files))
+# for each combination of policy and experiment specification, average the
+# performance scores over samples
+n_specs = snakemake.params['n_specs']
+scores = defaultdict(list)
+for policy in policies:
+    for i in range(n_specs):
+        files = snakemake.input[f"{policy}_{i}"]
+        scores[policy].append(average_score(files))
 
-    files = snakemake.input[f"exhaustive_{i}"]
-    exhaustivescores.append(average_score(files))
-
-    files = snakemake.input[f"simple_{i}"]
-    simplescores.append(average_score(files))
-
-# TODO: load from csv
+# plot the results per experiment
+# TODO: load experiment specification from csv
 rates = [2, 3, 4, 5] # corresponds to generate.arrival_params
 
-plt.plot(rates, exactscores, label="exact")
-#plt.plot(rates, simplescores, label="simple")
-plt.plot(rates, exhaustivescores, label="exhaustive")
-# TODO: different horizons
-plt.plot(rates, dqnscores, label="$h^{(10)}$")
+for policy in policies:
+    plt.plot(rates, scores[policy], label=policy)
 
 plt.legend()
 plt.savefig(snakemake.output[0])
