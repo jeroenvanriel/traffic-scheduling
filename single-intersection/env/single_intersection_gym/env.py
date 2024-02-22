@@ -35,7 +35,7 @@ class SingleIntersectionEnv(gym.Env):
 
         self._instance_generator = instance_generator
 
-        self.observation_space = gym.spaces.Box(low=-1e3, high=1e6, shape=(self.n_lanes * horizon * 2,))
+        self.observation_space = gym.spaces.Box(low=-1e3, high=1e6, shape=(self.n_lanes, horizon, 2))
         self.action_space = gym.spaces.Discrete(2)
 
 
@@ -141,7 +141,7 @@ class SingleIntersectionEnv(gym.Env):
                 obs[ix, j, 0] = self.arrival[l][i + j] - self.completion_time
                 obs[ix, j, 1] = self.length[l][i + j]
 
-        return obs.flatten()
+        return obs
 
 
     def _get_info(self):

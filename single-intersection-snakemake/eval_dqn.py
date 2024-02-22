@@ -36,6 +36,7 @@ for i, instance_file in enumerate(snakemake.input[2:]):
 
     env = gym.make("SingleIntersectionEnv", K=instance['K'], instance_generator=lambda: instance,
                    switch_over=instance['s'], horizon=horizon)
+    env = gym.wrappers.FlattenObservation(env)
 
     obj, info = evaluate(env, model)
 

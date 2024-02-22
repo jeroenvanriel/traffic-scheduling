@@ -71,6 +71,7 @@ def make_env(env_id, K, instance_generator, switch_over, horizon, seed):
         env = gym.make(env_id, K=K, instance_generator=instance_generator,
                        switch_over=switch_over, horizon=horizon)
         env = gym.wrappers.RecordEpisodeStatistics(env)
+        env = gym.wrappers.FlattenObservation(env)
         env.action_space.seed(seed)
 
         return env
