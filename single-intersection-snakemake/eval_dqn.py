@@ -11,8 +11,8 @@ def evaluate(env, model):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
 
-    obs, _ = env.reset()
-    total_reward = 0
+    obs, info = env.reset()
+    total_reward = info['initial_reward']
     terminated = False
     while not terminated:
         q_values = model(torch.Tensor(obs).to(device))

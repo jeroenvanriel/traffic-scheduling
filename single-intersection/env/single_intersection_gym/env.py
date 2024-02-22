@@ -29,7 +29,7 @@ class SingleIntersectionEnv(gym.Env):
         """
 
         assert instance_generator is not None, "Instance generator function must be provided."
-        self.n_lanes = K
+        self.n_lanes = int(K)
         self.horizon = horizon
         self.switch_over = switch_over
 
@@ -40,9 +40,6 @@ class SingleIntersectionEnv(gym.Env):
 
 
     def reset(self, seed=None, options=None):
-        self.current_lane = 0
-        self.completion_time = 0
-
         self.arrival, self.length, self.n = self._generate_platoons()
 
         # action history
@@ -56,6 +53,15 @@ class SingleIntersectionEnv(gym.Env):
         # start and end times of scheduled vehicles
         self.start_time = [ np.empty((self.n[i])) for i in range(self.n_lanes) ]
         self.end_time = [ np.empty((self.n[i])) for i in range(self.n_lanes) ]
+
+        ## calculate initial state
+
+        # always start at the first lane
+        self.current_lane = 0
+        self.completion_time = 0
+
+        # apply exhaustive service
+        self.initial_reward = self._exhaustive_service()
 
         observation = self._get_obs()
         info = self._get_info()
@@ -80,16 +86,25 @@ class SingleIntersectionEnv(gym.Env):
         return arrival, length, np.array(n)
 
 
-    def step(self, action):
-        if action == 0:
-            l = self.current_lane
-        else:
-            l = (self.current_lane + 1) % self.n_lanes
+    def _exhaustive_service(self):
+        total_reward = 0
 
-        # move to serve next lane, when no more arrivals
-        while self.platoons_scheduled[l] == self.n[l]:
-            l = (l + 1) % self.n_lanes
+        # keep serving current lane as long as there are vehicles in the queue,
+        # or whenever the next event is in the current queue
+        def go_on():
+            obs = self._get_obs()
+            done = self.platoons_scheduled[self.current_lane] == self.n[self.current_lane]
+            current_nonempty = obs[0, 0, 0] <= 0
+            current_next = all(obs[0, 0, 0] <= obs[i, 0, 0] for i in range(1, self.n_lanes))
+            return not done and (current_nonempty or current_next)
 
+        while go_on():
+            total_reward += self._serve_lane(self.current_lane)
+
+        return total_reward
+
+
+    def _serve_lane(self, l):
         # actual switch-over time
         s = self.switch_over if l != self.current_lane else 0
 
@@ -104,20 +119,35 @@ class SingleIntersectionEnv(gym.Env):
         self.end_time[l][i] = self.start_time[l][i] + length
         self.completion_time = self.end_time[l][i]
 
-        self.action_sequence.append(action)
-        self.current_lane = l
         self.lane_sequence.append(l)
         self.platoons_scheduled[l] += 1
+        self.current_lane = l
 
         # penalty is total delay of platoon
-        reward = - (self.start_time[l][i] - arrival) * length
+        return - (self.start_time[l][i] - arrival) * length
+
+
+    def step(self, action):
+        self.action_sequence.append(action)
+
+        if action == 0:
+            l = self.current_lane
+        else:
+            l = (self.current_lane + 1) % self.n_lanes
+
+        # move to serve next lane, when no more arrivals
+        while self.platoons_scheduled[l] == self.n[l]:
+            l = (l + 1) % self.n_lanes
+
+        # serve lane once and apply exhaustive service
+        total_reward = self._serve_lane(l) + self._exhaustive_service()
 
         observation = self._get_obs()
         info = self._get_info()
 
         terminated = (self.platoons_scheduled == self.n).all()
 
-        return observation, reward, terminated, False, info
+        return observation, total_reward, terminated, False, info
 
 
     def _get_obs(self):
@@ -146,6 +176,7 @@ class SingleIntersectionEnv(gym.Env):
 
     def _get_info(self):
         return {
+            "initial_reward": self.initial_reward,
             "action_sequence": self.action_sequence,
             "lane_sequence": self.lane_sequence,
             "platoons_scheduled": self.platoons_scheduled,
