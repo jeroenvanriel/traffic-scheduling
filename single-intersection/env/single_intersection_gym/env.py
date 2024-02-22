@@ -4,11 +4,23 @@ import numpy as np
 
 class SingleIntersectionEnv(gym.Env):
 
-    def __init__(self, platoon_generators=None, horizon=10, switch_over=2):
-        """`platoon_generators` is a list of functions, each of which should
-        produce the arriving platoons for a lane. For each lane i, these
-        arrivals are encoded as a tuple (arrivals, lengths), each of which is a
-        one-dimensional numpy array of length n_i.
+    def __init__(self, K, instance_generator=None, horizon=10, switch_over=2):
+        """
+        `K` is the number of lanes
+
+        `instace_generator` is a function that produces
+        a dictionary of the form
+        {
+          'arrival0': arrival0,
+          'length0': length0,
+          'arrival1': arrival1,
+          'length1': length1,
+           ...
+          'arrivalK-1': arrivalK-1,
+          'lengthK-1': lengthK-1,
+        }
+        where for each lane i, arrivals and lengths are one-dimensional numpy
+        array of length n_i.
 
         `horizon` is the length of the fixed look-ahead window.
 
@@ -16,18 +28,15 @@ class SingleIntersectionEnv(gym.Env):
         moments of crossing of vehicles from different intersections.
         """
 
-        assert platoon_generators is not None, "Platoon generator function must be provided."
-        self.n_lanes = len(platoon_generators)
+        assert instance_generator is not None, "Instance generator function must be provided."
+        self.n_lanes = K
         self.horizon = horizon
         self.switch_over = switch_over
 
-        self._platoon_generators = platoon_generators
+        self._instance_generator = instance_generator
 
         self.observation_space = gym.spaces.Box(low=-1e3, high=1e6, shape=(self.n_lanes * horizon * 2,))
         self.action_space = gym.spaces.Discrete(2)
-
-        self.lane_color = { 0: (255, 0, 0), 1: (0, 255, 0) }
-        self.scale = 15
 
 
     def reset(self, seed=None, options=None):
@@ -59,8 +68,10 @@ class SingleIntersectionEnv(gym.Env):
         length = [] # platoon lengths
         n = [] # number of arrivals
 
-        for generator in self._platoon_generators:
-            a, l = generator()
+        res = self._instance_generator()
+
+        for k in range(self.n_lanes):
+            a, l = res[f"arrival{k}"], res[f"length{k}"]
             assert a.shape == l.shape, "List of arrivals should have same length as list of platoon lengths."
             arrival.append(a)
             length.append(l)
@@ -134,6 +145,10 @@ class SingleIntersectionEnv(gym.Env):
 
 
     def _get_info(self):
-        return { "action_sequence": self.action_sequence,
-                 "lane_sequence": self.lane_sequence,
-                 "platoons_scheduled": self.platoons_scheduled }
+        return {
+            "action_sequence": self.action_sequence,
+            "lane_sequence": self.lane_sequence,
+            "platoons_scheduled": self.platoons_scheduled,
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+        }
