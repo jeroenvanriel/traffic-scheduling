@@ -1,0 +1,118 @@
+import pandas as pd
+import os
+
+N = 10
+exact_gap = 0.00
+exact_timelimit = 5*60 # in seconds
+exact_log = False
+horizon = 20
+# TODO: collect all the parameters in a single file, to make the whole workflow
+# reproducible without altering this file
+exp = "exps/spec1.csv"
+
+specs = range(pd.read_csv(exp).shape[0])
+samples = range(N)
+
+
+## target result
+rule all:
+    input:
+        "plot.pdf",
+        expand("data/instances/instance_{spec}_{sample}.pdf", spec=specs, sample=samples),
+        expand("data/schedules/dqn_{spec}_{sample}.pdf", spec=specs, sample=samples),
+
+
+## data generation
+
+rule extract_specs:
+    """We use a single .csv file to edit the distribution specifications in one
+    place, but we generate individual files to help with tracking what needs to be
+    recomputed whenever someting is (partly) changed."""
+    input: exp
+    output: expand("data/specs/spec_{spec}.npz", spec=specs)
+    conda: "envs/base.yaml"
+    script: "extract_specs.py"
+
+rule generate_samples:
+    input:
+        "data/specs/spec_{spec}.npz",
+        "generate_2_lanes.py",  # to track dependency
+    output: expand("data/instances/instance_{{spec}}_{sample}.npz", sample=samples)
+    conda: "envs/base.yaml"
+    script: "generate.py"
+
+rule visualize_instances:
+    input: "data/instances/instance_{spec}_{sample}.npz"
+    output: "data/instances/instance_{spec}_{sample}.pdf"
+    conda: "envs/plot.yaml"
+    script: "visualize_instance.py"
+
+
+## training
+
+rule train_dqn:
+    input:
+        "data/specs/spec_{spec}.npz",
+        "generate_2_lanes.py",  # to track dependency
+        "dqn.py",  # to track dependency
+    output: "data/runs/{spec}/model.pth"
+    params: horizon=horizon
+    conda: "envs/pytorch.yaml"
+    script: "train.py"
+
+
+## evaluation
+
+rule eval_exact:
+    input: "data/instances/instance_{spec}_{sample}.npz"
+    output: "data/evals/exact_{spec}_{sample}.npz"
+    params:
+        gap=exact_gap,
+        timelimit=exact_timelimit,
+        log=exact_log,
+        logfile="data/log/exact_{spec}_{sample}.log"
+    conda: "envs/gurobi.yaml"
+    script: "exact.py"
+
+rule eval_exhaustive:
+    input: "data/instances/instance_{spec}_{sample}.npz"
+    output: "data/evals/exhaustive_{spec}_{sample}.npz"
+    conda: "envs/base.yaml"
+    script: "eval_exhaustive.py"
+
+rule eval_simple:
+    input: "data/instances/instance_{spec}_{sample}.npz"
+    output: "data/evals/simple_{spec}_{sample}.npz"
+    conda: "envs/pytorch.yaml"
+    script: "eval_simple.py"
+
+rule eval_dqn:
+    input:
+        "data/runs/{spec}/model.pth",
+        "generate_2_lanes.py",  # to track dependency
+        expand("data/instances/instance_{{spec}}_{sample}.npz", sample=samples),
+    output: expand("data/evals/dqn_{{spec}}_{sample}.npz", sample=samples)
+    params: horizon=horizon
+    conda: "envs/pytorch.yaml"
+    script: "eval_dqn.py"
+
+
+## reporting
+
+# TODO: include 'start_time_{i}' and 'end_time_{i}' in eval files for all policies
+rule plot_schedules:
+    input: "data/evals/{type}_{spec}_{sample}.npz"
+    output: "data/schedules/{type}_{spec}_{sample}.pdf"
+    conda: "envs/base.yaml"
+    script: "visualize_schedule.py"
+
+rule plot_results:
+    input:
+        **{ f"exact_{spec}": [f"data/evals/exact_{spec}_{sample}.npz" for sample in samples] for spec in specs },
+        **{ f"exhaustive_{spec}": [ f"data/evals/exhaustive_{spec}_{sample}.npz" for sample in samples ] for spec in specs },
+        **{ f"dqn_{spec}": [ f"data/evals/dqn_{spec}_{sample}.npz" for sample in samples ] for spec in specs },
+        **{ f"simple_{spec}": [ f"data/evals/simple_{spec}_{sample}.npz" for sample in samples ] for spec in specs },
+    output: "data/reports/plot.pdf"
+    params: n_specs=len(specs)
+    conda: "envs/plot.yaml"
+    script: "plot.py"
