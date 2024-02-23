@@ -15,12 +15,12 @@ def lane(spec):
 
     return arrival, length
 
-def generate(spec):
+
+def instance_generator(spec):
+    arrival0, length0 = lane(spec)
     arrival1, length1 = lane(spec)
-    arrival2, length2 = lane(spec)
 
     return {
-        "K": 2,
-        "arrival1": arrival1, "length1": length1,
-        "arrival2": arrival2, "length2": length2,
+        'arrival0': arrival0, 'length0': length0,
+        'arrival1': arrival1, 'length1': length1,
     }
