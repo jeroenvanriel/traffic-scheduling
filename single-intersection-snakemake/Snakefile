@@ -90,7 +90,6 @@ rule eval_simple:
 rule eval_dqn:
     input:
         "data/runs/{spec}/model.pth",
-        "2_lanes_symmetric.py",  # to track dependency
         expand("data/instances/instance_{{spec}}_{sample}.npz", sample=samples),
     output: expand("data/evals/dqn_{{spec}}_{sample}.npz", sample=samples)
     params: horizon=horizon
