@@ -92,11 +92,30 @@ class SingleIntersectionEnv(gym.Env):
         # keep serving current lane as long as there are vehicles in the queue,
         # or whenever the next event is in the current queue
         def go_on():
-            obs = self._get_obs()
-            done = self.platoons_scheduled[self.current_lane] == self.n[self.current_lane]
-            current_nonempty = obs[0, 0, 0] <= 0
-            current_next = all(obs[0, 0, 0] <= obs[i, 0, 0] for i in range(1, self.n_lanes))
-            return not done and (current_nonempty or current_next)
+            l = self.current_lane
+            done = self.platoons_scheduled == self.n
+
+            # current lane done
+            if done[l]:
+                return False
+
+            # some vehicle is still ready for service
+            if self.arrival[l][self.platoons_scheduled[l]] <= self.completion_time:
+                return True
+
+            # get other lanes starting from the current
+            other_lane_indices = np.roll(np.arange(self.n_lanes), - l)[1:]
+            # remove the indices of lanes that are done
+            other_lane_indices = filter(lambda i: not done[i], other_lane_indices)
+
+            # next arrival is on current lane
+            if all(
+                self.arrival[l][self.platoons_scheduled[l]] <= self.arrival[i][self.platoons_scheduled[i]]
+                for i in other_lane_indices
+            ):
+                return True
+
+            return False
 
         while go_on():
             total_reward += self._serve_lane(self.current_lane)
