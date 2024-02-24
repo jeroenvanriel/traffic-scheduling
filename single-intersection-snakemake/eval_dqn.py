@@ -4,8 +4,6 @@ import gymnasium as gym
 
 import single_intersection_gym
 
-from dqn import QNetwork
-
 
 def evaluate(env, model):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
