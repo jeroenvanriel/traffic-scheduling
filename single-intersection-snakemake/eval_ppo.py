@@ -5,16 +5,15 @@ import gymnasium as gym
 import single_intersection_gym
 
 
-def evaluate(env, model):
+def evaluate(env, agent):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.eval()
+    agent.eval()
 
     obs, info = env.reset()
     total_reward = info['initial_reward']
     terminated = False
     while not terminated:
-        q_values = model(torch.Tensor(obs).to(device))
-        action = torch.argmax(q_values).cpu().numpy()
+        action, _, _, _ = agent.get_action_and_values(obs)
         next_obs, reward, terminated, _, info = env.step(action)
         total_reward += reward
         obs = next_obs
@@ -26,9 +25,9 @@ def evaluate(env, model):
 horizon = snakemake.params['horizon']
 
 model_path = snakemake.input[0]
-model = torch.load(model_path)
+agent = torch.load(model_path)
 
-for i, instance_file in enumerate(snakemake.input[1:]):
+for i, instance_file in enumerate(snakemake.input[2:]):
     instance = np.load(instance_file)
     K = instance['K']
 
@@ -36,7 +35,7 @@ for i, instance_file in enumerate(snakemake.input[1:]):
                    switch_over=instance['s'], horizon=horizon)
     env = gym.wrappers.FlattenObservation(env)
 
-    obj, info = evaluate(env, model)
+    obj, info = evaluate(env, agent)
 
     schedule = {
         **{f"start_time_{i}": info['start_time'][i] for i in range(K)},

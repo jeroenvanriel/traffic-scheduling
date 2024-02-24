@@ -14,13 +14,21 @@ specs = range(pd.read_csv(exp).shape[0])
 samples = range(N)
 
 
-## target result
+## main targets
+
 rule all:
     input:
         "data/reports/plot.pdf",
         expand("data/instances/instance_{spec}_{sample}.pdf", spec=specs, sample=samples),
         expand("data/schedules/dqn_{spec}_{sample}.pdf", spec=specs, sample=samples),
         expand("data/schedules/exhaustive_{spec}_{sample}.pdf", spec=specs, sample=samples),
+
+# train dqn for all experiments
+# (this might be helpful to manually retrigger training, which may be necessary
+# when we change the gymnasium environment, because this dependency is not
+# explicitly tracked)
+rule train_all:
+    input: expand("data/runs/{spec}/model.pth", spec=specs)
 
 
 ## data generation
@@ -61,6 +69,16 @@ rule train_dqn:
     conda: "envs/pytorch.yaml"
     script: "train.py"
 
+ rule train_ppo:
+     input:
+         "data/specs/spec_{spec}.npz",
+         "generate_2_lanes.py",  # to track dependency
+         "ppo.py",  # to track dependency
+     output: "data/runs/ppo_{spec}/model.pth"
+     params: horizon=horizon
+     conda: "envs/pytorch.yaml"
+     script: "train_ppo.py"
+
 
 ## evaluation
 
@@ -95,6 +113,15 @@ rule eval_dqn:
     params: horizon=horizon
     conda: "envs/pytorch.yaml"
     script: "eval_dqn.py"
+
+rule eval_ppo:
+    input:
+        "data/runs/ppo_{spec}/model.pth",
+        expand("data/instances/instance_{{spec}}_{sample}.npz", sample=samples),
+    output: expand("data/evals/ppo_{{spec}}_{sample}.npz", sample=samples)
+    params: horizon=horizon
+    conda: "envs/pytorch.yaml"
+    script: "eval_ppo.py"
 
 
 ## reporting
