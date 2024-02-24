@@ -11,4 +11,4 @@ spec = np.load(snakemake.input[0])
 
 for outfile in snakemake.output:
     res = instance_generator(spec)
-    np.savez(outfile, K=spec['K'], s=spec['s'], **res)
+    np.savez(outfile, K=int(spec['K']), s=spec['s'], **res)
