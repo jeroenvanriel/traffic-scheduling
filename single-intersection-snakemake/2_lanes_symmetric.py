@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 seed=31307741687469044381975587942973893579
 rng = np.random.default_rng(seed)

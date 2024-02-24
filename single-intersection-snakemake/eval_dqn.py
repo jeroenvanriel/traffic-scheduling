@@ -28,7 +28,7 @@ horizon = snakemake.params['horizon']
 model_path = snakemake.input[0]
 model = torch.load(model_path)
 
-for i, instance_file in enumerate(snakemake.input[2:]):
+for i, instance_file in enumerate(snakemake.input[1:]):
     instance = np.load(instance_file)
     K = instance['K']
 

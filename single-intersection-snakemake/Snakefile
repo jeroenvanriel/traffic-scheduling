@@ -45,7 +45,7 @@ rule extract_specs:
 rule generate_samples:
     input:
         "data/specs/spec_{spec}.npz",
-        "generate_2_lanes.py",  # to track dependency
+        "2_lanes_symmetric.py",  # to track dependency
     output: expand("data/instances/instance_{{spec}}_{sample}.npz", sample=samples)
     conda: "envs/base.yaml"
     script: "generate.py"
@@ -62,7 +62,7 @@ rule visualize_instances:
 rule train_dqn:
     input:
         "data/specs/spec_{spec}.npz",
-        "generate_2_lanes.py",  # to track dependency
+        "2_lanes_symmetric.py",  # to track dependency
         "dqn.py",  # to track dependency
     output: "data/runs/{spec}/model.pth"
     params: horizon=horizon
@@ -130,7 +130,7 @@ rule eval_ppo:
 rule plot_schedules:
     input: "data/evals/{type}_{spec}_{sample}.npz"
     output: "data/schedules/{type}_{spec}_{sample}.pdf"
-    conda: "envs/base.yaml"
+    conda: "envs/plot.yaml"
     script: "visualize_schedule.py"
 
 rule plot_results:
