@@ -90,11 +90,11 @@ def solve(switch, release, length, gap=0.0, timelimit=0, log=True, logfile=None)
     o = {}
     for k1, k2 in combinations(range(K), 2):
         for j, l in product(range(n[k1]), range(n[k2])):
-            oc = g.addVar(obj=0, vtype=gp.GRB.BINARY, name=f"o_{j}_{l}")
+            oc = g.addVar(obj=0, vtype=gp.GRB.BINARY, name=f"o_{k1}_{k2}_{j}_{l}")
             o[k1, k2, j, l] = oc
 
-            g.addConstr(y[0, j] + length[0][j] + switch <= y[1, l] + oc * M)
-            g.addConstr(y[1, l] + length[1][l] + switch <= y[0, j] + (1 - oc) * M)
+            g.addConstr(y[k1, j] + length[k1][j] + switch <= y[k2, l] + oc * M)
+            g.addConstr(y[k2, l] + length[k2][l] + switch <= y[k1, j] + (1 - oc) * M)
 
     ### Solving
 
