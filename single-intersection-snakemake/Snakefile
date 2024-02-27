@@ -4,7 +4,6 @@ import os
 N = 10
 exact_gap = 0.00
 exact_timelimit = 5*60 # in seconds
-exact_log = False
 horizon = 20
 # TODO: collect all the parameters in a single file, to make the whole workflow
 # reproducible without altering this file
@@ -88,7 +87,7 @@ rule eval_exact:
     params:
         gap=exact_gap,
         timelimit=exact_timelimit,
-        log=exact_log,
+        consolelog=False,
         logfile="data/log/exact_{spec}_{sample}.log"
     conda: "envs/gurobi.yaml"
     script: "exact.py"

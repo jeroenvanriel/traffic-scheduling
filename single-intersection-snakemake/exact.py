@@ -22,7 +22,7 @@ def check_platoons(releases, lengths):
             raise Exception("There are overlapping platoons.")
 
 
-def solve(switch, release, length, gap=0.0, timelimit=0, log=True, logfile=None):
+def solve(switch, release, length, gap=0.0, timelimit=0, consolelog=False, logfile=None):
     """Solve the single intersection problem with complete knowledge of future
     as a MILP.
 
@@ -49,7 +49,7 @@ def solve(switch, release, length, gap=0.0, timelimit=0, log=True, logfile=None)
     """
 
     env = gp.Env(empty=True)
-    if not log:
+    if not consolelog:
         env.setParam('LogToConsole', 0)  # disable console logging
     if logfile is not None:
         env.setParam('LogFile', logfile)
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     gap = snakemake.params["gap"]
     timelimit = snakemake.params["timelimit"]
-    log = snakemake.params["log"]
+    consolelog = snakemake.params["consolelog"]
     logfile = getattr(snakemake.params, "logfile", None)
 
     # load instance
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         release.append(p[f"arrival{k}"])
         length.append(p[f"length{k}"])
 
-    y, _, obj = solve(s, release, length, gap=gap, timelimit=timelimit, log=log, logfile=logfile)
+    y, _, obj = solve(s, release, length, gap=gap, timelimit=timelimit, consolelog=consolelog, logfile=logfile)
     print(f"---- exact objective = {obj}")
     wall_time = time.time() - start
 
