@@ -129,17 +129,27 @@ if __name__ == "__main__":
     p = np.load(in_file)
     start = time.time()
 
+    K = int(p['K'])
+    s = p['s']
+
     # extract arrivals for each lanes
     release = []
     length = []
-    for k in range(p['K']):
+    for k in range(K):
         release.append(p[f"arrival{k}"])
         length.append(p[f"length{k}"])
 
-    y, _, obj = solve(p['s'], release, length, gap=gap, timelimit=timelimit, log=log, logfile=logfile)
+    y, _, obj = solve(s, release, length, gap=gap, timelimit=timelimit, log=log, logfile=logfile)
     print(f"---- exact objective = {obj}")
     wall_time = time.time() - start
 
+    # derive start and end times in standard format
+    res = {}
+    n = [len(r) for r in release]
+    for k in range(K):
+        res[f'start_time_{k}'] = np.array([y[k, j] for j in range(n[k])])
+        res[f'end_time_{k}'] = np.array([y[k, j] + length[k][j] for j in range(n[k])])
+
     # write results
     out_file = snakemake.output[0]
-    np.savez(out_file, y=y, obj=obj, time=wall_time, gap=gap)
+    np.savez(out_file, **res, K=K, s=s, obj=obj, time=wall_time, gap=gap)

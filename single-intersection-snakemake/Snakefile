@@ -126,7 +126,6 @@ rule eval_ppo:
 
 ## reporting
 
-# TODO: include 'start_time_{i}' and 'end_time_{i}' in eval files for all policies
 rule plot_schedules:
     input: "data/evals/{type}_{spec}_{sample}.npz"
     output: "data/schedules/{type}_{spec}_{sample}.pdf"
