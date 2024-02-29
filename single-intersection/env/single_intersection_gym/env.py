@@ -35,7 +35,7 @@ class SingleIntersectionEnv(gym.Env):
 
         self._instance_generator = instance_generator
 
-        self.observation_space = gym.spaces.Box(low=-1e3, high=1e6, shape=(self.n_lanes, horizon, 2))
+        self.observation_space = gym.spaces.Box(low=-1e3, high=np.inf, shape=(self.n_lanes, 2 + horizon * 2))
         self.action_space = gym.spaces.Discrete(2)
 
 
@@ -181,27 +181,42 @@ class SingleIntersectionEnv(gym.Env):
 
 
     def _get_obs(self):
-        # last axis contains (arrival, length), hence dim=2 features
-        obs = np.zeros((self.n_lanes, self.horizon, 2), dtype=np.float32)
-        # Note that by initializing these with zeros, it means that the agent
-        # will see zeros for arrival time and platoon length once there are no
-        # more arrivals on the current lane.
+        # count number of vehicles that have arrived, but not yet processed
+        queue_lengths = np.sum(np.array(self.arrival) <= self.completion_time, axis=1) - self.platoons_scheduled
+        queue_lengths = queue_lengths.astype(np.float32)
+
+        # number of vehicles still left to schedule
+        remaining = self.n - self.platoons_scheduled
+        remaining = remaining.astype(np.float32)
+
+        # pad with zeros
+        future_arrivals = np.zeros((self.n_lanes, self.horizon), dtype=np.float32)
+        # pad with zeros
+        future_lengths = np.zeros((self.n_lanes, self.horizon), dtype=np.float32)
+
+        # calculate the horizon
+        for l in range(self.n_lanes):
+            done = self.platoons_scheduled[l] == self.n[l]
+            if done:
+                continue
+
+            # index of the first remaining arrival
+            i = np.argmax(self.arrival[l] >= self.completion_time)
+
+            for j in range(self.horizon):
+                if i + j >= self.n[l]: # no more vehicles
+                    break
+                future_arrivals[l, j] = self.arrival[l][i + j] - self.completion_time
+                future_lengths[l, j] = self.length[l][i + j]
+
+        # stack the three features together per lane
+        obs = np.hstack([queue_lengths[np.newaxis].transpose(), remaining[np.newaxis].transpose(), future_arrivals, future_lengths])
 
         # shift the observations to be from perspective of the current lane
         # minus sign because we roll "to the left"
         lane_indices = np.roll(np.arange(self.n_lanes), - self.current_lane)
 
-        for ix, l in enumerate(lane_indices):
-            i = self.platoons_scheduled[l]
-            # so i is the index of the vehicle to be served next
-
-            for j in range(self.horizon):
-                if i + j >= self.n[l]: # no more vehicles
-                    break
-                obs[ix, j, 0] = self.arrival[l][i + j] - self.completion_time
-                obs[ix, j, 1] = self.length[l][i + j]
-
-        return obs
+        return obs[lane_indices]
 
 
     def _get_info(self):
