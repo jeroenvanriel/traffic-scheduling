@@ -11,71 +11,86 @@ import single_intersection_gym
 ##
 
 
-def gen1():
-    arrivals = np.array([0, 2, 3])
-    lengths = np.array([1, 1, 1])
-    return arrivals, lengths
+def static_gen():
+    return {
+        'arrival0': np.array([0, 2, 3]),
+        'length0': np.array([1, 1, 1]),
+        'arrival1': np.array([0, 1, 3]),
+        'length1': np.array([1, 1, 1]),
+    }
 
-def gen2():
-    arrivals = np.array([0, 1, 3])
-    lengths = np.array([1, 1, 1])
-    return arrivals, lengths
+
+def random_gen():
+    rng = np.random.default_rng()
+
+    n_arrivals = 20
+
+    # interarrival[lane, platoon id] = time after preceding platoon
+    interarrival = rng.exponential(scale=5, size=(n_arrivals))
+
+    # length[lane, platoon] = number of vehicles
+    platoon_range=[1, 3] # so 1 or 2
+    length = rng.integers(*platoon_range, size=(n_arrivals))
+
+    length_shifted = np.roll(length, 1)
+    length_shifted[0] = 0
+
+    # arrivals[lane, platoon] = arrival time
+    arrival = np.cumsum(interarrival + length_shifted)
+
+    return { 'arrival0': arrival, 'length0': length, 'arrival1': arrival, 'length1': length }
+
+
 
 
 class SingleIntersectionGymEnvTest(unittest.TestCase):
 
+    tol = 1e-8
+
     def test_make_env(self):
-        def gen():
-            rng = np.random.default_rng()
-
-            n_arrivals = 5
-
-            # interarrival[lane, platoon id] = time after preceding platoon
-            interarrival = rng.exponential(scale=5, size=(n_arrivals))
-
-            # length[lane, platoon] = number of vehicles
-            platoon_range=[1, 3] # so 1 or 2
-            length = rng.integers(*platoon_range, size=(n_arrivals))
-
-            length_shifted = np.roll(length, 1)
-            length_shifted[0] = 0
-
-            # arrivals[lane, platoon] = arrival time
-            arrival = np.cumsum(interarrival + length_shifted)
-
-            return arrival, length
-
         # two lanes with same arrival process
-        env = gym.make("SingleIntersectionEnv", platoon_generators=[gen, gen])
+        env = gym.make("SingleIntersectionEnv", K=2, instance_generator=random_gen)
 
         env.reset()
         env.step(0)
 
 
-    def test_observations(self):
-        env = gym.make("SingleIntersectionEnv", platoon_generators=[gen1, gen2], horizon=1, switch_over=2)
+    def evaluate_schedule(self, K, instance, schedule):
+        total_delay = 0
 
-        obs, _= env.reset()
-        obs, _, _, _, _ = env.step(0) # schedule platoon from lane 0
+        for k in range(K):
+            for arrival, length, start, end in zip(
+                    instance[f'arrival{k}'], instance[f'length{k}'],
+                    schedule[f'start_time_{k}'], schedule[f'end_time_{k}']
+            ):
+                self.assertTrue(abs(length - (end - start)) < self.tol, "End time in schedule is not correct.")
+                total_delay -= (start - arrival) * length # note minus sign
 
-        # current time t = 1
-        lane0_horizon = np.array([ [1, 1] ]) # 2 - t = 1
-        lane1_horizon = np.array([ [-1, 1] ]) # 0 - t = -1
-        expected_obs = np.stack([lane0_horizon, lane1_horizon])
-
-        self.assertTrue(np.array_equal(obs, expected_obs.flatten()))
+        return total_delay
 
 
     def test_reward(self):
-        env = gym.make("SingleIntersectionEnv", platoon_generators=[gen1, gen2], horizon=1, switch_over=2)
+        def test(instance):
+            env = gym.make("SingleIntersectionEnv",
+                           K=2, instance_generator=lambda: instance,
+                           horizon=1, switch_over=2)
+            observation, info = env.reset()
+            total_reward = info['initial_reward']
+            done = False
+            while not done:
+                _, reward, done, _, info = env.step(1) # no-wait policy
+                total_reward += reward
 
-        env.reset()
-        _, reward, _, _, _ = env.step(0) # schedule platoon from lane 0
+            schedule = {
+                'start_time_0': info['start_time'][0],
+                'end_time_0': info['end_time'][0],
+                'start_time_1': info['start_time'][1],
+                'end_time_1': info['end_time'][1],
+            }
 
-        # current time t = 1
-        self.assertEqual(reward, 0)
+            check = self.evaluate_schedule(2, instance, schedule)
 
-        _, reward, _, _, _ = env.step(1) # schedule platoon from lane 1
+            self.assertTrue(abs(total_reward - check) < self.tol)
 
-        # current time t = 3 because switch_over = 2
-        self.assertEqual(reward, -3)
+        test(static_gen())
+        test(random_gen())

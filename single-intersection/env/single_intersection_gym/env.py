@@ -136,14 +136,25 @@ class SingleIntersectionEnv(gym.Env):
 
         self.start_time[l][i] = max(self.completion_time + s, arrival)
         self.end_time[l][i] = self.start_time[l][i] + length
+        prev_completion_time = self.completion_time
         self.completion_time = self.end_time[l][i]
+
+        # calculate penalty
+        penalty = self.completion_time - np.maximum(prev_completion_time, np.minimum(self.completion_time, self.arrival))
+        penalty = self.length * penalty
+        # count only for vehicles that have to be scheduled
+        for k in range(self.n_lanes):
+            j = self.platoons_scheduled[k]
+            penalty[k][:j] = 0
+        penalty = np.sum(penalty)
+        # account for the vehicle we just scheduled
+        penalty -= length*length
 
         self.lane_sequence.append(l)
         self.platoons_scheduled[l] += 1
         self.current_lane = l
 
-        # penalty is total delay of platoon
-        return - (self.start_time[l][i] - arrival) * length
+        return - penalty
 
 
     def step(self, action):
