@@ -18,4 +18,4 @@ horizon = snakemake.params['horizon']
 model_path = snakemake.output[0]
 
 # Train DQN by sampling from problem distribution.
-train(model_path, spec['K'], instance_generator, spec['s'], horizon)
+train(model_path, spec['K'], lambda: instance_generator(spec), spec['s'], horizon)

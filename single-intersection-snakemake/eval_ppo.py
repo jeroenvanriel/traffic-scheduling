@@ -13,7 +13,7 @@ def evaluate(env, agent):
     total_reward = info['initial_reward']
     terminated = False
     while not terminated:
-        action, _, _, _ = agent.get_action_and_values(obs)
+        action, _, _, _ = agent.get_action_and_value(torch.Tensor(obs).to(device))
         next_obs, reward, terminated, _, info = env.step(action)
         total_reward += reward
         obs = next_obs
@@ -27,7 +27,7 @@ horizon = snakemake.params['horizon']
 model_path = snakemake.input[0]
 agent = torch.load(model_path)
 
-for i, instance_file in enumerate(snakemake.input[2:]):
+for i, instance_file in enumerate(snakemake.input[1:]):
     instance = np.load(instance_file)
     K = instance['K']
 

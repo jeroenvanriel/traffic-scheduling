@@ -39,27 +39,27 @@ class Args:
     # Algorithm specific arguments
     env_id: str = "SingleIntersectionEnv"
     """the id of the environment"""
-    total_timesteps: int = 500000
+    total_timesteps: int = 300000
     """total timesteps of the experiments"""
-    learning_rate: float = 2.5e-4
+    learning_rate: float = 0.9e-4
     """the learning rate of the optimizer"""
-    buffer_size: int = 10000
+    buffer_size: int = 1000
     """the replay memory buffer size"""
     gamma: float = 0.99
     """the discount factor gamma"""
     tau: float = 1.0
     """the target network update rate"""
-    target_network_frequency: int = 500
+    target_network_frequency: int = 1
     """the timesteps it takes to update the target network"""
-    batch_size: int = 128
+    batch_size: int = 100
     """the batch size of sample from the reply memory"""
-    start_e: float = 1
+    start_e: float = 0.8
     """the starting epsilon for exploration"""
     end_e: float = 0.05
     """the ending epsilon for exploration"""
-    exploration_fraction: float = 0.5
+    exploration_fraction: float = 0.7
     """the fraction of `total-timesteps` it takes from start-e to go end-e"""
-    learning_starts: int = 10000
+    learning_starts: int = 500
     """timestep to start learning"""
     train_frequency: int = 10
     """the frequency of training"""
@@ -78,17 +78,23 @@ def make_env(env_id, K, instance_generator, switch_over, horizon, seed):
 
     return thunk
 
+def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
+    torch.nn.init.orthogonal_(layer.weight, std)
+    torch.nn.init.constant_(layer.bias, bias_const)
+    return layer
 
 # ALGO LOGIC: initialize agent here:
 class QNetwork(nn.Module):
     def __init__(self, in_shape, out_shape):
         super().__init__()
         self.network = nn.Sequential(
-            nn.Linear(np.array(in_shape).prod(), 120),
+            layer_init(nn.Linear(np.array(in_shape).prod(), 128)),
             nn.ReLU(),
-            nn.Linear(120, 84),
+            layer_init(nn.Linear(128, 128)),
             nn.ReLU(),
-            nn.Linear(84, out_shape),
+            layer_init(nn.Linear(128, 128)),
+            nn.ReLU(),
+            layer_init(nn.Linear(128, out_shape)),
         )
 
     def forward(self, x):

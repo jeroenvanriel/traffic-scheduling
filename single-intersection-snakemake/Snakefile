@@ -1,15 +1,16 @@
 import pandas as pd
 import os
 
-N = 10
-exact_gap = 0.00
-exact_timelimit = 5*60 # in seconds
-horizon = 20
-# TODO: collect all the parameters in a single file, to make the whole workflow
-# reproducible without altering this file
-exp = "exps/spec1.csv"
 
-specs = range(pd.read_csv(exp).shape[0])
+# algorithmic parameters
+exact_gap = 0.00
+exact_timelimit = 5*60
+horizon = 1
+
+# experiment parameters
+N = 10
+spec_file = "exps/spec2.csv"
+specs = range(pd.read_csv(spec_file).shape[0])
 samples = range(N)
 
 
@@ -18,16 +19,16 @@ samples = range(N)
 rule all:
     input:
         "data/reports/plot.pdf",
-        expand("data/instances/instance_{spec}_{sample}.pdf", spec=specs, sample=samples),
-        expand("data/schedules/dqn_{spec}_{sample}.pdf", spec=specs, sample=samples),
-        expand("data/schedules/exhaustive_{spec}_{sample}.pdf", spec=specs, sample=samples),
 
-# train dqn for all experiments
-# (this might be helpful to manually retrigger training, which may be necessary
-# when we change the gymnasium environment, because this dependency is not
-# explicitly tracked)
-rule train_all:
-    input: expand("data/runs/{spec}/model.pth", spec=specs)
+        # instance visualizations
+        expand("data/instances/instance_{spec}_{sample}.pdf", spec=specs, sample=samples),
+
+        # schedule visualizations
+        expand("data/schedules/exhaustive_{spec}_{sample}.pdf", spec=specs, sample=samples),
+        expand("data/schedules/exact_{spec}_{sample}.pdf", spec=specs, sample=samples),
+        expand("data/schedules/simple_{spec}_{sample}.pdf", spec=specs, sample=samples),
+        expand("data/schedules/dqn_{spec}_{sample}.pdf", spec=specs, sample=samples),
+        expand("data/schedules/dqntest_{spec}_{sample}.pdf", spec=specs, sample=samples),
 
 
 ## data generation
@@ -36,7 +37,7 @@ rule extract_specs:
     """We use a single .csv file to edit the distribution specifications in one
     place, but we generate individual files to help with tracking what needs to be
     recomputed whenever someting is (partly) changed."""
-    input: exp
+    input: spec_file
     output: expand("data/specs/spec_{spec}.npz", spec=specs)
     conda: "envs/base.yaml"
     script: "extract_specs.py"
@@ -44,7 +45,7 @@ rule extract_specs:
 rule generate_samples:
     input:
         "data/specs/spec_{spec}.npz",
-        "2_lanes_symmetric.py",  # to track dependency
+        "2_lanes_platoons.py",  # to track dependency
     output: expand("data/instances/instance_{{spec}}_{sample}.npz", sample=samples)
     conda: "envs/base.yaml"
     script: "generate.py"
@@ -61,22 +62,31 @@ rule visualize_instances:
 rule train_dqn:
     input:
         "data/specs/spec_{spec}.npz",
-        "2_lanes_symmetric.py",  # to track dependency
+        "2_lanes_platoons.py",  # to track dependency
         "dqn.py",  # to track dependency
     output: "data/runs/dqn_{spec}/model.pth"
     params: horizon=horizon
     conda: "envs/pytorch.yaml"
     script: "train_dqn.py"
 
- rule train_ppo:
-     input:
-         "data/specs/spec_{spec}.npz",
-         "generate_2_lanes.py",  # to track dependency
-         "ppo.py",  # to track dependency
-     output: "data/runs/ppo_{spec}/model.pth"
-     params: horizon=horizon
-     conda: "envs/pytorch.yaml"
-     script: "train_ppo.py"
+rule train_dqntest:
+    input:
+        expand("data/instances/instance_{{spec}}_{sample}.npz", sample=samples),
+        "dqn.py",  # to track dependency
+    output: "data/runs/dqntest_{spec}/model.pth"
+    params: horizon=horizon
+    conda: "envs/pytorch.yaml"
+    script: "train_dqntest.py"
+
+rule train_ppo:
+    input:
+        "data/specs/spec_{spec}.npz",
+        "2_lanes_platoons.py",  # to track dependency
+        "ppo.py",  # to track dependency
+    output: "data/runs/ppo_{spec}/model.pth"
+    params: horizon=horizon
+    conda: "envs/pytorch.yaml"
+    script: "train_ppo.py"
 
 
 ## evaluation
@@ -106,9 +116,9 @@ rule eval_simple:
 
 rule eval_dqn:
     input:
-        "data/runs/{dqn_model}_{spec}/model.pth",
+        "data/runs/{model,dqn|dqntest}_{spec}/model.pth",
         expand("data/instances/instance_{{spec}}_{sample}.npz", sample=samples),
-    output: expand("data/evals/{{dqn_model}}_{{spec}}_{sample}.npz", sample=samples)
+    output: expand("data/evals/{{model,dqn|dqntest}}_{{spec}}_{sample}.npz", sample=samples)
     params: horizon=horizon
     conda: "envs/pytorch.yaml"
     script: "eval_dqn.py"
@@ -133,10 +143,13 @@ rule plot_schedules:
 
 rule plot_results:
     input:
+        **{ 'spec_file': spec_file },
         **{ f"exact_{spec}": [f"data/evals/exact_{spec}_{sample}.npz" for sample in samples] for spec in specs },
         **{ f"exhaustive_{spec}": [ f"data/evals/exhaustive_{spec}_{sample}.npz" for sample in samples ] for spec in specs },
-        **{ f"dqn_{spec}": [ f"data/evals/dqn_{spec}_{sample}.npz" for sample in samples ] for spec in specs },
         **{ f"simple_{spec}": [ f"data/evals/simple_{spec}_{sample}.npz" for sample in samples ] for spec in specs },
+        **{ f"dqn_{spec}": [ f"data/evals/dqn_{spec}_{sample}.npz" for sample in samples ] for spec in specs },
+        **{ f"dqntest_{spec}": [ f"data/evals/dqntest_{spec}_{sample}.npz" for sample in samples ] for spec in specs },
+        **{ f"ppo_{spec}": [ f"data/evals/ppo_{spec}_{sample}.npz" for sample in samples ] for spec in specs },
     output: "data/reports/plot.pdf"
     params: n_specs=len(specs)
     conda: "envs/plot.yaml"

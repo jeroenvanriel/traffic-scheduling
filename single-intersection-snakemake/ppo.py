@@ -29,13 +29,13 @@ class Args:
     # Algorithm specific arguments
     env_id: str = "SingleIntersectionEnv"
     """the id of the environment"""
-    total_timesteps: int = 500000
+    total_timesteps: int = 10000
     """total timesteps of the experiments"""
-    learning_rate: float = 1e-5
+    learning_rate: float = 1e-4
     """the learning rate of the optimizer"""
     num_envs: int = 1
     """the number of parallel game environments"""
-    num_steps: int = 20
+    num_steps: int = 30
     """the number of steps to run in each environment per policy rollout"""
     anneal_lr: bool = True
     """Toggle learning rate annealing for policy and value networks"""
@@ -45,7 +45,7 @@ class Args:
     """the lambda for the general advantage estimation"""
     num_minibatches: int = 4
     """the number of mini-batches"""
-    update_epochs: int = 20
+    update_epochs: int = 30
     """the K epochs to update the policy"""
     norm_adv: bool = True
     """Toggles advantages normalization"""
@@ -95,14 +95,10 @@ class Agent(nn.Module):
         self.critic = nn.Sequential(
             layer_init(nn.Linear(np.array(envs.single_observation_space.shape).prod(), 64)),
             nn.ReLU(),
-            layer_init(nn.Linear(64, 64)),
-            nn.ReLU(),
             layer_init(nn.Linear(64, 1), std=1.0),
         )
         self.actor = nn.Sequential(
             layer_init(nn.Linear(np.array(envs.single_observation_space.shape).prod(), 64)),
-            nn.ReLU(),
-            layer_init(nn.Linear(64, 64)),
             nn.ReLU(),
             layer_init(nn.Linear(64, envs.single_action_space.n), std=0.01),
         )
