@@ -37,7 +37,7 @@ class SingleIntersectionExactTest(unittest.TestCase):
             releases = [np.array([0]), np.array([r_B])]
             lengths = [np.array([n_A]), np.array([n_B])]
 
-            y, o, obj = solve(switch, releases, lengths, log=False)
+            y, o, obj = solve(switch, releases, lengths, consolelog=False)
 
             return o[0, 1, 0, 0]
 
@@ -59,7 +59,7 @@ class SingleIntersectionExactTest(unittest.TestCase):
         releases = [np.array([0, 3]), np.array([1, 6])]
         lengths = [np.array([2, 1]), np.array([3, 1])]
 
-        y, o, obj = solve(switch, releases, lengths, log=False)
+        y, o, obj = solve(switch, releases, lengths, consolelog=False)
 
         # optimal lane sequence is 0, 1, 1, 0
         self.assertEqual(o[0, 1, 0, 0], 0)
@@ -68,4 +68,4 @@ class SingleIntersectionExactTest(unittest.TestCase):
         self.assertEqual(o[0, 1, 1, 1], 1)
 
         # total delay
-        self.assertEqual(obj, 17)
+        self.assertEqual(obj, -17)
