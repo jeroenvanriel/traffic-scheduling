@@ -4,7 +4,7 @@ import numpy as np
 
 class SingleIntersectionEnv(gym.Env):
 
-    def __init__(self, K, instance_generator=None, horizon=10, switch_over=2):
+    def __init__(self, K, instance_generator=None, horizon=10, switch_over=2, discount_factor=0.99):
         """
         `K` is the number of lanes
 
@@ -32,6 +32,7 @@ class SingleIntersectionEnv(gym.Env):
         self.n_lanes = int(K)
         self.horizon = horizon
         self.switch_over = switch_over
+        self.discount_factor = discount_factor
 
         self._instance_generator = instance_generator
 
@@ -59,6 +60,8 @@ class SingleIntersectionEnv(gym.Env):
         # always start at the first lane
         self.current_lane = 0
         self.completion_time = 0
+        # start of the current macro-step
+        self.step_start = 0
 
         # apply exhaustive service
         self.initial_reward = self._exhaustive_service()
@@ -140,15 +143,23 @@ class SingleIntersectionEnv(gym.Env):
         self.completion_time = self.end_time[l][i]
 
         # calculate penalty
-        penalty = self.completion_time - np.maximum(prev_completion_time, np.minimum(self.completion_time, self.arrival))
-        penalty = self.length * penalty
-        # count only for vehicles that have to be scheduled
+        penalty = 0
+        # compute only for vehicles that have not been scheduled and the current one
         for k in range(self.n_lanes):
-            j = self.platoons_scheduled[k]
-            penalty[k][:j] = 0
-        penalty = np.sum(penalty)
-        # account for the vehicle we just scheduled
-        penalty -= length*length
+            for j in range(self.platoons_scheduled[k], self.n[k]):
+                # only consider customers that have already arrived
+                if self.arrival[k][j] > self.completion_time:
+                    continue
+
+                a = max(self.arrival[k][j], prev_completion_time)
+                b = self.completion_time
+                if k == l and j == i: # current scheduled vehicle
+                    b = self.completion_time - length
+
+
+                penalty += self.length[k][j] * (
+                    np.exp(-self.discount_factor * (a - self.step_start)) - np.exp(-self.discount_factor * (b - self.step_start))
+                ) / self.discount_factor
 
         self.lane_sequence.append(l)
         self.platoons_scheduled[l] += 1
@@ -169,7 +180,10 @@ class SingleIntersectionEnv(gym.Env):
         while self.platoons_scheduled[l] == self.n[l]:
             l = (l + 1) % self.n_lanes
 
-        # serve lane once and apply exhaustive service
+        # record the start of this macro-step
+        self.step_start = self.completion_time
+
+        # serve lane once and apply exhaustive service (macro-step)
         total_reward = self._serve_lane(l) + self._exhaustive_service()
 
         observation = self._get_obs()
@@ -221,6 +235,7 @@ class SingleIntersectionEnv(gym.Env):
 
     def _get_info(self):
         return {
+            "sojourn_time": self.completion_time - self.step_start, # of the last transition
             "initial_reward": self.initial_reward,
             "action_sequence": self.action_sequence,
             "lane_sequence": self.lane_sequence,

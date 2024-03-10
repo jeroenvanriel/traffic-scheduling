@@ -55,8 +55,8 @@ class SingleIntersectionGymEnvTest(unittest.TestCase):
         env.step(0)
 
 
-    def evaluate_schedule(self, K, instance, schedule):
-        total_delay = 0
+    def evaluate_schedule(self, K, instance, schedule, discount_factor):
+        total_reward = 0
 
         for k in range(K):
             for arrival, length, start, end in zip(
@@ -64,22 +64,29 @@ class SingleIntersectionGymEnvTest(unittest.TestCase):
                     schedule[f'start_time_{k}'], schedule[f'end_time_{k}']
             ):
                 self.assertTrue(abs(length - (end - start)) < self.tol, "End time in schedule is not correct.")
-                total_delay -= (start - arrival) * length # note minus sign
 
-        return total_delay
+                # minus sign because penalty
+                total_reward -= length * (np.exp(- discount_factor * arrival) - np.exp(- discount_factor * start)) / discount_factor
+
+        return total_reward
 
 
     def test_reward(self):
+        discount_factor = 0.95
+
         def test(instance):
             env = gym.make("SingleIntersectionEnv",
                            K=2, instance_generator=lambda: instance,
-                           horizon=1, switch_over=2)
+                           horizon=1, switch_over=2, discount_factor=discount_factor)
             observation, info = env.reset()
             total_reward = info['initial_reward']
             done = False
+            t = info['sojourn_time']
             while not done:
                 _, reward, done, _, info = env.step(1) # no-wait policy
-                total_reward += reward
+
+                total_reward += np.exp(- discount_factor * t) * reward
+                t += info['sojourn_time']
 
             schedule = {
                 'start_time_0': info['start_time'][0],
@@ -88,7 +95,7 @@ class SingleIntersectionGymEnvTest(unittest.TestCase):
                 'end_time_1': info['end_time'][1],
             }
 
-            check = self.evaluate_schedule(2, instance, schedule)
+            check = self.evaluate_schedule(2, instance, schedule, discount_factor)
 
             self.assertTrue(abs(total_reward - check) < self.tol)
 
