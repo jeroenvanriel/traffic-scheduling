@@ -1,0 +1,390 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{datetime}
+\usepackage{outlines}
+\usepackage[round]{natbib}   % omit 'round' option if you prefer square brackets
+
+\newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
+
+\newcommand{\newmarkedtheorem}[1]{%
+  \newenvironment{#1}
+    {\pushQED{\qed}\csname inner@#1\endcsname}
+    {\popQED\csname endinner@#1\endcsname}%
+  \newtheorem{inner@#1}%
+}
+
+\theoremstyle{definition}
+%\newtheorem{eg}{Example}[section]
+\newmarkedtheorem{eg}{Example}[section]
+\newtheorem{observation}{Observation}[section]
+\newtheorem{define}{Definition}[section]
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{assump}{Assumption}[section]
+\newtheorem{remark}{Remark}[section]
+
+\author{Jeroen van Riel}
+\date{\monthyeardate\today}
+\title{Two-queue polling system with switching}
+
+\begin{document}
+
+
+\section{Model Formulation}
+\label{sec:model}
+
+Consider a system in which two infinite-capacity queues are attended by a single
+server. Customers arrive to lane $i$ as a Poisson process with
+arrival rate $\lambda_{i}$. The server switches between both queues, so let the
+location of the server be denoted by $u \in \{1,2\}$. Customers from queue $i$ can
+only be served whenever $u = i$. We assume that switching and processing
+(service) times are deterministic, denoted by $s$ and $p$, respectively, and
+that these actions cannot be preempted, once started. We model this system as a
+semi-Markov decision process, starting with a natural formulation and then
+showing how to derive a simplified version with a countable state space.
+
+\subsection{Natural formulation}
+
+The actions are \textit{Process} (serve) a customer, \textit{Switch} to the other queue and \textit{Idle},
+so the action space is $\mathcal{A} = \{ P, S, I \}$. Let the number of customers
+in queue $i$ be denoted by $x_{i}$. We will use the vector notation
+$x = (x_{1}, x_{2})$ and define $e_{1} = (1, 0), e_{2} = (0, 1)$. Each state is
+identified by the tuple $(u, \rho, \sigma, x)$, where $\rho$ denotes the remaining service
+time and $\sigma$ denotes the remaining switch time. The corresponding state space is
+\begin{align}
+  \mathcal{S} = \{1, 2\} \times \mathbb{R}^{+} \times \mathbb{R}^{+} \times \mathbb{N}^{+} \times \mathbb{N}^{+} ,
+\end{align}
+where $\mathbb{R}^{+}$ and $\mathbb{N}^{+}$ denote the nonnegative reals and
+integers, respectively.
+
+We will first discuss the different types of state transitions that are
+possible, without exactly specifying the corresponding transition probabilities.
+For each transition, $s$ denotes the current state, $a$ denotes the action, $s'$
+denotes the next state and $\tau$ denotes the sojourn time. Let $\bar{u}$ denote
+the other queue. To support a concise description of the transitions, we set
+$\rho=p$ and $\sigma=s$ whenever the server is not processing or switching. Not
+every action is always available to the decision maker. Whenever $\rho < p$,
+the only allowed action is $P$ and similarly, whenever $\sigma < s$, the only
+allowed action is $S$. Note that the server can only process a customer when the
+current queue is nonempty, hence action $P$ is only allowed when $x_{u} > 0$. We
+have the following types of transitions:
+%
+\begin{subequations}
+\begin{itemize}
+  \item service completion ($x_u > 0$)
+  \begin{align}
+    s = (u, \rho, s, x), a=P, s' = (u, p, s, x - e_{u}), \tau = \rho ,
+  \end{align}
+
+  \item arrival to queue $i$ when serving ($x_{u} > 0, \tau < \rho$)
+  \begin{align}
+    \label{eq:arrival_serve}
+    s = (u, \rho, s, x), a=P, s' = (u, \rho - \tau, s, x + e_{i}) ,
+  \end{align}
+
+  \item switch completion
+  \begin{align}
+    s = (u, p, \sigma, x), a=S, s' = (\bar{u}, p, s, x), \tau = \sigma ,
+  \end{align}
+
+  \item arrival to queue $i$ when switching ($\tau < \sigma$)
+  \begin{align}
+    \label{eq:arrival_switch}
+    s = (u, p, \sigma, x), a=S, s' = (u, p, \sigma - \tau, x + e_{i}) ,
+  \end{align}
+
+  \item arrival to queue $i$ when idling
+  \begin{align}
+    s = (u, p, s, x), a=I, s' = (u, p, s, x + e_{i}) .
+  \end{align}
+\end{itemize}
+\end{subequations}
+
+
+We will now discuss the rewards associated to the system. We assume that holding
+costs are levied at a constant unit rate for each customer in the system. Let
+$\Upsilon_{m}$ denote the sojourn time of the $m$-th transition and let
+$T_{m} = \sum_{j=1}^{m} \Upsilon_{j}$ denote the completion time of the $m$-th transition.
+The continuous reward rate process $\{ r(t) : t \in \mathbb{R}^{+} \}$ is
+defined by
+\begin{align}
+  r(t) = - (x_{1} + x_{2}) \text{ for } t \in [ T_{m}, T_{m+1} ) ,
+\end{align}
+where $m \geq 1$.
+
+For optimization, we will consider an infinite horizon with the total discounted
+reward criterion
+\begin{align}
+  \label{eq:criterion}
+  \phi_{\beta} = \mathbb{E} \left[ \int_{0}^{\infty} e^{-\beta t} r(t) dt \right] ,
+\end{align}
+where $\beta > 0$ is known as the \textit{discount factor}.
+
+
+\subsection{Reducing the state space}
+\label{sec:reduced-model}
+
+Although the above formulation is appealing because of its interpretability, we
+will now discuss how to obtain an equivalent model with a countable state space.
+We assumed that the serve and switch actions cannot be preempted. Therefore, no
+actual decision is necessary whenever an arrival occurs while the server is
+either serving or switching, so we skip these states and continue to the state
+where an actual decision must be made. This means that we disregard states with
+$\rho < p$ or $\sigma < s$ and the corresponding transitions
+in~\eqref{eq:arrival_serve} and~\eqref{eq:arrival_switch}, so that states can
+now be represented as $(u, x)$, with state space
+\begin{align}
+  \mathcal{S} = \{ 1, 2 \} \times \mathbb{N}^{+} \times \mathbb{N}^{+} .
+\end{align}
+Instead of modeling single arrivals, the transitions must now enable any number
+of arrivals to happen during a serve or switch action. In the following, let
+$N(t) = (N_{1}(t), N_{2}(t))$ denote a random vector with $N_{i}(t)$ being the
+number of arrivals to lane $i$ that happen during a time interval of length $t$,
+which is distributed as a $\text{Pois}(\lambda_i t)$. The reduced model now has
+the following types of transitions:
+%
+\begin{subequations}
+\begin{itemize}
+  \item service completion ($x_u > 0$)
+  \begin{align}
+    s = (u, x), a=P, s' = (u, x - e_{u} + N(p)), \tau = p ,
+  \end{align}
+
+  \item switch completion
+  \begin{align}
+    s = (u, x), a=S, s' = (\bar{u}, x + N(s)), \tau = s ,
+  \end{align}
+
+  \item arrival to queue $i$ when idling
+  \begin{align}
+    s = (u, x), a=I, s' = (u, x + e_{i}) .
+  \end{align}
+\end{itemize}
+\end{subequations}
+
+Note that the reward process $r(t)$ is still valid for the reduced model, but
+its value may change between our new states, which is not convenient if we want
+to apply existing methods that assume otherwise. Therefore, we will redefine the
+rewards in terms of an immediate reward (also called \textit{lump sum} by some
+authors) that is earned at the start of the transition.
+%
+Let $\{S_{m} : m \in \mathbb{N}^{+} \}$ denote the embedded state Markov chain
+of the natural model. Let $N \subset \mathbb{N}^{+}$ denote the indices of the
+states that are not skipped so that $\{S_{n} : n \in N \}$ is the embedded state
+Markov chain of the reduced model. Let $\bar{n}$ denote the predecessor of
+$n$ in $N$, then the sojourn times in the reduced model are given by
+\begin{align}
+  \Upsilon'_{n} = \sum_{m=\bar{n} + 1}^{n} \Upsilon_{m} .
+\end{align}
+%
+By collecting the total reward over all skipped transitions, the immediate
+reward of the $n$-th transition in the reduced model is given by
+\begin{align}
+  R_{n} = \int_{0}^{\Upsilon'_{n}} e^{- \beta s} r(T_{\bar{n}} + s) ds .
+\end{align}
+Because we are now dealing with point masses at $T_{n}$ for $n \in N \setminus \{ 0 \}$, define
+\begin{align}
+        R(t) = \sum_{n \in N : T_{\bar{n}} \leq t} R_{n} .
+\end{align}
+Hence, we have
+\begin{subequations}
+\begin{align}
+  \int_{0}^{\infty} e^{- \beta t} d R(t) &= \sum_{n \in N \setminus \{ 0 \}} e^{- \beta T_{\bar{n}}} R_{n} \\
+   &= \sum_{n \in N \setminus \{ 0 \}} \int_{T_{\bar{n}}}^{T_{n}} e^{- \beta t} r(t) dt \\
+   &= \int_{0}^{\infty} e^{-\beta t} r(t) dt ,
+  %&= \sum_{n \in N} e^{- \beta T_{\bar{n}}} \int_{0}^{\Upsilon'_{n}} e^{- \beta t} r(T_{\bar{n}} + t) dt  \\
+\end{align}
+\end{subequations}
+which shows that the discounted reward criterion~\eqref{eq:criterion} is exactly the same in the
+reduced model.
+
+Because we will focus on the reduced model from now on, we let
+$\{ S_{m} : m \in \mathbb{N}^{+} \}$ refer to the states of the reduced model
+and let $\Upsilon_{m}$ and $R_{m}$ denote the sojourn time and reward,
+respectively, of the $m$-th transition. Using
+$T_{m} = \sum_{j=1}^{m} \Upsilon_{j}$, the objective is given by
+\begin{align}
+  \phi_{\beta} = \mathbb{E} \left[ \sum_{m=1}^{\infty} e^{- \beta T_{m-1}} R_{m} \right] .
+\end{align}
+
+
+\section{Optimal Policies}
+
+We say that a policy $\pi$ is \textit{pure}, whenever the action at transition $m$ is
+a function of the current state only. For the discounted total reward criterion,
+it can be shown that there exists a pure policy $\pi^{*}$ that is optimal among
+all policies, i.e.,
+\begin{align}
+  \phi_{\beta}^{\pi^{*}}(s) = \sup_{g} \phi_{\beta}^{g}(s) ,
+\end{align}
+for some fixed initial state $s \in \mathcal{S}$. Well-known methods of finding
+optimal policies include policy iteration, value iteration and using linear
+programming.
+
+\subsection{Exhaustive service}
+
+A slightly more general SMDP model as introduced in Section~\ref{sec:model} has
+been analyzed by~\cite{hofriOptimalControlTwo1987}; instead of deterministic
+service and switch time, they consider random service times with the same
+distribution for both queues and switch times with possibly different
+distributions for both directions. They show (Proposition 2.1) that an optimal
+policy must always perform exhaustive service, which means that the server
+always continues serving the current queue when it is nonempty. In terms of our
+notation, this means that if $S_{m} = (u, x)$ satisfies $x_{u} > 0$, then the
+action $g^{*}(S_{m}) = P$ must be taken.
+
+\subsection{Double-threshold policy}
+
+For state $S_{m} = (u, x)$, we will use $g(S_{m}) = g(u, x_{1}, x_{2})$ to
+simplify notation. A policy $g : \mathcal{S} \rightarrow \mathcal{A}$ is said to
+be a \textit{double-threshold policy} if it performs exhaustive service, as
+defined above, and it satisfies
+\begin{align}
+  g(1, 0, x_{2}) = \begin{cases}
+                     I, & x_{2} < m_{2} , \\
+                     S, & x_{2} \geq m_{2} ,
+                    \end{cases}
+\end{align}
+\begin{align}
+  g(1, x_{1}, 0) = \begin{cases}
+                     I, & x_{1} < m_{1} , \\
+                     S, & x_{1} \geq m_{1} ,
+                    \end{cases}
+\end{align}
+for nonnegative threshold values $m_{1}$ and $m_{2}$. It is conjectured
+by~\cite{hofriOptimalControlTwo1987} that there exists an optimal
+double-threshold policy (Theorem 3.4). Their proof is incomplete, but the
+missing part is reduced to two concavity properties of the optimization
+objective as function of the initial state. Our goal is to test their conjecture
+empirically by using model-free reinforcement learning to find an optimal policy
+(and estimate the true object function to verify the concavity properties).
+
+
+\subsection{Curse of modeling}
+
+In principle, it is possible to explicitly derive the transition probabilities
+of the model. However, this might turn out to be difficult in practice, a
+problem which is sometimes refered to as the curse of modeling. To avoid
+explicitly expressing the dynamics of the system, one could use simulation to
+obtain estimates of the transition probabilities, which can then be used in
+stochastic dynamic programming like value iteration or policy iteration to
+obtain an optimal policy for the approximation model.
+%
+Alternatively, model-free reinforcement learning can be used, which circumvents
+the need to compute transition probabilities at all, which we will discuss next.
+
+\subsection{Q-learning}
+
+We will use the following notation for a general SMDP. Let
+$\pi : \mathcal{S} \rightarrow \mathcal{A}$ denote some pure policy. To avoid
+cluttering the notation, we ignore the dependency of the process on $\pi$. Let
+$\{ S_{m} : m \in \mathbb{N}^{+} \}$ denote the embedded state process, then at
+each epoch $m$, some action $A_{m} = \pi(S_{m})$ is taken, upon which reward
+$R_{m+1}$ is observed and the state changes to $S_{m+1}$ after $\Upsilon_{m+1}$
+sojourn time. The transition probabilities are defined by
+\begin{align}
+  P_{xay} = \mathbb{P}(S_{m+1} = y \; | \; S_{m} = x, A_{m} = a) .
+\end{align}
+Conditional on the event that the next state is $y$, we consider the joint
+distribution of the reward and sojourn time
+\begin{align}
+  F_{xay}(r, \tau) = \mathbb{P}(R_{m+1} \leq r, \Upsilon_{m+1} \leq \tau \; | \; S_{m} = x, A_{m} = a, S_{m+1} = y ) .
+\end{align}
+Note that we cannot simply consider the marginals in our case, because the
+reward and sojourn time are not independent. The continuous-time process
+$\{ S(t), A(t), R(t) : t \geq 0 \}$ where $S(t)$ is the state of the process at
+time $t$, $A(t)$ is the action taken at time $t$ and $R(t)$ is the cumulative
+reward up to time $t$, is referred to as the SMDP.
+
+When introducing the discounted total reward criterion in~\eqref{eq:criterion},
+we did not make explicit the dependency on the initial state $s$. Therefore, we
+define
+\begin{align}
+  \phi(s) = \phi_{\beta}^{\pi}(s) = \mathbb{E} \left[ \int_{0}^{\infty} e^{- \beta t} dR(t) \; \big| \; S(0) = s \right] ,
+\end{align}
+which allows us to easily define the Q-value of taking action $a$ in state $s$ as
+\begin{align}
+  Q(s, a) = Q_{\beta}^{\pi}(s, a) = \mathbb{E} \left[ \phi_{\beta}^{\pi}(s) \; \big| \;  A(0) = a \right] .
+\end{align}
+
+Recall that the Q-update in classical Q-learning for MDPs with the discounted
+total reward criterion~(see for instance Section 6.5 in
+\cite{suttonReinforcementLearningIntroduction2018}) is given by
+\begin{align}
+  Q(S_{m}, A_{m}) \leftarrow (1 - \alpha) Q(S_{m}, A_{m}) + \alpha[ R_{m+1} + \gamma \max_{a} Q(S_{m+1}, a) ] .
+\end{align}
+%
+In order to extend this method to be used with SMDPs, we need to take into
+account the fact that sojourn times affect the amount of discounting
+\citep{gosaviSimulationBasedOptimizationParametric2015}, so that the Q-update is
+now given by
+\begin{align}
+  Q(S_{m}, A_{m}) \leftarrow (1 - \alpha) Q(S_{m}, A_{m}) + \alpha[ R_{m+1} + e^{- \beta \Upsilon_{m+1}} \max_{a} Q(S_{m+1}, a) ] .
+\end{align}
+
+
+\section{Waiting}
+
+The action space that we have considered up till now is not complete in some
+sense. More precisely, given some feasible schedule $y$, there should be some
+policy $\pi^{y}$ that depends in some (very complicated) way on $y$, such that
+executing $\pi^{y}$ over the offline instance produces $y$. What we are missing
+is an action that allows the server to wait at the current queue for some finite
+time $\delta$. Therefore, we define the additional waiting action $I(\delta)$
+with $\delta \in \{ \mathbb{R}^{+}, \infty \}$, such that
+$\mathcal{A} = \{ P, S, I(\infty) \} \cup \{ I(\delta) : \delta > 0 \}$, where
+$I(\infty)$ is equivalent to the original $I$ action. The $I(\delta)$ action
+causes the server to idle for $\delta$ time units at the current queue and then
+switch, unless another arrival happens at the current queue before $\delta$
+time.
+
+From the examples that we discussed in the offline scheduling setting, we
+conjecture that the optimal policy for the two-queue polling model must exploit
+some kind of waiting strategy. Therefore, we are going to evaluate
+double-threshold policies with waiting. In order to simplify the investigation,
+we consider a symmetric system in which the arrival rates
+$\lambda_{i} = \lambda$ are the same. Using a symmetry argument, we can show
+that this implies that $m_{i} = m$.
+
+
+\section{General Arrivals}
+
+We would like to drop the assumption of Poisson arrivals. Because the memoryless
+property does not hold anymore, we need to keep track of the time since the last
+arrival in the states. Therefore, states now need to be represented by the tuple
+$(u, x, \nu)$, where $\nu = (\nu_{1}, \nu_{2})$ and $\nu_{i}$ is the time since
+the last arrival to queue $i$. We are now back in the situation of an
+uncountable state space, which requires us to apply discretization before being
+able to apply Q-learning.
+
+
+\section{Discussion}
+
+The idea of skipping states as we used in Section~\ref{sec:reduced-model} is
+related to the use of \textit{options}~\citep{suttonMDPsSemiMDPsFramework1999},
+where the basic idea is that we can also choose \textit{options}, which are a
+sort of sub-policies that specify how to take actions over multiple steps, in
+addition to ordinary or \textit{primitive} actions. The original paper considers
+an MDP as the underlying model, but as they point out in a footnote (page 3),
+this idea can be extended to SMDPs (I have not yet searched the literature to
+see if someone has done this).
+
+Most literature on reinforcement learning only focuses on expected quantities
+and ignores higher moments of the underlying distributions. In our model, the
+reward is not deterministic given the current state, action and next state
+$(s, a, s')$. I am not sure how this affects the convergence of Q-learning. The
+topic of distributional reinforcement
+learning~\citep{bellemareDistributionalPerspectiveReinforcement2017,bdr2023}
+seems to be concerned with similar questions.
+
+
+\bibliography{references}
+\bibliographystyle{plainnat}
+
+\end{document}
