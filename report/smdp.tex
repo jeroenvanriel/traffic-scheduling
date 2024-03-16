@@ -217,12 +217,41 @@ $T_{m} = \sum_{j=1}^{m} \Upsilon_{j}$, the objective is given by
 
 \section{Optimal Policies}
 
-We say that a policy $\pi$ is \textit{pure}, whenever the action at transition $m$ is
-a function of the current state only. For the discounted total reward criterion,
+We will use the following notation for a general SMDP. We say that a policy is
+\textit{pure}, whenever the action at transition $m$ is a function of the
+current state only. Let $\pi : \mathcal{S} \rightarrow \mathcal{A}$ denote some
+pure policy. To avoid cluttering the notation, we ignore the dependency of the
+process on $\pi$. Let $\{ S_{m} : m \in \mathbb{N}^{+} \}$ denote the embedded
+state process, then at each epoch $m$, some action $A_{m} = \pi(S_{m})$ is
+taken, upon which reward $R_{m+1}$ is observed and the state changes to
+$S_{m+1}$ after $\Upsilon_{m+1}$ sojourn time. The transition probabilities are
+defined by
+\begin{align}
+  P_{xay} = \mathbb{P}(S_{m+1} = y \; | \; S_{m} = x, A_{m} = a) .
+\end{align}
+Conditional on the event that the next state is $y$, we consider the joint
+distribution of the reward and sojourn time
+\begin{align}
+  F_{xay}(r, \tau) = \mathbb{P}(R_{m+1} \leq r, \Upsilon_{m+1} \leq \tau \; | \; S_{m} = x, A_{m} = a, S_{m+1} = y ) .
+\end{align}
+Note that we cannot simply consider the marginals in our case, because the
+reward and sojourn time are not independent. The continuous-time process
+$\{ S(t), A(t), R(t) : t \geq 0 \}$ where $S(t)$ is the state of the process at
+time $t$, $A(t)$ is the action taken at time $t$ and $R(t)$ is the cumulative
+reward up to time $t$, is referred to as the SMDP.
+
+When introducing the discounted total reward criterion in~\eqref{eq:criterion},
+we did not make explicit the dependency on the initial state $s$. Therefore, we
+define
+\begin{align}
+  \phi_{\beta}^{\pi}(s) = \mathbb{E} \left[ \int_{0}^{\infty} e^{- \beta t} dR(t) \; \big| \; S(0) = s \right] .
+\end{align}
+%
+For the discounted total reward criterion,
 it can be shown that there exists a pure policy $\pi^{*}$ that is optimal among
 all policies, i.e.,
 \begin{align}
-  \phi_{\beta}^{\pi^{*}}(s) = \sup_{g} \phi_{\beta}^{g}(s) ,
+  \phi_{\beta}^{\pi^{*}}(s) = \sup_{\pi} \phi_{\beta}^{\pi}(s) ,
 \end{align}
 for some fixed initial state $s \in \mathcal{S}$. Well-known methods of finding
 optimal policies include policy iteration, value iteration and using linear
@@ -236,9 +265,17 @@ service and switch time, they consider random service times with the same
 distribution for both queues and switch times with possibly different
 distributions for both directions. They show (Proposition 2.1) that an optimal
 policy must always perform exhaustive service, which means that the server
-always continues serving the current queue when it is nonempty. In terms of our
-notation, this means that if $S_{m} = (u, x)$ satisfies $x_{u} > 0$, then the
-action $g^{*}(S_{m}) = P$ must be taken.
+always continues serving the current queue when it is nonempty.
+
+In terms of our notation, their result implies that if $S_{m} = (u, x)$
+satisfies $x_{u} > 0$, then the action $g^{*}(S_{m}) = P$ must be taken.
+Therefore, we skip such states, because there is no actual choice to be made.
+Observe that each state now satisfies $x_{u} = 0$, so we only have to keep track
+of the number of customers in the other queue $x_{\bar{u}}$. The state space of
+the resulting reduced model is
+\begin{align}
+  \mathcal{S} = \{1,2\} \times \mathbb{N}^{+} .
+\end{align}
 
 \subsection{Double-threshold policy}
 
@@ -267,6 +304,37 @@ empirically by using model-free reinforcement learning to find an optimal policy
 (and estimate the true object function to verify the concavity properties).
 
 
+\subsection{Symmetric system}
+\label{sec:symmetric_system}
+
+Whenever $\lambda_{1} = \lambda_{2} = \lambda$, we say that the system is
+\textit{symmetric}. We show there is a symmetric optimal policy $\pi^{*}$ for
+such system, in the sense that $\pi^{*}(1,x) = \pi^{*}(2,x)$. Assuming the
+conjecture of the previous subsection to be true, this means that there exists
+an optimal double-threshold policy with $m_{1} = m_{2} = m$. Furthermore, this
+result implies that, whenever we have a symmetric system, we may equivalently
+consider the SMDP with state space $\mathcal{S} = \mathbb{N}^{+}$.
+
+For any pure policy $\pi$, let $\pi'$ be defined as
+$\pi'(u, x) = \pi(\bar{u}, x)$ for any state $(u, x) \in \mathcal{S}$. From the
+symmetry of the system, it follows that for every pure policy $\pi$, we have
+\begin{align}
+  \phi_{\beta}^{\pi}(u, x) = \phi_{\beta}^{\pi'}(\bar{u}, x) ,
+\end{align}
+for every $(u, x) \in \mathcal{S}$. Let $\pi^{*}$ denote an optimal pure policy
+and define
+\begin{align}
+g(u, x) = \pi^{*}(1, x) ,
+\end{align}
+then we have
+\begin{align}
+  \phi^{g}(u, x) = \phi^{\pi^{*}}(1, x) = \sup_{\pi} \phi^{\pi} (1, x) = \sup_{\pi} \phi^{\pi'} (2, x) ,
+\end{align}
+for every $(u, x) \in \mathcal{S}$, which shows that $g$ is an optimal pure
+policy that satisfies $g(u, x) = g(\bar{u}, x)$.
+
+
+
 \subsection{Curse of modeling}
 
 In principle, it is possible to explicitly derive the transition probabilities
@@ -282,41 +350,13 @@ the need to compute transition probabilities at all, which we will discuss next.
 
 \subsection{Q-learning}
 
-We will use the following notation for a general SMDP. Let
-$\pi : \mathcal{S} \rightarrow \mathcal{A}$ denote some pure policy. To avoid
-cluttering the notation, we ignore the dependency of the process on $\pi$. Let
-$\{ S_{m} : m \in \mathbb{N}^{+} \}$ denote the embedded state process, then at
-each epoch $m$, some action $A_{m} = \pi(S_{m})$ is taken, upon which reward
-$R_{m+1}$ is observed and the state changes to $S_{m+1}$ after $\Upsilon_{m+1}$
-sojourn time. The transition probabilities are defined by
-\begin{align}
-  P_{xay} = \mathbb{P}(S_{m+1} = y \; | \; S_{m} = x, A_{m} = a) .
-\end{align}
-Conditional on the event that the next state is $y$, we consider the joint
-distribution of the reward and sojourn time
-\begin{align}
-  F_{xay}(r, \tau) = \mathbb{P}(R_{m+1} \leq r, \Upsilon_{m+1} \leq \tau \; | \; S_{m} = x, A_{m} = a, S_{m+1} = y ) .
-\end{align}
-Note that we cannot simply consider the marginals in our case, because the
-reward and sojourn time are not independent. The continuous-time process
-$\{ S(t), A(t), R(t) : t \geq 0 \}$ where $S(t)$ is the state of the process at
-time $t$, $A(t)$ is the action taken at time $t$ and $R(t)$ is the cumulative
-reward up to time $t$, is referred to as the SMDP.
-
-When introducing the discounted total reward criterion in~\eqref{eq:criterion},
-we did not make explicit the dependency on the initial state $s$. Therefore, we
-define
-\begin{align}
-  \phi(s) = \phi_{\beta}^{\pi}(s) = \mathbb{E} \left[ \int_{0}^{\infty} e^{- \beta t} dR(t) \; \big| \; S(0) = s \right] ,
-\end{align}
-which allows us to easily define the Q-value of taking action $a$ in state $s$ as
+Let the Q-value of taking action $a$ in state $s$ be defined as
 \begin{align}
   Q(s, a) = Q_{\beta}^{\pi}(s, a) = \mathbb{E} \left[ \phi_{\beta}^{\pi}(s) \; \big| \;  A(0) = a \right] .
 \end{align}
-
+%
 Recall that the Q-update in classical Q-learning for MDPs with the discounted
-total reward criterion~(see for instance Section 6.5 in
-\cite{suttonReinforcementLearningIntroduction2018}) is given by
+total reward criterion~(see for instance Section 6.5 in \cite{suttonReinforcementLearningIntroduction2018}) is given by
 \begin{align}
   Q(S_{m}, A_{m}) \leftarrow (1 - \alpha) Q(S_{m}, A_{m}) + \alpha[ R_{m+1} + \gamma \max_{a} Q(S_{m+1}, a) ] .
 \end{align}
@@ -328,6 +368,22 @@ now given by
 \begin{align}
   Q(S_{m}, A_{m}) \leftarrow (1 - \alpha) Q(S_{m}, A_{m}) + \alpha[ R_{m+1} + e^{- \beta \Upsilon_{m+1}} \max_{a} Q(S_{m+1}, a) ] .
 \end{align}
+
+
+\subsection{Results}
+
+We use Q-learning for a symmetric system with $\lambda = 1/3, p = 1$ and
+$s = 10$. As expected, the algorithm converges to a threshold policy with $m=5$.
+However, after some manual experimentation with hyperparameters, it seems that
+we need a lot of samples in order to converge to this policy.
+
+\subsection{Approximating the SMDP}
+
+Instead of directly learning from samples using a model-free method like
+Q-learning, we can also estimate the transition probabilities and the
+distributions of $R_{n}$ and $\Upsilon_{n}$ from samples, obtaining an explicit
+specification of an approximation SMDP.\@ The latter can then be solved exactly
+using dynamic programming, e.g., using policy iteration.
 
 
 \section{Waiting}
@@ -349,9 +405,13 @@ From the examples that we discussed in the offline scheduling setting, we
 conjecture that the optimal policy for the two-queue polling model must exploit
 some kind of waiting strategy. Therefore, we are going to evaluate
 double-threshold policies with waiting. In order to simplify the investigation,
-we consider a symmetric system in which the arrival rates
-$\lambda_{i} = \lambda$ are the same. Using a symmetry argument, we can show
-that this implies that $m_{i} = m$.
+we consider a symmetric system in which the arrival rates $\lambda_{i} = \lambda$ are the
+same, because it can be shown that this implies $m_{i} = m$, using a similar
+argument as in Section~\ref{sec:symmetric_system}.
+
+\begin{proposition}
+  For Poisson arrivals, $\delta$-idling with $\delta < \infty$ is always suboptimal.
+\end{proposition}
 
 
 \section{General Arrivals}
@@ -366,6 +426,13 @@ able to apply Q-learning.
 
 
 \section{Discussion}
+
+One might aks whether it is possible to transform the SMDP of
+Section~\ref{sec:reduced-model} to an equivalent MDP, which might be beneficial
+in practice, because most off-the-shelf computational methods need some slight
+adapatation to be suitable for SMDPs. This transformation is possible, but would
+require us to introduce a continuous part to the state space, because we need to
+keep track of how much time the last transition took.
 
 The idea of skipping states as we used in Section~\ref{sec:reduced-model} is
 related to the use of \textit{options}~\citep{suttonMDPsSemiMDPsFramework1999},
