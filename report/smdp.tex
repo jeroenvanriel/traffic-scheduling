@@ -80,29 +80,39 @@ transitions:
 \begin{itemize}
   \item service completion ($x_u > 0$)
   \begin{align}
+    \begin{split}
     s &= (u, \rho, s, x), \; a=P, \\ s' &= (u, p, s, x - e_{u}), \; \tau = \rho ,
+    \end{split}
   \end{align}
 
   \item arrival to queue $i$ when serving ($x_{u} > 0, \tau < \rho$)
   \begin{align}
     \label{eq:arrival_serve}
+    \begin{split}
     s &= (u, \rho, s, x), \; a=P, \\ s' &= (u, \rho - \tau, s, x + e_{i}) ,
+    \end{split}
   \end{align}
 
   \item switch completion
   \begin{align}
+    \begin{split}
     s &= (u, p, \sigma, x), \; a=S, \\ s' &= (\bar{u}, p, s, x), \; \tau = \sigma ,
+    \end{split}
   \end{align}
 
   \item arrival to queue $i$ when switching ($\tau < \sigma$)
   \begin{align}
     \label{eq:arrival_switch}
+    \begin{split}
     s &= (u, p, \sigma, x), \; a=S, \\ s' &= (u, p, \sigma - \tau, x + e_{i}) ,
+    \end{split}
   \end{align}
 
   \item arrival to queue $i$ when idling
   \begin{align}
+    \begin{split}
     s &= (u, p, s, x), \; a=I, \\ s' &= (u, p, s, x + e_{i}) .
+    \end{split}
   \end{align}
 \end{itemize}
 \end{subequations}
@@ -154,17 +164,23 @@ model now has the following types of transitions:
 \begin{itemize}
   \item service completion ($x_u > 0$)
   \begin{align}
+    \begin{split}
     s &= (u, x), \; a=P, \\ s' &= (u, x - e_{u} + N(p)), \; \tau = p ,
+    \end{split}
   \end{align}
 
   \item switch completion
   \begin{align}
+    \begin{split}
     s &= (u, x), \; a=S, \\ s' &= (\bar{u}, x + N(s)), \; \tau = s ,
+    \end{split}
   \end{align}
 
   \item arrival to queue $i$ when idling
   \begin{align}
+    \begin{split}
     s &= (u, x), \; a=I, \\ s' &= (u, x + e_{i}) .
+    \end{split}
   \end{align}
 \end{itemize}
 \end{subequations}
@@ -194,14 +210,14 @@ Because we are now dealing with point masses at $T_{n}$ for $n \in N \setminus \
         R(t) = \sum_{n \in N : T_{\bar{n}} \leq t} R_{n} .
 \end{align}
 Hence, we have
-\begin{subequations}
 \begin{align}
+  \begin{split}
   \int_{0}^{\infty} e^{- \beta t} d R(t) &= \sum_{n \in N \setminus \{ 0 \}} e^{- \beta T_{\bar{n}}} R_{n} \\
    &= \sum_{n \in N \setminus \{ 0 \}} \int_{T_{\bar{n}}}^{T_{n}} e^{- \beta t} r(t) dt \\
    &= \int_{0}^{\infty} e^{-\beta t} r(t) dt ,
   %&= \sum_{n \in N} e^{- \beta T_{\bar{n}}} \int_{0}^{\Upsilon'_{n}} e^{- \beta t} r(T_{\bar{n}} + t) dt  \\
+  \end{split}
 \end{align}
-\end{subequations}
 which shows that the discounted reward criterion~\eqref{eq:criterion} is exactly the same in the
 reduced model.
 
@@ -283,18 +299,18 @@ For state $S_{m} = (u, x)$, we will use $g(S_{m}) = g(u, x_{1}, x_{2})$ to
 simplify notation. A policy $g : \mathcal{S} \rightarrow \mathcal{A}$ is said to
 be a \textit{double-threshold policy} if it performs exhaustive service, as
 defined above, and it satisfies
+\begin{subequations}
 \begin{align}
   g(1, 0, x_{2}) = \begin{cases}
                      I, & x_{2} < m_{2} , \\
                      S, & x_{2} \geq m_{2} ,
-                    \end{cases}
-\end{align}
-\begin{align}
+                    \end{cases} \\
   g(1, x_{1}, 0) = \begin{cases}
                      I, & x_{1} < m_{1} , \\
                      S, & x_{1} \geq m_{1} ,
                     \end{cases}
 \end{align}
+\end{subequations}
 for nonnegative threshold values $m_{1}$ and $m_{2}$. It is conjectured
 by~\cite{hofriOptimalControlTwo1987} that there exists an optimal
 double-threshold policy (Theorem 3.4). Their proof is incomplete, but the
