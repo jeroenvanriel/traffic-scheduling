@@ -40,14 +40,14 @@
 \label{sec:model}
 
 Consider a system in which two infinite-capacity queues are attended by a single
-server. Customers arrive to lane $i$ as a Poisson process with
-arrival rate $\lambda_{i}$. The server switches between both queues, so let the
-location of the server be denoted by $u \in \{1,2\}$. Customers from queue $i$ can
-only be served whenever $u = i$. We assume that switching and processing
-(service) times are deterministic, denoted by $s$ and $p$, respectively, and
-that these actions cannot be preempted, once started. We model this system as a
-semi-Markov decision process, starting with a natural formulation and then
-showing how to derive a simplified version with a countable state space.
+server. Customers arrive to lane $i$ as a Poisson process with arrival rate
+$\lambda_{i}$. The server switches between both queues, so let the location of the
+server be denoted by $u \in \{1,2\}$. Customers from queue $i$ can only be served
+whenever $u = i$. We assume that switching and processing (service) times are
+deterministic, denoted by $s$ and $p$, respectively, and that these actions
+cannot be preempted, once started. We model this system as a semi-Markov
+decision process, starting with a natural formulation and then showing how to
+derive a simplified version with a discrete (countable) state space.
 
 \subsection{Natural formulation}
 
@@ -68,40 +68,41 @@ possible, without exactly specifying the corresponding transition probabilities.
 For each transition, $s$ denotes the current state, $a$ denotes the action, $s'$
 denotes the next state and $\tau$ denotes the sojourn time. Let $\bar{u}$ denote
 the other queue. To support a concise description of the transitions, we set
-$\rho=p$ and $\sigma=s$ whenever the server is not processing or switching. Not
-every action is always available to the decision maker. Whenever $\rho < p$,
-the only allowed action is $P$ and similarly, whenever $\sigma < s$, the only
-allowed action is $S$. Note that the server can only process a customer when the
-current queue is nonempty, hence action $P$ is only allowed when $x_{u} > 0$. We
-have the following types of transitions:
+$\rho=p$ and $\sigma=s$ whenever the server is not processing or switching. Not every
+action is always available to the decision maker. Whenever $\rho < p$, the only
+allowed action is $P$ and similarly, whenever $\sigma < s$, the only allowed action
+is $S$, to model the non-preemptive nature of these actions. Note that the
+server can only process a customer when the current queue is nonempty, hence
+action $P$ is only allowed when $x_{u} > 0$. We have the following types of
+transitions:
 %
 \begin{subequations}
 \begin{itemize}
   \item service completion ($x_u > 0$)
   \begin{align}
-    s = (u, \rho, s, x), a=P, s' = (u, p, s, x - e_{u}), \tau = \rho ,
+    s &= (u, \rho, s, x), \; a=P, \\ s' &= (u, p, s, x - e_{u}), \; \tau = \rho ,
   \end{align}
 
   \item arrival to queue $i$ when serving ($x_{u} > 0, \tau < \rho$)
   \begin{align}
     \label{eq:arrival_serve}
-    s = (u, \rho, s, x), a=P, s' = (u, \rho - \tau, s, x + e_{i}) ,
+    s &= (u, \rho, s, x), \; a=P, \\ s' &= (u, \rho - \tau, s, x + e_{i}) ,
   \end{align}
 
   \item switch completion
   \begin{align}
-    s = (u, p, \sigma, x), a=S, s' = (\bar{u}, p, s, x), \tau = \sigma ,
+    s &= (u, p, \sigma, x), \; a=S, \\ s' &= (\bar{u}, p, s, x), \; \tau = \sigma ,
   \end{align}
 
   \item arrival to queue $i$ when switching ($\tau < \sigma$)
   \begin{align}
     \label{eq:arrival_switch}
-    s = (u, p, \sigma, x), a=S, s' = (u, p, \sigma - \tau, x + e_{i}) ,
+    s &= (u, p, \sigma, x), \; a=S, \\ s' &= (u, p, \sigma - \tau, x + e_{i}) ,
   \end{align}
 
   \item arrival to queue $i$ when idling
   \begin{align}
-    s = (u, p, s, x), a=I, s' = (u, p, s, x + e_{i}) .
+    s &= (u, p, s, x), \; a=I, \\ s' &= (u, p, s, x + e_{i}) .
   \end{align}
 \end{itemize}
 \end{subequations}
@@ -114,7 +115,7 @@ $T_{m} = \sum_{j=1}^{m} \Upsilon_{j}$ denote the completion time of the $m$-th t
 The continuous reward rate process $\{ r(t) : t \in \mathbb{R}^{+} \}$ is
 defined by
 \begin{align}
-  r(t) = - (x_{1} + x_{2}) \text{ for } t \in [ T_{m}, T_{m+1} ) ,
+  r(t) = - (x_{1} + x_{2}) \; \text{ for } t \in [ T_{m}, T_{m+1} ) ,
 \end{align}
 where $m \geq 1$.
 
@@ -146,24 +147,24 @@ Instead of modeling single arrivals, the transitions must now enable any number
 of arrivals to happen during a serve or switch action. In the following, let
 $N(t) = (N_{1}(t), N_{2}(t))$ denote a random vector with $N_{i}(t)$ being the
 number of arrivals to lane $i$ that happen during a time interval of length $t$,
-which is distributed as a $\text{Pois}(\lambda_i t)$. The reduced model now has
-the following types of transitions:
+which is distributed as a $\text{Pois}(\lambda_i t)$ random variable. The reduced
+model now has the following types of transitions:
 %
 \begin{subequations}
 \begin{itemize}
   \item service completion ($x_u > 0$)
   \begin{align}
-    s = (u, x), a=P, s' = (u, x - e_{u} + N(p)), \tau = p ,
+    s &= (u, x), \; a=P, \\ s' &= (u, x - e_{u} + N(p)), \; \tau = p ,
   \end{align}
 
   \item switch completion
   \begin{align}
-    s = (u, x), a=S, s' = (\bar{u}, x + N(s)), \tau = s ,
+    s &= (u, x), \; a=S, \\ s' &= (\bar{u}, x + N(s)), \; \tau = s ,
   \end{align}
 
   \item arrival to queue $i$ when idling
   \begin{align}
-    s = (u, x), a=I, s' = (u, x + e_{i}) .
+    s &= (u, x), \; a=I, \\ s' &= (u, x + e_{i}) .
   \end{align}
 \end{itemize}
 \end{subequations}
