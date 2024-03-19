@@ -257,19 +257,19 @@ time $t$, $A(t)$ is the action taken at time $t$ and $R(t)$ is the cumulative
 reward up to time $t$, is referred to as the SMDP.
 
 When introducing the discounted total reward criterion in~\eqref{eq:criterion},
-we did not make explicit the dependency on the initial state $s$. Therefore, we
+we did not make explicit the dependency on the initial state $z$. Therefore, we
 define
 \begin{align}
-  \phi_{\beta}^{\pi}(s) = \mathbb{E} \left[ \int_{0}^{\infty} e^{- \beta t} dR(t) \; \big| \; S(0) = s \right] .
+  \phi_{\beta}^{\pi}(z) = \mathbb{E} \left[ \int_{0}^{\infty} e^{- \beta t} dR(t) \; \big| \; S(0) = z \right] .
 \end{align}
 %
 For the discounted total reward criterion,
 it can be shown that there exists a pure policy $\pi^{*}$ that is optimal among
 all policies, i.e.,
 \begin{align}
-  \phi_{\beta}^{\pi^{*}}(s) = \sup_{\pi} \phi_{\beta}^{\pi}(s) ,
+  \phi_{\beta}^{\pi^{*}}(z) = \sup_{\pi} \phi_{\beta}^{\pi}(z) ,
 \end{align}
-for some fixed initial state $s \in \mathcal{S}$. Well-known methods of finding
+for some fixed initial state $z \in \mathcal{S}$. Well-known methods of finding
 optimal policies include policy iteration, value iteration and using linear
 programming.
 
@@ -284,11 +284,12 @@ policy must always perform exhaustive service, which means that the server
 always continues serving the current queue when it is nonempty.
 
 In terms of our notation, their result implies that if $S_{m} = (u, x)$
-satisfies $x_{u} > 0$, then the action $g^{*}(S_{m}) = P$ must be taken.
-Therefore, we skip such states, because there is no actual choice to be made.
-Observe that each state now satisfies $x_{u} = 0$, so we only have to keep track
-of the number of customers in the other queue $x_{\bar{u}}$. The state space of
-the resulting reduced model is
+satisfies $x_{u} > 0$, then any optimal policy $\pi^{*}$ satisfies
+$\pi^{*}(S_{m}) = P$. Therefore, we skip such states, because there is no actual
+choice to be made. Observe that each state now satisfies $x_{u} = 0$, so we only
+have to keep track of the number of customers in the other queue $x_{\bar{u}}$.
+The resulting reduced model that we will consider from here on has action space
+$\mathcal{A} = \{ S, I \}$ and state space
 \begin{align}
   \mathcal{S} = \{1,2\} \times \mathbb{N}^{+} .
 \end{align}
@@ -317,7 +318,7 @@ double-threshold policy (Theorem 3.4). Their proof is incomplete, but the
 missing part is reduced to two concavity properties of the optimization
 objective as function of the initial state. Our goal is to test their conjecture
 empirically by using model-free reinforcement learning to find an optimal policy
-(and estimate the true object function to verify the concavity properties).
+(and estimate the true objective function to verify the concavity properties).
 
 
 \subsection{Symmetric system}
@@ -344,7 +345,7 @@ g(u, x) = \pi^{*}(1, x) ,
 \end{align}
 then we have
 \begin{align}
-  \phi^{g}(u, x) = \phi^{\pi^{*}}(1, x) = \sup_{\pi} \phi^{\pi} (1, x) = \sup_{\pi} \phi^{\pi'} (2, x) ,
+  \phi_{\beta}^{g}(u, x) = \phi_{\beta}^{\pi^{*}}(1, x) = \sup_{\pi} \phi_{\beta}^{\pi} (1, x) = \sup_{\pi} \phi_{\beta}^{\pi'} (2, x) ,
 \end{align}
 for every $(u, x) \in \mathcal{S}$, which shows that $g$ is an optimal pure
 policy that satisfies $g(u, x) = g(\bar{u}, x)$.
