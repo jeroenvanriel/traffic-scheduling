@@ -324,14 +324,16 @@ empirically by using model-free reinforcement learning to find an optimal policy
 \subsection{Symmetric system}
 \label{sec:symmetric_system}
 
-Whenever $\lambda_{1} = \lambda_{2} = \lambda$, we say that the system is
-\textit{symmetric}. We show there is a symmetric optimal policy $\pi^{*}$ for
-such system, in the sense that $\pi^{*}(1,x) = \pi^{*}(2,x)$. Assuming the
-conjecture of the previous subsection to be true, this means that there exists
-an optimal double-threshold policy with $m_{1} = m_{2} = m$. Furthermore, this
-result implies that, whenever we have a symmetric system, we may equivalently
-consider the SMDP with state space $\mathcal{S} = \mathbb{N}^{+}$.
+Whenever arrival rates satisfy $\lambda_{1} = \lambda_{2} = \lambda$, we say that the polling
+system is \textit{symmetric}. Some pure policy $g$ is called \textit{symmetric} if it
+does not depend on the location of the server, i.e., when $g(1,x) = g(2,x)$ for
+all $x \in \mathbb{N}^{+}$.
 
+\begin{proposition}
+  For any symmetric two-queue polling system, there exists an optimal symmetric
+  policy.
+\end{proposition}
+\begin{proof}
 For any pure policy $\pi$, let $\pi'$ be defined as
 $\pi'(u, x) = \pi(\bar{u}, x)$ for any state $(u, x) \in \mathcal{S}$. From the
 symmetry of the system, it follows that for every pure policy $\pi$, we have
@@ -349,7 +351,12 @@ then we have
 \end{align}
 for every $(u, x) \in \mathcal{S}$, which shows that $g$ is an optimal pure
 policy that satisfies $g(u, x) = g(\bar{u}, x)$.
+\end{proof}
 
+Assuming the conjecture of the previous subsection to be true, this means that
+any symmetric system has an optimal threshold policy with $m_{1} = m_{2} = m$.
+Furthermore, this implies that, whenever we have a symmetric system, we may
+equivalently consider the SMDP with state space $\mathcal{S} = \mathbb{N}^{+}$.
 
 
 \subsection{Curse of modeling}
@@ -358,12 +365,15 @@ In principle, it is possible to explicitly derive the transition probabilities
 of the model. However, this might turn out to be difficult in practice, a
 problem which is sometimes refered to as the curse of modeling. To avoid
 explicitly expressing the dynamics of the system, one could use simulation to
-obtain estimates of the transition probabilities, which can then be used in
-stochastic dynamic programming like value iteration or policy iteration to
-obtain an optimal policy for the approximation model.
+obtain estimates of the transition probabilities and the distributions of
+$R_{n}$ and $\Upsilon_{n}$ from samples, obtaining an explicit specification of
+an approximation SMDP. Using dynamic programming techniques like value iteration
+or policy iteration, we can then obtain an optimal policy for the approximation
+model.
 %
 Alternatively, model-free reinforcement learning can be used, which circumvents
 the need to compute transition probabilities at all, which we will discuss next.
+
 
 \subsection{Q-learning}
 
@@ -387,48 +397,10 @@ now given by
 \end{align}
 
 
-\subsection{Results}
-
 We use Q-learning for a symmetric system with $\lambda = 1/3, p = 1$ and
 $s = 10$. As expected, the algorithm converges to a threshold policy with $m=5$.
 However, after some manual experimentation with hyperparameters, it seems that
 we need a lot of samples in order to converge to this policy.
-
-\subsection{Approximating the SMDP}
-
-Instead of directly learning from samples using a model-free method like
-Q-learning, we can also estimate the transition probabilities and the
-distributions of $R_{n}$ and $\Upsilon_{n}$ from samples, obtaining an explicit
-specification of an approximation SMDP.\@ The latter can then be solved exactly
-using dynamic programming, e.g., using policy iteration.
-
-
-\section{Waiting}
-
-The action space that we have considered up till now is not complete in some
-sense. More precisely, given some feasible schedule $y$, there should be some
-policy $\pi^{y}$ that depends in some (very complicated) way on $y$, such that
-executing $\pi^{y}$ over the offline instance produces $y$. What we are missing
-is an action that allows the server to wait at the current queue for some finite
-time $\delta$. Therefore, we define the additional waiting action $I(\delta)$
-with $\delta \in \{ \mathbb{R}^{+}, \infty \}$, such that
-$\mathcal{A} = \{ P, S, I(\infty) \} \cup \{ I(\delta) : \delta > 0 \}$, where
-$I(\infty)$ is equivalent to the original $I$ action. The $I(\delta)$ action
-causes the server to idle for $\delta$ time units at the current queue and then
-switch, unless another arrival happens at the current queue before $\delta$
-time.
-
-From the examples that we discussed in the offline scheduling setting, we
-conjecture that the optimal policy for the two-queue polling model must exploit
-some kind of waiting strategy. Therefore, we are going to evaluate
-double-threshold policies with waiting. In order to simplify the investigation,
-we consider a symmetric system in which the arrival rates $\lambda_{i} = \lambda$ are the
-same, because it can be shown that this implies $m_{i} = m$, using a similar
-argument as in Section~\ref{sec:symmetric_system}.
-
-\begin{proposition}
-  For Poisson arrivals, $\delta$-idling with $\delta < \infty$ is always suboptimal.
-\end{proposition}
 
 
 \section{General Arrivals}
@@ -436,10 +408,139 @@ argument as in Section~\ref{sec:symmetric_system}.
 We would like to drop the assumption of Poisson arrivals. Because the memoryless
 property does not hold anymore, we need to keep track of the time since the last
 arrival in the states. Therefore, states now need to be represented by the tuple
-$(u, x, \nu)$, where $\nu = (\nu_{1}, \nu_{2})$ and $\nu_{i}$ is the time since
-the last arrival to queue $i$. We are now back in the situation of an
-uncountable state space, which requires us to apply discretization before being
-able to apply Q-learning.
+$(u, x, \nu)$, where $\nu = (\nu_{1}, \nu_{2})$ and $\nu_{i}$ is the time since the last
+arrival to queue $i$. Because the serve and switch actions are still assumed to
+be non-preemptive, the reduction from Section~\ref{sec:reduced-model} is still
+applicable. Therefore, the action space is $\mathcal{A} = \{P, S, I\}$ and the
+state space is
+\begin{align}
+  \mathcal{S} = \{1,2\} \times \mathbb{N}^{+} \times \mathbb{N}^{+} \times \mathbb{R}^{+} \times \mathbb{R}^{+} .
+\end{align}
+Again, there are three types of transitions:
+\begin{subequations}
+\begin{itemize}
+  \item service completion ($x_u > 0$)
+  \begin{align}
+    \begin{split}
+    s &= (u, x), \; a=P, \\ s' &= (u, x - e_{u} + N(p)), \; \tau = p ,
+    \end{split}
+  \end{align}
+
+  \item switch completion
+  \begin{align}
+    \begin{split}
+    s &= (u, x), \; a=S, \\ s' &= (\bar{u}, x + N(s)), \; \tau = s ,
+    \end{split}
+  \end{align}
+
+  \item arrival to queue $i$ when idling
+  \begin{align}
+    \begin{split}
+    s &= (u, x), \; a=I, \\ s' &= (u, x + e_{i}) .
+    \end{split}
+  \end{align}
+\end{itemize}
+\end{subequations}
+
+
+\subsection{Exhaustive service}
+We expect that exhaustive service is again required for optimal policies.
+
+\subsection{Q-learning}
+We are now back in the situation of an uncountable state space, which requires
+us to apply discretization before being able to apply Q-learning.
+
+
+\section{Waiting}
+
+All models that we discussed above do not allow the server to idle for an
+arbitrary amount of time. The server either does not idle at all, which
+corresponds to the $S$ action, or it idles until the next arrival, which
+corresponds to the $I$ action. We generalize both actions by defining
+$\mathcal{A} = \{ I(\delta) : 0 \leq \delta \leq \infty \}$. The $I(\delta)$ action causes the
+server to idle for $\delta$ time units at the current queue and then switch, unless
+another arrival happens at the current queue before $\delta$ time units have elapsed.
+Observe that $I(0)$ is equivalent to the original $S$ action and $I(\infty)$ is
+equivalent to the original $I$ action. To improve clarity of notation, we will
+write $g(z) = \delta$ instead of $g(z) = I(\delta)$ for pure policy $g$ and
+state $z \in \mathcal{S}$.
+
+It is not clear, a priori, whether action $I(\delta)$ with $0 < \delta < \infty$
+is ever needed in an optimal policy. As we will show next, this is not the case
+for Poisson arrivals, due to the memoryless property of interarrival times.
+
+\begin{proposition}
+  Let $\pi^{*}$ be an optimal policy for the symmetric polling system with
+  Poisson arrivals, then $\pi^{*}(z) \in \{0, \infty\}$ for all $z \in \mathcal{S}$.
+\end{proposition}
+\begin{proof}
+  Let $\pi^{*}$ be some optimal policy and suppose there is some state
+  $z \in \mathcal{S}$ such that $\pi^{*}(z) = \delta > 0$. Suppose that this
+  state is visited at some time $t_{0}$ and step $m$, so $S(t_{0}) = S_{m} = z$.
+
+  First, we condition on the event that an arrival occurs before $\delta$ time
+  units have elapsed. The probability $\xi$ of this event does not change if we
+  double the waiting time, so we have
+  \begin{align}
+    \xi = \mathbb{P}(\Upsilon_{m+1} < \delta \; | \; A_{m} = \delta) =
+    \mathbb{P}(\Upsilon_{m+1} < \delta \; | \; A_{m} = 2 \delta) .
+  \end{align}
+  The optimal Q-value, conditioned on this event, is given by
+  \begin{align}
+    \label{eq:event_arrival}
+    \begin{split}
+    & \mathbb{E}\left[ R_{m+1} + e^{-\beta \Upsilon_{m+1}} \phi(S_{m+1}) \; | \; S_{m} = z, A_{m} = \delta, \Upsilon_{m+1} < \delta \right] \\
+    &= \mathbb{E}\left[ R_{m+1} + e^{-\beta \Upsilon_{m+1}} \phi(S_{m+1}) \; | \; S_{m} = z, A_{m} = 2 \delta, \Upsilon_{m+1} < \delta \right] .
+    \end{split}
+  \end{align}
+
+  Next, we condition on the complementary event
+  $\{ \Upsilon_{m+1} \geq \delta \}$. Because of the memoryless property of
+  Poisson arrivals, this means that the state has not changed. Therefore, we
+  have $S(t_{0} + \delta) = z$ and we continue to switch to the other lane,
+  which yields
+  \begin{align}
+    \label{eq:event_no_arrival}
+    \begin{split}
+    & \mathbb{E}\left[ R_{m+1} + e^{-\beta \Upsilon_{m+1}} \phi(S_{m+1}) \; | \; S_{m} = z, A_{m} = \delta, \Upsilon_{m+1} \geq \delta \right] \\
+    &= \mathbb{E}\left[ R_{m+1} + e^{-\beta \delta} Q(z, 0) \; | \; S_{m} = z \right] \\
+    &\leq \mathbb{E}\left[ R_{m+1} + e^{-\beta \delta} Q(z, \delta) \; | \; S_{m} = z \right] \\
+    &= \mathbb{E}\left[ R_{m+1} + e^{-\beta \Upsilon_{m+1}} \phi(S_{m+1}) \; | \; S_{m} = z, A_{m} = 2 \delta, \Upsilon_{m+1} \geq \delta \right] ,
+    \end{split}
+  \end{align}
+  where the inequality follows from the optimality assumption.
+
+  Now combining equation~\eqref{eq:event_arrival} and
+  inequality~\eqref{eq:event_no_arrival} using the law of total expectation, we
+  obtain
+  \begin{align}
+    \begin{split}
+    Q(z, \delta)
+    % &\leq \xi \; \mathbb{E}\left[ R_{m+1} + e^{-\beta \Upsilon_{m+1}} \phi(S_{m+1}) \; | \; S_{m} = z, A_{m} = 2 \delta, \Upsilon_{m+1} < \delta \right] \\
+    % & \quad + (1 - \xi) \; \mathbb{E}\left[ R_{m+1} + e^{-\beta \Upsilon_{m+1}} \phi(S_{m+1}) \; | \; S_{m} = z, A_{m} = 2 \delta, \Upsilon_{m+1} \geq \delta \right] \\
+    &\leq \mathbb{E}\left[ R_{m+1} + e^{-\beta \Upsilon_{m+1}} \phi(S_{m+1}) \; | \; S_{m} = z, A_{m} = 2 \delta \right] \\
+     &= Q(z, 2 \delta) ,
+    \end{split}
+  \end{align}
+  which shows that $\pi^{*}(z) > 0$ implies $\pi^{*}(z) = \infty$.
+\end{proof}
+
+Based on the examples that we saw in the offline scheduling setting, we
+conjecture that, in general, optimal policies must sometimes employ action
+$I(\delta)$ with $0 < \delta < \infty$. Therefore, we are going to evaluate
+double-threshold policies with waiting. In order to simplify the investigation,
+we consider again a symmetric system.
+\begin{eg}
+  Consider a symmetric polling system in which the interarrival times $X$ are
+  bimodally distributed as
+  \begin{align}
+    X = \begin{cases}
+          \epsilon \quad & \text{ w.p. } \eta , \\
+          L \quad & \text{ w.p. } 1 - \eta,
+        \end{cases}
+  \end{align}
+  for some $0 < \epsilon \ll L$.
+\end{eg}
 
 
 \section{Discussion}
