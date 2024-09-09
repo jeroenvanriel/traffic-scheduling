@@ -73,7 +73,7 @@ class Args:
 
 def make_env(env_id, K, instance_generator, switch_over, horizon, seed):
     def thunk():
-        env = gym.make(env_id, K=K, instance_generator=instance_generator,
+        env = gym.make(env_id, K=K, instance=instance_generator,
                        switch_over=switch_over, horizon=horizon)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         env = gym.wrappers.FlattenObservation(env)

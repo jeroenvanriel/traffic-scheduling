@@ -11,13 +11,12 @@ import single_intersection_gym
 ##
 
 
-def static_gen():
-    return {
-        'arrival0': np.array([0, 2, 3]),
-        'length0': np.array([1, 1, 1]),
-        'arrival1': np.array([0, 1, 3]),
-        'length1': np.array([1, 1, 1]),
-    }
+static_instance = {
+    'arrival0': np.array([0, 2, 3]),
+    'length0': np.array([1, 1, 1]),
+    'arrival1': np.array([0, 1, 3]),
+    'length1': np.array([1, 1, 1]),
+}
 
 
 def random_gen():
@@ -49,7 +48,7 @@ class SingleIntersectionGymEnvTest(unittest.TestCase):
 
     def test_make_env(self):
         # two lanes with same arrival process
-        env = gym.make("SingleIntersectionEnv", K=2, instance_generator=random_gen)
+        env = gym.make("SingleIntersectionEnv", K=2, instance=random_gen)
 
         env.reset()
         env.step(0)
@@ -76,7 +75,7 @@ class SingleIntersectionGymEnvTest(unittest.TestCase):
 
         def test(instance):
             env = gym.make("SingleIntersectionEnv",
-                           K=2, instance_generator=lambda: instance,
+                           K=2, instance=instance,
                            horizon=1, switch_over=2, discount_factor=discount_factor)
             observation, info = env.reset()
             total_reward = info['initial_reward']
@@ -99,5 +98,5 @@ class SingleIntersectionGymEnvTest(unittest.TestCase):
 
             self.assertTrue(abs(total_reward - check) < self.tol)
 
-        test(static_gen())
+        test(static_instance)
         test(random_gen())

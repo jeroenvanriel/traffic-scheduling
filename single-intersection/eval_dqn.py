@@ -32,7 +32,7 @@ for i, instance_file in enumerate(snakemake.input[1:]):
     instance = np.load(instance_file)
     K = instance['K']
 
-    env = gym.make("SingleIntersectionEnv", K=instance['K'], instance_generator=lambda: instance,
+    env = gym.make("SingleIntersectionEnv", K=instance['K'], instance=instance,
                    switch_over=instance['s'], horizon=horizon)
     env = gym.wrappers.FlattenObservation(env)
 

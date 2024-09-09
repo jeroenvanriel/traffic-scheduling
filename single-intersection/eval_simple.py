@@ -30,7 +30,7 @@ def policy(obs):
 
 horizon = 10
 
-env = gym.make("SingleIntersectionEnv", K=K, instance_generator=lambda: instance,
+env = gym.make("SingleIntersectionEnv", K=K, instance=instance,
                 switch_over=instance['s'], horizon=horizon)
 
 obj, info = evaluate(env, policy)

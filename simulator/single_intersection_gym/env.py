@@ -4,12 +4,11 @@ import numpy as np
 
 class SingleIntersectionEnv(gym.Env):
 
-    def __init__(self, K, instance_generator=None, horizon=10, switch_over=2, discount_factor=0.99):
+    def __init__(self, K, instance=None, horizon=10, switch_over=2, discount_factor=0.99):
         """
         `K` is the number of lanes
 
-        `instace_generator` is a function that produces
-        a dictionary of the form
+        `instace` is a dictionary of the form
         {
           'arrival0': arrival0,
           'length0': length0,
@@ -21,6 +20,7 @@ class SingleIntersectionEnv(gym.Env):
         }
         where for each lane i, arrivals and lengths are one-dimensional numpy
         array of length n_i.
+        You may also provide a function that produces the instance on every reset.
 
         `horizon` is the length of the fixed look-ahead window.
 
@@ -28,13 +28,13 @@ class SingleIntersectionEnv(gym.Env):
         moments of crossing of vehicles from different intersections.
         """
 
-        assert instance_generator is not None, "Instance generator function must be provided."
+        assert instance is not None, "Instance (generator function) must be provided."
         self.n_lanes = int(K)
         self.horizon = horizon
         self.switch_over = switch_over
         self.discount_factor = discount_factor
 
-        self._instance_generator = instance_generator
+        self._instance = instance
 
         self.observation_space = gym.spaces.Box(low=-1e3, high=np.inf, shape=(self.n_lanes, 2 + horizon * 2))
         self.action_space = gym.spaces.Discrete(2)
@@ -77,7 +77,7 @@ class SingleIntersectionEnv(gym.Env):
         length = [] # platoon lengths
         n = [] # number of arrivals
 
-        res = self._instance_generator()
+        res = self._instance() if callable(self._instance) else self._instance
 
         for k in range(self.n_lanes):
             a, l = res[f"arrival{k}"], res[f"length{k}"]
