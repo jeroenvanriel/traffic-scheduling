@@ -41,15 +41,15 @@ class SingleIntersectionEnv(gym.Env):
 
 
     def reset(self, seed=None, options=None):
-        self.arrival, self.length, self.n = self._generate_platoons()
+        self.arrival, self.length, self.n = self._generate_vehicles()
 
         # action history
         self.action_sequence = []
         # sequence of lanes
         self.lane_sequence = []
 
-        # number of scheduled platoons
-        self.platoons_scheduled = np.zeros(self.n_lanes, dtype=int)
+        # number of scheduled vehicles
+        self.vehicles_scheduled = np.zeros(self.n_lanes, dtype=int)
 
         # start and end times of scheduled vehicles
         self.start_time = [ np.empty((self.n[i])) for i in range(self.n_lanes) ]
@@ -72,16 +72,16 @@ class SingleIntersectionEnv(gym.Env):
         return observation, info
 
 
-    def _generate_platoons(self):
+    def _generate_vehicles(self):
         arrival = [] # arrival times
-        length = [] # platoon lengths
+        length = [] # vehicle lengths
         n = [] # number of arrivals
 
         res = self._instance() if callable(self._instance) else self._instance
 
         for k in range(self.n_lanes):
             a, l = res[f"arrival{k}"], res[f"length{k}"]
-            assert a.shape == l.shape, "List of arrivals should have same length as list of platoon lengths."
+            assert a.shape == l.shape, "List of arrivals should have same length as list of vehicle lengths."
             arrival.append(a)
             length.append(l)
             n.append(a.shape[-1])
@@ -96,14 +96,14 @@ class SingleIntersectionEnv(gym.Env):
         # or whenever the next event is in the current queue
         def go_on():
             l = self.current_lane
-            done = self.platoons_scheduled == self.n
+            done = self.vehicles_scheduled == self.n
 
             # current lane done
             if done[l]:
                 return False
 
             # some vehicle is still ready for service
-            if self.arrival[l][self.platoons_scheduled[l]] <= self.completion_time:
+            if self.arrival[l][self.vehicles_scheduled[l]] <= self.completion_time:
                 return True
 
             # get other lanes starting from the current
@@ -113,7 +113,7 @@ class SingleIntersectionEnv(gym.Env):
 
             # next arrival is on current lane
             if all(
-                self.arrival[l][self.platoons_scheduled[l]] <= self.arrival[i][self.platoons_scheduled[i]]
+                self.arrival[l][self.vehicles_scheduled[l]] <= self.arrival[i][self.vehicles_scheduled[i]]
                 for i in other_lane_indices
             ):
                 return True
@@ -130,10 +130,10 @@ class SingleIntersectionEnv(gym.Env):
         # actual switch-over time
         s = self.switch_over if l != self.current_lane else 0
 
-        # next platoon
-        i = self.platoons_scheduled[l]
+        # next vehicle
+        i = self.vehicles_scheduled[l]
 
-        # arrival time and length (number of vehicles) of next platoon
+        # arrival time and length of next vehicle
         arrival = self.arrival[l][i]
         length = self.length[l][i]
 
@@ -146,7 +146,7 @@ class SingleIntersectionEnv(gym.Env):
         penalty = 0
         # compute only for vehicles that have not been scheduled and the current one
         for k in range(self.n_lanes):
-            for j in range(self.platoons_scheduled[k], self.n[k]):
+            for j in range(self.vehicles_scheduled[k], self.n[k]):
                 # only consider customers that have already arrived
                 if self.arrival[k][j] > self.completion_time:
                     continue
@@ -162,7 +162,7 @@ class SingleIntersectionEnv(gym.Env):
                 ) / self.discount_factor
 
         self.lane_sequence.append(l)
-        self.platoons_scheduled[l] += 1
+        self.vehicles_scheduled[l] += 1
         self.current_lane = l
 
         return - penalty
@@ -177,7 +177,7 @@ class SingleIntersectionEnv(gym.Env):
             l = (self.current_lane + 1) % self.n_lanes
 
         # move to serve next lane, when no more arrivals
-        while self.platoons_scheduled[l] == self.n[l]:
+        while self.vehicles_scheduled[l] == self.n[l]:
             l = (l + 1) % self.n_lanes
 
         # record the start of this macro-step
@@ -189,18 +189,18 @@ class SingleIntersectionEnv(gym.Env):
         observation = self._get_obs()
         info = self._get_info()
 
-        terminated = (self.platoons_scheduled == self.n).all()
+        terminated = (self.vehicles_scheduled == self.n).all()
 
         return observation, total_reward, terminated, False, info
 
 
     def _get_obs(self):
         # count number of vehicles that have arrived, but not yet processed
-        queue_lengths = np.sum(np.array(self.arrival) <= self.completion_time, axis=1) - self.platoons_scheduled
+        queue_lengths = np.sum(np.array(self.arrival) <= self.completion_time, axis=1) - self.vehicles_scheduled
         queue_lengths = queue_lengths.astype(np.float32)
 
         # number of vehicles still left to schedule
-        remaining = self.n - self.platoons_scheduled
+        remaining = self.n - self.vehicles_scheduled
         remaining = remaining.astype(np.float32)
 
         # pad with zeros
@@ -210,7 +210,7 @@ class SingleIntersectionEnv(gym.Env):
 
         # calculate the horizon
         for l in range(self.n_lanes):
-            done = self.platoons_scheduled[l] == self.n[l]
+            done = self.vehicles_scheduled[l] == self.n[l]
             if done:
                 continue
 
@@ -239,7 +239,7 @@ class SingleIntersectionEnv(gym.Env):
             "initial_reward": self.initial_reward,
             "action_sequence": self.action_sequence,
             "lane_sequence": self.lane_sequence,
-            "platoons_scheduled": self.platoons_scheduled,
+            "vehicles_scheduled": self.vehicles_scheduled,
             "start_time": self.start_time,
             "end_time": self.end_time,
         }
