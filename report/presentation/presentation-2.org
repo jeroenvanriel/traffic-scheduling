@@ -1,0 +1,180 @@
+#+options: ':t *:t -:t ::t <:t H:2 \n:nil ^:t arch:headline author:t
+#+options: broken-links:nil c:nil creator:nil d:(not "LOGBOOK") date:t e:t
+#+options: email:nil f:t inline:t num:t p:nil pri:nil prop:nil stat:t tags:t
+#+options: tasks:t tex:t timestamp:t title:t toc:nil todo:t |:t
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+BEAMER_HEADER: \AtBeginSection[]{ \title{\secname}\author{}\date{} \begin{frame} \maketitle \end{frame}}
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LaTeX_CLASS_OPTIONS: [bigger]
+#+LATEX_HEADER: \usepackage{graphicx}
+#+LATEX_HEADER: \usepackage[export]{adjustbox}
+#+latex_header: \usepackage[round]{natbib}   % omit 'round' option if you prefer square brackets
+#+language: en
+#+select_tags: export
+#+exclude_tags: noexport
+#+creator: Emacs
+#+cite_export: natbib
+#+title: Traffic Scheduling
+#+date: March 2024
+#+author: Jeroen van Riel
+#+email: jeroenvanriel@outlook.com
+
+* Single intersection
+
+** Safe trajectories at isolated intersection
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.3\textwidth]{../figures/miculescu_karaman.pdf}
+\end{figure}
+
+- trajectories $x(t)$ satisfy contraints
+  \begin{subequations}
+  \begin{align}
+  0 \leq x'(t) \leq v_m \\
+  |x''(t)| \leq a_m
+  \end{align}
+  \end{subequations}
+- no collisions between vehicles
+
+- problem of optimal control is essentially reduced to finding an optimal policy in a two-queue polling system \cite{miculescuPollingsystemsbasedAutonomousVehicle2016}
+
+** Two-queue polling system
+
+- two queues with customers arriving as Poisson($\lambda_i$) process
+- single server alternates queues, location is $u \in \{1,2\}$
+- number of customers in queue $i$ is denoted as $x_i$
+- service takes $p$ time, switch takes $s$ time
+
+\vfill
+\begin{figure}
+  \centering
+  \includegraphics[width=0.5\textwidth]{../figures/polling.pdf}
+\end{figure}
+
+** Semi-Markov Decision Process
+
+- Markov decision process with sojourn times $\Upsilon_n$
+- action space $\mathcal{A} = \{P,S,I\}$
+- state space $\mathcal{S} = \{1,2\} \times \mathbb{N}^+ \times \mathbb{N}^+$
+- serving and switching are non-preemptive, so skip arrivals while serving or switching
+
+\vfill
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{../figures/polling_smdp.pdf}
+\end{figure}
+
+** Semi-Markov Decision Process
+
+- holding costs for customers
+
+\begin{align}
+r(t) = -(x_1(t) + x_2(t))
+\end{align}
+
+- total discounted reward
+
+\begin{align}
+\phi_\beta = \mathbb{e} \left[ \int_0^\infty e^{-\beta t}r(t) dt \right]
+\end{align}
+
+\vfill
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{../figures/polling_smdp_rewards.pdf}
+\end{figure}
+
+** Optimal policies
+
+- \cite{hofriOptimalControlTwo1987}
+  - theorem: there is an optimal exhaustive policy
+  - conjecture: there is an optimal double-threshold policy
+
+- curse of modeling
+  - approximate the SMDP, then dynamic programming
+  - Q-learning or similar model-free methods
+
+** General arrival processes
+
+- extend the state space to include time since last arrival
+
+  \begin{align}
+  (u, x_1, x_2, \tau_1, \tau_2) \in \mathcal{S} = \{1,2\} \times \mathbb{N}^+ \times \mathbb{N}^+ \times \mathbb{R}^+ \times \mathbb{R}^+
+  \end{align}
+
+- explicitly discretize state space
+- parametric function approximation (neural net)
+
+* Knowledge of future arrivals
+
+** Knowledge of future arrivals
+
+- extreme cases
+  - full knowledge ($h=\infty$) $\implies$ planning
+  - no knowledge ($h=0$)
+
+\vfill
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.9\textwidth]{../figures/horizon.pdf}
+\end{figure}
+
+** Full knowledge of future (planning)
+
+- general solution method via MILP formulation
+- $r_j$ is arrival time
+- $y_j$ is crossing time, $C_j = y_j + p$ is completion time
+- $o_{jl}$ is order of vehicles j and l (binary decision variable)
+- $\mathcal{C}$ is set of precedence constraints
+- $\bar{\mathcal{D}}$ is set of conflicts (between vehicles of distinct lanes)
+
+\begin{subequations}
+\begin{align}
+  \text{minimize } & \sum_{j=1}^{n} C_{j} & \\
+  \text{s.t. } & r_{j} \leq y_{j} & \text{ for all } j=1, \dots, n, \\
+              & C_{j} \leq y_{l} & \text{ for all } (j,l) \in \mathcal{C}, \\
+              & C_{j} + s \leq y_{l} + o_{jl}M  & \text{ for all } (j,l) \in \bar{\mathcal{D}}, \label{eq:disjunctive-constraints} \\
+              & o_{jl} \in \{ 0, 1 \} & \text{ for all } (j,l) \in \bar{\mathcal{D}} .
+\end{align}
+\end{subequations}
+
+** Full knowledge of future (planning)
+
+- example where waiting is necessary
+
+\vfill
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.65\textwidth]{../figures/123.pdf}
+\end{figure}
+
+** No knowledge of future
+
+- polling system discussed at beginning
+- conjecture: waiting is required to obtain optimal policy
+- action space $\mathcal{A} = \{P,S,I(\infty)\} \cup \{I(\delta) : \delta > 0\}$
+
+* Multiple intersections
+
+** Job Shop
+
+- extension of MILP to multiple intersections is trivial
+- similar to job-shop machine scheduling
+- no guarantees for existence of safe trajectories
+- finite buffer space between intersections
+
+** End-to-end methods
+
+- define very general policy space
+- use model-free reinforcement learning to find policies
+
+** References
+  \begingroup
+  \renewcommand{\section}[2]{}
+  \bibliography{../references}
+  \bibliographystyle{plainnat}
+  \endgroup
+
+  $\;$
