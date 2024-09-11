@@ -1,0 +1,120 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{datetime}
+\usepackage{outlines}
+
+\newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
+
+\newcommand{\newmarkedtheorem}[1]{%
+  \newenvironment{#1}
+    {\pushQED{\qed}\csname inner@#1\endcsname}
+    {\popQED\csname endinner@#1\endcsname}%
+  \newtheorem{inner@#1}%
+}
+
+\theoremstyle{definition}
+%\newtheorem{eg}{Example}[section]
+\newmarkedtheorem{eg}{Example}[section]
+\newtheorem{observation}{Observation}[section]
+\newtheorem{define}{Definition}[section]
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{assump}{Assumption}[section]
+\newtheorem{remark}{Remark}[section]
+
+\author{Jeroen van Riel}
+\date{\monthyeardate\today}
+
+\begin{document}
+
+\section*{Optimal Waiting Time}
+
+Consider two lanes 1 and 2, where at the current time $t=0$, some vehicle $j=0$
+has just been completed at lane 1. We know that another vehicle $j=2$ will
+arrive to lane somewhere in the future at $r = r_{1}$, which is a random variable.
+Furthermore, some other vehicle $j=2$ is available (so $r_{2} \leq 0$) for
+service on lane 2. Assume that all processing times are $p_{j}=p=1$. We need to
+choose how long we wait for vehicle $j=1$, before switching to lane 2. Let
+$y_{j}$ denote the scheduled starting (crossing) time of the vehicles. The goal
+is to minimize
+\begin{align}
+  \sum_{j} y_{j} .
+\end{align}
+Let the waiting time be denoted as $x \geq 0$, then our problem may be stated as
+\begin{align}
+  \min_{x \geq 0} \mathbb{E} \left[ \Pi(x, r) \right] ,
+\end{align}
+where the value function $\Pi$ is given by
+\begin{align}
+  \Pi(x, r) = \begin{cases}
+                    r + (r + 1 + s) & \text{ if } x \geq r, \\
+                    \max(x, s) + \max(r, \max(x,s) + 1 + s) & \text{ if } x < r .
+                  \end{cases}
+\end{align}
+
+We calculate
+\begin{align*}
+  \mathbb{E}[\Pi(x, R)] &= \int_{0}^{\infty} \Pi(x,r) dF(r) \\
+                        &= \int_{0}^{x} 2r + s + 1 \; dF(r) + \int_{x}^{\infty} \max(r, \max(x,s) + 1 + s) \, dF(r) \\
+                        &= (s+1) F(x) + 2 \int_{0}^{x} r \, dF(r) \\
+                        & \quad + \max(x,s)(1 - F(x)) \\
+                        & \quad + (\max(x,s) + s + 1) \left(F(\max(x,s) + s + 1) - F(x) \right) \\
+                        & \quad + \int_{\max(x,s) + s + 1}^{\infty} r \, dF(r) ,
+\end{align*}
+where the part involving $\max(x, s)$ can be verified by considering the cases
+$x < s$ and $x > s$ separately.
+
+\subsection*{Exponential interarrival times}
+We can now optimize this expression as function of $x$. For example, assume that
+$R \sim \text{Exp}(\lambda)$, with $F(r) = 1 - e^{\lambda r}$ for $r \geq 0$.
+%
+Using the fact that
+\begin{align}
+  \int_{A}^{B} r dF(r) = \left( - B - \frac{1}{\lambda} \right) e^{- \lambda B} - \left( - A - \frac{1}{\lambda} \right) e^{-\lambda A} ,
+\end{align}
+we obtain the explicit expression
+\begin{align*}
+  \mathbb{E}[\Pi(x, R)] &= (s+1) (1 - e^{-\lambda x}) \\
+                        & \quad + 2 \left( \frac{1}{\lambda} - \left( x + \frac{1}{\lambda} \right) e^{-\lambda x} \right) \\
+                        & \quad + \max(x,s) e^{-\lambda x} \\
+                        & \quad + (\max(x,s) + s + 1) \left( -e^{-\lambda x} + e^{-\lambda (\max(x,s) + s + 1)} \right) \\
+                        & \quad + \left( \max(x,s) + s + 1 + \frac{1}{\lambda} \right) e^{-\lambda(\max(x,s) + s + 1)} \\
+                        &= s + 1 + \frac{2}{\lambda} \\
+  & \quad + \left( \max(x,s) -s -1 - \frac{2}{\lambda}  \right) e^{-\lambda x} \\
+  & \quad - 2 x e^{-\lambda x} \\
+  & \quad + \left( 2 (\max(x,s) + s + 1) + \frac{1}{\lambda} \right) e^{-\lambda (\max(x,s) + s + 1)} .
+\end{align*}
+%
+For $x < s$, this simplifies to
+\begin{align*}
+  \mathbb{E}[\Pi(x, R)] &= s + 1 + \frac{2}{\lambda} - \left(1 + \frac{2}{\lambda} \right) e^{-\lambda x} - 2x e^{-\lambda x} + \left( 4s + 2 + \frac{1}{\lambda} \right) e^{- \lambda (2s + 1)} ,
+\end{align*}
+with derivative
+\begin{align*}
+  (\lambda + 2 \lambda x ) e^{-\lambda x} .
+\end{align*}
+%
+For $x > s$, this simplifies to
+\begin{align*}
+  \mathbb{E}[\Pi(x, R)] &= s + 1 + \frac{2}{\lambda} + \left( x - s - 1 - \frac{2}{\lambda} \right) e^{-\lambda x} - 2x e^{-\lambda x} + \left( 2x + 2s + 2 + \frac{1}{\lambda} \right) e^{-\lambda (x+s+1)},
+\end{align*}
+with derivative
+\begin{align*}
+  (\lambda x + \lambda s + \lambda - 3) e^{-\lambda x} + (1 - 2\lambda x - 2 \lambda s - 2 \lambda) e^{-\lambda(x + s + 1)} .
+\end{align*}
+
+We can probably show that these two derivatives are always negative and
+positive, respectively, so that the minimum is always achieved at $x=s$.
+
+
+\section*{Simulation}
+
+Simulation verifies that $x = s$ is indeed optimal, see \texttt{wait.py}.
+
+\end{document}

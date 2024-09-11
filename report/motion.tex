@@ -1,0 +1,148 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{amsthm}
+\usepackage{dsfont}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{datetime}
+\usepackage{outlines}
+\usepackage[round]{natbib}   % omit 'round' option if you prefer square brackets
+
+\usepackage{matlab-prettifier}
+
+\newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
+
+\newcommand{\newmarkedtheorem}[1]{%
+  \newenvironment{#1}
+    {\pushQED{\qed}\csname inner@#1\endcsname}
+    {\popQED\csname endinner@#1\endcsname}%
+  \newtheorem{inner@#1}%
+}
+
+\theoremstyle{definition}
+%\newtheorem{eg}{Example}[section]
+\newmarkedtheorem{eg}{Example}[section]
+\newtheorem{observation}{Observation}[section]
+\newtheorem{define}{Definition}[section]
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{assump}{Assumption}[section]
+\newtheorem{remark}{Remark}[section]
+
+\author{Jeroen van Riel}
+\date{\monthyeardate\today}
+\title{Motion Planning}
+
+\begin{document}
+
+\section*{MotionSynthesize implementation}
+
+We start by expressing $v = {(v_{1}, \dots, v_{N})}^{T}$ in terms of the decision variables $u = {(u_{0}, \dots, u_{N-1})}^{T}$.
+From the initial condition $v_{0} = v_{m}$ and the relation $v_{i+1} = v_{i} + u_{i} \cdot \Delta t$, we obtain
+\begin{align*}
+  v = v_{m} \mathds{1} + Au ,
+\end{align*}
+with the lower triangular matrix
+\begin{align*}
+  A =
+  \begin{pmatrix}
+    \Delta t & 0  \\
+    \Delta t & \Delta t & 0 &  \\
+    \vdots & \ddots & \ddots & \ddots
+    \end{pmatrix} ,
+\end{align*}
+which can be constructed using the following Matlab code:
+\begin{lstlisting}[style=Matlab-editor]
+  A = tril(delta_t * ones(N))
+\end{lstlisting}
+
+Similarly, we express $x = {(x_{1}, \dots, x_{N})}^{T}$ in terms of $v$.
+From $x_{0} = -L$ and the relation $x_{i+1} = x_{i} + (v_{i} + v_{i+1}) \cdot \Delta t / 2$, we obtain
+\begin{align*}
+  x = -L \mathds{1} + Bv ,
+\end{align*}
+with the matrix
+\begin{align*}
+  B = \Delta t / 2 \cdot
+  \begin{pmatrix}
+    1 & 1 \\
+    1 & 2 & 1 \\
+    1 & 2 & 2 & 1 \\
+    \vdots & \vdots & \vdots & \; & \ddots
+  \end{pmatrix} ,
+\end{align*}
+which can be constructed using the following Matlab code:
+\begin{lstlisting}[style=Matlab-editor]
+  B = delta_t / 2 * (tril(2 * ones(N), 1) - diag(ones(N - 1, 1), 1) - [ ones(N, 1) zeros(N, N-1) ])
+\end{lstlisting}
+
+\subsection*{Constraints}
+
+We can now start constructing the matrix $C$ and the righ-hand side $b$.
+
+The acceleration constraints
+\begin{align*}
+  -a_{m} \leq u_{i} \leq a_{m}
+\end{align*}
+can simply be encoded as
+\begin{align*}
+  C_{1} = I, \; b_{1} = a_{m} \mathds{1} , \\
+  C_{2} = -I, \; b_{2} = a_{m} \mathds{1} .
+\end{align*}
+
+The constraints on the velocities
+\begin{align*}
+  0 \leq v_{i} \leq v_{m}
+\end{align*}
+are encoded as
+\begin{align*}
+  C_{3} = A, \; b_{3} = 0 , \\
+  C_{4} = -A, \; b_{4} = v_{m} \mathds{1} .
+\end{align*}
+
+
+In order to encode constraint $x_{N} = 0$, observe that
+\begin{align*}
+  x &= -L \mathds{1} + Bv \\
+    &= -L \mathds{1} + B(v_{m} \mathds{1} + Au) , \\
+    &= -L \mathds{1} +  v_{m} B \mathds{1} + BA u .
+\end{align*}
+Let $M[N]$ denote the $N$-th row of matrix $M$, then
+\begin{align*}
+  x_{N} = -L + v_{m}(B \mathds{1})[N] + (BA)[N]u ,
+\end{align*}
+so the constraint is encoded as
+\begin{align*}
+  C_{5} = (BA)[N], \; b_{5} = L - v_{m} (B \mathds{1})[N] , \\
+  C_{6} = -(BA)[N], \; b_{6} = -L + v_{m} (B \mathds{1})[N] .
+\end{align*}
+
+
+In order to encode constraint $v_{N} = v_{m}$, observe that
+\begin{align*}
+  v_{N} = v_{m} + A[N] u ,
+\end{align*}
+so the constrain is encoded as
+\begin{align*}
+  C_{7} = A[N], \; b_{7} = 0 , \\
+  C_{8} = -A[N], \; b_{8} = 0 .
+\end{align*}
+
+The constraints for keeping a safe distance to the vehicle ahead, given by
+\begin{align*}
+  x_{i} \leq y(t_{0} + i \cdot \Delta t) - l , \; \text{ for all } i
+\end{align*}
+
+\subsection*{Objective}
+
+Finally, the objective is encoded as
+\begin{align*}
+  \max_{u} \sum_{i=0}^{N} x_{i} &= \max_{u} \mathds{1}^{T} x \\
+  &= \max_{u} \mathds{1}^{T} (-L \mathds{1} + v_{m}B \mathds{1}  + BAu) \\
+  &= \max_{u} \mathds{1}^{T} BA u .
+\end{align*}
+
+\end{document}
