@@ -5,7 +5,7 @@ from glob import glob
 import re, time, os
 
 
-def check_platoons(releases, lengths):
+def check_vehicles(releases, lengths):
     """Check whether release and length specify non-overlapping platoons for
     each lane (so overlap may exist between lanes, but not on the same lane)."""
 

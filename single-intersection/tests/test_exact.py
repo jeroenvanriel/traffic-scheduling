@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 
-from exact import check_platoons, solve
+from exact import check_vehicles, solve
 
 
 class SingleIntersectionExactTest(unittest.TestCase):
@@ -11,19 +11,19 @@ class SingleIntersectionExactTest(unittest.TestCase):
         lengths = [np.array([0, 1, 1]), np.array([1, 3, 1])]
 
         # zero length is not allowed
-        self.assertRaises(Exception, check_platoons, releases, lengths,
+        self.assertRaises(Exception, check_vehicles, releases, lengths,
                           msg="Platoon lengths should be positive.")
 
         lengths = [np.array([1, 1, 1]), np.array([1, 3, 1])]
 
         # no overlap, should be fine
-        check_platoons(releases, lengths)
+        check_vehicles(releases, lengths)
 
         releases = [np.array([0, 1, 2]), np.array([0, 2, 5]), np.array([0, 3])]
         lengths = [np.array([1, 1, 1]), np.array([1, 4, 1]), np.array([1, 1])]
 
         # overlap of second and third platoon in second lane
-        self.assertRaises(Exception, check_platoons, releases, lengths)
+        self.assertRaises(Exception, check_vehicles, releases, lengths)
 
 
     def test_exact_example_two_platoons(self):
