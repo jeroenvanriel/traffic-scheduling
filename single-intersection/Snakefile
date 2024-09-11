@@ -111,7 +111,7 @@ rule eval_exhaustive:
 rule eval_simple:
     input: "data/instances/instance_{spec}_{sample}.npz"
     output: "data/evals/simple_{spec}_{sample}.npz"
-    conda: "envs/pytorch.yaml"
+    conda: "envs/base.yaml"
     script: "eval_simple.py"
 
 rule eval_dqn:
