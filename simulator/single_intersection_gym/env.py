@@ -242,4 +242,5 @@ class SingleIntersectionEnv(gym.Env):
             "vehicles_scheduled": self.vehicles_scheduled,
             "start_time": self.start_time,
             "end_time": self.end_time,
+            "current_time": self.completion_time,
         }
