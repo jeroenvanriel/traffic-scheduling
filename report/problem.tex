@@ -443,33 +443,33 @@ easier expression for calculating the lower bounds under these assumptions.
 
 
 \begin{proposition}\label{prop:exhaustive}
-  If an instance of~\eqref{eq:single_intersection_scheduling} is such that $\rho_{i} = \rho$ and $\sigma_{i} = \sigma > \rho$ for all
-  $i \in \mathcal{N}$ and $r_{i^{*}} + \rho \geq r_{j^{*}}$ for some
-  $(i^{*},j^{*}) \in \mathcal{C}$, then $j^{*}$ follows immediately after $i^{*}$
-  in any optimal ordering $\pi$.
+  Consider an instance of~\eqref{eq:single_intersection_scheduling} with $\rho_{i} = \rho$ and $\sigma_{i} = \sigma > \rho$ for all
+  $i \in \mathcal{N}$. Suppose $y$ is an optimal schedule with
+  $y_{i^{*}} + \rho \geq r_{j^{*}}$, for some $(i^{*},j^{*}) \in \mathcal{C}$, then
+  $j^{*}$ follows immediately after $i^{*}$, so $y_{i^{*}} + \rho = y_{j^{*}}$.
 \end{proposition}
 \begin{proof}
-  Suppose $\pi$ is an optimal ordering with $\pi^{-1}(i^{*}) + 1 < \pi^{-1}(j^{*})$
-  and let $y$ denote the corresponding schedule.
+  Suppose the ordering $\pi$ of $y$ is such that
+  $\pi^{-1}(i^{*}) + 1 < \pi^{-1}(j^{*})$.
   %
-  Let
-  $\mathcal{I}(i,j) = \{ i, \pi(\pi^{-1}(i) + 1), \dots, j \}$
-  be the set of vehicles between $i$ and $j$.
+  Let $\mathcal{I}(i,j) = \{ i, \pi(\pi^{-1}(i) + 1), \dots, j \}$ be the set of
+  vehicles between $i$ and $j$.
   %
   Let $f = \pi(1)$ and $e = \pi(|\mathcal{N}|)$ be the first and last vehicles,
   respectively, and set $u = \pi^{-1}(i^{*}) + 1$ and $v = \pi^{-1}(j^{*}) - 1$, see also Figure~\ref{fig:platoon-preservation-diagram}.
   Construct new ordering $\pi'$ by moving vehicle $j^{*}$ forward
   by $|\mathcal{I}(u,v)|$ places and let $y'$ denote the corresponding schedule.
   %
-  We have $y_{i} = y'_{i}$ for all $i \in \mathcal{I}(f, i^{*})$.
+  We have $y_{i} = y'_{i}$ for all $i \in \mathcal{I}(f, i^{*})$, so these do not
+  contribute to any difference in the objective.
   %
-  Using Lemma~\ref{lb_lemma}, we compute
+  Using Proposition~\ref{prop:active-schedule} and Lemma~\ref{lb_lemma}, we compute
   \begin{align*}
     y'_{j^{*}} &= \max \{ r_{j^{*}}, y_{i^{*}} + \rho \} = y_{i^{*}} + \rho , \\
     y_{u} &= \max \{ r_{u}, y_{i^{*}} + \sigma \} , \\
     y'_{u} &= \max \{ r_{u}, y_{i^{*}} + \rho + \sigma \} ,
   \end{align*}
-  where we used that $y_{i^{*}} + \rho \geq r_{i^{*}} + \rho \geq r_{j^{*}}$ by assumption.
+  where we used that $y_{i^{*}} + \rho \geq r_{j^{*}}$ by assumption.
   %
   Note that we have
   $y_{i^{*}} + \sigma + (|\mathcal{I}(u,v)| - 1) \rho \leq y_{v}$, regardless of the
@@ -518,10 +518,13 @@ easier expression for calculating the lower bounds under these assumptions.
   We can now compare the objectives by putting everything together
   \begin{align*}
     \sum_{i \in \mathcal{N}} y_{i} - y'_{i} &=  y_{j^{*}} - y'_{j^{*}} + \sum_{i \in \mathcal{I}(u, v)} y_{i} - y'_{i} + \sum_{i \in \mathcal{I}(l, e)} y_{i} - y'_{i} \\
-    &\geq 2 \sigma + (|\mathcal{I}(u,v)| - 2) \rho + \sum_{i \in \mathcal{I}(u,v)} (y_{i} - y_{i^{*}}) - (y'_{i} - y'_{j^{*}}) \\ & \hspace{12em} + |\mathcal{I}(u,v)| (y'_{j^{*}} - y_{i^{*}}) \\
+    &\geq 2 \sigma + (|\mathcal{I}(u,v)| - 2) \rho + \sum_{k \in \mathcal{I}(u,v)} (y_{k} - y_{i^{*}}) - (y'_{k} - y'_{j^{*}}) \\ & \hspace{12em} - |\mathcal{I}(u,v)| (y'_{j^{*}} - y_{i^{*}}) \\
     &\geq 2 \sigma - 2 \rho > 0
   \end{align*}
-  which contradicts the assumption that $\pi$ was optimal.
+  which contradicts the assumption that $y$ and $\pi$ were optimal.
+  %
+  Finally, from Proposition~\ref{prop:active-schedule} and Lemma~\ref{lb_lemma}
+  follows that $y_{i^{*}} + \rho = y_{j^{*}}$.
 \end{proof}
 
 \begin{figure}
