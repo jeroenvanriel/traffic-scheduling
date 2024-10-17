@@ -1,8 +1,0 @@
-channels:
-    - gurobi
-    - conda-forge
-    - bioconda
-    - defaults
-dependencies:
-    - numpy
-    - gurobi
