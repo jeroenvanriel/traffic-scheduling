@@ -47,11 +47,9 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
             g.addConstr(y[k, j] + length[k][j] <= y[k, j + 1])
 
     # disjunctions
-    o = {}
     for k1, k2 in combinations(range(N), 2):
         for j, l in product(range(n[k1]), range(n[k2])):
             oc = g.addVar(obj=0, vtype=gp.GRB.BINARY, name=f"o_{k1}_{k2}_{j}_{l}")
-            o[k1, k2, j, l] = oc
 
             g.addConstr(y[k1, j] + length[k1][j] + switch <= y[k2, l] + oc * M)
             g.addConstr(y[k2, l] + length[k2][l] + switch <= y[k1, j] + (1 - oc) * M)
