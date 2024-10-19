@@ -68,7 +68,7 @@ for i in range(epochs):
     print(f"loss: {loss_total.item()}\n")
 
 
-print("evaluating on training data")
+print("evaluating on test data")
 trained_heuristic = lambda automaton: \
                Model.action_transform(automaton, model(Model.state_transform(automaton)))
 
