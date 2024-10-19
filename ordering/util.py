@@ -6,58 +6,68 @@ from copy import deepcopy
 from itertools import product
 
 
-def plot_schedule(instance, schedule=None, out=None,
+def plot_schedule(instance, schedules=None, out=None,
                   start_at_1=False, draw_instance=True, draw_switch=False, custom_end_time=None, clean=False):
-    """Plot (partial) schedule given some instance.
+    """Plot (partial) schedule(s) given some instance.
 
     Lanes are presented from top to bottom. Use the `start_at_1` flag for 1-based
-    lane numbering. When a (partial) schedule is provided, it is shown in the bottom row."""
-    N = (len(instance['release']) if draw_instance else 0) \
-        + (1 if schedule is not None else 0) # number of rows in the figure
-    end = end_time(instance, schedule) if custom_end_time is None else custom_end_time
+    lane numbering. When one ore more (partial) schedules are provided, they are
+    shown in the bottom row."""
+    if schedules is not None:
+        schedules = list(schedules) # make sure it is singleton if single instance is provided
+    else:
+        schedules = []
+    S = len(schedules) # number of rows for schedules
+    I = len(instance['release']) if draw_instance else 0 # number of rows for lanes
+    if custom_end_time is not None:
+        end = custom_end_time
+    else:
+        # if no schedules provided: calculate with empty schedule
+        end = max([end_time(instance, None), \
+                   *[end_time(instance, schedule) for schedule in schedules]])
+
     height = 0.7 # row height
     y_scale = 0.7 # horizontal scaling
-    fig, ax = plt.subplots(figsize=(end, 1 + y_scale * (N-1)))
+    fig, ax = plt.subplots(figsize=(end, 1 + y_scale * (I+S-1)))
     cmap = colormaps["tab10"] # lane colors
     if clean:
         cmap = colormaps["Set3"]
 
-    # instance per lane
-    if draw_instance:
-        for l, (release, length) in enumerate(zip(instance['release'], instance['length'])):
-            for r, p in np.nditer([release, length]):
-                ax.add_patch(Rectangle((r, N-l-1 - height / 2), width=p, height=height,
-                                    linewidth=1, facecolor=cmap(l), edgecolor='k'))
+    # draw lane rows
+    for i in range(I):
+        release, length = instance['release'][i], instance['length'][i]
+        for r, p in np.nditer([release, length]):
+            ax.add_patch(Rectangle((r, S+I-i - height / 2), width=p, height=height,
+                                linewidth=1, facecolor=cmap(i), edgecolor='k'))
 
-    # schedule
-    if schedule is not None:
+    # draw schedule rows
+    for i, schedule in enumerate(schedules):
         for l, ys in enumerate(schedule['y']):
             if len(ys) == 0:
                 continue # no scheduled vehicles in this lane
             for y, p in np.nditer([ys, instance['length'][l][:len(ys)]]):
-                ax.add_patch(Rectangle((y, 0 - height / 2), width=p, height=height,
+                ax.add_patch(Rectangle((y, S-i - height / 2), width=p, height=height,
                                        linewidth=1, facecolor=cmap(l), edgecolor='k'))
 
-    # switch-over arrows
-    if draw_switch:
-        pi = vehicle_order(schedule)
-        prev_l, prev_k = pi[0][0], pi[0][1]
-        for (l, k) in pi[1:]:
-            if l != prev_l:
-                origin = schedule['y'][prev_l][prev_k] + instance['length'][prev_l][prev_k]
-                plt.arrow(origin, 0, instance['switch'], 0,
-                          head_length=0.1, head_width=0.1, length_includes_head=True, color='k')
-            prev_l, prev_k = l, k
+        # switch-over arrows
+        if draw_switch:
+            pi = vehicle_order(schedule)
+            prev_l, prev_k = pi[0][0], pi[0][1]
+            for (l, k) in pi[1:]:
+                if l != prev_l:
+                    origin = schedule['y'][prev_l][prev_k] + instance['length'][prev_l][prev_k]
+                    plt.arrow(origin, S-i, instance['switch'], S-i,
+                            head_length=0.1, head_width=0.1, length_includes_head=True, color='k')
+                prev_l, prev_k = l, k
 
     ax.set_xlim([-0.05, end + 0.05])
-    ax.margins(y=0.15 / N)
+    ax.margins(y=0.15 / (S+I))
 
-    ticks = np.arange(N)
-    lane_labels = np.arange(int(start_at_1), N + int(start_at_1))
-    if schedule is not None:
-        labels = ['y', *np.flip(lane_labels[:-1])] # top to bottom numbering
-    else:
-        labels = np.flip(lane_labels)
+    ticks = np.arange(1, S+I+1)
+    # reverse for top to bottom numbering
+    lane_labels = np.flip(np.arange(int(start_at_1), I + int(start_at_1)))
+    schedule_labels = np.flip(np.arange(int(start_at_1), S + int(start_at_1)))
+    labels = [*[f"y{i}" for i in schedule_labels], *lane_labels]
     plt.yticks(ticks=ticks, labels=labels)
     if clean:
         ax.axis('off')
