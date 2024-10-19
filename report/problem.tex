@@ -572,10 +572,30 @@ specific problem instance.
 
 \subsubsection*{Cutting planes}
 
-Suppose $y$ is an optimal schedule. Whenever we have $y_{i} + \rho \geq r_{j}$
-for some conjunctive pair $(i,j) \in \mathcal{C}$ , we must have
-$y_{i} + \rho = y_{j}$ by Proposition~\ref{prop:exhaustive}. In order to model
-this rule, we first introduce a binary variable $\beta_{ij}$ that satisfies
+Consider some disjunctive arc $(i,j) \in \bar{\mathcal{D}}$. Let $i^{<}$ denote
+the set of indices on lane $l(i)$ from which is a conjunctive path to $i$.
+Similarly, let $j^{>}$ denote the set of indices on lane $l(j)$ to which is a
+conjunctive path from $j$.
+%
+Now suppose $\gamma_{ij} = 0$, so the direction of the arc is $i \rightarrow j$,
+then we must clearly also have
+\begin{align*}
+  p \rightarrow q \equiv \gamma_{pq} = 0 \; \text{ for all } p \in i^{<}, q \in j^{>} .
+\end{align*}
+Written in terms of the disjunctive variables, this gives us the cutting planes
+\begin{align*}
+  \sum_{p \in i^{<}, q \in j^{>}} \gamma_{pq} \leq \gamma_{ij} M .
+\end{align*}
+We refer to these as the \textit{disjunctive cutting planes} and any feasible
+solution must satisfy these.
+
+Next, we consider two types of cutting planes that follow from the necessary condition
+for optimality in Propositon~\ref{prop:exhaustive}.
+%
+Suppose $y$ is an optimal schedule. If we have $y_{i} + \rho \geq r_{j}$ for
+some conjunctive pair $(i,j) \in \mathcal{C}$, we must have $y_{i} + \rho = y_{j}$
+by Proposition~\ref{prop:exhaustive}. In order to model this rule, we first introduce a binary
+variable $\beta_{ij}$ that satisfies
 \begin{align*}
   \beta_{ij} = 0 &\iff y_{i} + \rho < r_{j} , \\
   \beta_{ij} = 1 &\iff y_{i} + \rho \geq r_{j} ,
@@ -590,11 +610,11 @@ Now observe that the rule is enforced by adding the following cutting plane
   y_{i} + \rho &\geq y_{j} - (1 - \beta_{ij}) M .
 \end{align*}
 We refer to the above cutting planes as \textit{type I}.
-
-We could add further cutting planes on the disjunctive decision variables,
-because whenever $\beta_{ij} = 1$, the directions of the disjunctive arcs $i \rightarrow k$
-and $j \rightarrow k$ must be the same for every other vertex $k \in \mathcal{N}$.
-Therefore, consider the following constraints
+%
+We can add more cutting planes on the disjunctive decision variables, because
+whenever $\beta_{ij} = 1$, the directions of the disjunctive arcs $i \rightarrow k$ and
+$j \rightarrow k$ must be the same for every other vertex $k \in \mathcal{N}$. Therefore,
+consider the following constraints
 \begin{align*}
   \beta_{ij} + (1 - \gamma_{ik}) + \gamma_{jk} \leq 2 , \\
   \beta_{ij} + \gamma_{ik} + (1 - \gamma_{jk}) \leq 2 ,
@@ -607,21 +627,20 @@ These are the \textit{type II} cutting planes.
 %Vehicles are ``glued'' together, but then the contribution of this platoon to
 %the objective also needs to be scaled accordingly.
 
-
-%\subsubsection*{Alternative formulation}
-%The number of disjunctive variables in the above formulation is of order $O(|\mathcal{N}|^{2})$.
-%The problem is that this brings a lot of redundancy, since the decision to schedule $j$ immediately after $i$ involves setting $O(\mathcal{N})$ disjunctive decision variables.
-%%
-%We wonder whether there are alternative formulations that allow more efficient solving.
-
-%\subsubsection*{Custom branch-and-bound}
-%Instead of trying to find an efficient formulation and relying on the
-%capabilities of modern MILP solvers, we can consider a tailored branch-and-bround algorithm.
-
 \subsubsection*{Running time analysis}
 
 % uses knitr to generate nice tables from raw running times measurements in .csv file
 \input{results-woven.tex}
+
+\subsubsection*{Alternatives}
+The number of disjunctive variables in the MILP formulation is of order $O(|\mathcal{N}|^{2})$.
+%
+The existence of the disjunctive cutting planes shows that there is a lot of redundancy in this formulation: roughly speaking, the decision to choose disjunctive arc $i \rightarrow j$ involves setting $O(\mathcal{N})$ other disjunctive decision variables.
+%
+Therefore, it might be possible to find more compact equivalent formulations.
+%
+Alternatively, instead of relying on a MILP formulation and the capabilities of
+modern MILP solvers, a tailored branch-and-bround algorithm can be considered.
 
 
 \newpage
