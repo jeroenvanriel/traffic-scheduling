@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
 import pickle
 from tqdm import tqdm
 
@@ -9,18 +11,22 @@ from torch.utils.data import TensorDataset, DataLoader
 
 from automaton import Automaton, evaluate
 from model import PaddedEmbeddingModel
-from util import equalp
+from util import equalp, plot_schedule
 
 
 Model = PaddedEmbeddingModel
 
-
+# data loading
 with open('data.pkl', 'rb') as file:
-    instances, schedules, etas = pickle.load(file)
+    data = pickle.load(file)
+    data = pd.DataFrame.from_records(zip(*data), columns=["instances", "schedules", "etas"])
+
+# create train/test split
+data_train, data_test = train_test_split(data, test_size=0.2)
 
 print("generating expert demonstration")
 states, actions = [], []
-for instance, schedule, eta in zip(instances, schedules, etas):
+for _, (instance, schedule, eta) in data_train.iterrows():
     eta = iter(eta)
     automaton = Automaton(instance)
     while not automaton.done:
@@ -66,18 +72,14 @@ print("evaluating on training data")
 trained_heuristic = lambda automaton: \
                Model.action_transform(automaton, model(Model.state_transform(automaton)))
 
-obj_total = 0
-equal_total = 0
-for instance, y_opt in zip(instances, schedules):
+opt_eval, hat_eval, equal_total = 0, 0, 0
+for _, (instance, y_opt, _) in data_test.iterrows():
     y_hat = evaluate(instance, trained_heuristic)
+    hat_eval += y_hat['obj']
+    opt_eval += y_opt['obj']
     equal_total += int(equalp(y_hat, y_opt))
-    obj_total += y_hat['obj']
-model_eval = obj_total / len(instances)
+opt_eval = opt_eval / len(data_test)
+hat_eval = hat_eval / len(data_test)
 
-obj_total = 0
-for schedule in schedules:
-    obj_total += schedule['obj']
-opt_eval = obj_total / len(schedules)
-
-print(f"mean model obj / mean optimal obj = {model_eval} / {opt_eval} = {model_eval / opt_eval}")
-print(f"optimal / total = {equal_total} / {len(instances)} = {equal_total / len(instances)}")
+print(f"mean model obj / mean optimal obj = {hat_eval} / {opt_eval} = {hat_eval / opt_eval}")
+print(f"optimal / total = {equal_total} / {len(data_test)} = {equal_total / len(data_test)}")
