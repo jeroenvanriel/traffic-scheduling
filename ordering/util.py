@@ -79,6 +79,12 @@ def assert_valid_instance(instance):
             raise Exception("There are overlapping vehicles.")
 
 
+def equalp(schedule1, schedule2):
+    for y1, y2 in zip(schedule1['y'], schedule2['y']):
+        if not np.allclose(y1, y2):
+            return False
+    return True
+
 
 def LB_empty(instance):
     """Compute LB(i) in an empty schedule."""
