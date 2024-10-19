@@ -19,12 +19,10 @@ def plot_schedule(instance, schedules=None, out=None,
         schedules = []
     S = len(schedules) # number of rows for schedules
     I = len(instance['release']) if draw_instance else 0 # number of rows for lanes
-    if custom_end_time is not None:
-        end = custom_end_time
-    else:
-        # if no schedules provided: calculate with empty schedule
-        end = max([end_time(instance, None), \
-                   *[end_time(instance, schedule) for schedule in schedules]])
+
+    # if no schedules provided: calculate with empty schedule
+    end = custom_end_time or max([end_time(instance, None), \
+                                *[end_time(instance, schedule) for schedule in schedules]])
 
     height = 0.7 # row height
     y_scale = 0.7 # horizontal scaling
