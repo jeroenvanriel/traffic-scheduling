@@ -67,3 +67,64 @@ class PaddedEmbeddingModel(nn.Module, ActionTransform):
         obs = np.roll(obs, last_lane, axis=0)
 
         return torch.as_tensor(obs.flatten(), dtype=torch.float, device=torch.device('cuda'))
+
+
+class RecurrentEmbeddingModel(nn.Module, ActionTransform):
+
+    def __init__(self, lanes, max_veh_lane):
+        super().__init__()
+        self.lanes = lanes
+        self.max_veh_lane = max_veh_lane
+
+        self.rnn_out = 16
+        self.rnn = nn.RNN(1, self.rnn_out)
+        self.network = nn.Sequential(
+            nn.Linear(self.lanes * self.rnn_out, 32),
+            nn.ReLU(),
+            nn.Linear(32, 32),
+            nn.ReLU(),
+            nn.Linear(32, 1),
+        )
+
+    def forward(self, obs):
+        N = obs.size()[0] # batch size
+        # TODO: support mini-batches; using torch.vmap is not immediately
+        # possible because we use .item()
+
+        # take ragged tensor of horizons and apply rnn for each lane
+        embedding = torch.zeros((self.lanes, self.rnn_out))
+
+        for l in range(self.lanes):
+            length = int(obs[l,0].item())
+            if length == 0:
+                continue
+            inp = torch.unsqueeze(obs[l,:length], 1)
+            out, _ = self.rnn(inp)
+            # we take the last output as embedding
+            embedding[l] = out[-1]
+
+        return self.network(embedding.flatten().cuda())
+
+    def state_transform(self, automaton):
+        # compute minimum LB of unscheduled vehicles
+        LBs = []
+        for LB_lane, k_lane in zip(automaton.LB, automaton.k):
+            LBs.extend(LB_lane[k_lane:])
+        min_LB = min(LBs)
+
+        # ragged array; first number indicates length of the sequence
+        obs = np.zeros((self.lanes, self.max_veh_lane))
+        lengths = np.empty((self.lanes, 1))
+        for l, (LB_lane, k_lane) in enumerate(zip(automaton.LB, automaton.k)):
+            actual_horizon = len(LB_lane) - k_lane
+            lengths[l] = actual_horizon
+            obs[l,:actual_horizon] = LB_lane[k_lane:] - min_LB
+
+        out = np.hstack([lengths, obs])
+
+        # lane cycling
+        last_lane = automaton.last_lane or 0
+        out = np.roll(out, last_lane, axis=0)
+        out = np.expand_dims(out, axis=0) # to allow stacking with actions
+
+        return torch.as_tensor(out, dtype=torch.float, device=torch.device('cuda'))
