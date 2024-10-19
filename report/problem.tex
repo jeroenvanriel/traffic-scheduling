@@ -9,6 +9,9 @@
 \usepackage{datetime}
 \usepackage{outlines}
 \usepackage{float}
+\usepackage{booktabs}
+
+\input{knitr_init.tex}
 
 % code highlighting
 \usepackage{minted}
@@ -158,8 +161,8 @@ Using the forward Euler integration scheme, we have
   v_{i}(t + \Delta t) = v_{i}(t) + u_{i}(t) \Delta t ,
 \end{align*}
 \end{subequations}
-for each $t \in (0, \Delta t, \dots, K \Delta t)$.
-The disjunctive constraints are formulated using the big-M technique by the constraints
+for each $t \in (0, \Delta t, \dots, K \Delta t)$. The disjunctive constraints are formulated
+using the well-known big-M technique by the constraints
 \begin{subequations}
 \begin{align*}
   p_{i}(t) \leq L + \delta_{i}(t) M , \\
@@ -248,12 +251,10 @@ finding a \textit{schedule} $y$ for the crossing times by solving
 \end{align}
 \end{subequations}
 where $\rho_{i} = P_{i} / v_{\text{max}}$ and
-$\sigma_{i} = (H_{i} - L) / v_{\text{max}}$. By using the well-known big-M
-method,~\eqref{eq:single_intersection_scheduling} can be turned into a
-mixed-integer program, for which solvers are readily available.
+$\sigma_{i} = (H_{i} - L) / v_{\text{max}}$.
+%By using the well-known big-M method,~\eqref{eq:single_intersection_scheduling} can be turned into a mixed-integer program, for which solvers are readily available.
 %
-Finally, note that an instance $s$ of~\eqref{eq:single_intersection_scheduling}
-is completely characterized by the tuple
+Note that an instance $s$ of~\eqref{eq:single_intersection_scheduling} is completely characterized by the tuple
 \begin{align*}
   s = (\mathcal{N}, \rho, \sigma, r) .
 \end{align*}
@@ -536,6 +537,94 @@ easier expression for calculating the lower bounds under these assumptions.
     arc under ordering $\pi'$.}\label{fig:platoon-preservation-diagram}
 \end{figure}
 
+\newpage
+$\;$
+\newpage
+\subsection*{Solution methods}
+
+Optimization problem~\ref{eq:single_intersection_scheduling} can be turned into
+a Mixed-Integer Linear Program (MILP) by rewriting the disjunctive constraints using
+the well-known big-M method.
+%
+We introduce a binary decision variable $\gamma_{ij}$ for every
+disjunctive pair $\{i, j\} \in \mathcal{D}$.
+%
+To avoid redundant variables, we first impose some arbitrary ordering of the
+disjunctive pairs by defining
+\begin{align*}
+  \bar{\mathcal{D}} = \{ (i,j) : \{i,j\} \in \mathcal{D}, \; l(i) < l(j) \} ,
+\end{align*}
+such that for every $(i,j) \in \bar{\mathcal{D}}$, setting $\gamma_{ij} = 0$
+corresponds with choosing disjunctive arc $i \rightarrow j$ and
+$\gamma_{ij} = 1$ corresponds to $j \rightarrow i$. This yields the following
+MILP formulation
+%
+\begin{align*}
+  \min_{y} \quad & \sum_{i \in \mathcal{N}} y_{i} & \\
+  \text{s.t.} \quad & r_{i} \leq y_{i} & \text{ for all } i \in \mathcal{N} , \\
+  & y_{i} + \rho_{i} \leq y_{j} & \text{ for all } (i,j) \in \mathcal{C} , \label{eq:conjunctions} \\
+  & y_{i} + \sigma_{i} \leq y_{j} + \gamma_{ij}M & \text{ for all } (i,j) \in \bar{\mathcal{D}} , \\
+  & y_{j} + \sigma_{j} \leq y_{i} + (1 - \gamma_{ij})M & \text{ for all } (i,j) \in \bar{\mathcal{D}} , \\
+  & \gamma_{ij} \in \{0, 1\} & \text{ for all } (i,j) \in \bar{\mathcal{D}} ,
+\end{align*}
+where $M > 0$ is some sufficiently large number, which may depend on the
+specific problem instance.
+
+\subsubsection*{Cutting planes}
+
+Suppose $y$ is an optimal schedule. Whenever we have $y_{i} + \rho \geq r_{j}$
+for some conjunctive pair $(i,j) \in \mathcal{C}$ , we must have
+$y_{i} + \rho = y_{j}$ by Proposition~\ref{prop:exhaustive}. In order to model
+this rule, we first introduce a binary variable $\beta_{ij}$ that satisfies
+\begin{align*}
+  \beta_{ij} = 0 &\iff y_{i} + \rho < r_{j} , \\
+  \beta_{ij} = 1 &\iff y_{i} + \rho \geq r_{j} ,
+\end{align*}
+which can be enforced by adding the constraints
+\begin{align*}
+  y_{i} + \rho &< r_{j} + \beta_{ij}M , \\
+  y_{i} + \rho &\geq r_{j} - (1 - \beta_{ij}) M .
+\end{align*}
+Now observe that the rule is enforced by adding the following cutting plane
+\begin{align*}
+  y_{i} + \rho &\geq y_{j} - (1 - \beta_{ij}) M .
+\end{align*}
+We refer to the above cutting planes as \textit{type I}.
+
+We could add further cutting planes on the disjunctive decision variables,
+because whenever $\beta_{ij} = 1$, the directions of the disjunctive arcs $i \rightarrow k$
+and $j \rightarrow k$ must be the same for every other vertex $k \in \mathcal{N}$.
+Therefore, consider the following constraints
+\begin{align*}
+  \beta_{ij} + (1 - \gamma_{ik}) + \gamma_{jk} \leq 2 , \\
+  \beta_{ij} + \gamma_{ik} + (1 - \gamma_{jk}) \leq 2 ,
+\end{align*}
+for every $(i,j) \in \mathcal{C}$ and for every $k \in \mathcal{N}$ with $l(k) \neq l(i) = l(j)$.
+These are the \textit{type II} cutting planes.
+
+%\vspace{0.5em} \noindent \textbf{Preprocessing.}
+%We now show how Proposition~\ref{prop:exhaustive} can also be used as a preprocessing step.
+%Vehicles are ``glued'' together, but then the contribution of this platoon to
+%the objective also needs to be scaled accordingly.
+
+
+%\subsubsection*{Alternative formulation}
+%The number of disjunctive variables in the above formulation is of order $O(|\mathcal{N}|^{2})$.
+%The problem is that this brings a lot of redundancy, since the decision to schedule $j$ immediately after $i$ involves setting $O(\mathcal{N})$ disjunctive decision variables.
+%%
+%We wonder whether there are alternative formulations that allow more efficient solving.
+
+%\subsubsection*{Custom branch-and-bound}
+%Instead of trying to find an efficient formulation and relying on the
+%capabilities of modern MILP solvers, we can consider a tailored branch-and-bround algorithm.
+
+\subsubsection*{Running time analysis}
+
+% uses knitr to generate nice tables from raw running times measurements in .csv file
+\input{results-woven.tex}
+
+
+\newpage
 
 \subsection*{Partial ordering}
 
