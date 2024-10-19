@@ -2,8 +2,36 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+class ActionTransform:
 
-class PaddedEmbeddingModel(nn.Module):
+    def inverse_action_transform(self, automaton, lane):
+        # stay on last_lane when action == 0
+        # switch to other lane when action == 1
+        if automaton.last_lane == None:
+            # assume initial last_lane == 0
+            out = lane
+        else:
+            out = int(automaton.last_lane != lane)
+
+        return torch.as_tensor(out, dtype=torch.float, device=torch.device('cuda'))
+
+    def action_transform(self, automaton, logit):
+        action = logit > 0
+        action = int(action.detach().cpu().numpy()[0])
+
+        if automaton.last_lane == None:
+            lane = action
+        else:
+            lane = abs(int(automaton.last_lane - action))
+
+        if automaton.k[lane] == automaton.K[lane]:
+            # chosen lane is done, so choose other lane
+            lane = abs(int(1 - lane))
+
+        return lane
+
+
+class PaddedEmbeddingModel(nn.Module, ActionTransform):
     """Should be used with 2 lanes, because of how actions are transformed to lanes."""
 
     def __init__(self, lanes, horizon):
@@ -39,29 +67,3 @@ class PaddedEmbeddingModel(nn.Module):
         obs = np.roll(obs, last_lane, axis=0)
 
         return torch.as_tensor(obs.flatten(), dtype=torch.float, device=torch.device('cuda'))
-
-    def inverse_action_transform(self, automaton, lane):
-        # stay on last_lane when action == 0
-        # switch to other lane when action == 1
-        if automaton.last_lane == None:
-            # assume initial last_lane == 0
-            out = lane
-        else:
-            out = int(automaton.last_lane != lane)
-
-        return torch.as_tensor(out, dtype=torch.float, device=torch.device('cuda'))
-
-    def action_transform(self, automaton, logit):
-        action = logit > 0
-        action = int(action.detach().cpu().numpy()[0])
-
-        if automaton.last_lane == None:
-            lane = action
-        else:
-            lane = abs(int(automaton.last_lane - action))
-
-        if automaton.k[lane] == automaton.K[lane]:
-            # chosen lane is done, so choose other lane
-            lane = abs(int(1 - lane))
-
-        return lane
