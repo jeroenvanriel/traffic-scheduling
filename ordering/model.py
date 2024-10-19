@@ -6,10 +6,12 @@ import torch.nn as nn
 class PaddedEmbeddingModel(nn.Module):
     """Should be used with 2 lanes, because of how actions are transformed to lanes."""
 
-    def __init__(self, in_shape):
+    def __init__(self, lanes, horizon):
         super().__init__()
+        self.horizon = horizon
+        self.lanes = lanes
         self.network = nn.Sequential(
-            nn.Linear(np.array(in_shape).prod(), 32),
+            nn.Linear(lanes * horizon, 32),
             nn.ReLU(),
             nn.Linear(32, 32),
             nn.ReLU(),
@@ -19,7 +21,7 @@ class PaddedEmbeddingModel(nn.Module):
     def forward(self, x):
         return self.network(x)
 
-    def state_transform(automaton, horizon=5):
+    def state_transform(self, automaton):
         # compute minimum LB of unscheduled vehicles
         LBs = []
         for LB_lane, k_lane in zip(automaton.LB, automaton.k):
@@ -27,9 +29,9 @@ class PaddedEmbeddingModel(nn.Module):
         min_LB = min(LBs)
 
         # create the observation padded with zeros
-        obs = np.zeros((len(automaton.LB), horizon))
+        obs = np.zeros((self.lanes, self.horizon))
         for l, (LB_lane, k_lane) in enumerate(zip(automaton.LB, automaton.k)):
-            actual_horizon = min(horizon, len(LB_lane) - k_lane)
+            actual_horizon = min(self.horizon, len(LB_lane) - k_lane)
             obs[l,:actual_horizon] = LB_lane[k_lane:k_lane+actual_horizon] - min_LB
 
         # lane cycling
@@ -38,7 +40,7 @@ class PaddedEmbeddingModel(nn.Module):
 
         return torch.as_tensor(obs.flatten(), dtype=torch.float, device=torch.device('cuda'))
 
-    def inverse_action_transform(automaton, lane):
+    def inverse_action_transform(self, automaton, lane):
         # stay on last_lane when action == 0
         # switch to other lane when action == 1
         if automaton.last_lane == None:
@@ -49,7 +51,7 @@ class PaddedEmbeddingModel(nn.Module):
 
         return torch.as_tensor(out, dtype=torch.float, device=torch.device('cuda'))
 
-    def action_transform(automaton, logit):
+    def action_transform(self, automaton, logit):
         action = logit > 0
         action = int(action.detach().cpu().numpy()[0])
 

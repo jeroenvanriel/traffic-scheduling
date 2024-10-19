@@ -10,11 +10,15 @@ import torch.nn.functional as F
 from torch.utils.data import TensorDataset, DataLoader
 
 from automaton import Automaton, evaluate
-from model import PaddedEmbeddingModel
+from model import PaddedEmbeddingModel, RecurrentEmbeddingModel
 from util import equalp, plot_schedule
 
 
 Model = PaddedEmbeddingModel
+#Model = RecurrentEmbeddingModel
+
+model = Model(lanes=2, horizon=5)
+model.cuda()
 
 # data loading
 with open('data.pkl', 'rb') as file:
@@ -31,16 +35,14 @@ for _, (instance, schedule, eta) in data_train.iterrows():
     automaton = Automaton(instance)
     while not automaton.done:
         lane = next(eta)
-        state = Model.state_transform(automaton)
-        action = Model.inverse_action_transform(automaton, lane)
+        state = model.state_transform(automaton)
+        action = model.inverse_action_transform(automaton, lane)
         automaton.step(lane)
 
         states.append(state)
         actions.append(action)
 
-train_states = torch.vstack(states)
-train_actions = torch.vstack(actions)
-train_set = TensorDataset(train_states, train_actions)
+train_set = TensorDataset(torch.vstack(states), torch.vstack(actions))
 
 in_shape = train_states[0].shape
 model = Model(in_shape)
@@ -70,7 +72,7 @@ for i in range(epochs):
 
 print("evaluating on test data")
 trained_heuristic = lambda automaton: \
-               Model.action_transform(automaton, model(Model.state_transform(automaton)))
+               model.action_transform(automaton, model(model.state_transform(automaton)))
 
 opt_eval, hat_eval, equal_total = 0, 0, 0
 for _, (instance, y_opt, _) in data_test.iterrows():
