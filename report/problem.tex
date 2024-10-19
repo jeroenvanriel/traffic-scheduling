@@ -727,12 +727,12 @@ whenever it is of length
 and contains precisely $n_l = |\{ i \in \mathcal{N} : l(i) = l \}|$ occurrences
 of $l$, for each $l \in \Sigma$.
 %
-Let $\delta(s, \eta)$ denote the state
-that we obtain after applying sequence $\eta$ to the automaton with initial
+With a little abuse of notation, let $\delta(s, \eta) = \detla(s_{0}, \eta)$ denote the
+state that we obtain after applying sequence $\eta$ to the automaton with initial
 state $s_{0} = (s, \varnothing)$, which generalizes the single step transition function by
 recursively defining
 \begin{align*}
-  \delta(s, \eta_{1:t}) = \delta(\delta(s, \eta_{1:t-1}), \eta_{t}) .
+  \delta(s_{0}, \eta_{1:t}) = \delta(\delta(s_{0}, \eta_{1:t-1}), \eta_{t}) .
 \end{align*}
 
 
@@ -760,7 +760,7 @@ Given problem instance $s$, let $y_{\eta}(s)$ denote the schedule obtained from
 lane order $\eta$. We first compute an optimal schedule $y^{*}(s)$. Next, we
 compute $\eta$ such that $y^{*}(s) = y_{\eta}(s)$ to obtain the corresponding
 trajectory of states $s_{t} = \delta(s, \eta_{1:t})$. The resulting set of pairs
-$(s_{t}, \eta_{t})$ can be used to learn $p_{\theta}$ in a supervised fashion by
+$(s_{t}, \eta_{t+1})$ can be used to learn $p_{\theta}$ in a supervised fashion by
 treating it as a classification task.
 
 % inference
