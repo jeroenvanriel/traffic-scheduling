@@ -37,7 +37,7 @@ specs = [
     Spec(100, [10,10], 2,  0, 4,  1, 1),
     Spec(100, [15,15], 2,  0, 4,  1, 1),
     Spec(100, [20,20], 2,  0, 4,  1, 1),
-    #Spec(100, [25,25], 2,  0, 4,  1, 1), # too big for non-commercial Gurobi
+    Spec(100, [25,25], 2,  0, 4,  1, 1), # too big for non-licensed Gurobi
 ]
 
 for i, spec in enumerate(specs):
