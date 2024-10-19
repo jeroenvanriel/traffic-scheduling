@@ -34,10 +34,10 @@ Spec = namedtuple("Spec", ["reps", "n", "s", "gap1", "gap2", "min_length", "max_
 
 specs = [
     #   reps    n     s    gap    rho
-    Spec(10, [10,10], 2,  0, 4,  1, 1),
-    Spec(10, [15,15], 2,  0, 4,  1, 1),
-    Spec(10, [20,20], 2,  0, 4,  1, 1),
-    Spec(10, [25,25], 2,  0, 4,  1, 1),
+    Spec(100, [10,10], 2,  0, 4,  1, 1),
+    Spec(100, [15,15], 2,  0, 4,  1, 1),
+    Spec(100, [20,20], 2,  0, 4,  1, 1),
+    #Spec(100, [25,25], 2,  0, 4,  1, 1), # too big for non-commercial Gurobi
 ]
 
 for i, spec in enumerate(specs):
@@ -48,6 +48,6 @@ for i, spec in enumerate(specs):
     # visualize the first instance
     plot_schedule(data[0], out=f"../report/data/sample_{i+1}.pdf", clean=True, custom_end_time=40)
 
-    filename = f"data_{i+1}.pkl"
+    filename = f"data/instances_{i+1}.pkl"
     with open(filename, 'wb') as file:
         pickle.dump(data, file)
