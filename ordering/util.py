@@ -7,7 +7,7 @@ from itertools import product
 
 
 def plot_schedule(instance, schedule=None, out=None,
-                  start_at_1=False, draw_instance=True, draw_switch=False, custom_end_time=None):
+                  start_at_1=False, draw_instance=True, draw_switch=False, custom_end_time=None, clean=False):
     """Plot (partial) schedule given some instance.
 
     Lanes are presented from top to bottom. Use the `start_at_1` flag for 1-based
@@ -19,6 +19,8 @@ def plot_schedule(instance, schedule=None, out=None,
     y_scale = 0.7 # horizontal scaling
     fig, ax = plt.subplots(figsize=(end, 1 + y_scale * (N-1)))
     cmap = colormaps["tab10"] # lane colors
+    if clean:
+        cmap = colormaps["Set3"]
 
     # instance per lane
     if draw_instance:
@@ -57,6 +59,8 @@ def plot_schedule(instance, schedule=None, out=None,
     else:
         labels = np.flip(lane_labels)
     plt.yticks(ticks=ticks, labels=labels)
+    if clean:
+        ax.axis('off')
     plt.tight_layout()
     plt.savefig(out) if out is not None else plt.show()
     plt.close()
