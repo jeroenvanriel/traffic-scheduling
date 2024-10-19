@@ -9,6 +9,8 @@ from torch.utils.data import TensorDataset, DataLoader
 
 from automaton import Automaton, evaluate
 from model import PaddedEmbeddingModel
+from util import equalp
+
 
 Model = PaddedEmbeddingModel
 
@@ -61,8 +63,16 @@ for i in range(epochs):
 
 
 print("evaluating on training data")
-model_eval = evaluate(instances, lambda automaton: \
-               Model.action_transform(automaton, model(Model.state_transform(automaton))))
+trained_heuristic = lambda automaton: \
+               Model.action_transform(automaton, model(Model.state_transform(automaton)))
+
+obj_total = 0
+equal_total = 0
+for instance, y_opt in zip(instances, schedules):
+    y_hat = evaluate(instance, trained_heuristic)
+    equal_total += int(equalp(y_hat, y_opt))
+    obj_total += y_hat['obj']
+model_eval = obj_total / len(instances)
 
 obj_total = 0
 for schedule in schedules:
@@ -70,3 +80,4 @@ for schedule in schedules:
 opt_eval = obj_total / len(schedules)
 
 print(f"mean model obj / mean optimal obj = {model_eval} / {opt_eval} = {model_eval / opt_eval}")
+print(f"optimal / total = {equal_total} / {len(instances)} = {equal_total / len(instances)}")
