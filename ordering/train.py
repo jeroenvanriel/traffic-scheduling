@@ -16,6 +16,7 @@ Model = PaddedEmbeddingModel
 with open('data.pkl', 'rb') as file:
     instances, schedules, etas = pickle.load(file)
 
+print("generating expert demonstration")
 states, actions = [], []
 for instance, schedule, eta in zip(instances, schedules, etas):
     eta = iter(eta)
@@ -44,24 +45,28 @@ data_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
 learning_rate = 1e-3
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
+print("\ntraining model\n")
 model.train()
 for i in range(epochs):
     loss_total = 0
     print(f'epoch: {i}')
-    for s, a in tqdm(data_loader):
+    for s, a in tqdm(data_loader, leave=False):
         optimizer.zero_grad()
         logit = model(s)
         loss = F.binary_cross_entropy_with_logits(logit, a)
         loss.backward()
         loss_total += loss
         optimizer.step()
-    print(loss_total)
+    print(f"loss: {loss_total.item()}\n")
 
 
-print(evaluate(instances, lambda automaton: \
-               Model.action_transform(automaton, model(Model.state_transform(automaton)))))
+print("evaluating on training data")
+model_eval = evaluate(instances, lambda automaton: \
+               Model.action_transform(automaton, model(Model.state_transform(automaton))))
 
 obj_total = 0
 for schedule in schedules:
     obj_total += schedule['obj']
-print(obj_total / len(schedules))
+opt_eval = obj_total / len(schedules)
+
+print(f"mean model obj / mean optimal obj = {model_eval} / {opt_eval} = {model_eval / opt_eval}")
