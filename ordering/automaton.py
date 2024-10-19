@@ -64,12 +64,9 @@ class Automaton:
         }
 
 
-def evaluate(instances, model):
-    obj_total = 0
-    for instance in instances:
-        automaton = Automaton(instance)
-        while not automaton.done:
-            lane = model(automaton)
-            automaton.step(lane)
-        obj_total += automaton.get_schedule()['obj']
-    return obj_total / len(instances)
+def evaluate(instance, model):
+    automaton = Automaton(instance)
+    while not automaton.done:
+        lane = model(automaton)
+        automaton.step(lane)
+    return automaton.get_schedule()
