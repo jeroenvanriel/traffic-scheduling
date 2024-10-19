@@ -32,6 +32,12 @@ class PaddedEmbeddingModel(nn.Module):
             actual_horizon = min(horizon, len(LB_lane) - k_lane)
             obs[l,:actual_horizon] = LB_lane[k_lane:k_lane+actual_horizon] - min_LB
 
+        # lane cycling
+        last_lane = automaton.last_lane
+        if last_lane is None:
+            last_lane = 0 # assume initial last_lane == 0
+        obs = np.roll(obs, last_lane, axis=0)
+
         return torch.as_tensor(obs.flatten(), dtype=torch.float, device=torch.device('cuda'))
 
     def inverse_action_transform(automaton, lane):
