@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[a4paper]{article}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{xcolor}
@@ -38,7 +38,28 @@
 
 \begin{document}
 
-\section*{MotionSynthesize implementation}
+\section*{MotionSynthesize}
+
+\begin{align*}
+  \texttt{MotionSynthesize}(z_{i,k}(t'_{0}), t'_{0}, t'_{f}, y) := \\
+  \text{arg min}_{x : [t'_{0}, t'_{f}] \rightarrow \mathbb{R}} \; &\int_{t_{0}}^{t_{f}} |x(t)|dt \\
+  \text{ subject to } \; & \ddot{x}(t) = u(t) , \text{ for all } t \in [t'_{0}, t'_{f}] ; \\
+  & 0 \leq \dot{x}(t) \leq v_{m} , \text{ for all } t \in [t'_{0}, t'_{f}] ; \\
+  & |u(t)| \leq a_{m} , \text{ for all } t \in [t'_{0}, t'_{f}] ; \\
+  & |x(t) - y(t)| \geq l , \text{ for all } t \in [t'_{0}, t'_{f}] ; \\
+  & x(t'_{0}) = x_{i,k}(t'_{0}); \quad \dot{x}(t'_{0}) = \dot{x}_{i,k}(t'_{0}) ; \\
+  & x(t'_{f}) = 0; \quad \dot{x}(t'_{f}) = v_{m} ,
+\end{align*}
+%
+where initial state $z_{i,k}(t'_{0}) = (x_{i,k}(t'_{0}), \dot{x}_{i,k}(t'_{0}))$.
+
+\subsection*{AMPL implementation}
+
+Using the AMPL modeling language, we can almost immediately implement the above
+linear program such that it can be read by a modern solver.
+
+
+\subsection*{MATLAB implementation}
 
 We start by expressing $v = {(v_{1}, \dots, v_{N})}^{T}$ in terms of the decision variables $u = {(u_{0}, \dots, u_{N-1})}^{T}$.
 From the initial condition $v_{0} = v_{m}$ and the relation $v_{i+1} = v_{i} + u_{i} \cdot \Delta t$, we obtain
@@ -79,7 +100,7 @@ which can be constructed using the following Matlab code:
   B = delta_t / 2 * (tril(2 * ones(N), 1) - diag(ones(N - 1, 1), 1) - [ ones(N, 1) zeros(N, N-1) ])
 \end{lstlisting}
 
-\subsection*{Constraints}
+\subsubsection*{Constraints}
 
 We can now start constructing the matrix $C$ and the righ-hand side $b$.
 
@@ -136,7 +157,7 @@ The constraints for keeping a safe distance to the vehicle ahead, given by
   x_{i} \leq y(t_{0} + i \cdot \Delta t) - l , \; \text{ for all } i
 \end{align*}
 
-\subsection*{Objective}
+\subsubsection*{Objective}
 
 Finally, the objective is encoded as
 \begin{align*}
