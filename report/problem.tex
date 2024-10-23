@@ -46,6 +46,7 @@
 \theoremstyle{plain}
 \newtheorem{proposition}{Proposition}
 \newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{assump}{Assumption}[section]
 \newtheorem{remark}{Remark}[section]
@@ -540,7 +541,7 @@ easier expression for calculating the lower bounds under these assumptions.
 \newpage
 $\;$
 \newpage
-\subsection*{Solution methods}
+\subsection*{Branch-and-bound approach}
 
 Optimization problem~\ref{eq:single_intersection_scheduling} can be turned into
 a Mixed-Integer Linear Program (MILP) by rewriting the disjunctive constraints using
@@ -645,17 +646,18 @@ modern MILP solvers, a tailored branch-and-bround algorithm can be considered.
 
 \newpage
 
-\subsection*{Partial ordering}
+\subsection*{Constructive heuristics}
 
 % constructive scheduling
-Finding an optimal schedule by solving the mixed-integer linear program boils
-down to systematically evaluating all different schedules. This method does not
-scale well to larger instances, so we are interested in good heuristics. A
-common approach in the scheduling literature is to incrementally construct a
-schedule by fixing one job starting time (vehicle crossing time) at each step.
-%
-We will consider incrementally constructing a vehicle ordering. Therefore, we
-define partial ordering $\pi$ to be a \textit{partial permutation} of
+Methods that rely on branch-and-bound techniques guarantee to find an optimal
+solution, but their running time scales very badly with increasing instance
+sizes. Therefore, we are interested in developing heuristics to obtain good
+approximations in reasonable time. A common approach for developing such
+heuristics in the scheduling literature is to incrementally construct a schedule
+by fixing one job starting time at each step, so we will consider incrementally
+constructing a vehicle ordering.
+
+To this end, we define partial ordering $\pi$ to be a \textit{partial permutation} of
 $\mathcal{N}$, which is a sequence of elements from some subset
 $\mathcal{N}(\pi) \subset \mathcal{N}$.
 %
@@ -672,42 +674,33 @@ incomplete, meaning that some of the disjunctive arcs have not yet been added.
 Nevertheless, observe that $\text{LB}_{\pi}(i)$ is still defined for every
 $i \in \mathcal{N}$.
 %
-Now consider the following rule for partial orderings, which is a generalization
-of Proposition~\ref{prop:exhaustive}, because
-$\text{LB}_{\pi'}(i^{*}) = r_{i^{*}}$ for the empty ordering
-$\pi = \varnothing$.
+Let $\text{obj}(\pi)$ denote the objective of a complete ordering $\pi$, then
+the following rule for constructing partial orderings follows from
+Proposition~\ref{prop:exhaustive}.
 
-\begin{proposition}\label{prop:exhaustive_partial}
+\begin{corollary}\label{prop:exhaustive_partial}
   % same assumptions as in prop:exhaustive
   Consider an instance of~\eqref{eq:single_intersection_scheduling} with
   $\rho_{i} = \rho$ and $\sigma_{i} = \sigma > \rho$ for all
   $i \in \mathcal{N}$.
   %
-  Let ${\pi}$ be a partial ordering of length $n$. If ${\pi}$ is such that
-  $\text{LB}_{{\pi}}(i^{*}) + \rho_{i^{*}} \geq r_{j^{*}}$ for some
-  $(i^{*},j^{*}) \in \mathcal{C}$ with $i^{*}, j^{*} \notin {\pi}$, then $j^{*}$ follows
-  immediately after $i^{*}$ in any complete optimal ordering ${\pi} \mdoubleplus \pi'$.
-\end{proposition}
-\begin{proof}
-  Consider a new problem instance $s'$ on the unscheduled vehicles
-  $\mathcal{N}' = \mathcal{N} \setminus \mathcal{N}({\pi})$, with
-  $r'_{i} = \text{LB}_{{\pi}}(i)$ for all $i \in \mathcal{N}'$.
-  It follows from Proposition~\ref{prop:exhaustive} that $j^{*}$ follows $i^{*}$
-  immediately in any optimal ordering $\pi'$ of the remaining vehicles.
-\end{proof}
+  Let $\pi$ be a partial ordering of length $n$ with optimal completion schedule
+  \begin{align*}
+    \pi^{*} = \arg\min_{\pi'} \;  \mathrm{obj}(\pi \mdoubleplus \pi') .
+  \end{align*}
+  %
+  If $(\pi(n),j) \in \mathcal{C}$ exists and satisfies
+  $\text{LB}_{{\pi}}(\pi(n)) + \rho_{\pi(n)} \geq r_{j}$, then $\pi^{*}(1) = j$.
+\end{corollary}
 
-
-\newpage
-
-\subsection*{Lane ordering}
-
-% automaton
+% lane ordering automaton
 Observe that ordering vehicles is equivalent to ordering the lanes, due to the
-conjunctive constraints. We propose a method based on repeatedly choosing the
-next lane. This may be modeled as a deterministic finite-state automaton, where
-the set of lane indices acts as the input alphabet $\Sigma = \{ 1, \dots, n \}$,
-where $n$ denotes the number of lanes. Let $S$ denote the state space and let
-$\delta: S \times \Sigma \rightarrow S$ denote the state-transition function.
+conjunctive constraints. We will define heuristics in terms of repeatedly
+choosing the next lane. It may be helpful to model this as a deterministic
+finite-state automaton, where the set of lane indices acts as the input alphabet
+$\Sigma = \{ 1, \dots, n \}$, where $n$ denotes the number of lanes. Let $S$
+denote the state space and let $\delta: S \times \Sigma \rightarrow S$ denote
+the state-transition function.
 
 % states
 Let $s$ denote an instance of~\eqref{eq:single_intersection_scheduling}. We
@@ -719,67 +712,92 @@ The transitions of the automaton are very simple. Let $(s, \pi) \in S$ denote
 the current state and let $l \in \Sigma$ denote the next symbol. Let
 $i \in \mathcal{N} \setminus \mathcal{N}(\pi)$ denote the next unscheduled vehicle on lane $l$,
 then the system transitions to $(s, \pi \mdoubleplus i)$. If no such vehicle exists, the
-transition is undefined. Observe that some lane sequence $\eta$ is valid
-whenever it is of length
+transition is undefined.
+%
+% multi-step transition
+% With a little abuse of notation, let $\delta(s, \eta) = \delta(s_{0}, \eta)$ denote the
+% state that we obtain after applying sequence $\eta$ to the automaton with initial
+% state $s_{0} = (s, \varnothing)$, which generalizes the single step transition function by
+% recursively defining
+% \begin{align*}
+%   \delta(s_{0}, \eta_{1:t}) = \delta(\delta(s_{0}, \eta_{1:t-1}), \eta_{t}) .
+% \end{align*}
+%
+Therefore, an input sequence $\eta$ of lanes is called a \textit{valid lane
+  order} whenever it is of length
 \begin{align*}
   N = \sum_{l \in \Sigma} n_{l}
 \end{align*}
 and contains precisely $n_l = |\{ i \in \mathcal{N} : l(i) = l \}|$ occurrences
-of $l$, for each $l \in \Sigma$.
-%
-With a little abuse of notation, let $\delta(s, \eta) = \delta(s_{0}, \eta)$ denote the
-state that we obtain after applying sequence $\eta$ to the automaton with initial
-state $s_{0} = (s, \varnothing)$, which generalizes the single step transition function by
-recursively defining
+of lane $l \in \Sigma$. Given problem instance $s$, let $y_{\eta}(s)$ denote the
+schedule corresponding to lane order $\eta$. We say that lane order $\eta$ is
+optimal whenever $y_{\eta}(s)$ is optimal. Observe that an optimal lane order
+must exist for every instance $s$, since we can simply derive the lane order
+from an optimal vehicle order.
+
+Instead of mapping an instance $s$ directly to some optimal lane order, we
+consider a mapping $p : S \rightarrow \Sigma$ such that setting
+$s_{0} = (s, \varnothing)$ and repeatedly evaluating
 \begin{align*}
-  \delta(s_{0}, \eta_{1:t}) = \delta(\delta(s_{0}, \eta_{1:t-1}), \eta_{t}) .
+  s_{t} = \delta(s_{t-1}, p(s_{t-1}))
 \end{align*}
+yields a final state $s_{N}(s, \pi^{*})$ with optimal schedule $\pi^{*}$.
+Observe that this mapping must exist, because given some optimal lane order
+$\eta^{*}$, we can set $p(s_{t}) = \eta^{*}_{t+1}$, for every $t \in \{0, \dots, N-1\}$.
+
+We do not hope to find an explicit representation of $p$, but our aim is to find
+good heuristic approximations.
+For example, consider the following simple \textit{threshold rule}.
+%
+Let $\pi$ be a partial schedule of length $n$, so $i=\pi(n)$ is the last
+scheduled vehicle on some lane $l=l(i)$, then define
+\begin{align*}
+  p(s, \pi) = \begin{cases}
+                l \quad &\text{ if } \text{LB}_{\pi}(i) + \rho_{i} + \tau \geq r_{j} \text{ and } (i,j) \in \mathcal{C} , \\
+                l+1 \; \mathrm{mod} \; |\Sigma| & \text{ otherwise, }
+              \end{cases}
+\end{align*}
+for some threshold $\tau \geq 0$. This heuristic satisfies the rule of
+Corollary~\ref{prop:exhaustive_partial} for any $\tau$ and may as such be
+interpreted as a relaxation of this rule.
 
 
 \subsection*{Behavioral cloning}
 
-% policy
-It is now clear that task of finding an optimal schedule has been reduced to
-finding an optimal lane sequence.
+% We model the conditional distribution
+% $p_{\theta}(\eta | s)$ of the optimal lane sequence given a problem instance $s$
+% and we factorize it as
+% %
+% \begin{align*}
+%   p_{\theta} (\eta \, | \, s) = \prod_{t=1}^{N} p_{\theta}(\eta_{t} \, | \; \delta(s, \eta_{1:t-1})) ,
+% \end{align*}
+% %
+% where $\theta$ denotes the model parameters.
+
+Instead of explicitly formulating heuristics using elementary rules, we will now
+consider a data-driven approach. To this end, we model the conditional
+distribution $p_{\theta}(\eta_{t+1} | s_{t})$ with model parameters $\theta$.
 %
-Therefore, our goal is now to find a mapping from problem instances to optimal lane sequences.
-This mapping is of course very complex, so our aim is to find a good approximation.
-%
-Instead of formulating a direct mapping, we model the conditional distribution
-$p_{\theta}(\eta | s)$ of the optimal lane sequence given a problem instance $s$
-and we factorize it as
-%
-\begin{align*}
-  p_{\theta} (\eta \, | \, s) = \prod_{t=1}^{N} p_{\theta}(\eta_{t} \, | \; \delta(s, \eta_{1:t-1})) ,
-\end{align*}
-%
-where $\theta$ denotes the model parameters. We aim to learn this conditional
-distribution from a set of instances with corresponding optimal schedules.
-%
-Given problem instance $s$, let $y_{\eta}(s)$ denote the schedule obtained from
-lane order $\eta$. We first compute an optimal schedule $y^{*}(s)$. Next, we
-compute $\eta$ such that $y^{*}(s) = y_{\eta}(s)$ to obtain the corresponding
-trajectory of states $s_{t} = \delta(s, \eta_{1:t})$. The resulting set of pairs
-$(s_{t}, \eta_{t+1})$ can be used to learn $p_{\theta}$ in a supervised fashion by
-treating it as a classification task.
+Consider an instance $s$ and some optimal lane sequence $\eta$ with
+corresponding states defined as $s_{t+1} = \delta(s_{t}, \eta_{t+1})$ for
+$t \in \{0, \dots, N-1\}$. The resulting set of pairs $(s_{t}, \eta_{t+1})$ can be
+used to learn $p_{\theta}$ in a supervised fashion by treating it as a classification
+task.
 
 % inference
-We employ \textit{greedy inference} as follows. The model $p_{\theta}$ provides
-a distribution over the lanes. We ignore the lanes that have no unscheduled
-vehicles anymore and take the argmax of the remaining probabilities. We will
-denote the corresponding complete schedule by $\hat{y}_{\theta}(s)$.
+Schedules are generated by employing \textit{greedy inference} as follows. The
+model $p_{\theta}$ provides a distribution over lanes. We ignore lanes that have
+no unscheduled vehicles left and take the argmax of the remaining probabilities.
+We will denote the corresponding complete schedule by $\hat{y}_{\theta}(s)$.
 
-\subsection*{Parameterization}
-
-We will now discuss two ways of parameterizing the model. In both cases, we
-first derive, for every $l \in \Sigma$, a \textit{lane embedding} $h(s_{t}, l)$ based on the
-current nonterminal state $s_{t} = (s, \pi_{t})$ of the automaton. These are then
-arranged into a \textit{state embedding} $h(s_{t})$ as follows. Let $\eta_{t}$ be
-the lane that was chosen last, then we apply the following \textit{lane cycling}
-trick in order to keep the most recent lane in the same position of the state
-embedding, by defining
+Next, we discuss two ways of parameterizing the model. In both cases, we first
+derive, for every $l \in \Sigma$, a \textit{lane embedding} $h(s_{t}, l)$ based on the current
+non-final state $s_{t} = (s, \pi_{t})$ of the automaton. These are then arranged
+into a \textit{state embedding} $h(s_{t})$ as follows. Let $\eta_{t}$ be the lane that was
+chosen last, then we apply the following \textit{lane cycling} trick in order to keep the
+most recent lane in the same position of the state embedding, by defining
 \begin{align*}
-  h_{l}(s_{t}) = h(s_{t}, \; l - \eta_{t} \; \text{ mod } |\Sigma|) ,
+  h_{l}(s_{t}) = h(s_{t}, \; l - \eta_{t} \; \mathrm{mod} \; |\Sigma|) ,
 \end{align*}
 for every $l \in \Sigma$.
 %
