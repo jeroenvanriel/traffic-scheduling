@@ -898,7 +898,13 @@ The lane embedding is then given by
 
 To avoid the zero padding operation, which can be problematic for states that
 are almost done, we can employ a recurrent architecture that is agnostic to the
-number of remaining unscheduled vehicles.
+number of remaining unscheduled vehicles. Each variable-length horizon
+$h'(s_{t}, l)$ is simply transformed into the fixed-length vector by an Elman
+RNN by taking the output at the last step.
+\begin{align*}
+  h(s_{t}, l) = \text{RNN}(h'(s_{t}, l)) .
+\end{align*}
+
 
 \subsection*{Experiments}
 
