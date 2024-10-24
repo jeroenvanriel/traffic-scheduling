@@ -88,22 +88,22 @@ class RecurrentEmbeddingModel(nn.Module, ActionTransform):
 
     def forward(self, obs):
         N = obs.size()[0] # batch size
-        # TODO: support mini-batches; using torch.vmap is not immediately
-        # possible because we use .item()
 
         # take ragged tensor of horizons and apply rnn for each lane
-        embedding = torch.zeros((self.lanes, self.rnn_out))
+        embedding = torch.zeros((N, self.lanes, self.rnn_out))
 
-        for l in range(self.lanes):
-            length = int(obs[l,0].item())
-            if length == 0:
-                continue
-            inp = torch.unsqueeze(obs[l,:length], 1)
-            out, _ = self.rnn(inp)
-            # we take the last output as embedding
-            embedding[l] = out[-1]
+        for n in range(N):
+            for l in range(self.lanes):
+                length = int(obs[n, l, 0].item())
+                if length == 0:
+                    continue
 
-        return self.network(embedding.flatten().cuda())
+                inp = torch.unsqueeze(obs[n, l,:length], 1)
+                out, _ = self.rnn(inp)
+                # we take the last output as embedding
+                embedding[n, l] = out[-1]
+
+        return self.network(torch.flatten(embedding, 1, 2).cuda())
 
     def state_transform(self, automaton):
         # compute minimum LB of unscheduled vehicles

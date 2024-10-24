@@ -14,10 +14,8 @@ from model import PaddedEmbeddingModel, RecurrentEmbeddingModel
 from util import equalp, plot_schedule
 
 
-Model = PaddedEmbeddingModel
-#Model = RecurrentEmbeddingModel
-
-model = Model(lanes=2, horizon=5)
+#model = PaddedEmbeddingModel(lanes=2, horizon=5)
+model = RecurrentEmbeddingModel(lanes=2, max_veh_lane=20)
 model.cuda()
 
 # data loading
@@ -43,10 +41,6 @@ for _, (instance, schedule, eta) in data_train.iterrows():
         actions.append(action)
 
 train_set = TensorDataset(torch.vstack(states), torch.vstack(actions))
-
-in_shape = train_states[0].shape
-model = Model(in_shape)
-model.cuda()
 
 epochs = 10
 batch_size = 10
