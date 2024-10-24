@@ -1,0 +1,19 @@
+% silent package loading
+<<include=F>>=
+library(dplyr)
+library(kableExtra)
+library(qwraps2)
+@
+
+<<echo=F>>=
+data <- read.csv("results.csv", check.names=FALSE)
+
+bnb_running_times = data %>%
+  group_by(set_id) %>%
+  summarize(across(c('running_time_0', 'running_time_1', 'running_time_2'), \(x) mean_sd(x, digits = 3)))
+
+kbl(bnb_running_times,
+    escape=F, booktabs=T,
+    col.names=c("set id", "plain", "type I", "type I + II"),
+    caption="Solving times of Gurobi on the different sets of instances. Mean and standard deviation are given for the MILP without cutting planes (``plain''), type I cutting planes or both types of cutting planes. \\label{tab:running_times}")
+@

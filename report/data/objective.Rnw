@@ -1,0 +1,20 @@
+% silent package loading
+<<include=F>>=
+library(dplyr)
+library(kableExtra)
+library(qwraps2)
+@
+
+<<echo=F>>=
+data <- read.csv("results.csv", check.names=FALSE)
+
+threshold_obj = data %>%
+    group_by(set_id) %>%
+    mutate(ratio= y_threshold_obj / y_opt_obj) %>%
+    summarize(across(c('ratio'), \(x) mean(x)))
+
+kbl(threshold_obj,
+    escape=F, booktabs=T,
+    col.names=c("set id", "threshold $\\tau = 1.2$"),
+    caption="Approximation ratio for the heuristics. \\label{tab:objectives}")
+@
