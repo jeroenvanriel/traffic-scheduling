@@ -1,53 +1,74 @@
+import pandas as pd
+import numpy as np
 import time
 import glob, re
-import pickle, csv
+import csv
+import math
 import numpy as np
 from tqdm import trange
 
 from exact import solve
+from threshold import threshold_heuristic
+from automaton import evaluate
 from util import lane_order
 
-global_start = time.time()
 
-times_file = open('../report/data/running_times.csv', 'w', newline='')
-writer = csv.writer(times_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-writer.writerow(["set_id", "instance_id", "cut0", "cut1", "cut2"])
+def eval_exact(data):
+    def solve_instance(x, cut):
+        start = time.time()
+        y = solve(x['instance'], cutting_planes=cut)
+        return y['y'], y['obj'], time.time() - start
 
+    for cut in [0, 1, 2]:
+        # apply branch-and-bound with different cutting planes active
+        data[[f'y_opt_{cut}', f'y_opt_obj_{cut}', f'running_time_{cut}']] = \
+            data.apply(lambda x: solve_instance(x, cut), axis=1, result_type='expand')
 
-# load all the instances_{i}.pkl files in the current directory
-files = glob.glob("data/instances_*.pkl")
-for file in files:
-    print(f"processing {file}")
-    i = int(re.findall(r'\d+', file)[0])
-    with open(file, 'rb') as file:
-        instances = pickle.load(file)
+    # we verify the cutting planes by comparing objectives
+    data['matching1'] = data.apply(lambda x: math.isclose(x['y_opt_obj_0'], x['y_opt_obj_1']), axis=1)
+    data['matching2'] = data.apply(lambda x: math.isclose(x['y_opt_obj_0'], x['y_opt_obj_2']), axis=1)
+    assert data['matching1'].all() and data['matching2'].all()
 
-    schedules = [[], [], []]
-    times = np.empty((len(instances), 3))
-
-    def solve_all(c): # with timing
-        for j in trange(len(instances)):
-            start = time.time()
-            schedules[c].append(solve(instances[j], cutting_planes=c))
-            times[j][c] = time.time() - start
-
-    solve_all(0) # no cutting planes
-    solve_all(1) # cutting planes type 1
-    solve_all(2) # cutting planes type 2
-
-    # report times for this set
-    for j, row in enumerate(times):
-        # i = data set id
-        # j = instance id
-        # row contains 3 running times; one for each type of MILP
-        writer.writerow([i, j, *row.tolist()])
-
-    # we can optinally verify the cutting planes by comparing solutions
+    # rename and remove columns
+    data['y_opt'] = data['y_opt_0']
+    data['y_opt_obj'] = data['y_opt_obj_0']
+    data = data.drop([
+            'y_opt_0', 'y_opt_obj_0',
+            'y_opt_1', 'y_opt_obj_1',
+            'y_opt_2', 'y_opt_obj_2',
+            'matching1', 'matching2'
+       ], axis=1)
 
     # store schedules with their lane order
-    with open(f"data/schedules_{i}.pkl", 'wb') as out_file:
-        pickle.dump([(schedule, lane_order(schedule)) for schedule in schedules[0]], out_file)
+    data['y_eta'] = data.apply(lambda x: lane_order(x['y_opt']), axis=1)
 
-times_file.close()
+    return data
 
-print(f"total time: {time.time() - global_start}")
+csv_data = pd.DataFrame()
+
+# load all the test_{i}.pkl files
+files = glob.glob("data/test_*.pkl")
+for file in files:
+    print(f"processing {file}")
+    data = pd.read_pickle(file)
+
+    if not 'y_opt' in data:
+        print('branch-and-bound')
+        data = eval_exact(data)
+
+    if not 'y_threshold_obj' in data:
+        print('heuristic')
+
+        heuristic = lambda s: threshold_heuristic(s, tau=0.5)
+
+        data['y_threshold_obj'] = data['instance'].apply(
+                lambda instance: evaluate(instance, heuristic)['obj'])
+
+    # save everything with pickle
+    data.to_pickle(file)
+    # save the objective values and running times for report
+    res = data.drop(['instance', 'y_opt', 'y_eta'], axis=1, errors='ignore')
+    res['set_id'] = int(re.findall(r'\d+', file)[0])
+    csv_data = pd.concat([csv_data, res], ignore_index=True)
+
+csv_data.to_csv(f"../report/data/results.csv", index=False)
