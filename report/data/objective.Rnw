@@ -10,11 +10,21 @@ data <- read.csv("results.csv", check.names=FALSE)
 
 threshold_obj = data %>%
     group_by(set_id) %>%
-    mutate(ratio= y_threshold_obj / y_opt_obj) %>%
-    summarize(across(c('ratio'), \(x) mean(x)))
+
+    # calculate approximation ratios
+    mutate(ratio_threshold = threshold_obj / opt_obj) %>%
+    mutate(ratio_neural = neural_obj / opt_obj) %>%
+
+    # count how many times solved to optimality
+    mutate(equals_threshold = as.integer(abs(threshold_obj - opt_obj) < 1e-4)) %>%
+    mutate(equals_neural = as.integer(abs(neural_obj - opt_obj) < 1e-4)) %>%
+
+    # take means over instances
+    summarize(across(c('ratio_threshold', 'ratio_neural', 'equals_threshold', 'equals_neural'), \(x) round(mean(x), digits=4)))
 
 kbl(threshold_obj,
-    escape=F, booktabs=T,
-    col.names=c("set id", "threshold $\\tau = 1.2$"),
-    caption="Approximation ratio for the heuristics. \\label{tab:objectives}")
+    escape=F, booktabs=T, linesep = "",
+    col.names=c("set id", "threshold", "padded", "threshold", "padded"),
+    caption="Mean approximation ratio $\\alpha_\\text{approx}$ and proportion of instances solved to optimality $\\alpha_\\text{opt}$. Evaluated for each set of test instances for the fitted \\textit{threshold} heuristic and the fitted neural heuristic with \\textit{padded} embedding. Each set contains 100 instances. {\\color{blue} Maybe repeating the definition of the instances here is helpful. } \\label{tab:objectives}") %>%
+    add_header_above(c(" " = 1, "$\\\\alpha_\\\\text{approx}$" = 2, "$\\\\alpha_\\\\text{opt}$" = 2), escape=F)
 @

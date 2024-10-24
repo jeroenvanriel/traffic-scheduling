@@ -4,19 +4,20 @@
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
 
-\caption{\label{tab:unnamed-chunk-2}Approximation ratio for the heuristics. \label{tab:objectives}}
+\caption{\label{tab:unnamed-chunk-2}Mean approximation ratio $\alpha_\text{approx}$ and proportion of instances solved to optimality $\alpha_\text{opt}$. Evaluated for each set of test instances for the fitted \textit{threshold} heuristic and the fitted neural heuristic with \textit{padded} embedding. Each set contains 100 instances. {\color{blue} Maybe repeating the definition of the instances here is helpful. } \label{tab:objectives}}
 \centering
-\begin{tabular}[t]{rr}
+\begin{tabular}[t]{rrrrr}
 \toprule
-set id & threshold $\tau = 1.2$\\
+\multicolumn{1}{c}{ } & \multicolumn{2}{c}{$\alpha_\text{approx}$} & \multicolumn{2}{c}{$\alpha_\text{opt}$} \\
+\cmidrule(l{3pt}r{3pt}){2-3} \cmidrule(l{3pt}r{3pt}){4-5}
+set id & threshold & padded & threshold & padded\\
 \midrule
-1 & 1.026537\\
-2 & 1.017220\\
-3 & 1.011988\\
-4 & 1.011209\\
-6 & 1.026830\\
-\addlinespace
-7 & 1.026359\\
+1 & 1.0198 & 1.0085 & 0.12 & 0.33\\
+2 & 1.0132 & 1.0102 & 0.12 & 0.20\\
+3 & 1.0102 & 1.0079 & 0.11 & 0.17\\
+4 & 1.0088 & 1.0054 & 0.05 & 0.13\\
+5 & 1.0359 & 1.0120 & 0.19 & 0.35\\
+6 & 1.0258 & 1.0110 & 0.12 & 0.23\\
 \bottomrule
 \end{tabular}
 \end{table}

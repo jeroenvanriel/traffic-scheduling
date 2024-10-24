@@ -13,7 +13,7 @@ bnb_running_times = data %>%
   summarize(across(c('running_time_0', 'running_time_1', 'running_time_2'), \(x) mean_sd(x, digits = 3)))
 
 kbl(bnb_running_times,
-    escape=F, booktabs=T,
+    escape=F, booktabs=T, linesep = "",
     col.names=c("set id", "plain", "type I", "type I + II"),
     caption="Solving times of Gurobi on different sets of instances. Each set contains 100 samples. Mean and standard deviation are given for the MILP without cutting planes (``plain''), type I cutting planes or both types of cutting planes. {\\color{blue} Since these running times are still reasonable, we are planning to analyze larger instances.} \\label{tab:running_times}")
 @
