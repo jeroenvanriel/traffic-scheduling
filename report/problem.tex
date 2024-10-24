@@ -805,15 +805,18 @@ We do not hope to find an explicit representation of $p$, but our aim is to find
 good heuristic approximations.
 For example, consider the following simple \textit{threshold rule}.
 %
-Let $\pi$ be a partial schedule of length $n$, so $i=\pi(n)$ is the last
+Let $\pi$ denote a partial schedule of length $n$, so $i=\pi(n)$ is the last
 scheduled vehicle on some lane $l=l(i)$, then define
 \begin{align*}
-  p(s, \pi) = \begin{cases}
+  p_{\tau}(s, \pi) = \begin{cases}
                 l \quad &\text{ if } \text{LB}_{\pi}(i) + \rho_{i} + \tau \geq r_{j} \text{ and } (i,j) \in \mathcal{C} , \\
-                l+1 \; \mathrm{mod} \; |\Sigma| & \text{ otherwise, }
+                \texttt{next}(\pi) & \text{ otherwise, }
               \end{cases}
 \end{align*}
-for some threshold $\tau \geq 0$. This heuristic satisfies the rule of
+for some threshold $\tau \geq 0$. The expression $\texttt{next}(\pi)$ represents some lane
+other than $l$ with unscheduled vehicles left.
+%
+This heuristic satisfies the rule of
 Corollary~\ref{prop:exhaustive_partial} for any $\tau$ and may as such be
 interpreted as a relaxation of this rule.
 
@@ -911,6 +914,9 @@ RNN by taking the output at the last step.
 We consider an intersection with two approaching lanes. Let $\mathcal{X}$ denote
 the training data, consisting of pairs of $(s_{t}, \eta_{t+1})$ as obtained from
 optimal solutions as explained above.
+%
+We fit the simple heuristic to the training data by finding the best value of
+$\tau$ using a simple grid search.
 %
 We interpret $p_{\theta}(s_{t})$ as the probability of choosing the first lane. We
 use the binary cross entropy loss
