@@ -49,7 +49,7 @@ def plot_schedule(instance, schedules=None, out=None,
 
         # switch-over arrows
         if draw_switch:
-            pi = vehicle_order(schedule)
+            pi = vehicle_order(schedule['y'])
             prev_l, prev_k = pi[0][0], pi[0][1]
             for (l, k) in pi[1:]:
                 if l != prev_l:
@@ -116,7 +116,7 @@ def LB(instance, schedule=None):
     r = instance['release']
 
     # compute partial ordering
-    pi = vehicle_order(schedule)
+    pi = vehicle_order(schedule['y'])
 
     # sequentially compute LB for scheduled vehicles
     LB = {}
@@ -156,12 +156,12 @@ def vehicle_order(schedule):
     """Compute the vehicle order of a (partial) schedule given the crossing times."""
     indices = []
     values = {}
-    N = len(schedule['y']) # number of lanes
+    N = len(schedule) # number of lanes
     for l in range(N):
-        K = len(schedule['y'][l]) # number of scheduled vehicles
+        K = len(schedule[l]) # number of scheduled vehicles
         for k in range(K):
             indices.append((l, k))
-            values[l, k] = schedule['y'][l][k]
+            values[l, k] = schedule[l][k]
 
     indices.sort(key=lambda i: values[i])
     return indices
