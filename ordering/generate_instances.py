@@ -1,5 +1,5 @@
 import numpy as np
-import pickle
+import pandas
 from exact import solve
 from util import plot_schedule, lane_order
 from tqdm import trange
@@ -30,24 +30,28 @@ def generate_instance(spec):
     return {'release': releases, 'length': lengths, 'switch': spec.s }
 
 
-Spec = namedtuple("Spec", ["reps", "n", "s", "gap1", "gap2", "min_length", "max_length"])
+Spec = namedtuple("Spec", ["train_reps", "test_reps", "n", "s", "gap1", "gap2", "min_length", "max_length"])
 
-specs = [
-    #   reps    n     s    gap    rho
-    Spec(100, [10,10], 2,  0, 4,  1, 1),
-    Spec(100, [15,15], 2,  0, 4,  1, 1),
-    Spec(100, [20,20], 2,  0, 4,  1, 1),
-    Spec(100, [25,25], 2,  0, 4,  1, 1), # too big for non-licensed Gurobi
-]
+specs = {
+    #    train test    n     s    gap    rho
+    1: Spec(1000, 100, [10,10], 2,  0, 4,  1, 1),
+    2: Spec(1000, 100, [15,15], 2,  0, 4,  1, 1),
+    3: Spec(1000, 100, [20,20], 2,  0, 4,  1, 1),
+    4: Spec(1000, 100, [25,25], 2,  0, 4,  1, 1), # too big for non-licensed Gurobi
 
-for i, spec in enumerate(specs):
-    data = []
-    for _ in trange(spec.reps):
-        data.append(generate_instance(spec))
+    5: Spec(1000, 100, [10,10], 2,  2, None, 1, 1),
+    6: Spec(1000, 100, [15,15], 2,  2, None, 1, 1),
+}
 
-    # visualize the first instance
-    plot_schedule(data[0], out=f"../report/data/sample_{i+1}.pdf", clean=True, custom_end_time=40)
+for i, spec in specs.items():
+    train_data = []
+    test_data = []
+    for _ in trange(spec.train_reps):
+        train_data.append(generate_instance(spec))
+    for _ in trange(spec.test_reps):
+        test_data.append(generate_instance(spec))
 
-    filename = f"data/instances_{i+1}.pkl"
-    with open(filename, 'wb') as file:
-        pickle.dump(data, file)
+    train_data = pandas.DataFrame(zip(train_data), columns=["instance"])
+    train_data.to_pickle(f"data/train_{i}.pkl")
+    test_data = pandas.DataFrame(zip(test_data), columns=["instance"])
+    test_data.to_pickle(f"data/test_{i}.pkl")
