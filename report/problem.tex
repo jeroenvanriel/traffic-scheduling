@@ -587,8 +587,9 @@ Written in terms of the disjunctive variables, this gives us the cutting planes
 \begin{align*}
   \sum_{p \in i^{<}, q \in j^{>}} \gamma_{pq} \leq \gamma_{ij} M .
 \end{align*}
-We refer to these as the \textit{disjunctive cutting planes} and any feasible
-solution must satisfy these.
+We refer to these as the \textit{disjunctive cutting planes} and any feasible solution
+must satisfy these. {\color{blue} We did not yet include this type of cutting
+  plane in the running time analysis because I thought of them only recently.}
 
 Next, we consider two types of cutting planes that follow from the necessary condition
 for optimality in Propositon~\ref{prop:exhaustive}.
@@ -646,8 +647,12 @@ adding cutting planes of type II.
 
 \begin{table}
   \caption{Specification of test instance sets. The total number of vehicles is
-    shown as the sum of the number of vehicles per lane
-    $\sum n_{l}$. Every instance has switch-over time $\sigma = 2$.}
+    shown as the sum of the number of vehicles per lane $\sum n_{l}$. Every
+    instance has switch-over time $\sigma = 2$. {\color{blue} I plan on including
+      some more (multi-modal) distributions, but I am still thinking about a
+      suitable presentation; varying the instance size $|\mathcal{N}|$ is
+      interesting for the analysis of branch-and-bound, but varying the
+      distributions is mainly interesting for the heuristics.}}
     \label{tab:params}
     % Change switch-over time to $s=1$ ``without loss of generality''.
     % To give an idea of the distribution, the first few arrivals (truncation at
