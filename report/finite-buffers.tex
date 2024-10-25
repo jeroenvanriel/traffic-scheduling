@@ -32,7 +32,7 @@
 \newtheorem{define}{Definition}[section]
 \newtheorem{proposition}{Proposition}
 \newtheorem{theorem}{Theorem}[section]
-\newtheorem{assump}{Assumption}[section]
+\newtheorem{assump}{Assumption}
 \newtheorem{remark}{Remark}[section]
 
 
@@ -67,21 +67,31 @@ where we had
 
 We start the simplest extension of the single intersection model by considering
 two intersections in tandem.
+For each vehicle $i = (l,k)$, we will refer to $l$ as the \textit{vehicle class}, because vehicles are no longer bound to a unique lane.
 %
 We define a graph $(V,E)$ with \textit{labeled edges} as follows.
 Let $V$ denote the indices of the intersections.
-Let $E$ denote the set of ordered triples $(l, v, w)$ for each lane $l$ whose
+Let $E$ denote the set of ordered triples $(l, v, w)$ for each class $l$ whose
 vehicles travel from intersection $v$ to $w$.
 %
 Let $d(v, w)$ denote the minimum time necessary to travel between intersections $v$ and $w$.
 Let $b(v, w)$ denote the maximum number of vehicles that can be on the lane between intersections $v$ and $w$.
-Let $\mathcal{N}(l)$ denote all the vehicles starting on lane $l$.
+Let $\mathcal{N}(l)$ denote all the vehicles of class $l$.
 Let $v_{0}(i)$ denote the first intersection that vehicle $i$ encounters on its route.
-Let $\mathcal{R}(l)$ denote the set of intersections visited by vehicles from lane $l$.
-Let $y(i,v)$ denote the crossing time of vehicle $i$ at intersection $v \in V$.
-Let $\mathcal{C}^{v}$ and $\mathcal{D}^{v}$ denote the disjunctive and respectively disjunctive pairs for intersection $v \in V$.
+Let $\mathcal{R}(l)$ denote the set of intersections visited by vehicles from class $l$.
+%
+We make the following assumption on vehicles routes.
+\begin{assump}[Disjoint Routes]\label{assump1}
+  Every lane $(v,w)$ is visited by at most one vehicle class. Stated formally,
+  $(l_{1},v,w) \in E$ and $(l_{2},v,w) \in E$ implies $l_{1}=l_{2}$.
+\end{assump}
 
-Writing $\texttt{conj(\dots)}$ and $\texttt{disj}(\dots)$ for the usual conjunctive and disjunctive constraints, we obtain the following formulation
+We now show how to obtain schedules in this model by formulating a MILP.
+Let $y(i,v)$ denote the crossing time of vehicle $i$ at intersection $v \in V$.
+Let $\mathcal{C}^{v}$ and $\mathcal{D}^{v}$ denote the disjunctive and disjunctive pairs, respectively, for each intersection $v \in V$.
+%
+Writing $\texttt{conj(\dots)}$ and $\texttt{disj}(\dots)$ for the usual conjunctive and disjunctive
+constraints, we propose the following formulation
 \begin{subequations}\label{eq:network_problem}
 \begin{align}
   \min_{y} \quad & \sum_{i \in \mathcal{N}} \sum_{v \in \mathcal{R}(l(i))} y(i,v) & \\
@@ -89,23 +99,24 @@ Writing $\texttt{conj(\dots)}$ and $\texttt{disj}(\dots)$ for the usual conjunct
   & \texttt{conj}(y(i,v), y(j,v)) & \text{ for } (i,j) \in \mathcal{C}^{v}, v \in V , \\
   & \texttt{disj}(y(i,v), y(j,v)) & \text{ for } \{i,j\} \in \mathcal{D}^{v}, v \in V , \\
   & y(i, v) + d(v, w) \leq y(i, w) & \text{ for } i \in \mathcal{N}(l), (l, v, w) \in E, \\
-  & y(i, w) + \hat{\rho}_{i} \leq y(j, v) & \text{ for } (i,j,v,w) \in \mathcal{F} ,
+  & y(i, w) + \hat{\rho}_{i} \leq y(j, v) & \text{ for } (i,j,v,w) \in \mathcal{F} , \label{eq:buffer_constraints}
 \end{align}
 \end{subequations}
-where $\mathcal{F}$ is defined as follows
+where $\mathcal{F}$ is defined as
 \begin{align*}
-  \mathcal{F} = \{ (i,j,v,w) : i,j \in \mathcal{N}(l), k(i) + b(v,w) + 1 = k(j),  (l,v,w) \in E\} .
+  \mathcal{F} = \{ (i,j,v,w) : i,j \in \mathcal{N}(l), k(i) + b(v,w) = k(j),  (l,v,w) \in E\} .
 \end{align*}
-Each $(i,j,v,w) \in \mathcal{F}$ represents a pair of vehicles driving on the
-same lane, for which the first vehicle must have left lane segment $(v,w)$
-before vehicle $j$ can enter.
+Each $(i,j,v,w) \in \mathcal{F}$ represents a pair of vehicles driving on the same
+lane $(v,w)$, for which the first vehicle must have left that lane before vehicle
+$j$ can enter.
 %
-The constraints involving $\mathcal{F}$ yield the following property of schedules.
+Under Assumption~\ref{assump1}, the constraints~\eqref{eq:buffer_constraints} yield the
+following property of schedules.
 
 \begin{proposition}
-  Let $y$ be a solution to the network scheduling
-  problem~\eqref{eq:network_problem}. Each lane segment $(l,v,w) \in E$ contains
-  never more than $b(v,w)$ vehicles.
+  Let $y$ be a solution to the network scheduling problem~\eqref{eq:network_problem} with
+  Assumption~\ref{assump1}. For each $(l,v,w) \in E$, there are always at most $b(v,w)$
+  vehicles at lane $(v,w)$.
 \end{proposition}
 \begin{proof}
   Let $i$ be a vehicle that has $(v,w)$ on its route. Define the occupancy
@@ -115,18 +126,27 @@ The constraints involving $\mathcal{F}$ yield the following property of schedule
   Therefore, the number of vehicles in $(v,w)$ at time $t$ equals the number of such
   intervals containing $t$.
 
-  Suppose at some time $t$, there are more than $b(v,w)$ vehicles $i$ such that $t \in D_{i}$.
+  Suppose we have a schedule $y$ such that at some time $t$, there are strictly
+  more than $b(v,w)$ vehicles $i$ such that $t \in D_{i}$.
   %
-  Let $i_{0}$ be such that $y(i_{0},v) \leq y(i,v)$ for all $i$ such that $t \in D_{i}$.
-  By the conjunctive constraints at $v$, we have
+  Let $i_{1}$ be such that $y(i_{1},v) \leq y(i,v)$ for all $i$ such that $t \in D_{i}$.
+  From the conjunctive constraints at $v$ follows that there is some $n$ such that
   \begin{align*}
-    y(i_{0}, v) + \rho_{i_{0}} \leq y(i_{1}, v) + \rho_{i_{1}} \leq \dots \leq y(i_{k}, v) + \rho_{i_{k}} ,
+    y(i_{1}, v) + \rho_{i_{1}} \leq y(i_{2}, v) + \rho_{i_{2}} \leq \dots \leq y(i_{n}, v) + \rho_{i_{n}} ,
   \end{align*}
-  where $i_{k} = (l(i_{0}), k(i_{0}) + k)$.
-  {\color{blue} To be continued...}
-  %We show that $j=(l(i), k(i) + b(v,w) + 1)$
+  where $i_{k} = (l(i_{1}), k(i_{1}) + k - 1)$.
+  %
+  By Assumption~\ref{assump1}, the only vehicles that can enter $(v,w)$ after
+  $i_{1}$ are precisely $i_{2}, \dots, i_{n}$. By assumption, we have $n \geq b(v,w) + 1$,
+  so $j = (l(i_{1}), k(i_{1}) + b(v,w)) \in \{i_{2}, \dots, i_{n}\}$ is such
+  that $t \in D_{j}$.
+  Hence, $y(j,v) \leq t \leq y(i,w)$,
+  which violates constraint~\eqref{eq:buffer_constraints}
+  and thus contradicts the feasibility of $y$.
 \end{proof}
 
+
+Without Assumption~\ref{assump1}, it is less immediate how to formulate a MILP.
 
 
 % \bibliography{references}
