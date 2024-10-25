@@ -2,22 +2,22 @@
 
 
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
-
-\caption{\label{tab:unnamed-chunk-2}Mean approximation ratio $\alpha_\text{approx}$ and proportion of instances solved to optimality $\alpha_\text{opt}$. Evaluated for each set of test instances for the fitted \textit{threshold} heuristic and the fitted neural heuristic with \textit{padded} embedding. Each set contains 100 instances. {\color{blue} Maybe repeating the definition of the instances here is helpful. } \label{tab:objectives}}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}[H]
 \centering
-\begin{tabular}[t]{rrrrr}
+\caption{\label{tab:unnamed-chunk-2}Mean approximation ratio $\alpha_\text{approx}$ and proportion of instances solved to optimality $\alpha_\text{opt}$. Evaluated for each set of test instances for the fitted \textit{threshold} heuristic and the fitted neural heuristic with \textit{padded} embedding and \textit{recurrent}. Each set contains 100 instances. \label{tab:objectives}}
+\centering
+\begin{tabular}[t]{rrrrrrr}
 \toprule
-\multicolumn{1}{c}{ } & \multicolumn{2}{c}{$\alpha_\text{approx}$} & \multicolumn{2}{c}{$\alpha_\text{opt}$} \\
-\cmidrule(l{3pt}r{3pt}){2-3} \cmidrule(l{3pt}r{3pt}){4-5}
-set id & threshold & padded & threshold & padded\\
+\multicolumn{1}{c}{ } & \multicolumn{3}{c}{$\alpha_\text{approx}$} & \multicolumn{3}{c}{$\alpha_\text{opt}$} \\
+\cmidrule(l{3pt}r{3pt}){2-4} \cmidrule(l{3pt}r{3pt}){5-7}
+set id & threshold & padded & recurrent & threshold & padded & recurrent\\
 \midrule
-1 & 1.0198 & 1.0085 & 0.12 & 0.33\\
-2 & 1.0132 & 1.0102 & 0.12 & 0.20\\
-3 & 1.0102 & 1.0079 & 0.11 & 0.17\\
-4 & 1.0088 & 1.0054 & 0.05 & 0.13\\
-5 & 1.0359 & 1.0120 & 0.19 & 0.35\\
-6 & 1.0258 & 1.0110 & 0.12 & 0.23\\
+1 & 1.0198 & 1.0085 & 1.0052 & 0.12 & 0.33 & 0.44\\
+2 & 1.0132 & 1.0102 & 1.0084 & 0.12 & 0.20 & 0.18\\
+3 & 1.0102 & 1.0079 & 1.2156 & 0.11 & 0.17 & 0.00\\
+4 & 1.0088 & 1.0054 & 1.0101 & 0.05 & 0.13 & 0.04\\
+5 & 1.0359 & 1.0120 & 1.0112 & 0.19 & 0.35 & 0.37\\
+6 & 1.0258 & 1.0110 & 1.0105 & 0.12 & 0.23 & 0.19\\
 \bottomrule
 \end{tabular}
 \end{table}

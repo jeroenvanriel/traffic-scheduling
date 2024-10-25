@@ -14,17 +14,22 @@ threshold_obj = data %>%
     # calculate approximation ratios
     mutate(ratio_threshold = threshold_obj / opt_obj) %>%
     mutate(ratio_neural = neural_obj / opt_obj) %>%
+    mutate(ratio_neural_rnn = neural_rnn_obj / opt_obj) %>%
 
     # count how many times solved to optimality
     mutate(equals_threshold = as.integer(abs(threshold_obj - opt_obj) < 1e-4)) %>%
     mutate(equals_neural = as.integer(abs(neural_obj - opt_obj) < 1e-4)) %>%
+    mutate(equals_neural_rnn = as.integer(abs(neural_rnn_obj - opt_obj) < 1e-4)) %>%
 
     # take means over instances
-    summarize(across(c('ratio_threshold', 'ratio_neural', 'equals_threshold', 'equals_neural'), \(x) round(mean(x), digits=4)))
+    summarize(across(c('ratio_threshold', 'ratio_neural', 'ratio_neural_rnn',
+                       'equals_threshold', 'equals_neural', 'equals_neural_rnn'),
+                     \(x) round(mean(x), digits=4)))
 
 kbl(threshold_obj,
     escape=F, booktabs=T, linesep = "",
-    col.names=c("set id", "threshold", "padded", "threshold", "padded"),
-    caption="Mean approximation ratio $\\alpha_\\text{approx}$ and proportion of instances solved to optimality $\\alpha_\\text{opt}$. Evaluated for each set of test instances for the fitted \\textit{threshold} heuristic and the fitted neural heuristic with \\textit{padded} embedding. Each set contains 100 instances. {\\color{blue} Maybe repeating the definition of the instances here is helpful. } \\label{tab:objectives}") %>%
-    add_header_above(c(" " = 1, "$\\\\alpha_\\\\text{approx}$" = 2, "$\\\\alpha_\\\\text{opt}$" = 2), escape=F)
+    col.names=c("set id", "threshold", "padded", "recurrent", "threshold", "padded", "recurrent"),
+    caption="Mean approximation ratio $\\alpha_\\text{approx}$ and proportion of instances solved to optimality $\\alpha_\\text{opt}$. Evaluated for each set of test instances for the fitted \\textit{threshold} heuristic and the fitted neural heuristic with \\textit{padded} embedding and \\textit{recurrent}. Each set contains 100 instances. \\label{tab:objectives}") %>%
+    add_header_above(c(" " = 1, "$\\\\alpha_\\\\text{approx}$" = 3, "$\\\\alpha_\\\\text{opt}$" = 3), escape=F) %>%
+    kable_styling(latex_options = "HOLD_position")
 @

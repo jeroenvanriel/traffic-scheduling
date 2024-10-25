@@ -15,5 +15,6 @@ bnb_running_times = data %>%
 kbl(bnb_running_times,
     escape=F, booktabs=T, linesep = "",
     col.names=c("set id", "plain", "type I", "type I + II"),
-    caption="Solving times of Gurobi on different sets of instances. Each set contains 100 samples. Mean and standard deviation are given for the MILP without cutting planes (``plain''), type I cutting planes or both types of cutting planes. {\\color{blue} Since these running times are still reasonable, we are planning to analyze larger instances.} \\label{tab:running_times}")
+    caption="Solving times of Gurobi on different sets of instances. Each set contains 100 samples. Mean and standard deviation are given for the MILP without cutting planes (``plain''), type I cutting planes or both types of cutting planes. {\\color{blue} Since these running times are still reasonable, we are planning to analyze larger instances.} \\label{tab:running_times}") %>%
+    kable_styling(latex_options = "HOLD_position")
 @

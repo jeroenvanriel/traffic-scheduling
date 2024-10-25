@@ -10,6 +10,8 @@
 \usepackage{outlines}
 \usepackage{float}
 \usepackage{booktabs}
+\usepackage{enumitem}
+
 
 \input{data/knitr_init.tex}
 
@@ -58,6 +60,25 @@
 \title{}
 
 \begin{document}
+
+\section*{Single Intersection}
+
+We first emphasize that the vehicle dynamics we use is equivalent to the common
+\textit{double integrator} model from optimal control theory. This part is
+mainly for my own understanding and is not necessary for the remaining
+dicussion. We then define a single intersection model with incoming lanes and
+the general problem of finding optimal trajectories. Vehicles are not able to
+overtake one another in this model. We briefly show how direct transcription can
+be used to turn the infinite-dimensional optimization problem into a
+mixed-convex program that modern off-the-shelf solvers can turn into a solution.
+
+Next, we argue that we can forget about the vehicle dynamics when the objective
+function only involves, for each vehicle, the time it crosses the intersection.
+The rest of the report discusses branch-and-bound methods and heuristics for
+solving the resulting scheduling problem.
+
+{\color{blue} Comments and ideas for further work are in blue.}
+
 
 \subsection*{Vehicle dynamics}
 
@@ -156,21 +177,17 @@ grid. Let $K$ denote the number of discrete time steps and let $\Delta t$ denote
 the time step size.
 %
 Using the forward Euler integration scheme, we have
-\begin{subequations}
 \begin{align*}
   p_{i}(t + \Delta t) = p_{i}(t) + v_{i}(t) \Delta t , \\
   v_{i}(t + \Delta t) = v_{i}(t) + u_{i}(t) \Delta t ,
 \end{align*}
-\end{subequations}
 for each $t \in (0, \Delta t, \dots, K \Delta t)$. The disjunctive constraints are formulated
 using the well-known big-M technique by the constraints
-\begin{subequations}
 \begin{align*}
   p_{i}(t) \leq L + \delta_{i}(t) M , \\
   H - \gamma_{i}(t) M \leq p_{i}(t) , \\
   \delta_{i}(t) + \delta_{j}(t) + \gamma_{i}(t) + \gamma_{j}(t) \leq 3 ,
 \end{align*}
-\end{subequations}
 where $\delta_{i}(t), \gamma_{i}(t) \in \{ 0, 1 \}$ for all $i \in \mathcal{N}$
 and $M$ is a sufficiently large number.
 %
@@ -182,9 +199,9 @@ for each $t \in (0, \Delta t, \dots, K \Delta t)$ and each pair of consecutive
 vehicles $(i, j) \in \mathcal{C}$.
 
 For example, consider the objective functional
-\begin{align}\label{eq:example_obj}
+\begin{align*}
   J(x_{i}) = \int_{t=0}^{t_{f}} \left( {(v_{d} - v_{i}(t))}^{2} + {u_{i}(t)}^{2} \right) dt ,
-\end{align}
+\end{align*}
 where $v_{d}$ is some reference velocity and $t_{f}$ denotes the final time. For
 example, see the optimal trajectories in
 Figure~\ref{fig:direct_transcription_example}.
@@ -301,6 +318,7 @@ Note that an instance $s$ of~\eqref{eq:single_intersection_scheduling} is comple
   $p_{i}(t) = p_{i}(0) + t (L - p_{i}(0)) / y_{i}$ for $0 \leq t < y_{i}$ and
   $p_{i}(t) = L + (t - y_{i}) v_{\text{max}}$ for $t \geq y_{i}$, so
   instantaneous acceleration is happening at $t=0$ and $t=y_{i}$.
+  {\color{blue} This construction argument is not yet correct. Consider what happens when some lane overflows.}
 \end{proof}
 
 
@@ -529,7 +547,7 @@ easier expression for calculating the lower bounds under these assumptions.
   follows that $y_{i^{*}} + \rho = y_{j^{*}}$.
 \end{proof}
 
-\begin{figure}
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{figures/platoon-preservation-proof-diagram.pdf}
   \caption{Sketch of the nodes and most important arcs used in the proof of
@@ -538,9 +556,7 @@ easier expression for calculating the lower bounds under these assumptions.
     arc under ordering $\pi'$.}\label{fig:platoon-preservation-diagram}
 \end{figure}
 
-\newpage
-$\;$
-\newpage
+
 \subsection*{Branch-and-bound approach}
 
 Optimization problem~\ref{eq:single_intersection_scheduling} can be turned into
@@ -645,40 +661,6 @@ larger instances is beneficial. However, it seems that it is not always worth
 adding cutting planes of type II.
 
 
-\begin{table}
-  \caption{Specification of test instance sets. The total number of vehicles is
-    shown as the sum of the number of vehicles per lane $\sum n_{l}$. Every
-    instance has switch-over time $\sigma = 2$. {\color{blue} I plan on including
-      some more (multi-modal) distributions, but I am still thinking about a
-      suitable presentation; varying the instance size $|\mathcal{N}|$ is
-      interesting for the analysis of branch-and-bound, but varying the
-      distributions is mainly interesting for the heuristics.}}
-    \label{tab:params}
-    % Change switch-over time to $s=1$ ``without loss of generality''.
-    % To give an idea of the distribution, the first few arrivals (truncation at
-    % $40$) of the first lane are shown for some sample instance.
-
-  \centering
-  \begin{tabular}[t]{c c c c c c}
-    \toprule
-    set id & size & $|\mathcal{N}|$ & $g_{i}$ & $\rho_{i}$ \\
-    \midrule
-
-    1 & 100 & $10 + 10$ & $\text{Uni}(0, 4)$ & $1$ \\
-    2 & 100 & $15 + 15$ & $\text{Uni}(0, 4)$ & $1$ \\
-    3 & 100 & $20 + 20$ & $\text{Uni}(0, 4)$ & $1$ \\
-    4 & 100 & $25 + 25$ & $\text{Uni}(0, 4)$ & $1$ \\ % too big for free Gurobi version
-
-    5 & 100 & $10 + 10$ & $\text{Exp}(2)$    & $1$ \\
-    6 & 100 & $15 + 15$ & $\text{Exp}(2)$    & $1$ \\
-
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-% uses knitr to generate nice table
-\input{data/running_time-woven.tex}
-
 \subsubsection*{Alternatives}
 The number of disjunctive variables in the MILP formulation is of order $O(|\mathcal{N}|^{2})$.
 %
@@ -690,7 +672,6 @@ Alternatively, instead of relying on a MILP formulation and the capabilities of
 modern MILP solvers, a tailored branch-and-bround algorithm can be considered.
 
 
-\newpage
 
 \subsection*{Constructive heuristics}
 
@@ -893,59 +874,118 @@ To avoid the zero padding operation, which can be problematic for states that
 are almost done, we can employ a recurrent architecture that is agnostic to the
 number of remaining unscheduled vehicles. Each variable-length horizon
 $h'(s_{t}, l)$ is simply transformed into the fixed-length vector by an Elman
-RNN by taking the output at the last step.
-\begin{align*}
-  h(s_{t}, l) = \text{RNN}(h'(s_{t}, l)) .
-\end{align*}
+RNN by taking the output at the last step. {\color{blue} Need to further specify
+  this, but the current implementation is working.}
+% \begin{align*}
+%   h(s_{t}, l) = \text{RNN}(h'(s_{t}, l)) .
+% \end{align*}
 
 
 \subsection*{Experiments}
 
-We consider an intersection with two approaching lanes. Let $\mathcal{X}$ denote
-the training data, consisting of pairs of $(s_{t}, \eta_{t+1})$ as obtained from
-optimal solutions as explained above.
-%
-We fit the simple heuristic to the training data by finding the best value of
-$\tau$ using a simple grid search.
-%
-We interpret $p_{\theta}(s_{t})$ as the probability of choosing the first lane. We
-use the binary cross entropy loss
+We consider an intersection with two approaching lanes. For each test instance
+set from Table~\ref{tab:params}, we sample 1000 instances from the same
+distribution. We solve each instance to optimality using a branch-and-bound
+method to obtain the training data set $\mathcal{X}$, consisting of all the
+pairs $(s_{t}, \eta_{t+1})$ of state and next lane belonging to the optimal
+schedules.
+
+% threshold heuristic fitting
+We fit the simple threshold heuristic to $\mathcal{X}$ by finding the value of
+$\tau$ with the lowest mean objective using a simple grid search. The fitted values
+are given in Table~\ref{tab:tau_opt}. Note that these values are all remarkably
+close, so we wonder if there is any dependency on $\rho_{i}$ or $\sigma$,
+because these are the only variables kept constant among the instance sets.
+
+
+% neural heuristics fitting
+In order to fit the model parameters of the neural models, we interpret
+$p_{\theta}(s_{t})$ as the probability of choosing the first lane and use the
+binary cross entropy loss, defined as
 \begin{align*}
   - \frac{1}{|\mathcal{X}|} \sum_{(s_{t}, \eta_{t+1}) \in \mathcal{X}} \mathds{1}\{\eta_{t+1} = 1\} \log(p_{\theta}(s_{t})) + \mathds{1}\{\eta_{t+1} = 2\} \log(1 - p_{\theta}(s_{t})) ,
 \end{align*}
-where we use $\mathds{1}(\cdot)$ to denote the indicator function.
-We use learning rate $10^{-3}$ and the Adam optimizer.
+where $\mathds{1}(\cdot)$ denotes the indicator function.
 %
-Let $\mathcal{Y}$ denote a set of test instances.
-Let $\text{obj}(y)$ denote the objective of schedule $y$, then
-we report on the average approximation ratio defined as
+We use 5 epochs with batch size 10 and we use learning rate $10^{-3}$ with the
+Adam optimizer.
+
+% evaluation
+Let $\mathcal{Y}$ denote one of the test instances set. Let $\text{obj}(y)$
+denote the objective of schedule $y$, and let $\hat{y}$ denote the schedule
+obtained from a heuristic, then Table~\ref{tab:objectives} reports on the
+average approximation ratio defined as
 \begin{align*}
-  \alpha_{\text{approx}} = \frac{1}{|\mathcal{Y}|} \sum_{s \in \mathcal{Y}} \text{obj}(\hat{y}_{\theta}(s)) \; / \; \text{obj}(y^{*}(s)) .
+  \alpha_{\text{approx}} = \frac{1}{|\mathcal{Y}|} \sum_{s \in \mathcal{Y}} \text{obj}(\hat{y}(s)) \; / \; \text{obj}(y^{*}(s))
 \end{align*}
-We also report on the fraction of instances that are solved to optimality, which
-is defined as
+and the fraction of instances that are solved to optimality, which
+we define as
 \begin{align*}
-  \alpha_{\text{opt}} = \frac{1}{|\mathcal{Y}|} \sum_{s \in \mathcal{Y}} \mathds{1}\{ \text{obj}(\hat{y}_{\theta}(s)) = \text{obj}(y^{*}(s)) \} .
+  \alpha_{\text{opt}} = \frac{1}{|\mathcal{Y}|} \sum_{s \in \mathcal{Y}} \mathds{1}\{ \text{obj}(\hat{y}(s)) = \text{obj}(y^{*}(s)) \} .
 \end{align*}
 
-We are particularly interested in the ability of the model to generalize to
-instances with more vehicles, because this is where the MILP solving time
-begins to become prohibitive.
 
-% uses knitr to generate nice table
+
+
+{\color{blue}
+\subsection*{Further analysis}
+
+\begin{itemize}
+  \item We are particularly interested in the ability of the model to generalize
+        to instances with more vehicles, because this is where the MILP solving
+        time begins to become prohibitive.
+
+  \item The rule of Corollary~\ref{prop:exhaustive_partial} is currently not
+        used in the evaluation of the heuristics.
+
+  \item It might be insightful to compare the model probability of the computed
+        greedy schedule to the model probability of the optimal solution
+        computed using mixed-integer linear programming. This provides us an
+        indication of model fit and whether greedy inference is good enough or
+        methods like beam search might be necessary.
+
+  \item It might be interesting to analyze the feature attribution of the neural
+        network using a method like Integrated Gradients.
+\end{itemize}
+}
+
+\newpage
+
+\begin{table}[H]
+  \caption{Specification of test instance sets. The total number of vehicles is
+    shown as the sum of the number of vehicles per lane $\sum n_{l}$. Every
+    instance has switch-over time $\sigma = 2$. {\color{blue} I plan on including
+      some more (multi-modal) distributions, but I am still thinking about a
+      suitable presentation; varying the instance size $|\mathcal{N}|$ is
+      interesting for the analysis of branch-and-bound, but varying the
+      distributions is mainly interesting for the heuristics.}}
+    \label{tab:params}
+    % Change switch-over time to $s=1$ ``without loss of generality''.
+    % To give an idea of the distribution, the first few arrivals (truncation at
+    % $40$) of the first lane are shown for some sample instance.
+
+  \centering
+  \begin{tabular}[t]{c c c c c c}
+    \toprule
+    set id & size & $|\mathcal{N}|$ & $g_{i}$ & $\rho_{i}$ \\
+    \midrule
+
+    1 & 100 & $10 + 10$ & $\text{Uni}(0, 4)$ & $1$ \\
+    2 & 100 & $15 + 15$ & $\text{Uni}(0, 4)$ & $1$ \\
+    3 & 100 & $20 + 20$ & $\text{Uni}(0, 4)$ & $1$ \\
+    4 & 100 & $25 + 25$ & $\text{Uni}(0, 4)$ & $1$ \\ % too big for free Gurobi version
+
+    5 & 100 & $10 + 10$ & $\text{Exp}(2)$    & $1$ \\
+    6 & 100 & $15 + 15$ & $\text{Exp}(2)$    & $1$ \\
+
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% uses knitr to generate nice tables
+\input{data/running_time-woven.tex}
 \input{data/objective-woven.tex}
-
-
-\subsection*{Discussion}
-
-It might be insightful to compare the model probability of the computed greedy
-schedule to the model probability of the optimal solution computed using
-mixed-integer linear programming. This provides us an indication of model fit
-and whether greedy inference is good enough or methods like beam search might be
-necessary.
-
-It might be interesting to analyze the feature attribution of the neural network
-using a method like Integrated Gradients.
+\input{data/tau-fit-woven.tex}
 
 %\newpage
 %\subsection*{Reinforcement learning}
@@ -970,6 +1010,41 @@ using a method like Integrated Gradients.
 
 \section*{Implementation details}
 
+The code that was used for this report can be found at
+\begin{quote}
+\url{https://github.com/jeroenvanriel/traffic-scheduling}
+\end{quote}
+The \texttt{ordering} directory contains the main model definitions and analyses.
+A short description of the most important files is given below.
+
+\vspace{1em}
+\hrule
+\begin{description}
+  \item[generate\_instances.py] Generate training and test sets.
+  \item[exact.py] Solve instances to optimality using MILP with different settings of cutting planes.
+  \item[automaton.py] Definition of the finite-state automaton. Instances of class \texttt{Automaton} are treated as the \textit{state} and contain the state variables
+        \begin{description}[leftmargin=!,labelwidth=5em]
+          \item[\texttt{N}]  number of lanes,
+          \item[\texttt{K}]  number of available vehicles per lane,
+          \item[\texttt{k}]  number of scheduled vehicles per lane,
+          \item[\texttt{y}]  current schedule $\pi$,
+          \item[\texttt{LB}] lower bounds $\pi_{\pi}$ for the current schedule $\pi$,
+          \item[\texttt{last\_lane}] last input symbol $l \in \Sigma$.
+        \end{description}
+  \item[util.py] Contains a set of helper functions, the most important ones being
+        \begin{description}[leftmargin=!,labelwidth=7em]
+          \item[\texttt{plot\_schedule}]  plot (partial) schedules(s) given some instance,
+          \item[\texttt{LB}]  compute $LB_{\pi}(i)$ for every $i \in \mathcal{N}$,
+          \item[\texttt{lane\_order}]  given some schedule $y$, compute $\eta$ such that $y_{\eta}(s) = y$.
+        \end{description}
+  \item[model.py] Definition of the neural network models with padded and recurrent embeddings.
+  \item[neural\_heuristic.ipynb] Training and evaluation of the neural heuristics.
+  \item[threshold.py] Definition of the threshold rule heuristic.
+  \item[threshold\_heuristic.ipynb] Fitting $\tau$ and evaluation of threshold heuristic.
+\end{description}
+\hrule
+
+\vspace{1em}
 Recall that instances of
 problem~\eqref{eq:single_intersection_scheduling} are completely characterized
 by
@@ -984,6 +1059,7 @@ because this allows us to use the result from Lemma~\ref{lb_lemma}.
 Therefore, instances are represented by specifying earliest crossing time
 $r_{i}$, length $\rho_{i}$ and \textit{switch-over} time $s$.
 We will refer to earliest crossing time as the \textit{release time} of the vehicle.
+Both release times and lengths are specified as nested lists, where each inner list corresponds to a lane.
 Instances are represented in the code as basic dictionaries of the form
 \begin{figure}[H]
 \centering
@@ -995,11 +1071,24 @@ instance = {
 }
 \end{cminted}
 \end{figure}
+
+The automaton keeps track of $\text{LB}_{\pi}(i)$ for each node $i$, given the
+current partial ordering. It provides these values as basic observations. We
+transform these into the desired observations for training our heuristic.
 %
-\noindent
-Instances and (partial) schedules can be visualized using
-\texttt{util.plot\_schedule()}. For example, instance above together with the optimal
-solution is given in the following figure.
+The method \texttt{Automaton.exhaustive(lane)} returns whether the rule of
+Proposition~\ref{prop:exhaustive_partial} applies to the given lane.
+
+In \texttt{model.py}, the \texttt{state\_transform} method of each embedding
+class encodes the state of the automaton into a PyTorch Tensor. The
+\texttt{action\_transform} method takes the output logit of the neural network
+to produce a lane index. This is necessary to implement the lane cycling trick.
+We also need the inverse of this transform (\texttt{inverse\_action\_transform})
+to translate optimal next lane indices to actions for supervised learning.
+
+Instances and (partial) schedules can be visualized by \texttt{util.plot\_schedule}.
+For example, the instance above together with the optimal solution is shown in
+the following figure.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth]{figures/example_schedule.pdf}
@@ -1010,25 +1099,7 @@ of each rectangle corresponds to its lane. The first two rows of the figure
 visualize the instance specification and the last row visualizes the optimal
 schedule $y$. The arrow visualizes the switch-over time $s$.
 
-The automaton keeps track of $\text{LB}_{\pi}(i)$ for each node $i$, given the
-current partial ordering. It provides these values as basic observations. We
-transform these into the desired observations for training our heuristic. The method
-\begin{figure}[H]
-\centering
-\begin{cminted}
-  Automaton.exhaustive(lane)
-\end{cminted}
-\end{figure}
-%
-\noindent
-returns whether the rule of
-Proposition~\ref{prop:exhaustive_partial} applies to the given lane.
-
-
-
-\newpage
-
-\subsection*{Bibliographical notes}
+\section*{Bibliographical notes}
 
 The disjunctive graph is a common formalism used for job shop scheduling
 problems (see Chapter 7 of~\cite{pinedoSchedulingTheoryAlgorithms2016}), to
