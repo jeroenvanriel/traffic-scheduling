@@ -24,3 +24,4 @@ references.bib
 /ordering/*.pkl
 /report/_minted-*
 /ordering/.ipynb_checkpoints/
+.ipynb_checkpoints

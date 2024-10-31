@@ -2,46 +2,115 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.patches import Rectangle
-
-fig, ax = plt.subplots(figsize=(10,10))
-
-vehicle_w = 1
-vehicle_l = 2
-
-in_lane_length = 10
-out_lane_length = 2
-margin = 1
-
-ax.set_xlim(-in_lane_length - margin, vehicle_w + out_lane_length + margin)
-ax.set_ylim(-in_lane_length - margin, vehicle_w + out_lane_length + margin)
-
-lineargs = { 'color': 'k', 'linewidth': 0.8 }
-vehicleargs = { 'facecolor': 'darkgrey', 'edgecolor': 'k', 'linewidth': 0.8 }
-
-# horizontal lane (1)
-ax.axline((in_lane_length, 0), (-vehicle_w - out_lane_length, 0), **lineargs)
-ax.axline((in_lane_length, vehicle_w), (-vehicle_w - out_lane_length, vehicle_w), **lineargs)
-# vertical lane (2)
-ax.axline((0, in_lane_length), (0, -vehicle_w - out_lane_length), **lineargs)
-ax.axline((vehicle_w, in_lane_length), (vehicle_w, -vehicle_w - out_lane_length), **lineargs)
+import math
 
 
-# draw a vehicle on horizontal lane (1)
-p = -in_lane_length
-rect1 = Rectangle((p - vehicle_l, 0), width=vehicle_l, height=vehicle_w, **vehicleargs)
-ax.add_patch(rect1)
-
-# draw a vehicle on vertical lane (2)
-p = -in_lane_length - vehicle_l - vehicle_w
-rect2 = Rectangle((0, p - vehicle_l), width=vehicle_w, height=vehicle_l, **vehicleargs)
-ax.add_patch(rect2)
-
-def update(frame):
-    rect1.set_x(rect1.get_x() + 0.05)
-    rect2.set_y(rect2.get_y() + 0.05)
+def animate(instance, trajectories, dt, vehicle_l=2, vehicle_w=1):
+    def dist(v, w):
+        nodes = instance['G'].nodes
+        return np.linalg.norm(np.array(nodes[v]['pos']) - np.array(nodes[w]['pos']))
 
 
-ani = animation.FuncAnimation(fig=fig, func=update, frames=400, interval=10)
-ax.axis('off')
-plt.show()
-#ani.save(filename="animation.gif", writer="pillow")
+    def current_edge(l, k, pos):
+        """Find the current edge along the route of a vehicle, given its relative position."""
+        cum_pos = 0
+        v_prev = instance['route'][l][0]
+        for v in instance['route'][l][1:]:
+            d = dist(v_prev, v)
+            if cum_pos <= pos and pos < cum_pos + d:
+                return v_prev, v, cum_pos
+            cum_pos += d
+            v_prev = v
+        return instance['route'][l][-2], instance['route'][l][-1], cum_pos - d
+
+
+    def get_pos(l, k, pos):
+        u, v, cum_pos = current_edge(l, k, pos)
+        pos -= cum_pos
+        pos -= vehicle_l # we want the front of the vehicle as reference
+        x1, y1 = G.nodes[u]['pos']
+        x2, y2 = G.nodes[v]['pos']
+
+        v1 = np.array([x2-x1, y2-y1])
+        v1_u = v1 / np.linalg.norm(v1)
+        v2_u = np.array([1, 0])
+        angle = -np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0)) / math.pi * 180
+
+        # go pos units in direction of edge
+        length = dist(u, v)
+        x = x1 + (x2 - x1) / length * pos
+        y = y1 + (y2 - y1) / length * pos
+
+        # correct for vehicle width
+        nx = (y1-y2) / length * vehicle_w / 2
+        ny = (x2-x1) / length * vehicle_w / 2
+
+        return x - nx, y - ny, angle
+
+
+    # draw the network outline
+    fig, ax = plt.subplots()
+
+    lineargs = { 'color': 'k', 'linewidth': 0.8 }
+    vehicleargs = { 'facecolor': 'darkgrey', 'edgecolor': 'k', 'linewidth': 0.8 }
+
+    G = instance['G']
+
+    for u, v, a in G.edges(data=True):
+        x1, y1 = G.nodes[u]['pos']
+        x2, y2 = G.nodes[v]['pos']
+
+        # extend vehicle_w to both sides
+        length = np.linalg.norm(np.array([x1, y1]) - np.array([x2, y2]))
+        # compute the normal by rotating counterclockwise
+        nx = (y1-y2) / length * vehicle_w / 2
+        ny = (x2-x1) / length * vehicle_w / 2
+
+        # sidelines
+        plt.plot([x1 + nx, x2 + nx], [y1 + ny, y2 + ny], **lineargs)
+        plt.plot([x1 - nx, x2 - nx], [y1 - ny, y2 - ny], **lineargs)
+
+
+
+    # draw vehicles
+    N = len(instance['release'])
+    n = [len(instance['release'][l]) for l in range(N)]
+    rects = [[] for l in range(N)]
+    for l in range(N):
+        for k in range(n[l]):
+            pos = 0 # TODO: smaller?
+            x, y, angle = get_pos(l, k, pos)
+            rect = Rectangle((x, y), angle=angle, width=vehicle_l, height=vehicle_w, **vehicleargs)
+            rects[l].append(rect)
+            ax.add_patch(rect)
+
+
+    def update(frame):
+        for l in range(N):
+            for k in range(n[l]):
+                t0, trajectory = trajectories[l][k]
+                i = frame - int(t0 / dt)
+                if i < 0: # not yet started
+                    continue
+                if i >= len(trajectory): # done
+                    rects[l][k].set_visible(False)
+                    continue
+
+                pos = trajectory[min(i, len(trajectory) - 1)]
+                x, y, angle = get_pos(l, k, pos)
+                rects[l][k].set_x(x)
+                rects[l][k].set_y(y)
+                rects[l][k].set_angle(angle)
+
+    # compute amount of frames required
+    frames  = -1
+    for l in range(N):
+        for k in range(n[l]):
+            t0, trajectory = trajectories[l][k]
+            frames = max(frames, int(t0 / dt) + len(trajectory))
+
+    ax.axis('off')
+    ax.set_aspect('equal')
+    fig.tight_layout(pad=0.05)
+
+    return animation.FuncAnimation(fig=fig, func=update, frames=frames, interval=10)
