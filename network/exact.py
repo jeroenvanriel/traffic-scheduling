@@ -93,4 +93,4 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
     g.optimize()
 
     y = { k : (v.X if hasattr(v, 'X') else v) for k, v in y.items() }
-    return { 'y': y, 'obj': g.getObjective().getValue() }
+    return y, g.getObjective().getValue()
