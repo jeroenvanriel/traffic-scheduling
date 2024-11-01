@@ -4,9 +4,9 @@ from amplpy import AMPL
 import matplotlib.pyplot as plt
 
 
-def motion_synthesize(C_t, C_pos, params, prev=None):
-    """MotionSynthesize with multiple checkpoints, specified as a
-    list of times C_t and a list of positions C_pos."""
+def motion_synthesize(checkpoints, params, prev=None):
+    """MotionSynthesize with N checkpoints, specified as a numpy array with
+    shape (N,2). The second axis contains (time, position) pairs."""
     model = r"""
     param T; # number of discrete time epochs
     param dt; # discrete time step size
@@ -14,8 +14,8 @@ def motion_synthesize(C_t, C_pos, params, prev=None):
 
     param C; # number of checkpoints
     set Cs = 1..C;
-    param C_t {Cs};
-    param C_pos {Cs};
+    param c_t {Cs};
+    param c_pos {Cs};
 
     param vmax; # maximum velocity
     param umax; # maximum control
@@ -29,8 +29,8 @@ def motion_synthesize(C_t, C_pos, params, prev=None):
 
     maximize objective: sum {t in Ts} abs(x[t]);
 
-    subject to x_checkpoint {c in Cs}: x[C_t[c]] = C_pos[c];
-    subject to v_checkpoint {c in Cs}: v[C_t[c]] = vmax;
+    subject to x_checkpoint {c in Cs}: x[c_t[c]] = c_pos[c];
+    subject to v_checkpoint {c in Cs}: v[c_t[c]] = vmax;
 
     subject to v_bounds {t in Ts}: 0 <= v[t] <= vmax;
     subject to u_bounds {t in Ts}: abs(u[t]) <= umax;
@@ -53,25 +53,59 @@ def motion_synthesize(C_t, C_pos, params, prev=None):
 
     # first and final time step indices
     dt = params["dt"]
-    t0_i = int(C_t[0] / dt)
-    tf_i = int(C_t[-1] / dt)
+    t0_i = int(checkpoints[ 0, 0] / dt)
+    tf_i = int(checkpoints[-1, 0] / dt)
     ampl.param["T"] = (tf_i - t0_i) + 1
 
     if prev is not None:
         # need to align the previous trajectory
         prev_tf = prev[0]
-        Y = int((prev_tf - C_t[0]) / dt)
+        Y = int((prev_tf - checkpoints[0, 0]) / dt)
         ampl.param["Y"] = Y
         ampl.param["y"] = prev[1][-Y:]
 
     # checkpoints
-    ampl.param["C"] = len(C_t)
-    ampl.param["C_t"] = [int(t / dt) - t0_i for t in C_t]
-    ampl.param["C_pos"] = C_pos
+    ampl.param["C"] = checkpoints.shape[0]
+    ampl.param["c_t"] = [int(t / dt) - t0_i for t in checkpoints[:,0]]
+    ampl.param["c_pos"] = checkpoints[:,1]
 
     for key, value in params.items():
         ampl.param[key] = value
 
     ampl.solve(solver="scip")
     assert ampl.solve_result == "solved"
-    return ampl.get_variable("x").to_pandas()
+    return ampl.get_variable("x").to_pandas().T.values.tolist()[0]
+
+
+def generate_trajectories(instance, y, params):
+    """From a crossing time schedule y, generate trajectories using the
+    MotionSynthesize procedure."""
+    nodes = instance['G'].nodes
+    route = instance['route']
+    release = instance['release']
+
+    N = len(release) # number of classes
+    n = [len(r) for r in release] # number of arrivals per class
+
+    trajectories = [[] for l in range(N)]
+
+    for l in range(N):
+        for k in range(n[l]):
+            pos_cum = 0 # cumulative position
+            checkpoints = np.empty((len(route[l]), 2))
+            # first checkpoint is just (t = release time, relative position = 0)
+            checkpoints[0] = np.array([release[l][k], 0])
+            for i in range(1, len(route[l])):
+                u = route[l][i-1]
+                v = route[l][i]
+                t = y[l, k, v]
+                pos_cum += float(np.linalg.norm(np.array(nodes[u]['pos']) - np.array(nodes[v]['pos'])))
+                checkpoints[i] = np.array([t, pos_cum])
+            prev = None
+            if k > 0: # there is a vehicle ahead
+                prev = (prev_tf, trajectories[l][-1][1])
+            traject = motion_synthesize(checkpoints, params, prev=prev)
+            trajectories[l].append((checkpoints[0, 0], traject))
+            prev_tf = checkpoints[-1, 0] # final time of previous trajectory
+
+    return trajectories
