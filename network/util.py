@@ -52,3 +52,13 @@ def draw_network(G):
     plt.gca().set_aspect('equal')
     plt.show()
     plt.close()
+
+
+def plot_trajectories(trajectories, dt):
+    for l in range(len(trajectories)):
+        for k in range(len(trajectories[l])):
+            t0 = trajectories[l][k][0]
+            ts = len(trajectories[l][k][1])
+            t = np.arange(t0, t0 + ts*dt, dt)
+            plt.plot(t, trajectories[l][k][1])
+        plt.show()
