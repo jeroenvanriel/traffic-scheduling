@@ -59,6 +59,6 @@ def plot_trajectories(trajectories, dt):
         for k in range(len(trajectories[l])):
             t0 = trajectories[l][k][0]
             ts = len(trajectories[l][k][1])
-            t = np.arange(t0, t0 + ts*dt, dt)
+            t = [t0 + i*dt for i in range(len(trajectories[l][k][1]))]
             plt.plot(t, trajectories[l][k][1])
         plt.show()
