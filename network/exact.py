@@ -35,18 +35,19 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
 
     y = {}
 
-    # release times
+    # release time parameters and crossing time variables
     for l in range(N):
         for k in range(n[l]):
             for r in range(len(route[l])):
                 v = route[l][r]
-                y[l, k, v] = g.addVar(obj=1, vtype=gp.GRB.CONTINUOUS, name=f"y_{l}_{k}_{v}")
                 if r == 0:
-                    g.addConstr(y[l, k, v] >= release[l][k])
+                    y[l, k, v] = release[l][k]
+                else:
+                    y[l, k, v] = g.addVar(obj=1, vtype=gp.GRB.CONTINUOUS, name=f"y_{l}_{k}_{v}")
 
-    # conjunctions
+    # conjunctions...
     for l in range(N):
-        for v in route[l]:
+        for v in route[l][1:]: # ...on all except the first node
             for k in range(n[l] - 1):
                 g.addConstr(y[l, k, v] + length[l][k] <= y[l, k + 1, v])
 
@@ -87,6 +88,7 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
     ### Solving
 
     g.ModelSense = gp.GRB.MINIMIZE
+    g.Params.MIPGap = gap
     g.update()
     g.optimize()
 
