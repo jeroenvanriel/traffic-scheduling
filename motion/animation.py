@@ -12,31 +12,34 @@ def animate(instance, trajectories, dt, vehicle_l=2, vehicle_w=1):
 
 
     def current_edge(l, k, pos):
-        """Find the current edge along the route of a vehicle, given its relative position."""
+        """Find the current edge (u,v) along the route of a vehicle, given its
+        position from the start of the route. Also returns the position relative
+        to node u."""
         cum_pos = 0
         v_prev = instance['route'][l][0]
         for v in instance['route'][l][1:]:
             d = dist(v_prev, v)
             if cum_pos <= pos and pos < cum_pos + d:
-                return v_prev, v, cum_pos
+                return v_prev, v, pos - cum_pos
             cum_pos += d
             v_prev = v
-        return instance['route'][l][-2], instance['route'][l][-1], cum_pos - d
+        return instance['route'][l][-2], instance['route'][l][-1], pos - cum_pos + d
 
 
     def get_pos(l, k, pos):
-        u, v, cum_pos = current_edge(l, k, pos)
-        pos -= cum_pos
-        pos -= vehicle_l # we want the front of the vehicle as reference
+        """Get (x, y, angle) for drawing vehicle rectangle."""
+        u, v, pos = current_edge(l, k, pos)
         x1, y1 = G.nodes[u]['pos']
         x2, y2 = G.nodes[v]['pos']
 
+        # calculate angle
         v1 = np.array([x2-x1, y2-y1])
         v1_u = v1 / np.linalg.norm(v1)
         v2_u = np.array([1, 0])
-        angle = -np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0)) / math.pi * 180
+        angle = np.sign(y2-y1) * np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0)) / math.pi * 180
 
         # go pos units in direction of edge
+        pos -= vehicle_l # we want the front of the vehicle as reference
         length = dist(u, v)
         x = x1 + (x2 - x1) / length * pos
         y = y1 + (y2 - y1) / length * pos
@@ -78,7 +81,7 @@ def animate(instance, trajectories, dt, vehicle_l=2, vehicle_w=1):
     rects = [[] for l in range(N)]
     for l in range(N):
         for k in range(n[l]):
-            pos = 0 # TODO: smaller?
+            pos = 0 # initial position
             x, y, angle = get_pos(l, k, pos)
             rect = Rectangle((x, y), angle=angle, width=vehicle_l, height=vehicle_w, **vehicleargs)
             rects[l].append(rect)
@@ -113,4 +116,4 @@ def animate(instance, trajectories, dt, vehicle_l=2, vehicle_w=1):
     ax.set_aspect('equal')
     fig.tight_layout(pad=0.05)
 
-    return animation.FuncAnimation(fig=fig, func=update, frames=frames, interval=10)
+    return animation.FuncAnimation(fig=fig, func=update, frames=frames, interval=50)
