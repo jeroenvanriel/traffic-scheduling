@@ -1900,6 +1900,17 @@ An example of a joint method is given in~\cite{tasselEndEndReinforcementLearning
 terms of a Constraint Programming (CP) formulation. This allows the method to be
 trained using demonstration from an off-the-shelf CP solver.
 
-
+% backpropagation through solution
+Instead of enforcing constraints by developing some tailored model architecture,
+like constructive and improvement heuristics, general methodologies have
+recently been explored for the problem of constraint satisfaction in neural
+networks. For example, the DC3 framework~\cite{dontiDC3LearningMethod2021}
+employs two differentiable processes, completion and correction, to solve any
+violations of equality or inequality constraints, respectively. The more recent
+HardNet framework~\cite{minHardConstrainedNeuralNetworks2024} uses a closed-form
+projection to map to feasible solutions under affine constraints and relies on a
+differentiable convex optimization solver (e.g.,
+OptNet~\cite{amosOptNetDifferentiableOptimization2021}) when general convex
+constraints are considered.
 
 \end{document}
