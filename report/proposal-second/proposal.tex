@@ -16,7 +16,7 @@
 
 \graphicspath{ {/} }
 
-\usepackage{natbib}
+%\usepackage{natbib}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
@@ -86,26 +86,30 @@ Eindhoven University of Technology\\
 \maketitle
 
 \begin{abstract}
-  Coordination of autonomous vehicles through networks of
-  intersections has the potential of reducing risk of accidents while providing
-  huge savings in economic costs.
+  Autonomous vehicle coordination at intersections has the potential of reducing
+  risk of accidents and providing significant savings in economic costs.
   %
-  We adopt an optimal control formulation with hard collision-avoidance
-  constraints as a model to study the fundamental complexity of centralized
-  coordination schemes for autonomous traffic without traffic signals. With
-  delay as the main performance criterion, we show that our problem decomposes
-  into an upper-level problem that is a variant of the classical job-shop
-  scheduling problem and a lower-level trajectory optimization problem that can
-  be efficiently solved by linear programming.
+  We propose to study coordination using an optimal control problem with hard
+  collision-avoidance constraints to investigate the complexity of centralized
+  traffic management without traffic signals.
   %
-  Previous works have successfully proposed reinforcement learning methods to
-  train scheduling policies based on the well-known disjunctive graph formalism
-  of job-shop problems.
+  With delay as the primary performance metric, we show how to decompose the
+  high-dimensional formulation into two key components: (i) a variant of the
+  classical job-shop scheduling problem and (ii) a trajectory optimization
+  problem, which can be solved by linear programming.
   %
-  We propose to adapt this formalism to our job-shop variant and, like previous
-  works, to use a graph neural network to parameterize a scheduling policy that
-  is tuned using reinforcement learning in order to obtain a scalable
-  approximation scheme for the high-dimensional coordination problem.
+  Recent works have successfully applied reinforcement learning to derive
+  scheduling policies for job-shop problems based on their disjunctive graph
+  representation.
+  %
+  We propose to adapt this formalism to our variant and, building on previous
+  works, to employ a graph neural network encoding of this extended disjunctive
+  graph to parameterize a scheduling policy. The network can be trained using
+  existing policy gradient algorithms, enabling the model to learn coordination
+  stategies from scratch.
+  %
+  This approach offers an efficient approximation scheme, paving the way toward
+  scalable solutions for more advanced coordination models.
 \end{abstract}
 
 
@@ -118,7 +122,7 @@ Eindhoven University of Technology\\
 Given the ongoing development of self-driving vehicle technology, it is not
 difficult to imagine a future vehicular mobility system without human drivers.
 Besides the obvious advantage of relieving us from the task of driving, freeing
-time that can be spent on more meaningful activities, other benefits include
+time that can be spent on other activities, other benefits include
 increased safety and efficiency. Human error is one of the major causes of most
 accidents in vehicular traffic, which motivates the design of automated systems
 with guarantees on collision avoidance, with the potential of saving millions of
@@ -133,10 +137,11 @@ use of intersections. On a larger scale, methods like network-wide dynamic route
 optimization have been proposed to reduce travel delay for all users in the
 traffic network.
 
-We choose to focus on coordination algorithms for optimizing the shared use of a
-network of intersections without traffic lights. We consider a model in which
-every vehicle in the network is controlled by a single \textit{controller} and
-we assume that every vehicle follows a fixed predetermined route.
+We focus on coordination algorithms for optimizing the shared use of a network
+of intersections without traffic lights. We consider a model in which each
+vehicle in the network is managed by a central controller, illustrated in
+Figure~\ref{fig:network_illustration}. Furthermore, we assume that every vehicle follows a
+fixed predetermined route to explicitly ignore the problem of route generation.
 %
 In this context, we identify the following three key challenges
 that are not yet fully addressed in the current literature.
@@ -150,102 +155,72 @@ that are not yet fully addressed in the current literature.
         crucial in real-world application, algorithms must guarantee this by
         design.
 
-  \item \textbf{Scalability.} Most current works consider coordination at a
-        single intersection~\cite{khayatianSurveyIntersectionManagement2020}, so
-        an important question remains how to develop systems for networks of
-        intersections. Coordination algorithms should naturally scale to complex
-        networks of intersections with large numbers of vehicles, while
-        balancing the quality of solutions with computational complexity,
-        motivating the study of good approximation schemes.
+  \item \textbf{Scalability.} Most previous works consider coordination at a single
+        intersection~\cite{khayatianSurveyIntersectionManagement2020} and involve algorithms that cannot be easily extended
+        to multiple intersections. Coordination algorithms should naturally
+        scale to complex real-world traffic networks with large numbers of
+        vehicles. This requires a balance between the quality of solutions with
+        computational complexity, motivating the study of good approximation
+        schemes.
 
-  \item \textbf{Learning.} Given the successful applications of deep
-        reinforcement learning to highly complex control tasks, it is natural to
-        ask how coordination of autonomous vehicles can be formulated such that
-        a similar methodology can be applied for automatically learning good
-        policies for this complex decision-making problem.
+  \item \textbf{Learning.} Given the successful applications of (deep) reinforcement learning
+        to a wide range of control tasks, it is natural to ask how
+        coordination of autonomous vehicles can be formulated such that a
+        similar methodology can be used to automatically learn good policies for
+        this complex problem.
 % constraint satisfaction
-        It is nontrivial to apply current reinforcement learning formulations to
-        this setting, because satisfaction of hard constraints, like collision
-        avoidance, is still an area of active
-        research~\cite{minHardConstrainedNeuralNetworks2024}.
+        The hard constraints, including collision avoidance, make it nontrivial to
+        apply reinforcement learning in this case.
 \end{itemize}
 
 % recent neural JSSP success motivates further investigation
-We observe that multi-intersection access control in a network of intersections shows some
-resemblance to the classical job-shop scheduling problem, which is a canonical
-example of a resource-sharing problem. Recently, deep reinforcement learning
-methods have been successfully proposed for this problem~\cite{zhangLearningDispatchJob2020,zhangDeepReinforcementLearning2024,smitGraphNeuralNetworks2024}, often based on
-efficient representations of problem instances using graph neural networks. This
-motivates us to investigate whether a similar approach can be applied in our
-setting by adapting the job-shop scheduling formulation to the traffic
-coordination problem.
+We observe that multi-intersection access control in a network of intersections
+shows some resemblance to the classical job-shop scheduling problem, which is a
+canonical example of a resource-sharing problem. For this type of problem, deep
+reinforcement learning methods have recently been proposed~\cite{zhangLearningDispatchJob2020,zhangDeepReinforcementLearning2024}, often based on
+efficient representations of problem instances using graph neural
+networks~\cite{smitGraphNeuralNetworks2024}. This motivates us to investigate
+whether a similar approach can be applied in our setting by adapting the
+job-shop scheduling formulation to the autonomous traffic coordination problem.
+Before we elaborate our proposed methodology, we briefly review existing works
+and formulate concrete research questions to address the three identified
+challenges.
 
 
 \subsection{Overview of related literature}
 
-Traffic lights are currently one of the most effective way of influencing
-traffic, so current coordination methods often rely on some sort of
-synchronization of traffic light settings at neighboring intersections~\cite{mcshaneTrafficEngineering1990,hePAMSCODPlatoonbasedArterial2012}, with
-\textit{green waves} on arterial roads being a well-known example. Since the complex
-interactions in signalized networks are difficult to model explicitly, recent
-years have seen an increased interest in the application of deep learning models
-to traffic-related problems. In particular, numerous works have successfully
+Traffic lights are currently one of the most effective way of guiding traffic,
+so current coordination methods often rely on some sort of synchronization of
+traffic light settings at neighboring intersections~\cite{mcshaneTrafficEngineering1990,hePAMSCODPlatoonbasedArterial2012}, with \textit{green waves} on
+arterial roads being a well-known example. Since the complex interactions in
+signalized networks are difficult to model using basic principles, recent years
+have seen an increased interest in the application of deep learning models to
+traffic-related problems. In particular, numerous works have successfully
 proposed deep reinforcement learning methods for traffic signal control that
 scale to large networks of intersections~\cite{noaeenReinforcementLearningUrban2022,weiSurveyTrafficSignal2020}.
 %
-Furthermore, given the increasing number of fully autonomous vehicles, new types of traffic
-coordination scheme become
-conceivable~\cite{marianiCoordinationAutonomousVehicles2022}, with notable
-examples being services like smart parking and ride sharing, local coordination
-methods like ramp merging and platooning, or network-wide traffic flow
-optimization through smart route suggestions.
+Most of these works involve human-driven vehicles and rely heavily on precise
+models of the corresponding vehicle dynamics using so-called microscopic
+simulators~\cite{lopezMicroscopicTrafficSimulation2018}.
 
+Given the increasing number of fully autonomous vehicles, new types of traffic
+coordination schemes have become conceivable~\cite{marianiCoordinationAutonomousVehicles2022}, with notable examples being
+services like smart parking and ride-sharing, local coordination methods like
+ramp merging and platooning, or network-wide traffic flow optimization through
+smart route suggestions.
+%
 Intersection access management without traffic signals is one type of setting in
 which coordination of autonomous vehicles can potentially bring huge benefits,
 both in terms of reduced risk and economic costs. While early works were mostly
-based on reservation-based
-protocols~\cite{dresnerMultiagentApproachAutonomous2008}, current coordination
-schemes are studied under very different model assumptions regarding vehicle
-dynamics and modes of communication and
-control~\cite{khayatianSurveyIntersectionManagement2020}. An important
-distinction can be made based on the used communication models, which can be
-roughly categorized into distributed approaches, where groups of vehicles
-coordinate trajectories together, and centralized approaches, where individual
-vehicles receive instructions from a central controller.
+based on reservation-based protocols~\cite{dresnerMultiagentApproachAutonomous2008}, current coordination schemes are
+studied under a wide range of model assumptions regarding vehicle dynamics and
+modes of communication and control~\cite{khayatianSurveyIntersectionManagement2020}. An important distinction can be made
+based on the used communication models, which can be roughly categorized into
+distributed approaches, where groups of vehicles coordinate trajectories
+together, and centralized approaches, where individual vehicles receive
+instructions from a central controller.
 
-Centralized solutions for access control at a single intersection have be
-studied by framing the problem in terms of optimal control, providing a sound
-theoretical foundation. Most works from this perspective use a simple
-one-dimensional vehicle model known as the double integrator in optimal control
-literature. Although solutions can be obtained using so-called \textit{direct transcription}
-methods, the high-dimensionality of the problem calls for good approximation
-schemes. A common observation is that the optimization problem may be thought of
-as two coupled optimization
-problems~\cite{hultApproximateSolutionOptimal2015,zhaoBilevelProgrammingModel2021,tallapragadaHierarchicaldistributedOptimizedCoordination2017},
-where the upper-level problem is to determine when and in which order vehicles
-enter and exit each intersection on their route. The lower-level problem is to
-find optimal trajectories that match these time slots.
-
-Extensions to multi-intersection settings have received much less attention.
-Existing methods are extensions of reservation-based
-protocols~\cite{hausknechtAutonomousIntersectionManagement} or are based on
-mixed-integer linear programming~\cite{sartorCombinatorialLearningTraffic2019}.
-% neural combinatorial optimization
-We recognize that such a multi-intersection extensions is in large part of a
-combinatorial nature. Recently, there has been an increasing interest in
-applying a machine learning perspective on many classical combinatorial
-problems~\cite{bengioMachineLearningCombinatorial2020}, to which we refer as
-\textit{neural combinatorial optimization}. Realistic instances of many
-combinatorial problems are often too complex to solve to optimality, so
-researchers try to propose good approximation schemes and heuristics, based on
-some kind of structure in the problems of interest. However, manually designing
-such heuristics is a tedious task, requiring a lot of experience and deep
-insight into the problem. Tailored deep reinforcement learning methods have
-shown to be able to automatically derive good heuristics from scratch for many
-classical combinatorial optimization
-problems~\cite{mazyavkinaReinforcementLearningCombinatorial2020}.
-
-\begin{figure}[t]
+\begin{figure}[b]
   \centering
   \includegraphics[width=0.5\textwidth]{figures/state_example.png}
   \caption{Illustration of some simple grid-like network of intersections
@@ -256,38 +231,71 @@ problems~\cite{mazyavkinaReinforcementLearningCombinatorial2020}.
     model.}\label{fig:network_illustration}
 \end{figure}
 
+Centralized approaches mostly ignore issues with communication and distributed
+computing in order to study intersection access management under the optimal
+control framework, providing a sound theoretical foundation. Most works from
+this perspective use a simple one-dimensional vehicle model known as the double
+integrator in optimal control literature~\cite{raoNaiveControlDouble2001}. In
+principle, solutions can often be obtained using so-called \textit{direct transcription}
+methods, but the high-dimensionality of the problem calls for good approximation
+schemes to keep computational expenses balanced. A common observation is that
+the problem may be thought of as two coupled optimization problems~\cite{hultApproximateSolutionOptimal2015,zhaoBilevelProgrammingModel2021,tallapragadaHierarchicaldistributedOptimizedCoordination2017}, where
+the upper-level problem is to determine when and in which order vehicles enter
+and exit each intersection on their route. The lower-level problem is to find
+optimal trajectories that match these time slots.
+
+Extensions to multi-intersection access management have received much less
+attention. Existing methods are extensions of reservation-based protocols~\cite{hausknechtAutonomousIntersectionManagement} or
+are based on mixed-integer linear programming~\cite{sartorCombinatorialLearningTraffic2019}.
+% neural combinatorial optimization
+As the remainder of this proposal will show, we recognize that the additional
+complexity of the multi-intersection extension is in large part of a
+combinatorial nature. At the same time, we observe that recent literature shows
+an increasing interest in applying a machine learning perspective on
+combinatorial problems~\cite{bengioMachineLearningCombinatorial2020,lodiLearningBranchingSurvey2017}, to which we refer as \textit{neural combinatorial
+  optimization}. Realistic instances of many combinatorial
+problems are often too complex to solve to optimality, so researchers try to
+propose good approximation schemes and heuristics, based on some kind of
+structure in the problems of interest. However, manually designing such
+heuristics is a tedious task, requiring a lot of experience and deep insight
+into the problem. Recently, tailored deep reinforcement learning methods have
+shown to be able to automatically derive good heuristics from scratch for many
+classical combinatorial optimization problems~\cite{belloNeuralCombinatorialOptimization2017,koolLearningOptimizationCombinatorial,mazyavkinaReinforcementLearningCombinatorial2020,smitGraphNeuralNetworks2024}.
+
+
 \subsection{Problem formulation and research questions}
 
 % problem formulation
 We study a centralized model for the network-wide coordination of autonomous
-vehicles where vehicles are directly controlled, without relying on traffic
+vehicles, in which vehicles are directly controlled without relying on traffic
 lights. Specifically, we model coordination as an optimal control problem with
-hard constraints on collision avoidance and with assumptions of perfect
-communication and control. In this framework, a central controller sets the
-acceleration of all individual vehicles, with each vehicle modeled as a double
-integrator. Once a vehicle enters the network, it follows a predetermined route
-until it exists, as illustrated in Figure~\ref{fig:network_illustration}. The
+hard constraints on collision avoidance and assume a perfect
+communication and control setup. The central controller determines the
+acceleration of each vehicle, modeled as a rectangle that moves according to double
+integrator dynamics. Once a vehicle enters the network, it follows a predetermined route
+until it exits, as illustrated in Figure~\ref{fig:network_illustration}. The
 goal is to control the trajectory of each vehicle in the network, ensuring
 collision-free movement while optimizing a global measure of efficiency. One
 common measure of efficiency in the literature is the total delay experienced by
 all vehicles. However, it may also be desirable to penalize acceleration, which
 can serve as a proxy for energy consumption. In scenarios where all vehicle
 arrival times are known in advance, we assume that the trajectories can be
-computed offline, without any prior interaction with the system. This setup is
+computed offline, without any prior interaction with the system. This problem setup is
 referred to as \textit{offline trajectory optimization}.
 
 In general, the offline trajectory optimization problem is of infinite
 dimension, because vehicle trajectories are smooth functions of time. Therefore,
-every numerical algorithm is based on some kind of dimensionality reduction.
-However, we recognize some basic structure in the trajectories that allows us to
-define a lower-dimensional representation.
+every numerical algorithm must introduce some kind of dimensionality reduction
+scheme. In this case, we recognize some basic structure that allows us to define
+a lower-dimensional problem formulation.
 %
 By assuming that the vehicle dynamics are known precisely, it is possible to
 formulate hard constraints on the trajectories of vehicles in order to avoid
-collisions. One of our key observation is that these constraints are somewhat
-similar to those found in classical job-shop scheduling problems, for which
-efficient solution methods are available that scale reasonably well to larger
-instances.
+collisions. One key observation is that these constraints are somewhat similar
+to those found in classical job-shop scheduling problems, where vehicles and
+intersections correspond to jobs and machines, respectively. Efficient solution
+methods are available for this type of problem, scaling reasonably well to
+larger instances.
 %
 Therefore, we aim to address the first two challenges of safety and scalability
 by answering our first research question:
@@ -301,16 +309,17 @@ by answering our first research question:
 \end{enumerate}
 
 Apart from the similarity to job-shop scheduling, we believe that the offline
-trajectory optimization problem has more hidden structure that stems from the
-way vehicles interact with each other in large networks of intersections. Our
+trajectory optimization problem has additional structure related to the way in
+which vehicle trajectories interact in large networks of intersections. Our
 second aim is to investigate how deep reinforcement learning can be applied to
 the offline trajectory optimization problem, because we believe that a machine
-learning perspective~\cite{bengioMachineLearningCombinatorial2020} can help discover structure in complex decision-making
-problems. Our hypothesis is that a lot of this structure is hard to formulate
-precisely, so the coordination algorithm should automatically learn how to
-exploit the structure in some class of problem instances. To further improve the
-scalability of our solutions method and to address the remaining challenge of
-learning, we formulate our second research question as:
+learning perspective~\cite{bengioMachineLearningCombinatorial2020} can help model hidden regularities in complex
+decision-making problems. Our hypothesis is that it is generally hard to
+manually design algorithms that exploit such structural features, so
+reinforcement learning might be employed to automatically learn to do this based
+on interaction with problem instances. Therefore, to further improve the scalability of
+our solutions method and to address the remaining challenge of learning, we
+formulate our second research question as:
 %
 \begin{enumerate}
   \item[\textbf{\namedlabel{Q2}{Q2}}.] Can recent deep reinforcement learning formulations for
@@ -399,7 +408,7 @@ variant. Following the approach of previous successful deep reinforcement
 learning methods for job-shop problems, we propose a policy for generating
 schedules in a step-by-step fashion. The policy is parameterized based on a
 Graph Neural Network (GNN) encoding of the adapted disjunctive graph. We verify
-whether the resulting policy space is general enough by using imiation learning
+whether the resulting policy space is general enough by using imitation learning
 on expert demonstration obtained from optimal solutions by backtracking the
 required step-by-step decisions. Finally, we train the policy using
 reinforcement learning in a step-by-step scheduling environment.
@@ -428,8 +437,8 @@ intersection on its route, let the \textit{crossing time} $y$ be the first
 moment when the front bumper of the vehicle $i$ enters the intersection area, as
 depicted by the first situation in Figure~\ref{fig:vehicle_crossing}. Next, let
 $\rho > 0$ denote the time after which another vehicle on the same route can
-start crossing and let $\sigma > \rho$ denote the of a \textit{full crossing},
-which is time after which any vehicle from a conflicting routes can start
+start crossing and let $\sigma > \rho$ denote the duration of a \textit{full crossing},
+after which any vehicle from a conflicting route can start
 crossing the intersection.
 % assumption on v=vmax on whole crossing time slot
 To simplify matters, we assume that vehicles drive at \textit{full speed} when crossing
@@ -452,8 +461,8 @@ Each of these can be straightforwardly solved by direction transcription to a
 linear program by introducing a discrete time grid to represent each vehicle's
 trajectory. The vehicle dynamics can be encoded using a forward Euler scheme or
 higher-order numerical integration methods. Rear-end collision-avoidance
-constraints can simply be added for each timestep. Finally, the position at
-timestep $y$ is bound to the start of the intersection.
+constraints can simply be added for each time step. Finally, the position at
+time step $y$ is bound to the start of the intersection.
 
 
 \subsubsection{Job-shop scheduling}
@@ -507,7 +516,7 @@ route is modeled as an operation. The processing time of a crossing corresponds
 to $\rho$ in Figure~\ref{fig:vehicle_crossing}.
 % edge-disjoint routes, no overtaking => (r,k) indices
 We assume that routes are \textit{edge-disjoint}, in the sense that they do not
-share edges but may possibly overlap at nodes (intersections). Furthermore, we
+share edges but possibly overlap at nodes (intersections). Furthermore, we
 assume that vehicles on the same lane are not able to overtake. Therefore, each
 vehicle can be identified as a tuple $(r, k)$, with some route identifier $r$
 and an integer $k$ that indicates the relative order on this route, see
@@ -543,7 +552,7 @@ constraints of JSSP, we define the following three constraints:
   \caption{Illustration of buffer constraint for a pair of vehicles on the same
     route. Suppose that the vehicles on the lane between the two intersections
     are currently not moving and waiting to cross $I_{2}$. It is clear that the
-    crossing time of vehicle $a$ at $I_{1}$ must be happen at least after
+    crossing time of vehicle $a$ at $I_{1}$ must happen at least after
     vehicle $b$ starts crossing $I_{2}$. Since this particular lane segment has
     capacity for 4 waiting vehicles, we need such a buffer constraint between
     every pair of vehicles $(r,k_{1})$ and $(r,k_{2})$ that satisfy
@@ -585,7 +594,7 @@ decisions, because vehicles can in principle conflict with all other vehicles
 that share a part of their route, even if it is clear that this would never
 happen in any sensible schedule.
 
-During the solving procedure, the currently best solution is remembered.
+During the solving procedure, the current best solution is remembered.
 Therefore, MILP solving can be used as an approximation method by setting a
 limit on the computation time, which addresses our second overall objective.
 %
@@ -738,7 +747,7 @@ preparing material for a final presentation.
   \item (1 week) \textbf{MILP for VSP.} Solve the network scheduling problem by formulating and
         solving it as a MILP. This method can be used to collect expert
         demonstrations for training the neural scheduler using imitation
-        learning and it also provides a baseline for peformance evaluation of
+        learning and it also provides a baseline for performance evaluation of
         our proposed neural scheduler.
 
   \item (3 weeks) \textbf{MDP scheduling formulation.} As a first step towards implementing
@@ -854,7 +863,7 @@ not too expensive to run at every transition of the reinforcement learning loop.
 It is not difficult to imagine a time-step based model of vehicle movement through
 a network of intersections, which is the main principle of traffic
 micro-simulators like SUMO~\cite{lopezMicroscopicTrafficSimulation2018}. Actions may be defined in terms of increasing
-and decreasing the acceleration of individual vehicles and we could consider the
+and decreasing the acceleration of individual vehicles, and we could consider the
 corresponding \textit{joint acceleration action} for all vehicles in the network.
 %
 The main problem with this parameterization of trajectories is that safety is
@@ -878,7 +887,7 @@ higher level of abstraction.
 \textit{Full speed crossing.} For general objective functions involving some
 measure of energy consumption, for example in terms of acceleration, it is not
 always optimal to require vehicles to cross intersections at full speed. In
-particular, previous works that treat a similar proplem with only a single
+particular, previous works that treat a similar problem with only a single
 intersection~\cite{hultApproximateSolutionOptimal2015,zhaoBilevelProgrammingModel2021}
 do not make this explicit assumption. However, we propose to focus first on the
 higher-level decision of crossing order, because we think this has most impact
@@ -925,7 +934,7 @@ new vehicle arrives to some control area, the proposed algorithm simulates the
 behavior of a polling policy to determine the new vehicle crossing order. It is
 shown that it is always possible to compute a set of collision-free trajectories
 from the updated schedule. Moreover, for certain classes of polling policies,
-explicit trajectory expressions (also refered to as \textit{speed profile
+explicit trajectory expressions (also referred to as \textit{speed profile
   algorithms}) are available~\cite{timmermanPlatoonFormingAlgorithms2021}.
 % online with re-optimization
 A straightforward approach to the online problem in a single intersection would
@@ -967,8 +976,8 @@ schedules to reach closer to optimality.
 This part presents the design of a neural scheduling heuristic for the offline
 trajectory optimization problem with a single intersection. We discuss how these
 results provide evidence that a similar methodology is feasible in a network of
-intersections, thereby strengthening our believe that the proposed research
-approach is setup to successfully answer research questions~\ref{Q1}
+intersections, thereby strengthening our belief that the proposed research
+approach is set up to successfully answer research questions~\ref{Q1}
 and~\ref{Q2}.
 %
 In this preliminary stage, we used an imitation learning setting to assess
@@ -1223,7 +1232,7 @@ $[x_{i}(t) : i \in \mathcal{N}]$ that satisfies
 forms a valid solution. These trajectories can be computed by an efficient
 direct transcription method. First, note that each route may be considered
 separately. Trajectories on each route can then be computed in a sequential
-fashion by repeatedly solving the optimal control problem
+manner by repeatedly solving the optimal control problem
 %
 \begin{align*}
 \texttt{MotionSynthesize}(\tau, B, s_{0}, x') := \\
@@ -1250,7 +1259,7 @@ maintain a safe following distance between the two vehicles.
 % - travel constraints
 
 We briefly explain why we think that the above setup can be extended to a
-network of intersections, thereby strengthening our believe that we can
+network of intersections, thereby strengthening our belief that we can
 successfully answer research question~\ref{Q1}.
 %
 First of all, the upper-level problem can be extended by considering a crossing
