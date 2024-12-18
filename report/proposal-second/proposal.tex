@@ -106,7 +106,7 @@ Eindhoven University of Technology\\
   works, to employ a graph neural network encoding of this extended disjunctive
   graph to parameterize a scheduling policy. The network can be trained using
   existing policy gradient algorithms, enabling the model to learn coordination
-  stategies from scratch.
+  strategies from scratch.
   %
   This approach offers an efficient approximation scheme, paving the way toward
   scalable solutions for more advanced coordination models.
@@ -182,14 +182,14 @@ efficient representations of problem instances using graph neural
 networks~\cite{smitGraphNeuralNetworks2024}. This motivates us to investigate
 whether a similar approach can be applied in our setting by adapting the
 job-shop scheduling formulation to the autonomous traffic coordination problem.
-Before we elaborate our proposed methodology, we briefly review existing works
+Before we elaborate on our proposed methodology, we briefly review existing works
 and formulate concrete research questions to address the three identified
 challenges.
 
 
 \subsection{Overview of related literature}
 
-Traffic lights are currently one of the most effective way of guiding traffic,
+Traffic lights are currently one of the most effective ways of guiding traffic,
 so current coordination methods often rely on some sort of synchronization of
 traffic light settings at neighboring intersections~\cite{mcshaneTrafficEngineering1990,hePAMSCODPlatoonbasedArterial2012}, with \textit{green waves} on
 arterial roads being a well-known example. Since the complex interactions in
@@ -409,7 +409,7 @@ learning methods for job-shop problems, we propose a policy for generating
 schedules in a step-by-step fashion. The policy is parameterized based on a
 Graph Neural Network (GNN) encoding of the adapted disjunctive graph. We verify
 whether the resulting policy space is general enough by using imitation learning
-on expert demonstration obtained from optimal solutions by backtracking the
+on expert demonstrations obtained from optimal solutions by backtracking the
 required step-by-step decisions. Finally, we train the policy using
 reinforcement learning in a step-by-step scheduling environment.
 
@@ -685,7 +685,7 @@ function from a partial solution (partial disjunctive graph) to an action
 (crossing).
 % disjunctive graph -> GNN -> encoding of partial solution
 Previous works have been able to train good policies based on encodings of the
-disjunctive graph for JSSP. Following this direction, we propose build
+disjunctive graph for JSSP. Following this direction, we propose to build
 an encoding of the partial disjunctive graph augmented with the corresponding
 crossing time lower bounds.
 %
@@ -737,7 +737,7 @@ preparing material for a final presentation.
   \item (2 weeks) \textbf{Upper-level formulation.} We precisely formulate VSP for
         networks with delay objective (network scheduling problem).
         Particularly, this mainly involves formulating the travel constraints
-        and buffer constraints such that feasibility of the lower-level problem
+        and buffer constraints such that the feasibility of the lower-level problem
         is guaranteed. At this stage, we only aim to provide a rough proof
         sketch of this, because we simply verify this feasibility
 
@@ -830,7 +830,7 @@ limited time for large networks and hopefully to outperform MILP-based
 heuristics. We expect that potential issues are mostly related to model capacity
 and training time.
 % not enough capacity
-First, it might be the case that our model has not enough representational power
+First, it might be the case that our model does not have enough representational power
 (model capacity) to capture the complex dynamics required for good policies. In
 other words, it is not guaranteed that the resulting total space of possible
 policies does not include optimal policies or near-optimal policies. For
@@ -890,7 +890,7 @@ always optimal to require vehicles to cross intersections at full speed. In
 particular, previous works that treat a similar problem with only a single
 intersection~\cite{hultApproximateSolutionOptimal2015,zhaoBilevelProgrammingModel2021}
 do not make this explicit assumption. However, we propose to focus first on the
-higher-level decision of crossing order, because we think this has most impact
+higher-level decision of crossing order, because we think this has the most impact
 on the overall quality of trajectories. Nevertheless, it remains an interesting
 direction for further investigation to extend our method to also allow different
 crossing speeds.
@@ -1699,7 +1699,7 @@ The approximation method in~\cite{hultApproximateSolutionOptimal2015} is based
 on this bilevel decomposition and considers an quadratic objective involving
 velocity as a proxy for energy. The first stage optimizes a schedule of vehicle
 crossing times. It uses approximations of each vehicle's contribution to the
-total objective, as a function of its crossing time. Next, for each vehicle, the
+total objective as a function of its crossing time. Next, for each vehicle, the
 second stage computes an optimal trajectory that satisfies the crossing time
 schedule by solving a quadratic program. This approach has been shown to reduce
 running times significantly. Unfortunately, this study is limited to a single
