@@ -1,0 +1,137 @@
+\documentclass[a4paper]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{amsthm}
+\usepackage{dsfont}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{datetime}
+\usepackage{outlines}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+
+\input{data/knitr_init.tex}
+
+% code highlighting
+\usepackage{minted}
+\usepackage{xpatch}
+\newminted[cminted]{python}{fontsize=\small}
+\xpretocmd{\cminted}{\RecustomVerbatimEnvironment{Verbatim}{BVerbatim}{}}{}{}
+
+% link coloring
+%\hypersetup{
+%    colorlinks,
+%    linkcolor={red!80!black},
+%    citecolor={green!60!black},
+%    urlcolor={blue!80!black}
+%}
+
+% concatenation symbol (c.f. ++ in Haskell)
+\newcommand\mdoubleplus{\mathbin{+\mkern-10mu+}}
+
+% end of proof symbol
+\newcommand{\newmarkedtheorem}[1]{%
+  \newenvironment{#1}
+    {\pushQED{\qed}\csname inner@#1\endcsname}
+    {\popQED\csname endinner@#1\endcsname}%
+  \newtheorem{inner@#1}%
+}
+
+\theoremstyle{definition}
+%\newtheorem{eg}{Example}[section]
+\newmarkedtheorem{eg}{Example}[section]
+\newtheorem{observation}{Observation}[section]
+\newtheorem{define}{Definition}[section]
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{assump}{Assumption}[section]
+\newtheorem{remark}{Remark}[section]
+
+\newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
+
+\author{Jeroen van Riel}
+\date{\monthyeardate\today}
+\title{}
+
+\begin{document}
+
+\section*{Online control with re-optimization}
+
+The model assumes that routes are edge-disjoint and that vehicles drive at full
+speed over the intersection area.
+%
+We add vehicles to the network in order of increasing arrival time. After a new
+arrival happened, we calculate the current optimal set of crossing times
+relative to the current time. Next, we simulate this schedule forward in time
+until the next arrival.
+%
+The re-optimization problem is obtained by generalizing the network MILP to
+incorporate vehicle positions at a certain time.
+
+\subsection*{Instantaneous acceleration}
+
+We only include a crossing time variable $y(i, v)$ in the MILP when vehicle $i$
+still needs to cross intersection $v$.
+% definitions
+Let $x(i)$ denote the current position of vehicle $i$, relative to the first
+node of its route. Let $(u(i), v(i))$ denote the current edge of vehicle $i$.
+Let $p(i)$ denote the \textit{edge position}, which is the position on the
+current edge, so relative to $u(i)$.
+
+\vspace{1em}
+\noindent
+For conjunctions, we need to consider three cases:
+\begin{itemize}
+ \item both vehicles still need to cross the intersection
+ \item vehicle 2 is occupies the intersection
+ \item both vehicles crossed the intersection
+\end{itemize}
+
+\noindent
+For disjunctions, we need to consider four cases:
+\begin{itemize}
+ \item both vehicles still need to cross the intersection
+ \item vehicle 1 still occupies the intersection
+ \item vehicle 2 still occupies the intersection
+ \item both vehicles crossed the intersection
+\end{itemize}
+
+
+\noindent
+Distance constraints:
+\begin{itemize}
+ \item current edge, take into account current edge position
+ \item unvisited edges, use edge length
+\end{itemize}
+
+\noindent
+Capacity constraints:
+\begin{itemize}
+ \item not yet crossed
+ \item crossed
+\end{itemize}
+
+
+\subsection*{Bounded acceleration}
+
+This problem is more restrictive, because some decisions are fixed due to the
+inability of vehicles to stop immediately.
+
+
+
+\bibliography{references}
+\bibliographystyle{ieeetr}
+
+
+\end{document}
+
+% to enable the minted package
+% Local Variables:
+% TeX-command-extra-options: "-shell-escape"
+% End:
