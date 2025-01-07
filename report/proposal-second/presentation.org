@@ -1,0 +1,395 @@
+#+options: ':t *:t -:t ::t <:t H:1 \n:nil ^:t arch:headline author:t
+#+options: broken-links:nil c:nil creator:nil d:(not "LOGBOOK") date:t e:t
+#+options: email:nil f:t inline:t num:t p:nil pri:nil prop:nil stat:t tags:t
+#+options: tasks:t tex:t timestamp:t title:t toc:nil todo:t |:t
+#+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LaTeX_CLASS_OPTIONS: [bigger]
+#+LATEX_HEADER: \usepackage{graphicx}
+#+LATEX_HEADER: \usepackage[export]{adjustbox}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \beamertemplatenavigationsymbolsempty
+#+language: en
+#+select_tags: export
+#+exclude_tags: noexport
+#+creator: Emacs
+#+cite_export: natbib
+#+bibliography: references.bib
+#+title: Scalable Coordination of $\\$ Autonomous Vehicles in Networks
+#+date: January 2025
+#+author: Jeroen van Riel
+#+email: jeroenvanriel@outlook.com
+
+
+* Autonomous vehicles
+
+\begin{figure}
+  \centering
+  \href{https://arxiv.org/src/2311.07435v4/anc/Animation_4_-_Only_Cars,_Medium_load.mp4}{
+    \includegraphics[width=0.55\textwidth]{figures/autonomous_simulation.png}
+  }
+\end{figure}
+
+- Coordination of autonomous vehicles
+  - Better guarantees on safety
+  - Potentially reduce economic costs
+  - No need for traffic lights
+
+* Related literature
+
+- Traffic light control with deep reinforcement learning
+  - Policy to control \textit{phase} of signal
+    $\vspace{0.5em}$
+    \begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/phases.pdf}
+    \end{figure}
+  - Based on microsimulation (e.g., SUMO, VISSIM)
+  - Multi-agent perspective: each intersection has some degree of autonomy
+
+
+* Related literature
+
+- No traffic lights ($\textit{autonomous intersections}$)
+  - Autonomous (rather ``automated'') vehicles
+  - Coordination for
+    - Collision avoidance
+    - Efficiency
+  - Locus of control: central $\leftrightarrow$ distributed
+  - Central control $\implies$ optimal control problem
+
+
+* Networks of autonomous intersections
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.55\textwidth]{figures/state_example.png}
+\end{figure}
+
+- Fixed routes
+- Double integrator vehicle dynamics
+- Collision-free trajectories
+
+* Problem formulation
+
+- Algorithmic challenges
+  1. Safety with respect to collisions
+  2. Scalability to large urban networks
+  3. Learn from interaction with the system
+
+\vspace{1em}
+
+- Research questions
+  1. Formulate as job-shop scheduling
+  2. Apply Deep Reinforcement Learning (DRL)
+
+* $\;$
+
+\centering
+\color{structure}
+\Large Research approach
+\normalsize
+\vspace{2em}
+
+\begin{columns}
+\begin{column}{0.17\textwidth}
+\end{column}
+
+\begin{column}{0.83\textwidth}
+\begin{itemize}
+
+\item Decomposition
+\item Vehicle scheduling problem
+\item DRL heuristic
+
+\end{itemize}
+\end{column}
+\end{columns}
+
+* Decomposition
+
+- Upper-level vehicle scheduling problem
+  - Mixed-Integer Linear Programming (MILP)
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/network_bilevel-1.pdf}
+\end{figure}
+
+- Lower-level trajectory optimization problem
+  - Direct transcription \rightarrow linear programming
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/network_bilevel-2.pdf}
+\end{figure}
+
+* Vehicle scheduling problem
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/network_indices.pdf}
+\end{figure}
+
+- Order vehicles at intersections
+- Intersection occupied by at most one vehicle
+
+* Vehicle scheduling problem
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/network_bilevel-1.pdf}
+\end{figure}
+
+- In which order should vehicles cross intersections?
+- Travel constraints model minimum travel time
+- Buffer constraints to prevent overcrowding at lanes
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\textwidth]{figures/buffer_constraints.pdf}
+\end{figure}
+
+* Vehicle scheduling problem
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/network_bilevel-1.pdf}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/disjunctive_graph_variant.pdf}
+\end{figure}
+
+* Vehicle scheduling problem
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{figures/network_bilevel-1.pdf}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/disjunctive_graph_complete.pdf}
+\end{figure}
+
+* DRL heuristic
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/network_ordering-0.pdf}
+\end{figure}
+* DRL heuristic
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/network_ordering-1.pdf}
+\end{figure}
+* DRL heuristic
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/network_ordering-2.pdf}
+\end{figure}
+* DRL heuristic
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/network_ordering-3.pdf}
+\end{figure}
+* DRL heuristic
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/network_ordering.pdf}
+\end{figure}
+
+* DRL heuristic
+
+- Step-by-step construction of crossing order
+- Partial solutions encoded as disjunctive graph augmented with lower bounds on crossing times
+- Parameterize ordering policy based on graph neural network embedding of augmented disjunctive graph
+
+  $\vspace{0.1em}$
+
+- Imitation learning from MILP solutions
+- Reinforcement learning from vehicle delay reward signal
+
+
+* $\;$
+
+\centering
+\color{structure}
+\Large Appendix: Related literature
+\normalsize
+\vspace{2em}
+
+\begin{columns}
+\begin{column}{0.17\textwidth}
+\end{column}
+
+\begin{column}{0.83\textwidth}
+\begin{itemize}
+
+\item Autonomous intersections
+\item Neural combinatorial optimization
+
+\end{itemize}
+\end{column}
+\end{columns}
+
+* Autonomous intersections
+
+- ``Autonomous Intersection Control'' (Dresner & Stone)
+  - Single intersection
+  - Time slot reservation-based protocol
+  - Central intersection manager
+
+\begin{figure}
+\centering
+\includegraphics[width=0.6\textwidth]{figures/dresner_and_stone.png}
+\end{figure}
+
+* Autonomous intersections
+
+- ``Approximate Optimal Coordination'' (Hult et al.)
+  - Single intersection
+  - Single vehicle per lane
+  - Explicit collision-avoidance constraints
+
+\begin{figure}
+\centering
+\includegraphics[width=0.7\textwidth]{figures/hult_et_al.png}
+\end{figure}
+
+* Neural combinatorial optimization
+
+- ``Learn to dispatch'' (Zhang et al.)
+  - Job-shop scheduling problem
+  - Dispatch next operation
+  - Policy using Graph Isomorphism Network (GIN)
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.5\textwidth]{../figures/Zhang-disjunctive-graph-s4.png}
+\end{figure}
+
+* $\;$
+
+\centering
+\color{structure}
+\Large Appendix: Single intersection
+\normalsize
+\vspace{2em}
+
+\begin{columns}
+\begin{column}{0.35\textwidth}
+\begin{figure}
+  \centering
+  \includegraphics[width=1.0\textwidth]{../figures/single_intersection_example.png}
+\end{figure}
+\end{column}
+
+\begin{column}{0.65\textwidth}
+\begin{itemize}
+
+\item Notation
+\item Upper-level crossing time scheduling
+\item Lower bound on starting times
+\item Imitation learning with neural policy
+\item Lower-level trajectory optimization
+
+\end{itemize}
+\end{column}
+\end{columns}
+
+* Notation
+
+- vehicle indices $\mathcal{N}$
+- $y(i)$ is crossing time of vehicle $i$
+- $r_i$ earliest crossing time of vehicle $i$
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/vehicle_crossing.pdf}
+\end{figure}
+
+- $i$ and $j$ same lane: $y(i) + \rho \leq y(j)$
+- $i$ and $j$ distinct lanes: $y(i) + \sigma \leq y(j)$ or $y(j) + \sigma \leq y(i)$
+
+
+* Upper-level crossing time scheduling
+
+- conjunctive constraints $\mathcal{C}$
+- disjunctive (conflict) constraints $\mathcal{D}$
+
+\footnotesize
+\begin{align*}
+  \min_{y} \quad & \sum_{i \in \mathcal{N}} y(i) \\
+  \text{ s.t. } \quad & r_{i} \leq y(i) ,  & \text{ for all } i \in \mathcal{N} ,\\
+                    & y(i) + \rho \leq y(j) ,  & \text{ for all } (i,j) \in \mathcal{C} , \\
+                    & y(i) + \sigma \leq y(j) \text{ or } y(j) + \sigma \leq y(i) , & \text{ for all } (i,j) \in \mathcal{D} \label{eq:disjunctions}
+\end{align*}
+
+* Upper-level crossing time scheduling
+
+- Formulate as mixed-integer linear program (MILP)
+- Introduce binary decision variables $\gamma_{ij}$
+- Use big-M technique
+
+\footnotesize
+\begin{align*}
+  \min_{y} \quad & \sum_{i \in \mathcal{N}} y_{i} & \\
+  \text{s.t.} \quad & r_{i} \leq y_{i}, & \text{ for all } i \in \mathcal{N} , \\
+  & y_{i} + \rho_{i} \leq y_{j}, & \text{ for all } (i,j) \in \mathcal{C} , \label{eq:conjunctions} \\
+  & y_{i} + \sigma_{i} \leq y_{j} + \gamma_{ij}M, & \text{ for all } (i,j) \in {\mathcal{D}} , \\
+  & y_{j} + \sigma_{j} \leq y_{i} + (1 - \gamma_{ij})M, & \text{ for all } (i,j) \in {\mathcal{D}} , \\
+  & \gamma_{ij} \in \{0, 1\}, & \text{ for all } (i,j) \in {\mathcal{D}} \;
+\end{align*}
+
+* Lower bounds on starting times
+
+- Disjunctive graph given current order $\pi$
+- Nodes are vehicle indices $\mathcal{N}$
+- Edges $i \xrightarrow{w(i,j)} j$
+  - Conjunctive edges $i \xrightarrow{\rho} j$
+  - Disjunctive edges $i \xrightarrow{\sigma} j$ or $j \xrightarrow{\sigma} i$
+- Lower bounds $\text{LB}_\pi$ on starting times given current order $\pi$
+\begin{align*}
+\text{LB}_\pi(j) = \max\{ r_j, \text{LB}_\pi(i) + w(i,j) \}
+\end{align*}
+
+* Imitation learning with neural policy
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\textwidth]{figures/network_ordering-single.pdf}
+\end{figure}
+
+- crossing order $\pi = ((1,1), (2,1))$ of vehicles
+- step-by-step construction of this order
+  - 1. choose $(1,1)$
+  - 2. choose $(2,1)$
+  - 3. $\;$ ...
+
+* Imitation learning with neural policy
+
+- get optimal trajectories from MILP solver
+- parameterize policy based on $\text{LB}_\pi$
+  - only consider $\text{LB}_\pi(j)$ for unscheduled $j$
+  - recurrent embedding of $\text{LB}_\pi(j)$ per lane
+  - alternatively, use zero padding
+- fit policy parameters to expert transitions
+
+* Lower-level trajectory optimization
+
+- position $x$, velocity $v$, control input $u$
+- position of vehicle in front $x'$, follow distance $L$
+- position of intersection $B$, crossing time $\tau$
+
+\begin{align*}
+  {\arg\min}_{x: [0, \tau] \rightarrow \mathbb{R}} & \int_{0}^{\tau} |x(t)| dt \\
+  \text{ s.t. } & \ddot{x}(t) = u(t) , &  \text{ for all } t \in [0, \tau] , \\
+  & |u(t)| \leq a_{\max} , &  \text{ for all } t \in [0, \tau] , \\
+  & 0 \leq \dot{x}(t) \leq v_{\max} , &  \text{ for all } t \in [0, \tau] , \\
+  & x'(t) - x(t) \geq L , &  \text{ for all } t \in [0, \tau] , \\
+  & (x(0), \dot{x}(0)) = s_{0} , \\
+  & (x(\tau), \dot{x}(\tau)) = (B, v_{\max})
+\end{align*}
