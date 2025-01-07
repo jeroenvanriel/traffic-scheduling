@@ -1,6 +1,7 @@
 import gurobipy as gp
 import numpy as np
 from itertools import product, combinations
+from util import dist
 
 
 def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
@@ -20,12 +21,10 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
 
     route = instance['route']
     release = instance['release']
-    length = instance['length']
-    switch = instance['switch']  # switch-over time
 
-    def dist(v, w):
-        nodes = instance['G'].nodes
-        return np.linalg.norm(np.array(nodes[v]['pos']) - np.array(nodes[w]['pos']))
+    # for now, assume these are the same among vehicles
+    rho = instance['rho']
+    sigma = instance['sigma'] # "switch-over" time
 
     N = len(release) # number of classes
     n = [len(r) for r in release] # number of arrivals per class
@@ -49,7 +48,7 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
     for l in range(N):
         for v in route[l][1:]: # ...on all except the first node
             for k in range(n[l] - 1):
-                g.addConstr(y[l, k, v] + length[l][k] <= y[l, k + 1, v])
+                g.addConstr(y[l, k, v] + rho <= y[l, k + 1, v])
 
 
     # disjunctions at route intersections
@@ -59,8 +58,8 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
             for k1, k2 in product(range(n[l1]), range(n[l2])):
                 oc = g.addVar(obj=0, vtype=gp.GRB.BINARY, name=f"o_{l1}_{k1}_{l2}_{k2}")
 
-                g.addConstr(y[l1, k1, v] + length[l1][k1] + switch <= y[l2, k2, v] + oc * M)
-                g.addConstr(y[l2, k2, v] + length[l2][k2] + switch <= y[l1, k1, v] + (1 - oc) * M)
+                g.addConstr(y[l1, k1, v] + sigma <= y[l2, k2, v] + oc * M)
+                g.addConstr(y[l2, k2, v] + sigma <= y[l1, k1, v] + (1 - oc) * M)
 
 
     # distances
@@ -69,8 +68,7 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
             for r in range(len(route[l]) - 1):
                 v = route[l][r]
                 w = route[l][r + 1]
-                distance = dist(v, w)
-                g.addConstr(y[l, k, v] + distance <= y[l, k, w])
+                g.addConstr(y[l, k, v] + dist(instance['G'], v, w) / instance['vmax'] <= y[l, k, w])
 
     # buffers
     for l in range(N):
@@ -81,8 +79,7 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
             if capacity == -1:
                 continue
             for k in range(n[l] - capacity):
-                # TODO: specify rho_hat
-                rho_hat = length[l][k]
+                rho_hat = capacity * rho - dist(instance['G'], v, w) / instance['vmax']
                 g.addConstr(y[l, k, w] + rho_hat <= y[l, k + capacity, v])
 
     ### Solving
