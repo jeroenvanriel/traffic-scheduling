@@ -122,7 +122,7 @@ Eindhoven University of Technology\\
 Given the ongoing development of self-driving vehicle technology, it is not
 difficult to imagine a future vehicular mobility system without human drivers.
 Besides the obvious advantage of relieving us from the task of driving, freeing
-time that can be spent on other activities, other benefits include
+time that can be spent on other activities, further benefits include
 increased safety and efficiency. Human error is one of the major causes of most
 accidents in vehicular traffic, which motivates the design of automated systems
 with guarantees on collision avoidance, with the potential of saving millions of
@@ -141,7 +141,7 @@ We focus on coordination algorithms for optimizing the shared use of a network
 of intersections without traffic lights. We consider a model in which each
 vehicle in the network is managed by a central controller, illustrated in
 Figure~\ref{fig:network_illustration}. Furthermore, we assume that every vehicle follows a
-fixed predetermined route to explicitly ignore the problem of route generation.
+fixed predetermined route to explicitly ignore the problem of dynamic routing.
 %
 In this context, we identify the following three key challenges
 that are not yet fully addressed in the current literature.
@@ -151,16 +151,16 @@ that are not yet fully addressed in the current literature.
 
   \item \textbf{Safety.} It is nontrivial to design systems that are guaranteed
         to be safe with respect to collisions, because the potentially complex
-        vehicle dynamics must be taken into account. Because safety is so
-        crucial in real-world application, algorithms must guarantee this by
+        vehicle dynamics must be taken into account. Because it is so
+        crucial in real-world application, algorithms must guarantee safety by
         design.
 
   \item \textbf{Scalability.} Most previous works consider coordination at a single
         intersection~\cite{khayatianSurveyIntersectionManagement2020} and involve algorithms that cannot be easily extended
         to multiple intersections. Coordination algorithms should naturally
         scale to complex real-world traffic networks with large numbers of
-        vehicles. This requires a balance between the quality of solutions with
-        computational complexity, motivating the study of good approximation
+        vehicles. This requires a good balance between quality of solutions and
+        computational complexity, motivating the study of approximation
         schemes.
 
   \item \textbf{Learning.} Given the successful applications of (deep) reinforcement learning
@@ -259,7 +259,7 @@ propose good approximation schemes and heuristics, based on some kind of
 structure in the problems of interest. However, manually designing such
 heuristics is a tedious task, requiring a lot of experience and deep insight
 into the problem. Recently, tailored deep reinforcement learning methods have
-shown to be able to automatically derive good heuristics from scratch for many
+been shown to be able to automatically learn good heuristics from scratch for many
 classical combinatorial optimization problems~\cite{belloNeuralCombinatorialOptimization2017,koolLearningOptimizationCombinatorial,mazyavkinaReinforcementLearningCombinatorial2020,smitGraphNeuralNetworks2024}.
 
 
@@ -291,7 +291,7 @@ a lower-dimensional problem formulation.
 %
 By assuming that the vehicle dynamics are known precisely, it is possible to
 formulate hard constraints on the trajectories of vehicles in order to avoid
-collisions. One key observation is that these constraints are somewhat similar
+collisions. One key observation is that these constraints are similar
 to those found in classical job-shop scheduling problems, where vehicles and
 intersections correspond to jobs and machines, respectively. Efficient solution
 methods are available for this type of problem, scaling reasonably well to
@@ -314,9 +314,9 @@ which vehicle trajectories interact in large networks of intersections. Our
 second aim is to investigate how deep reinforcement learning can be applied to
 the offline trajectory optimization problem, because we believe that a machine
 learning perspective~\cite{bengioMachineLearningCombinatorial2020} can help model hidden regularities in complex
-decision-making problems. Our hypothesis is that it is generally hard to
-manually design algorithms that exploit such structural features, so
-reinforcement learning might be employed to automatically learn to do this based
+decision-making problems. It is generally hard to
+manually design algorithms that exploit structural features, so
+our hypothesis is that reinforcement learning can be employed to automatically learn such algorithms for offline trajectory optimization based
 on interaction with problem instances. Therefore, to further improve the scalability of
 our solutions method and to address the remaining challenge of learning, we
 formulate our second research question as:
@@ -354,7 +354,7 @@ at intersections, which is precisely what makes the optimal control problem
 non-convex and thus hard to solve with standard methods. When considering an
 optimization objective in terms of vehicle delay and some additional
 assumptions, the problem can be shown to decompose as a \textit{bilevel} optimization
-problem with an \textit{upper-level} combinatorial problem to determine a crossing time
+problem~\cite{FoundationsBilevelProgramming2002} with an \textit{upper-level} combinatorial problem to determine a crossing time
 schedule --- indicating when vehicles cross the intersections on their route
 --- and a \textit{lower-level} optimal control problem to find trajectories that match
 these crossing times, see Figure~\ref{fig:network_bilevel} for an illustration.
@@ -541,8 +541,8 @@ constraints of JSSP, we define the following three constraints:
         velocity. To avoid rear-end collisions, the number of vehicles in each
         lane needs to be limited.
         %
-        This type of constraint is the most difficult to formulate, so the basic
-        principle is illustrated by the example in
+        This type of constraint is the most difficult to formulate, but the basic
+        principle is illustrated in
         Figure~\ref{fig:buffer_constraints}.
 \end{itemize}
 
@@ -550,12 +550,12 @@ constraints of JSSP, we define the following three constraints:
   \centering
   \includegraphics[width=0.55\textwidth]{figures/buffer_constraints.pdf}
   \caption{Illustration of buffer constraint for a pair of vehicles on the same
-    route. Suppose that the vehicles on the lane between the two intersections
+    route. Suppose that the vehicles on the lane between the two intersections, $I_{1}$ and $I_{2}$,
     are currently not moving and waiting to cross $I_{2}$. It is clear that the
     crossing time of vehicle $a$ at $I_{1}$ must happen at least after
     vehicle $b$ starts crossing $I_{2}$. Since this particular lane segment has
     capacity for 4 waiting vehicles, we need such a buffer constraint between
-    every pair of vehicles $(r,k_{1})$ and $(r,k_{2})$ that satisfy
+    every pair of vehicles $(r,k_{1})$ and $(r,k_{2})$ that satisfies
     $k_{2} = k_{1} + 3$.}
   \label{fig:buffer_constraints}
   \end{figure}
@@ -633,7 +633,7 @@ Figure~\ref{fig:network_ordering} illustrates an example of a partial ordering a
     numbers. The order among vehicles without an encircled number is still to be
     decided by the scheduler, bust must respect the fact that vehicles on the
     same route cannot overtake. In this particular example, this means that the
-    crossing order at $I_{2}$ can only be completed in one way.}
+    crossing order at $I_{2}$ is essentially already determined.}
   \label{fig:network_ordering}
 \end{figure}
 
@@ -676,7 +676,7 @@ precisely the crossing times of the corresponding schedule.
     corresponding to the first intersection on the route $r$, an incoming arc
     labeled $a_{(r,k)}$ represents the earliest arrival time constraints. Buffer
     constraints are not shown, as they are not applicable to this small
-    example.}
+    example. Best viewed in color.}
   \label{fig:disjunctive_graph}
 \end{figure}
 
@@ -724,7 +724,7 @@ more recent Proximal Policy Optimization
 
 
 Time estimates are based on a total duration of 30 weeks (three quartiles of 10
-weeks each) of which the last four weeks are reserved for report writing and
+weeks each) of which the last three weeks are reserved for finalizing the report and
 preparing material for a final presentation.
 
 \begin{itemize}
@@ -734,17 +734,18 @@ preparing material for a final presentation.
         working direct transcription solution to obtain trajectories for a given
         crossing time schedule.
 
-  \item (2 weeks) \textbf{Upper-level formulation.} We precisely formulate VSP for
-        networks with delay objective (network scheduling problem).
-        Particularly, this mainly involves formulating the travel constraints
-        and buffer constraints such that the feasibility of the lower-level problem
-        is guaranteed. At this stage, we only aim to provide a rough proof
-        sketch of this, because we simply verify this feasibility
+  \item (2 weeks) \textbf{Upper-level formulation.} We precisely formulate VSP for networks
+        with delay objective (network scheduling problem). Particularly, this
+        mainly involves formulating the travel constraints and buffer
+        constraints such that the feasibility of the lower-level problem is
+        guaranteed. At this stage, we only aim to provide a rough proof sketch
+        of this, because we can empirically verify feasibility by trying to
+        solve a wide range of problem instances.
 
         %{\color{blue} We are almost done with this, the only missing part is a clear argument
         %of why we expect our current version of buffer constraints to work.}
 
-  \item (1 week) \textbf{MILP for VSP.} Solve the network scheduling problem by formulating and
+  \item (2 week) \textbf{MILP for VSP.} Solve the network scheduling problem by formulating and
         solving it as a MILP. This method can be used to collect expert
         demonstrations for training the neural scheduler using imitation
         learning and it also provides a baseline for performance evaluation of
@@ -756,7 +757,7 @@ preparing material for a final presentation.
         we implement a simulation of this MDP (or \textit{environment}) that we will
         use to train and test our policies.
 
-  \item (4 weeks) \textbf{Augmented disjunctive graph.} Next, we focus on the policy
+  \item (2 weeks) \textbf{Augmented disjunctive graph.} Next, we focus on the policy
         parameterization based on the disjunctive graph. First, we show how to
         augment the disjunctive graph with lower bounds on starting times. Each
         time a scheduling step is taken, the lower bounds can be efficiently
@@ -773,13 +774,13 @@ preparing material for a final presentation.
         that not all graph neural networks are able to distinguish different
         graph structures, which we need for our purposes.
 
-  \item (2 weeks) \textbf{Imitation learning.} Fit the policy to expert demonstration
+  \item (3 weeks) \textbf{Imitation learning.} Fit the policy to expert demonstration
         obtained from the MILP solver. We first need to extract state-action
         pairs from optimal solutions by some straightforward backtracking
         procedure. Next, we formulate and implement the corresponding supervised
         learning problem.
 
-  \item (3 weeks) \textbf{Reinforcement learning.} Next, we decide on a suitable
+  \item (4 weeks) \textbf{Reinforcement learning.} Next, we decide on a suitable
         policy gradient method and we implement the main reinforcement learning
         training loop. This should be a simple coding exercise, since we already
         have a working environment at this point.
@@ -802,6 +803,55 @@ preparing material for a final presentation.
 \end{itemize}
 
 
+\section{Discussion}
+
+\subsection{Motivation for decomposition}
+
+We briefly motivate why we choose to push further the bilevel decomposition by
+pointing out some issues with the most obvious alternative, being time-step
+based modeling.
+%
+It is not difficult to imagine a time-step based model of vehicle movement through
+a network of intersections, which is the main principle of traffic
+micro-simulators like SUMO~\cite{lopezMicroscopicTrafficSimulation2018}. Actions may be defined in terms of increasing
+and decreasing the acceleration of individual vehicles, and we could consider the
+corresponding joint acceleration action for all vehicles in the network.
+%
+The main problem with such parameterization of trajectories is that safety is
+not guaranteed by design. Without further constraints, it is possible that
+some sequence of joint acceleration actions eventually lead to collision. This
+means that the set of allowed joint actions changes with the current
+state, which is difficult to model explicitly.
+%There is a lot of literature on \textit{safe reinforcement learning} methods.
+
+In addition to this feasibility problem, any end-to-end method that uses
+model-free reinforcement learning in time step-based environments is inherently
+sample-inefficient, because it would implicitly need to learn the vehicle
+dynamics, which is unnecessary when assuming simple double integrator dynamics.
+The reason for making this assumption is that we think that there is much more
+to gain by coordination on a higher level than on capturing precisely the
+real-world dynamics. The macroscopic phenomena that naturally occur in networks
+of intersection, such as the emergence and handling of platoons, are better
+modeled and studied with this higher level of abstraction.
+
+\subsection{Evidence of feasibility}
+
+We strengthen our proposal further by providing some evidence that the research can be
+successfully conducted. In particular, we show how to partly answer our research
+questions in the context of a ``network'' with a single intersection in
+Appendix~\hyperref[A]{A}.
+%
+After giving a precise definition of the offline trajectory optimization problem
+for a single intersection, we formally present how it decomposes into a crossing
+time scheduling problem and a lower-level trajectory optimization problem. Using
+this framework, we give some pointers to what is required to extend it to
+multiple intersections to answer~\ref{Q1}.
+%
+Next, we show how the crossing time problem can be solved using
+mixed-integer programming, a simple threshold heuristic and a neural
+parameterized constructive heuristic that is fitted using imitation learning. We
+conclude with some numerical results and an argument why these results
+provide some evidence that a similar methodology can be used to answer~\ref{Q2}.
 
 \subsection{Identified risks and their mitigation}
 
@@ -855,36 +905,11 @@ formulate our idea and provide arguments for it could work. However, we can
 obtain the lower bounds by just solving the linear program, which we expect is
 not too expensive to run at every transition of the reinforcement learning loop.
 
-\subsection{Discussion and further directions}
 
-
-\textit{Time step-based modeling.}
-%
-It is not difficult to imagine a time-step based model of vehicle movement through
-a network of intersections, which is the main principle of traffic
-micro-simulators like SUMO~\cite{lopezMicroscopicTrafficSimulation2018}. Actions may be defined in terms of increasing
-and decreasing the acceleration of individual vehicles, and we could consider the
-corresponding \textit{joint acceleration action} for all vehicles in the network.
-%
-The main problem with this parameterization of trajectories is that safety is
-not guaranteed by design. Without additional constraints, it is possible that
-some sequence of joint acceleration actions eventually lead to collision. This
-means that the set of allowed joint actions should change with the current
-state.
-%There is a lot of literature on \textit{safe reinforcement learning} methods.
-%
-In addition to this feasibility problem, any end-to-end method that uses
-model-free reinforcement learning in such time step-based environment is
-inherently sample-inefficient, because it would implicitly be learning the
-vehicle dynamics, which is unnecessary.
-%
-Moreover, we think that there is much more to gain by coordination on a higher
-level. The macroscopic phenomena that naturally occur in networks of
-intersection, such as the emergence of platoons, are better modeled with this
-higher level of abstraction.
+\subsection{Directions for further research}
 
 \vspace{0.5em}\noindent
-\textit{Full speed crossing.} For general objective functions involving some
+\textit{Drop full speed crossing assumption.} For general objective functions involving some
 measure of energy consumption, for example in terms of acceleration, it is not
 always optimal to require vehicles to cross intersections at full speed. In
 particular, previous works that treat a similar problem with only a single
@@ -970,6 +995,7 @@ schedules to reach closer to optimality.
 \end{figure}
 
 \section*{Appendix A --- Preliminary results for single intersection}
+\label{A}
 
 \renewcommand{\thesection}{A}
 
@@ -986,9 +1012,10 @@ capture policies that are close to optimal. In particular, we rely on expert
 demonstration consisting of labeled transitions obtained from optimal solutions
 computed by solving the equivalent MILP with Gurobi to train a certain
 scheduling policy for generating solutions to the upper-level Vehicle Scheduling
-Problem for a single intersection, which we show has a simple shape.
+Problem for a single intersection, which we show has a simple form.
 
 \subsection{Problem formulation}
+\label{A1}
 
 Consider a single intersection with two incoming lanes, identified by indices
 $\mathcal{R} = \{ 1, 2 \}$. The corresponding two routes are crossing the
@@ -1128,6 +1155,7 @@ are meant to apply to all times $t$.
 
 
 \subsection{Bilevel decomposition}
+\label{A2}
 
 For the case where only a single vehicle is approaching the intersection for
 each route, so $n_{r} = 1$ for all $r \in \mathcal{R}$, it has been shown
@@ -1283,6 +1311,7 @@ both position and velocity of vehicles entering a lane.
 
 
 \subsection{Crossing time scheduling}
+\label{A3}
 
 Partial solutions to the crossing time scheduling
 problem~\eqref{eq:single_intersection_scheduling} can be represented
