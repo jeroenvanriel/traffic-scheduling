@@ -333,7 +333,7 @@ $(i,j) \in \mathcal{C}$, an arc from $i$ to $j$ means that vehicle $i$ reaches t
 intersection before $j$ due to the follow constraints~\eqref{eq:conjunctions}. The \textit{disjunctive arcs}
 are used to encode the decisions regarding the ordering of vehicles from
 distinct lanes, corresponding to constraints~\eqref{eq:disjunctions}. For each pair
-$\{i,j\} \in \mathcal{D}$, at most one of the arcs $(i,j)$ or $(j,i)$ can be present
+$\{i,j\} \in \mathcal{D}$, at most one of the arcs $(i,j)$ and $(j,i)$ can be present
 in $\mathcal{O}$.
 
 When $\mathcal{O} = \varnothing$, we say the disjunctive graph is
@@ -374,7 +374,7 @@ optimal ordering $\pi^{*}$ of vehicles.
 \end{proposition}
 \begin{proof}
   Suppose $y$ is an optimal schedule with ordering $\pi$. We write $\pi(k)$ for
-  the $k$th element in the ordering, which is a permuation of $\mathcal{N}$.
+  the $k$th element in the ordering, which is a permutation of $\mathcal{N}$.
   Consider the smallest $k \in \{1, \dots, |\mathcal{N}|\}$ such that vehicle
   $j = \pi(k)$ satisfies $y_{j} > \text{LB}_\pi(j)$. If no such $k$ exists, $y$
   already satisfies~\eqref{eq:optimality}. Otherwise, we construct a schedule
@@ -677,7 +677,7 @@ modern MILP solvers, a tailored branch-and-bround algorithm can be considered.
 
 % constructive scheduling
 Methods that rely on branch-and-bound techniques guarantee to find an optimal
-solution, but their running time scales very badly with increasing instance
+solution, but their running time scale very badly with increasing instance
 sizes. Therefore, we are interested in developing heuristics to obtain good
 approximations in reasonable time. A common approach for developing such
 heuristics in the scheduling literature is to incrementally construct a schedule
