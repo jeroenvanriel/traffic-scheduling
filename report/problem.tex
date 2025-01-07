@@ -321,6 +321,24 @@ Note that an instance $s$ of~\eqref{eq:single_intersection_scheduling} is comple
   {\color{blue} This construction argument is not yet correct. Consider what happens when some lane overflows.}
 \end{proof}
 
+When we consider bounded acceleration, the trajectory generation is less
+straightforward. Given the position and velocity at some start and end points,
+the trajectory can be formulated as the solution of some linear
+program~\cite{miculescuPollingsystemsbasedAutonomousVehicle2016}. These
+results allow us to reduce the problem again to the problem of scheduling
+crossing times.
+\begin{proposition}
+  The coordination problem~\eqref{eq:full_problem} with performance
+  criterion~\eqref{eq:crossing_time_criterion}, maximum speed
+  constraints~\eqref{eq:max_speed_constraint} and maximum acceleration
+  constraints
+  \begin{align*}
+    a_{\min} \leq a_{i}(t) \leq a_{\max} ,
+  \end{align*}
+  for all times $t$ and vehicles $i \in \mathcal{N}$, is equivalent
+  with~\eqref{eq:single_intersection_scheduling}.
+\end{proposition}
+
 
 \subsection*{Crossing order}
 
