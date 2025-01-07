@@ -72,7 +72,7 @@ def motion_synthesize(checkpoints, params, prev=None):
     for key, value in params.items():
         ampl.param[key] = value
 
-    ampl.solve(solver="scip")
+    ampl.solve(solver="gurobi")
     assert ampl.solve_result == "solved"
     return ampl.get_variable("x").to_pandas().T.values.tolist()[0]
 

@@ -1,0 +1,198 @@
+\documentclass[a4paper]{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{amsthm}
+\usepackage{dsfont}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{datetime}
+\usepackage{outlines}
+\usepackage[round]{natbib}   % omit 'round' option if you prefer square brackets
+
+\usepackage{matlab-prettifier}
+
+\newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
+
+\newcommand{\newmarkedtheorem}[1]{%
+  \newenvironment{#1}
+    {\pushQED{\qed}\csname inner@#1\endcsname}
+    {\popQED\csname endinner@#1\endcsname}%
+  \newtheorem{inner@#1}%
+}
+
+\theoremstyle{definition}
+%\newtheorem{eg}{Example}[section]
+\newmarkedtheorem{eg}{Example}[section]
+\newtheorem{observation}{Observation}[section]
+\newtheorem{define}{Definition}[section]
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{assump}{Assumption}[section]
+\newtheorem{remark}{Remark}[section]
+
+\author{Jeroen van Riel}
+\date{\monthyeardate\today}
+\title{Explicit Trajectory Generation}
+
+\begin{document}
+
+\subsection*{Isolated vehicle}
+
+Let the intersection be at position $x_{f}$ and let the position of vehicle take
+non-negative real values. The trajectory for a single isolated vehicle (without
+vehicles in front of it) is given by the solution to the optimal control problem
+\begin{align*}
+  \max_{x}    \quad & \int_{t=0}^{t_{f}} x(t) dt \\
+  \text{s.t.} \quad & 0 \leq \dot{x}(t) \leq v_{\max} , \\
+                    & {-a_{\max}} \leq \ddot{x}(t) \leq a_{\max} , \\
+                    & x(0) = 0 , \dot{x}(0) = v_{\max} , \\
+                    & x(t_{f}) = x_{f} , \dot{x}(t_{f}) = v_{\max} ,
+\end{align*}
+where the objective may be understood in terms of keeping as close as possible
+to the intersection at all times.
+%
+We believe that the optimal control is ``bang-bang'', meaning that every vehicle $i$ has a sequence of disjoint intervals
+\begin{align*}
+  I_{i} = (D_{i1}, A_{i1}, \dots, D_{in}, A_{in})
+\end{align*}
+and that its controller is given by
+\begin{align*}
+  a_{i}(t) = \begin{cases}
+           {-a_{\max}} &\text{ if } t \in D_{ik} \text{ for some } k , \\
+           \phantom{-} a_{\max}   &\text{ if } t \in A_{ik} \text{ for some } k .
+         \end{cases}
+\end{align*}
+
+For the single isolated vehicle, these bang-bang intervals, or \textit{bangs}
+for short, can be easily obtained.
+%
+First, we will transform the current time scale to better suit our problem.
+{\color{blue} State transformations are common in optimal control.}
+For position $x$ at time $t$, we define the corresponding \textit{schedule time} by
+\begin{align*}
+  \bar{t}(t, x) = t - x / v_{\max} .
+\end{align*}
+%
+Given the vehicle dynamics constraints, without considering the boundary
+conditions, the time it takes to fully accelerate from zero to maximum velocity
+takes time
+\begin{align*}
+  T = v_{\max} / a_{\max}
+\end{align*}
+and the corresponding trajectory $x^{*}$ with initial position $x^{*}(0)=0$, is
+given by
+\begin{align*}
+  x^{*}(t) = a_{\max} t^{2} / 2 \quad \text{ for }0 \leq t \leq T .
+\end{align*}
+Time $T$ translated to schedule time, is given by
+\begin{align*}
+  \bar{T} &= \bar{t}(T, x^{*}(T)) - \bar{t}(0, 0) = T / 2 .
+\end{align*}
+{\color{blue} What kind of transformation is $\bar{t}$? Lines form some sort of equivalence classes in time-space.}
+%
+Next, we define the start time $b = \bar{t}(0, 0)$ and end time $e = \bar{t}(t_{f}, x_{f})$.
+%
+Writing $(x)^{+}$ for $\max(x, 0)$, the amount of schedule time in which we have
+zero acceleration is given by
+\begin{align*}
+  \bar{t}_{n} = (e - b - 2\bar{T})^{+} .
+\end{align*}
+and the length of each bang is
+\begin{align*}
+  \bar{t}_{b} = (e - b - \bar{t}_{n}) / 2
+\end{align*}
+so that the bangs are given by
+\begin{align*}
+  \bar{D} = (b, b + \bar{t}_{b}) , \\
+  \bar{A} = (e - \bar{t}_{b}, e) .
+\end{align*}
+
+\paragraph{Back to regular time.}
+We are now left with translating these bangs back to the regular time scale. Let
+the current velocity be denoted as $v_{c}$ and suppose $\bar{d}$ denotes the
+duration of current acceleration bang in schedule time. Consider again the
+full acceleration trajectory $x^{*}(t)$ on $0 \leq t \leq T$. Define
+$t_{0}= v_{c} / a_{\max}$ so that we have $\dot{x}^{*}(t_{0}) = v_{c}$. Next, we
+find $t_{1}$ such that $t_{0} \leq t_{1} \leq T$ and
+\begin{align}
+  \label{eq:regular}
+   \bar{t}(t_{1}, x^{*}(t_{1})) - \bar{t}(t_{0}, x^{*}(t_{0})) = \bar{d} ,
+\end{align}
+such that the duration of the bang in regular time is given by $d = t_{1} - t_{0}$.
+%
+After some rewriting and substitution of the definitions of $x^{*}$ and
+$\bar{t}$ in equation~\eqref{eq:regular}, we obtain the quadratic equation
+\begin{align*}
+  - \frac{a_{\max} t_{1}^{2}}{2 v_{\max}} + t_{1} - t_{0} + \frac{a_{\max} t_{0}^{2}}{2 v_{\max}} - \bar{d} = 0 ,
+\end{align*}
+for which we are interested in the solution
+\begin{align*}
+  t_{1} = T - \sqrt{T^{2} - 2T(t_{0} + \bar{d}) +t_{0}^{2}} .
+\end{align*}
+
+Similarly, for a deceleration bang of length $\bar{d}$ with current velocity
+$v_{c}$, the duration is given by $d = t_{1} - t_{0}$ where
+$t_{0} = (v_{\max} - v_{c}) / a_{\max}$ and $t_{1}$ is the solution to
+\begin{align*}
+  \bar{t}(t_{1}, -x^{*}(-t_{1})) - \bar{t}(t_{0}, -x^{*}(-t_{0})) = \bar{d} ,
+\end{align*}
+given by
+\begin{align*}
+  t_{1} = - T + \sqrt{T^{2} +2T(t_{0} + \bar{d}) + t_{0}^{2}} .
+\end{align*}
+
+Using the above formulas, we can translate a sequence of bangs in schedule time
+to regular time. However, we need to be careful whenever the velocity becomes
+$v_{\max}$, because the regular time is not unique in this case. Therefore, we
+specify a \textit{target position} $x_{t}$, which fixes the regular time in
+these cases as follows. Let $D=(b,e)$ be some deceleration bang, then the start
+of the first deceleration bang in regular time is given by
+\begin{align*}
+  b + (x_{t} - x^{*}(T)) / v_{max} .
+\end{align*}
+%
+The rest of the sequence of bangs in schedule time can now be translated as
+follows, assuming that the velocity will not reach $v_{\max}$ until the last
+acceleration bang. {\color{blue} We need to argue or prove why this assumption
+  holds. Intuitively, if the assumption does not hold, the whole trajectory
+  could be ``shifted up'' in the graph, which would decrease the objective.} We
+keep track of the current time $t_{c}$ and velocity $v_{c}$. Each time we
+process a bang $\bar{A}$ or $\bar{D}$, we update $v_{c} \leftarrow v_{c} \pm a_{\max} d$
+accordingly, and $t \leftarrow t + d$, where $d$ is the regular bang duration, computed
+using the formulas from above. This way, we obtain the sequence of bangs in
+regular time.
+
+\subsection*{Multiple vehicles}
+
+Let $L$ be the minimal distance between two consecutive vehicles. From a
+stationary position, we move to the next stationary position that is exactly $L$
+units further on the lane. It is clear that we need equal acceleration and
+deceleration $\bar{D}=\bar{A}$. By symmetry, the vehicle moves $L/2$ during both
+acceleration and deceleration.
+%
+Assume $L/2 < x^{*}(T)$, then we find $\bar{A}$.
+Let $t_{0}$ be such that $x^{*}(t_{0}) = L/2$, then
+\begin{align*}
+t_{0} = \sqrt{L / a_{\max}} ,
+\end{align*}
+with corresponding schedule time
+\begin{align*}
+  \hat{t} = \bar{t}(t_{0}, L/2) = t_{0} - \frac{L}{2 v_{\max}} .
+\end{align*}
+Therefore, we have
+\begin{align*}
+  \bar{D} = (b, b + \hat{t}) , \\
+  \bar{A} = (b + \hat{t}, b + 2 \hat{t}) .
+\end{align*}
+
+
+Define
+\begin{align*}
+  \omega = 2 ( \bar{T} - \hat{t} )
+\end{align*}
+
+
+
+\end{document}
