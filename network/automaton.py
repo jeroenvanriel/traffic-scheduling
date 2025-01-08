@@ -134,3 +134,13 @@ class Automaton:
 
         # done when all vehicles have been scheduled
         self.done = all(len(self.unscheduled[r, v]) == 0 for r in self.route_indices for v in self.route[r][1:-1])
+
+
+    def get_obj(self):
+        """Compute the total objective, which is the sum of crossing times at
+        all nodes that are not entry nodes."""
+        obj = 0
+        for r, k in self.indices:
+            for v in self.route[r][1:]: # all but entry nodes
+                obj += self.D.nodes[r, k, v]['LB']
+        return obj
