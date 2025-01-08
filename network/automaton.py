@@ -16,9 +16,13 @@ class Automaton:
     bounds.
 
     Automaton.D is a networkx graph representing the disjunctive graph. Each
-    node has an `LB` attribute containing the crossing time lower bound and an
-    `done` (0 or 1), indicating whether the operation has been scheduled.
-    Assumes non-negative crossing times."""
+    node has the following attributes:
+
+    - `LB` contains the crossing time lower bound.
+    - `done` (0 or 1) indicates whether the operation has been scheduled.
+      Assumes non-negative crossing times.
+    - `action_mask` indicates whether this node encodes an operation that can be
+      scheduled next, i.e, a valid action, thus encoding the action space mask."""
 
     def __init__(self, instance):
         self.instance = instance
@@ -48,7 +52,7 @@ class Automaton:
         for r, k in self.indices:
             for v in self.route[r]:
                 # set default lower bound zero, assuming non-negative crossing times
-                self.D.add_node((r, k, v), label=str((r, k, v)), LB=0, done=0)
+                self.D.add_node((r, k, v), label=str((r, k, v)), LB=0, done=0, action_mask=0)
 
         # edges
         for r in self.route_indices:
@@ -71,12 +75,21 @@ class Automaton:
 
         ### initialize attributes for empty ordering ###
 
-        # set release dates and set done for initial operations
+        # set release dates as lower bounds on entry nodes
+        # set done for operations on entry nodes
         for r, k in self.indices:
             v0 = self.route[r][0]
             self.D.nodes[r, k, v0]['LB'] = instance['release'][r][k]
             self.D.nodes[r, k, v0]['done'] = 1
+
+        # compute lower bounds in remaining nodes
         self.update_LB()
+
+        # set initial action space mask
+        for r in self.route_indices:
+            for v in self.route[r][1:-1]:
+                self.D.nodes[r, 0, v]['action_mask'] = 1
+
 
     def update_LB(self):
         for v in topological_sort(self.D):
@@ -102,6 +115,12 @@ class Automaton:
 
         # update done attribute in disjunctive graph
         self.D.nodes[r, next_vehicle, v]['done'] = 1
+
+        # update action mask
+        self.D.nodes[r, next_vehicle, v]['action_mask'] = 0
+        if len(self.unscheduled[r, v]) > 0:
+            # valid action becomes next operation of route r at v
+            self.D.nodes[r, next_vehicle + 1, v]['action_mask'] = 1
 
         # add disjunctive arcs from (r0, k0) to first unscheduled (r1, k1) with r0 != r1 and intersecting routes
         r0, k0 = r, next_vehicle
