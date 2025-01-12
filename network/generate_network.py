@@ -1,23 +1,6 @@
 import numpy as np
 import networkx as nx
-from util import dist
 import math
-
-
-def set_distance(G):
-    """Compute the length of lanes between all pairs of intersections and add as
-    edge attributes."""
-    for v, w in G.edges:
-        G[v][w]['dist'] = dist(G, v, w)
-
-
-def set_capacity(instance):
-    """Compute the maximum number of vehicles that can occupy each lane and add
-    as edge attributed."""
-    min_stop_dist = instance['vmax'] * instance['vmax'] / (2 * instance['amax'])
-    G = instance['G']
-    for v, w in G.edges:
-        G.edges[v, w]['capacity'] = math.floor((G[v][w]['dist'] - instance['width'] - 2 * min_stop_dist) / instance['length'])
 
 
 def generate_grid_network(m, n, distance=10):
@@ -54,9 +37,9 @@ def generate_grid_network(m, n, distance=10):
             # only both direction in the "interior"
             # negative capacity = unlimited
             if j != 0:
-                G.add_edge((i,j), (i+1,j), capacity=-1)
+                G.add_edge((i,j), (i+1,j), capacity=-1, dist=distance)
             if i != 0:
-                G.add_edge((i,j), (i,j+1), capacity=-1)
+                G.add_edge((i,j), (i,j+1), capacity=-1, dist=distance)
 
     # Generate the routes.
     routes = [[] for _ in range(n+m)]
@@ -71,54 +54,57 @@ def generate_grid_network(m, n, distance=10):
             if j != 0 and j != n+1:
                 routes[m+j-1].append((i,j))
 
-    set_distance(G)
-
     return G, routes
 
 
-def generate_simple_instance():
-    """Create a simple instance with randomly generated grid network for
-    prototyping/testing/demonstration."""
-    G, routes = generate_grid_network(2, 1)
+def set_capacity(instance):
+    """Compute the maximum number of vehicles that can occupy each lane and add
+    as edge attributed. Entry lanes are given unlimited capacity."""
+    min_stop_dist = instance['vmax'] * instance['vmax'] / (2 * instance['amax'])
+    G = instance['G']
+    for v, w in G.edges:
+        if G.degree[v] == 1:
+            # set infinite capacity on entry lanes
+            G.edges[v, w]['capacity'] = -1 # infinite
+        else:
+            G.edges[v, w]['capacity'] = math.floor((G[v][w]['dist'] - instance['width'] - 2 * min_stop_dist) / instance['length'])
 
-    vehicle_l = 2
-    vehicle_w = 1
-    vmax = 2
-    amax = 1
 
-    N = len(routes)
-    n = [3 for _ in range(N)]
-
-    gap1 = 1
-    gap2 = 3
-
+def bimodal_exponential(n, p, lambda1, lambda2):
     rng = np.random.default_rng()
+    ps = rng.binomial(1, p, size=(n))
+    return ps * rng.exponential(scale=lambda1, size=(n)) + (1-ps) * rng.exponential(scale=lambda2, size=(n))
 
+
+def generate_simple_instance(G, routes,
+                             vehicle_l=4,
+                             vehicle_w=2,
+                             vmax=1,
+                             amax=1,
+                             arrivals_per_route=8,
+                             split_p=0.3,  # how often to split platoons
+                             intra_gap=1,  # mean gap in platoon
+                             inter_gap=8): # mean gap between platoons
+    """Create a simple instance from generated network for
+    prototyping/testing/demonstration."""
+    rng = np.random.default_rng()
     def lane(n):
         length = np.repeat(vehicle_l, n)
-        gaps = rng.uniform(gap1, gap2, size=(n))
+        gaps = bimodal_exponential(n, split_p, inter_gap, intra_gap)
 
         shifted = np.roll(length, 1); shifted[0] = 0
-        release = np.cumsum(gaps + shifted)
-        return release
-
-    releases = [lane(n[l]) for l in range(N)]
+        return np.cumsum(gaps + shifted)
 
     instance = {
-        'G': G,
-        'route': routes,
-        'release': releases,
+        'G': G, 'route': routes,
+        'release': [lane(arrivals_per_route) for l in range(len(routes))],
         # the following parameters are identical among all vehicles
         'length': vehicle_l,
         'width': vehicle_w,
-        'rho': vehicle_l / vmax,
-        'sigma': (vehicle_l + vehicle_w) / vmax,
         'vmax': vmax,
         'amax': amax,
+        'rho': vehicle_l / vmax,
+        'sigma': (vehicle_l + vehicle_w) / vmax,
     }
-
-    #set_capacity(instance)
-    #for v, w in G.edges:
-        #G.edges[v, w]['buffer'] = -1 # infinite capacity
-
+    set_capacity(instance)
     return instance
