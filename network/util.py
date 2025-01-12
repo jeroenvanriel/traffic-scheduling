@@ -44,7 +44,7 @@ def plot_schedule(instance, y=None):
     height = 0.7 # row height
     y_scale = 0.7 # horizontal scaling
     fig, ax = plt.subplots()
-    cmap = colormaps["tab10"] # lane colors
+    cmap = colormaps["Paired"] # lane colors
 
     indices = vehicle_indices(instance)
     nodes = list(instance['G'].nodes)
@@ -80,8 +80,10 @@ def plot_schedule(instance, y=None):
 def draw_network(G):
     nx.draw_networkx(G, nx.get_node_attributes(G, 'pos'))
     plt.gca().set_aspect('equal')
+    plt.gca().axis('off') # remove box
+    fig = plt.gcf()
     plt.show()
-    plt.close()
+    return fig # to allow optinally fig.savefig()
 
 
 def plot_trajectories(trajectories, dt):
