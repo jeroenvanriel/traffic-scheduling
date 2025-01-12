@@ -9,6 +9,7 @@
 #+LATEX_HEADER: \usepackage{graphicx}
 #+LATEX_HEADER: \usepackage[export]{adjustbox}
 #+latex_header: \usepackage{hyperref}
+#+latex_header: \usepackage[normalem]{ulem}
 #+latex_header: \beamertemplatenavigationsymbolsempty
 #+language: en
 #+select_tags: export
@@ -22,7 +23,7 @@
 #+email: jeroenvanriel@outlook.com
 
 
-* Autonomous vehicles
+* Coordination of autonomous vehicles
 
 \begin{figure}
   \centering
@@ -31,85 +32,117 @@
   }
 \end{figure}
 
-- Coordination of autonomous vehicles
-  - Better guarantees on safety
-  - Potentially reduce economic costs
-  - No need for traffic lights
+$\vspace{0.1em}$
 
-* Related literature
+- No human intervention (no traffic lights required)
+- Better guarantees on safety
+- Potentially reduce economic costs
 
-- Traffic light control with deep reinforcement learning
-  - Policy to control \textit{phase} of signal
-    $\vspace{0.5em}$
-    \begin{figure}
-    \centering
-    \includegraphics[width=0.7\textwidth]{figures/phases.pdf}
-    \end{figure}
-  - Based on microsimulation (e.g., SUMO, VISSIM)
-  - Multi-agent perspective: each intersection has some degree of autonomy
+# * Related literature
 
-
-* Related literature
-
-- No traffic lights ($\textit{autonomous intersections}$)
-  - Autonomous (rather ``automated'') vehicles
-  - Coordination for
-    - Collision avoidance
-    - Efficiency
-  - Locus of control: central $\leftrightarrow$ distributed
-  - Central control $\implies$ optimal control problem
+# - Traffic light control with deep reinforcement learning
+#   - Policy to control \textit{phase} of signal
+#     $\vspace{0.5em}$
+#     \begin{figure}
+#     \centering
+#     \includegraphics[width=0.7\textwidth]{figures/phases.pdf}
+#     \end{figure}
+#   - Based on microsimulation (e.g., SUMO, VISSIM)
+#   - Multi-agent perspective: each intersection has some degree of autonomy
 
 
-* Networks of autonomous intersections
+# * Related literature
+
+# - No traffic lights ($\textit{autonomous intersections}$)
+#   - Autonomous (rather ``automated'') vehicles
+#   - Coordination for
+#     - Collision avoidance
+#     - Efficiency
+#   - Locus of control: central $\leftrightarrow$ distributed
+#   - Central control $\implies$ optimal control problem
+
+
+* ...as optimal control problem
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.55\textwidth]{figures/state_example.png}
+  \href{https://github.com/jeroenvanriel/traffic-scheduling/blob/master/grid.gif}{
+    \includegraphics[width=0.55\textwidth]{figures/state_example.png}
+  }
 \end{figure}
 
-- Fixed routes
-- Double integrator vehicle dynamics
-- Collision-free trajectories
+- Multi-agent optimal control problem
+  - Minimize total travel time
+  - Avoid collisions
 
-* Problem formulation
+# * Problem formulation
 
-- Algorithmic challenges
-  1. Safety with respect to collisions
-  2. Scalability to large urban networks
-  3. Learn from interaction with the system
+# - Algorithmic challenges
+#   1. Safety with respect to collisions
+#   2. Scalability to large urban networks
+#   3. Learn from interaction with the system
 
-\vspace{1em}
+# \vspace{1em}
 
-- Research questions
-  1. Formulate as job-shop scheduling
-  2. Apply Deep Reinforcement Learning (DRL)
+# - Research questions
+#   1. Formulate as job-shop scheduling
+#   2. Apply Deep Reinforcement Learning (DRL)
 
-* $\;$
+* ...as optimal control problem
 
-\centering
-\color{structure}
-\Large Research approach
-\normalsize
-\vspace{2em}
+\begin{figure}
+  \centering
+  \href{https://github.com/jeroenvanriel/traffic-scheduling/blob/master/grid.gif}{
+    \includegraphics[width=0.55\textwidth]{figures/state_example.png}
+  }
+\end{figure}
 
-\begin{columns}
-\begin{column}{0.17\textwidth}
-\end{column}
+- Some simplifying assumptions
+  - Central control
+  - Fixed routes
+  - All arrivals known
 
-\begin{column}{0.83\textwidth}
-\begin{itemize}
+* How to solve the optimal control problem?
 
-\item Decomposition
-\item Vehicle scheduling problem
-\item DRL heuristic
+- Direct transcription methods
+  - Provide optimal trajectories
+  - Computationally very demanding
 
-\end{itemize}
-\end{column}
-\end{columns}
+$\vspace{0.1em}$
+
+- How to solve large instances?
+  - Need for approximation
+  - Exploit problem structure (decomposition)
+  - Automatically derive heuristics (learning)
+
+
+# * $\;$
+
+# \centering
+# \color{structure}
+# \Large Research approach
+# \normalsize
+# \vspace{2em}
+
+# \begin{columns}
+# \begin{column}{0.17\textwidth}
+# \end{column}
+
+# \begin{column}{0.83\textwidth}
+# \begin{itemize}
+
+# \item Decomposition
+# \item Vehicle scheduling problem
+# \item DRL heuristic
+
+# \end{itemize}
+# \end{column}
+# \end{columns}
 
 * Decomposition
 
-- Upper-level vehicle scheduling problem
+
+- Upper-level crossing time scheduling
   - Mixed-Integer Linear Programming (MILP)
 
 \begin{figure}
@@ -125,33 +158,131 @@
   \includegraphics[width=0.8\textwidth]{figures/network_bilevel-2.pdf}
 \end{figure}
 
-* Vehicle scheduling problem
+* Determine crossing times
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.7\textwidth]{figures/network_indices.pdf}
+  \includegraphics[width=0.7\textwidth]{figures/network_indices_1.pdf}
 \end{figure}
-
-- Order vehicles at intersections
-- Intersection occupied by at most one vehicle
-
-* Vehicle scheduling problem
 
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{figures/network_bilevel-1.pdf}
 \end{figure}
 
-- In which order should vehicles cross intersections?
-- Travel constraints model minimum travel time
-- Buffer constraints to prevent overcrowding at lanes
+# * Crossing time scheduling
+
+# \begin{figure}
+#   \centering
+#   \includegraphics[width=0.8\textwidth]{figures/network_bilevel-1.pdf}
+# \end{figure}
+
+# - Travel constraints model minimum travel time
+# - Buffer constraints to prevent overcrowding at lanes
+
+# \begin{figure}
+#   \centering
+#   \includegraphics[width=0.6\textwidth]{figures/buffer_constraints.pdf}
+# \end{figure}
+
+* Determine crossing order
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.6\textwidth]{figures/buffer_constraints.pdf}
+  \includegraphics[width=0.7\textwidth]{figures/network_indices_1.pdf}
 \end{figure}
 
-* Vehicle scheduling problem
+- Crossing times follow from crossing order
+# - In which order should vehicles cross intersections?
+# - At what exact time instants?
+
+* Determine crossing order
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/network_indices_1.pdf}
+\end{figure}
+
+- Map instance to optimal crossing order
+- Use step-by-step construction...
+# - Direct map is very complex
+
+* Determine crossing order
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/network_ordering-0.pdf}
+\end{figure}
+* Determine crossing order
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/network_ordering-1.pdf}
+\end{figure}
+* Determine crossing order
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/network_ordering-2.pdf}
+\end{figure}
+* Determine crossing order
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/network_ordering-3.pdf}
+\end{figure}
+* Determine crossing order
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/network_ordering.pdf}
+\end{figure}
+
+* Learn crossing order
+
+- \sout{Map instance to optimal crossing order}
+- Map partial solution to next partial solution
+
+  $\vspace{0.1em}$
+
+- We can learn this map from examples!
+  - Imitation learning from optimal solutions (MILP)
+  - Reinforcement learning with dense delay reward
+
+* Overview
+
+- Coordination as optimal control problem
+- Vehicle scheduling + Trajectory optimization
+- Sequentially construct crossing order
+- Learn from examples
+
+* $\;$
+
+\begin{figure}
+  \centering
+  \href{https://github.com/jeroenvanriel/traffic-scheduling/blob/master/grid.gif}{
+    \includegraphics[width=0.55\textwidth]{figures/state_example.png}
+  }
+\end{figure}
+
+* $\;$
+
+\centering
+\color{structure}
+\Large Appendix: Disjunctive graph
+\normalsize
+\vspace{2em}
+
+\begin{columns}
+\begin{column}{0.17\textwidth}
+\end{column}
+
+\begin{column}{0.83\textwidth}
+\begin{itemize}
+
+\end{itemize}
+\end{column}
+\end{columns}
+
+* Disjunctive graph
+
+- Partial solutions encoded as disjunctive graph augmented with lower bounds on crossing times
+- Parameterize ordering policy based on graph neural network embedding of augmented disjunctive graph
 
 \begin{figure}
   \centering
@@ -163,7 +294,9 @@
   \includegraphics[width=0.7\textwidth]{figures/disjunctive_graph_variant.pdf}
 \end{figure}
 
-* Vehicle scheduling problem
+* Disjunctive graph
+
+- Partial solutions encoded as disjunctive graph augmented with lower bounds on crossing times - Parameterize ordering policy based on graph neural network embedding of augmented disjunctive graph
 
 \begin{figure}
   \centering
@@ -175,42 +308,6 @@
   \includegraphics[width=0.7\textwidth]{figures/disjunctive_graph_complete.pdf}
 \end{figure}
 
-* DRL heuristic
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\textwidth]{figures/network_ordering-0.pdf}
-\end{figure}
-* DRL heuristic
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\textwidth]{figures/network_ordering-1.pdf}
-\end{figure}
-* DRL heuristic
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\textwidth]{figures/network_ordering-2.pdf}
-\end{figure}
-* DRL heuristic
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\textwidth]{figures/network_ordering-3.pdf}
-\end{figure}
-* DRL heuristic
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\textwidth]{figures/network_ordering.pdf}
-\end{figure}
-
-* DRL heuristic
-
-- Step-by-step construction of crossing order
-- Partial solutions encoded as disjunctive graph augmented with lower bounds on crossing times
-- Parameterize ordering policy based on graph neural network embedding of augmented disjunctive graph
-
-  $\vspace{0.1em}$
-
-- Imitation learning from MILP solutions
-- Reinforcement learning from vehicle delay reward signal
 
 
 * $\;$
