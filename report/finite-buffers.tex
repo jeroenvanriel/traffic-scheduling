@@ -556,6 +556,20 @@ direction of each disjunctive edge such that we obtain a direct acyclic graph.
 
 % discuss modeling of buffers
 
+\newpage
+\section*{Implementation details}
+
+We set the capacity of each lane according to equation~\eqref{eq:max_capacity},
+except for lanes from an entry point. These so-called \textit{entry lanes} have
+unlimited capacity, which allows us to specify any kind of arrival time pattern.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{figures/network_graph_example.pdf}
+  \caption{Example of connectivity graph of traffic network.}
+\end{figure}
+
+
 \bibliography{references}
 \bibliographystyle{ieeetr}
 
