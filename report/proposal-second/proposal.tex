@@ -144,7 +144,7 @@ Figure~\ref{fig:network_illustration}. Furthermore, we assume that every vehicle
 fixed predetermined route to explicitly ignore the problem of dynamic routing.
 %
 In this context, we identify the following three key challenges
-that are not yet fully addressed in the current literature.
+that are not yet fully addressed in the current literature:
 
 
 \begin{itemize}
@@ -605,16 +605,16 @@ on crossing without a gap in a single intersection can be used to formulate
 multiple types of cutting planes to improve the running time of the solver.
 
 
-\subsubsection{Constructive neural heuristic}
+\subsubsection{Neural schedule construction}
 \label{sec:constructive_neural}
-
 
 % neural combinatorial optimization
 We now explain how to model VSP as a sequential decision making process such
 that deep reinforcement learning can be applied to address our objective of
 obtaining a learning optimization algorithm.
+Because (graph) neural networks play a major role in the parameterization of the schedule construction procedure, we refer to this approach as \textit{neural schedule construction}.
 % determine crossing order
-The fundamental challenge of the scheduler is to determine in which order
+The fundamental challenge is to determine in which order
 vehicles are allowed to cross the intersections on their routes. Observe that
 the relative order among vehicles on the same route stays fixed, because they
 are not allowed to overtake.
@@ -774,7 +774,7 @@ preparing material for a final presentation.
         that not all graph neural networks are able to distinguish different
         graph structures, which we need for our purposes.
 
-  \item (3 weeks) \textbf{Imitation learning.} Fit the policy to expert demonstration
+  \item (3 weeks) \textbf{Imitation learning.} We fit the policy to expert demonstration
         obtained from the MILP solver. We first need to extract state-action
         pairs from optimal solutions by some straightforward backtracking
         procedure. Next, we formulate and implement the corresponding supervised
@@ -849,7 +849,7 @@ multiple intersections to answer~\ref{Q1}.
 %
 Next, we show how the crossing time problem can be solved using
 mixed-integer programming, a simple threshold heuristic and a neural
-parameterized constructive heuristic that is fitted using imitation learning. We
+parameterized construction heuristic that is fitted using imitation learning. We
 conclude with some numerical results and an argument why these results
 provide some evidence that a similar methodology can be used to answer~\ref{Q2}.
 
@@ -1382,7 +1382,7 @@ where $M > 0$ is some sufficiently large number, which may depend on the
 specific problem instance.
 
 
-\subsubsection{Neural construction heuristic}
+\subsubsection{Neural schedule construction}
 
 Define partial ordering $\pi$ to be a \textit{partial permutation} of
 $\mathcal{N}$, which is a sequence of elements from some subset
@@ -1611,7 +1611,7 @@ we define as
 
 
 Observe that the policy parameterization is complex enough to model near-optimal
-constructive policies for this single intersection scheduling problem. However,
+construction policies for this single intersection scheduling problem. However,
 these results should be interpreted with some care, as the very simple threshold
 policy also achieves very close to optimal performance, which might suggest that
 there is some fundamental structure hidden in the problem.
@@ -1691,14 +1691,19 @@ set id & threshold & padded &  threshold & padded \\
 \renewcommand{\thesection}{B}
 \setcounter{subsection}{0}
 
-% There are numerous social and technological aspects to the design of traffic
-% coordination systems.
+% There are numerous social and technological aspects to the design of traffic coordination systems.
+
+We briefly survey some of the few works that addressed coordination of
+autonomous vehicles in a similar setting as we aim for. Next, we provide a brief
+introduction to the growing body of work in which machine learning methods are
+employed for solving combinatorial optimization problems and survey some key publications in this field that specifically target the job-shop scheduling problem.
+
 
 \subsection{Traffic coordination}
 
 A good example of an early centralized approach is the ``Autonomous Intersection
 Management'' (AIM) paper~\cite{dresnerMultiagentApproachAutonomous2008}, which
-is based on a reservation scheme. The conflict zone is modeled by a grid of
+is based on a reservation scheme. The conflict zone is modeled as a grid of
 cells. Vehicles that want to cross the intersection send a request to the
 central controller to occupy the cells containing its trajectory for a certain
 amount of time. The central controller then decides to grant or deny these
@@ -1714,32 +1719,32 @@ SCIP~\cite{BolusaniEtal2024OO} or Gurobi~\cite{gurobi}). Such methods can be
 used to compute optimal trajectories up to any precision, by choosing a fine
 enough time discretization. However, it is exactly this time discretization that
 causes prohibitive growth of the number of variables with respect to the size of
-the network and the number of vehicles, so this method is only really useful for
-toy problems.
+the network and the number of vehicles, so this method is only useful for relatively
+small problem instances.
 %
 Therefore, approximation schemes have been studied in previous
-works~\cite{hultApproximateSolutionOptimal2015,zhaoBilevelProgrammingModel2021,tallapragadaHierarchicaldistributedOptimizedCoordination2017}.
+works~\cite{hultApproximateSolutionOptimal2015,zhaoBilevelProgrammingModel2021,tallapragadaHierarchicaldistributedOptimizedCoordination2017}, which we will review next.
 
 
 % Hult et al. (offline single intersection with energy objective)
 % "An approximate solution to the optimal coordination problem for autonomous
 % vehicles at intersections"
 The approximation method in~\cite{hultApproximateSolutionOptimal2015} is based
-on this bilevel decomposition and considers an quadratic objective involving
+on a bilevel decomposition and considers a quadratic objective involving
 velocity as a proxy for energy. The first stage optimizes a schedule of vehicle
 crossing times. It uses approximations of each vehicle's contribution to the
 total objective as a function of its crossing time. Next, for each vehicle, the
-second stage computes an optimal trajectory that satisfies the crossing time
-schedule by solving a quadratic program. This approach has been shown to reduce
-running times significantly. Unfortunately, this study is limited to a single
+second stage computes an optimal trajectory satisfying the crossing time
+schedule, by solving a quadratic program. This approach has been shown to reduce
+running times significantly. Unfortunately, the study is limited to a single
 intersection and it is assumed that each lane approaching the intersection
 contains exactly one vehicle.
 % Zhao et al. (bilevel programming model)
 The paper~\cite{zhaoBilevelProgrammingModel2021} proposes a trajectory
 optimization scheme for a single intersection, also based on the bilevel
 decomposition. The lower-level problem is employed to maximize the speed at
-which vehicles enter the intersection. Both levels are solved in an alternating
-fashion, each time updating the constraints of the other problem based on the
+which vehicles enter the intersection. Both parts of the problem are solved in an alternating
+fashion, each time updating the constraints of the other part based on the
 current solution.
 % bubbles paper
 The optimization scheme
@@ -1769,10 +1774,11 @@ safety to reach the assigned crossing times.
 % argue that it takes a lot of expert knowledge about the problem structure to design these
 
 This section introduces the idea of applying a Machine Learning (ML) perspective
-on Combinatorial Optimization (CO) problems, which has recently gained a lot of
-attention. One of the key ideas in this line of research is to treat problem
+on Combinatorial Optimization (CO) problems, which has gained a lot of
+attention recently. One of the key ideas in this line of research is to treat problem
 instances as data points and to use machine learning methods to approximately
 map them to corresponding optimal solutions~\cite{bengioMachineLearningCombinatorial2020}.
+
 % learning assumptions:
 % supervised learning (expert labels) vs reinforcement learning (experience)
 It is very natural to see the sequential decision-making process of any
@@ -1787,10 +1793,10 @@ with fast approximations. In this approach, the ML model's performance is
 measured in terms of how similar the produced decisions are to the
 demonstrations provided by the expert.
 % reinforcement learning
-On the other hand, some problems do not even enable exact methods, so it is
+On the other hand, some problems do not even allow efficient exact methods, so it is
 interesting to study solution methods that \textit{learn from experience}. An
-interesting feature of this kind of approach is that it enables us to implicitly
-exploit the hidden structure of the problems we want to solve.
+interesting feature of this direction is that it enables the algorithm to implicitly
+learn to exploit the hidden structure of the problems we want to solve.
 
 % neural combinatorial optimization
 Because neural networks are commonly used as encoder in these ML models for CO,
@@ -1823,24 +1829,37 @@ current solution with some tunable search procedure.
 % constraints in differentiable models
 
 A major challenge in NCO is constraint
-satisfaction. For example, solutions produced by constructive neural policies
+satisfaction. For example, solutions produced by neural construction policies
 need to satisfy the constraints of the original combinatorial problem.
-Therefore, an important question is how to enforce these constraints. To this
-end, neural network architectures have been designed whose outputs satisfy some
-kind of constraint, for example being a permutation of the
+To this
+end, neural network components have been designed whose outputs satisfy some
+specific type of constraint, for example being a permutation of the
 input~\cite{vinyalsPointerNetworks2017a}. Constraints can also be enforced by
 the factorization of the mapping into repeated application of some policy. For
 example, in methods for TSP, a policy is defined that repeatedly selects the
-next node to visit. The constraint that nodes may be only visited once can be
+next node to visit. The constraint that nodes may only be visited once can be
 easily enforced by ignoring the visited nodes and taking the argmax among the
 model's probabilities for unvisited nodes.
-
 
 % encoders:
 % standard multilayer perceptron networks are not suited to encode order
 % pointer networks
 % graph neural networks
 
+% backpropagation through solution
+Instead of enforcing constraints by developing some tailored model architecture,
+like construction and improvement heuristics, general methodologies have
+recently been explored for the problem of constraint satisfaction in neural
+networks. For example, the DC3 framework~\cite{dontiDC3LearningMethod2021}
+employs two differentiable processes, completion and correction, to solve any
+violations of equality or inequality constraints, respectively. The more recent
+HardNet framework~\cite{minHardConstrainedNeuralNetworks2024} uses a closed-form
+projection to map to feasible solutions under affine constraints and relies on a
+differentiable convex optimization solver (e.g.,
+OptNet~\cite{amosOptNetDifferentiableOptimization2021}) when general convex
+constraints are considered.
+
+\subsubsection{Job-shop scheduling}
 
 % examples for job-shop scheduling
 Various NCO methods have already been studied for JSSP with makespan objective,
@@ -1938,17 +1957,5 @@ An example of a joint method is given in~\cite{tasselEndEndReinforcementLearning
 terms of a Constraint Programming (CP) formulation. This allows the method to be
 trained using demonstration from an off-the-shelf CP solver.
 
-% backpropagation through solution
-Instead of enforcing constraints by developing some tailored model architecture,
-like constructive and improvement heuristics, general methodologies have
-recently been explored for the problem of constraint satisfaction in neural
-networks. For example, the DC3 framework~\cite{dontiDC3LearningMethod2021}
-employs two differentiable processes, completion and correction, to solve any
-violations of equality or inequality constraints, respectively. The more recent
-HardNet framework~\cite{minHardConstrainedNeuralNetworks2024} uses a closed-form
-projection to map to feasible solutions under affine constraints and relies on a
-differentiable convex optimization solver (e.g.,
-OptNet~\cite{amosOptNetDifferentiableOptimization2021}) when general convex
-constraints are considered.
 
 \end{document}
