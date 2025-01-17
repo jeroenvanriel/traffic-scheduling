@@ -13,14 +13,13 @@ def next_intersection(route, v):
 
 class Automaton:
     """Dynamically updates disjunctive graph augmented with crossing time lower
-    bounds.
+    bounds. Assumes non-negative crossing times.
 
     Automaton.D is a networkx graph representing the disjunctive graph. Each
     node has the following attributes:
 
     - `LB` contains the crossing time lower bound.
     - `done` (0 or 1) indicates whether the operation has been scheduled.
-      Assumes non-negative crossing times.
     - `action_mask` indicates whether this node encodes an operation that can be
       scheduled next, i.e, a valid action, thus encoding the action space mask."""
 
