@@ -10,14 +10,18 @@
 #+LATEX_HEADER: \usepackage[export]{adjustbox}
 #+latex_header: \usepackage{hyperref}
 #+latex_header: \usepackage[normalem]{ulem}
+#+latex_header: \usepackage{ragged2e}
 #+latex_header: \beamertemplatenavigationsymbolsempty
+#+latex_header: \usetheme{Madrid}
+#+latex_header: \usecolortheme{dolphin}
+#+latex_header: \setbeamertemplate{footline}{\hfill\vspace{1em}\insertframenumber{}\;\;\;\,}
 #+language: en
 #+select_tags: export
 #+exclude_tags: noexport
 #+creator: Emacs
 #+cite_export: natbib
 #+bibliography: references.bib
-#+title: Scalable Coordination of $\\$ Autonomous Vehicles in Networks
+#+title: Coordination of autonomous vehicles
 #+date: January 2025
 #+author: Jeroen van Riel
 #+email: jeroenvanriel@outlook.com
@@ -34,7 +38,7 @@
 
 $\vspace{0.1em}$
 
-- No human intervention (no traffic lights required)
+- Less human intervention (less traffic lights required)
 - Better guarantees on safety
 - Potentially reduce economic costs
 
@@ -98,11 +102,11 @@ $\vspace{0.1em}$
 \end{figure}
 
 - Some simplifying assumptions
-  - Central control
+  - Central control with perfect communication
   - Fixed routes
-  - All arrivals known
+  - All future arrivals known
 
-* How to solve the optimal control problem?
+* How to solve it?
 
 - Direct transcription methods
   - Provide optimal trajectories
@@ -115,6 +119,32 @@ $\vspace{0.1em}$
   - Exploit problem structure (decomposition)
   - Automatically derive heuristics (learning)
 
+* Research questions
+
+\setbeamercolor{block title}{use=structure,fg=structure.fg,bg=structure.fg!20!bg}
+\setbeamercolor{block body}{parent=normal text,use=block title,bg=block title.bg!50!bg}
+
+\begin{center}
+  \begin{minipage}{0.8\textwidth}
+
+\begin{block}{\small Q1: Exploit problem structure (decomposition)}
+\footnotesize \justifying How can we model the offline trajectory optimization
+    problem, modeling coordination of autonomous vehicles in networks of
+    unsignalized intersections, as a variant of job-shop scheduling to
+    effectively reduce the dimensionality of the problem, while guaranteeing
+    the generation of collision-free trajectories?
+\end{block}
+\begin{block}{\small Q2: Automatically derive heuristics (learning)}
+\footnotesize \justifying Can recent deep reinforcement learning formulations for
+    combinatorial optimization problems, like job-shop scheduling, be
+    adapted to the offline trajectory optimization problem, formulated in
+    terms of job-shop scheduling, in order to provide a scalable
+    optimization algorithm that automatically learns to exploit hidden
+    structures in problem instances?
+\end{block}
+
+  \end{minipage}
+\end{center}
 
 # * $\;$
 
@@ -213,21 +243,25 @@ $\vspace{0.1em}$
   \includegraphics[width=0.9\textwidth]{figures/network_ordering-0.pdf}
 \end{figure}
 * Determine crossing order
+\addtocounter{framenumber}{-1}
 \begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{figures/network_ordering-1.pdf}
 \end{figure}
 * Determine crossing order
+\addtocounter{framenumber}{-1}
 \begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{figures/network_ordering-2.pdf}
 \end{figure}
 * Determine crossing order
+\addtocounter{framenumber}{-1}
 \begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{figures/network_ordering-3.pdf}
 \end{figure}
 * Determine crossing order
+\addtocounter{framenumber}{-1}
 \begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{figures/network_ordering.pdf}
@@ -236,18 +270,18 @@ $\vspace{0.1em}$
 * Learn crossing order
 
 - \sout{Map instance to optimal crossing order}
-- Map partial solution to next partial solution
+- Map partial order to next partial order (policy)
 
   $\vspace{0.1em}$
 
-- We can learn this map from examples!
-  - Imitation learning from optimal solutions (MILP)
+- We can learn this policy from examples!
+  - Imitation learning from optimal MILP solutions
   - Reinforcement learning with dense delay reward
 
-* Overview
+* Overview of project plan
 
 - Coordination as optimal control problem
-- Vehicle scheduling + Trajectory optimization
+- Vehicle scheduling + trajectory optimization
 - Sequentially construct crossing order
 - Learn from examples
 
