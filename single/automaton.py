@@ -57,11 +57,8 @@ class Automaton:
         return self.LB[lane][i] + self.instance['length'][lane][i] == self.LB[lane][j]
 
 
-    def get_schedule(self):
-        return {
-            'y': self.y,
-            'obj': sum(sum(ys) for ys in self.y)
-        }
+    def get_objective(self):
+        return sum(sum(ys) for ys in self.y)
 
 
 def evaluate(instance, model):
@@ -69,4 +66,4 @@ def evaluate(instance, model):
     while not automaton.done:
         lane = model(automaton)
         automaton.step(lane)
-    return automaton.get_schedule()
+    return automaton.get_objective()
