@@ -15,6 +15,7 @@
 #+latex_header: \usetheme{Madrid}
 #+latex_header: \usecolortheme{dolphin}
 #+latex_header: \setbeamertemplate{footline}{\hfill\vspace{1em}\insertframenumber{}\;\;\;\,}
+#+latex_header: \usepackage{tikz}
 #+language: en
 #+select_tags: export
 #+exclude_tags: noexport
@@ -68,12 +69,16 @@ $\vspace{0.1em}$
 
 * ...as optimal control problem
 
-\begin{figure}
-  \centering
+\begin{tikzpicture}[remember picture, overlay]
+\node[above=-6.5cm] at (current page.north)
+{
   \href{https://github.com/jeroenvanriel/traffic-scheduling/blob/master/grid.gif}{
     \includegraphics[width=0.55\textwidth]{figures/state_example.png}
   }
-\end{figure}
+};
+\end{tikzpicture}
+
+\vspace{11.2em}
 
 - Multi-agent optimal control problem
   - Minimize total travel time
@@ -94,12 +99,16 @@ $\vspace{0.1em}$
 
 * ...as optimal control problem
 
-\begin{figure}
-  \centering
+\begin{tikzpicture}[remember picture, overlay]
+\node[above=-6.5cm] at (current page.north)
+{
   \href{https://github.com/jeroenvanriel/traffic-scheduling/blob/master/grid.gif}{
     \includegraphics[width=0.55\textwidth]{figures/state_example.png}
   }
-\end{figure}
+};
+\end{tikzpicture}
+
+\vspace{12em}
 
 - Some simplifying assumptions
   - Central control with perfect communication
@@ -117,7 +126,7 @@ $\vspace{0.1em}$
 - How to solve large instances?
   - Need for approximation
   - Exploit problem structure (decomposition)
-  - Automatically derive heuristics (learning)
+  - Automatically find heuristics (learning)
 
 * Research questions
 
@@ -127,20 +136,12 @@ $\vspace{0.1em}$
 \begin{center}
   \begin{minipage}{0.8\textwidth}
 
-\begin{block}{\small Q1: Exploit problem structure (decomposition)}
-\footnotesize \justifying How can we model the offline trajectory optimization
-    problem, modeling coordination of autonomous vehicles in networks of
-    unsignalized intersections, as a variant of job-shop scheduling to
-    effectively reduce the dimensionality of the problem, while guaranteeing
-    the generation of collision-free trajectories?
+\begin{block}{\small Q1: Decomposition}
+\footnotesize \justifying How to model offline trajectory optimization
+    as a variant of job-shop scheduling?
 \end{block}
-\begin{block}{\small Q2: Automatically derive heuristics (learning)}
-\footnotesize \justifying Can recent deep reinforcement learning formulations for
-    combinatorial optimization problems, like job-shop scheduling, be
-    adapted to the offline trajectory optimization problem, formulated in
-    terms of job-shop scheduling, in order to provide a scalable
-    optimization algorithm that automatically learns to exploit hidden
-    structures in problem instances?
+\begin{block}{\small Q2: Learning}
+\footnotesize \justifying How to use neural combinatorial optimization methods to automatically find  good heuristics?
 \end{block}
 
   \end{minipage}
@@ -190,15 +191,19 @@ $\vspace{0.1em}$
 
 * Determine crossing times
 
-\begin{figure}
-  \centering
+\begin{tikzpicture}[remember picture, overlay]
+\node[above=-7cm] at (current page.north)
+{
   \includegraphics[width=0.7\textwidth]{figures/network_indices_1.pdf}
-\end{figure}
+};
+\end{tikzpicture}
 
-\begin{figure}
-  \centering
+\begin{tikzpicture}[remember picture, overlay]
+\node[above=-9cm] at (current page.north)
+{
   \includegraphics[width=0.8\textwidth]{figures/network_bilevel-1.pdf}
-\end{figure}
+};
+\end{tikzpicture}
 
 # * Crossing time scheduling
 
@@ -217,10 +222,14 @@ $\vspace{0.1em}$
 
 * Determine crossing order
 
-\begin{figure}
-  \centering
+\begin{tikzpicture}[remember picture, overlay]
+\node[above=-7cm] at (current page.north)
+{
   \includegraphics[width=0.7\textwidth]{figures/network_indices_1.pdf}
-\end{figure}
+};
+\end{tikzpicture}
+
+\vspace{12em}
 
 - Crossing times follow from crossing order
 # - In which order should vehicles cross intersections?
@@ -228,10 +237,14 @@ $\vspace{0.1em}$
 
 * Determine crossing order
 
-\begin{figure}
-  \centering
+\begin{tikzpicture}[remember picture, overlay]
+\node[above=-7cm] at (current page.north)
+{
   \includegraphics[width=0.7\textwidth]{figures/network_indices_1.pdf}
-\end{figure}
+};
+\end{tikzpicture}
+
+\vspace{12em}
 
 - Map instance to optimal crossing order
 - Use step-by-step construction...
@@ -264,7 +277,7 @@ $\vspace{0.1em}$
 \addtocounter{framenumber}{-1}
 \begin{figure}
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/network_ordering.pdf}
+  \includegraphics[width=0.9\textwidth]{figures/network_ordering-4.pdf}
 \end{figure}
 
 * Learn crossing order
@@ -290,7 +303,7 @@ $\vspace{0.1em}$
 \begin{figure}
   \centering
   \href{https://github.com/jeroenvanriel/traffic-scheduling/blob/master/grid.gif}{
-    \includegraphics[width=0.55\textwidth]{figures/state_example.png}
+    \includegraphics[width=0.7\textwidth]{figures/state_example.png}
   }
 \end{figure}
 
