@@ -185,3 +185,8 @@ def end_time(instance, schedule=None):
         if t > m:
             m = t
     return m
+
+
+def objective(schedule):
+    """Compute total completion time objective."""
+    return sum(sum(ys) for ys in schedule)
