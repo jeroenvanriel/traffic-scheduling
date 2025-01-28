@@ -39,7 +39,7 @@
 
 $\vspace{0.1em}$
 
-- Less human intervention (less traffic lights required)
+- Less human intervention
 - Better guarantees on safety
 - Potentially reduce economic costs
 
@@ -110,14 +110,15 @@ $\vspace{0.1em}$
 
 \vspace{12em}
 
-- Some simplifying assumptions
-  - Central control with perfect communication
+- Some initial assumptions
+  - Central control (with perfect communication)
   - Fixed routes
   - All future arrivals known
 
 * How to solve it?
 
 - Direct transcription methods
+  - Solve as mixed-integer linear program
   - Provide optimal trajectories
   - Computationally very demanding
 
@@ -294,9 +295,9 @@ $\vspace{0.1em}$
 * Overview of project plan
 
 - Coordination as optimal control problem
-- Vehicle scheduling + trajectory optimization
-- Sequentially construct crossing order
-- Learn from examples
+- Decompose: scheduling + trajectory optimization
+- Sequentially construct crossing order (policy)
+- Learn policy with imitation/reinforcement learning
 
 * $\;$
 
@@ -343,7 +344,8 @@ $\vspace{0.1em}$
 
 * Disjunctive graph
 
-- Partial solutions encoded as disjunctive graph augmented with lower bounds on crossing times - Parameterize ordering policy based on graph neural network embedding of augmented disjunctive graph
+- Partial solutions encoded as disjunctive graph augmented with lower bounds on crossing times
+- Parameterize ordering policy based on graph neural network embedding of augmented disjunctive graph
 
 \begin{figure}
   \centering
