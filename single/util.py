@@ -54,7 +54,7 @@ def plot_schedule(instance, schedules=None, out=None,
             for (l, k) in pi[1:]:
                 if l != prev_l:
                     origin = schedule['y'][prev_l][prev_k] + instance['length'][prev_l][prev_k]
-                    plt.arrow(origin, S-i, instance['switch'], S-i,
+                    plt.arrow(origin, S-i, instance['switch'], 0,
                             head_length=0.1, head_width=0.1, length_includes_head=True, color='k')
                 prev_l, prev_k = l, k
 
