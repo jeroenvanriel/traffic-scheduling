@@ -71,12 +71,12 @@ class PaddedEmbeddingModel(nn.Module, ActionTransform):
 
 class RecurrentEmbeddingModel(nn.Module, ActionTransform):
 
-    def __init__(self, lanes, max_veh_lane):
+    def __init__(self, lanes, max_horizon):
         super().__init__()
         self.lanes = lanes
-        self.max_veh_lane = max_veh_lane
+        self.max_horizon = max_horizon
 
-        self.rnn_out = 16
+        self.rnn_out = 32
         self.rnn = nn.RNN(1, self.rnn_out)
         self.network = nn.Sequential(
             nn.Linear(self.lanes * self.rnn_out, 32),
@@ -113,12 +113,12 @@ class RecurrentEmbeddingModel(nn.Module, ActionTransform):
         min_LB = min(LBs)
 
         # ragged array; first number indicates length of the sequence
-        obs = np.zeros((self.lanes, self.max_veh_lane))
+        obs = np.zeros((self.lanes, self.max_horizon))
         lengths = np.empty((self.lanes, 1))
         for l, (LB_lane, k_lane) in enumerate(zip(automaton.LB, automaton.k)):
-            actual_horizon = len(LB_lane) - k_lane
+            actual_horizon = min(len(LB_lane) - k_lane, self.max_horizon)
             lengths[l] = actual_horizon
-            obs[l,:actual_horizon] = LB_lane[k_lane:] - min_LB
+            obs[l, :actual_horizon] = LB_lane[k_lane:k_lane + actual_horizon] - min_LB
 
         out = np.hstack([lengths, obs])
 
