@@ -5,6 +5,7 @@
 \usepackage{amsthm}
 \usepackage{dsfont}
 \usepackage{graphicx}
+\usepackage{subcaption}
 \usepackage{hyperref}
 \usepackage{datetime}
 \usepackage{outlines}
@@ -29,8 +30,8 @@
 \theoremstyle{plain}
 \newtheorem{proposition}{Proposition}[section]
 \newtheorem{theorem}{Theorem}[section]
-\newtheorem{assump}{Assumption}[section]
-\newtheorem{remark}{Remark}[section]
+\newtheorem{assump}{Assumption}
+\newtheorem{remark}{Remark}
 
 \author{Jeroen van Riel}
 \date{\monthyeardate\today}
@@ -38,76 +39,155 @@
 
 \begin{document}
 
-\subsection*{Isolated vehicle}
+\begin{figure}
+  \centering
+  \makebox[\textwidth][c]{% wider than textwidth
+    \includegraphics[width=1.1\textwidth]{figures/motion/tandem}
+  }
+  \caption{Tandem of two intersections $v$ and $w$ with lane of length $d(v,w)$.
+    The grey rectangle represents some vehicle that just left intersection $v$.}
+  \label{fig:tandem}
+\end{figure}
 
-Let the intersection be at position $x_{f}$ and let the position of vehicle take
-non-negative real values. The trajectory for a single isolated vehicle (without
-vehicles in front of it) is given by the solution to the optimal control problem
-\begin{align*}
+\section*{Trajectory of single vehicle}
+
+% motivation for model
+We need to take into account the fact that a lane between two consecutive
+intersections has finite capacity for vehicles, in order to model possible
+blocking effects, also known as \textit{spillback}.
+
+% define tandem model
+We start with the simplest extension of the single intersection model by
+considering two intersections in tandem, as illustrated in
+Figure~\ref{fig:tandem}. Let $v$ denote the left intersection and $w$ the right
+intersection and assume that vehicles drive from left to right. Let the length
+and width of a vehicle $i$ be denoted by $L_{i}$ and $W_{i}$, respectively. We
+measure the position of a vehicle at the front bumper and we let position $x=0$
+be at the stopline of intersection $v$. We denote the position of the stopline
+at $w$ by $x=x_{f}=d(v,w)$. To simplify the following discussion, we assume that all
+vehicles have the same dimensions.
+
+\begin{assump}
+  \label{assump1}
+  All vehicles have the same length $L_{i} = L$ and width $W_{i} = W$.
+\end{assump}
+
+Now assume that some vehicle is scheduled to cross $v$ at time $t=0$ and to
+cross $w$ at some time $t_{f}$. Let $y(t)$ denote the trajectory of the
+predecessor, assuming there is one. In order to keep the vehicle as close to $w$
+as possible at every time, we can generate a trajectory by solving the optimal
+control problem
+\begin{equation}
+  \begin{aligned}
   \max_{x}    \quad & \int_{t=0}^{t_{f}} x(t) dt \\
-  \text{s.t.} \quad & 0 \leq \dot{x}(t) \leq v_{\max} , \\
-                    & {-a_{\max}} \leq \ddot{x}(t) \leq a_{\max} , \\
-                    & x(0) = 0 , \dot{x}(0) = v_{\max} , \\
-                    & x(t_{f}) = x_{f} , \dot{x}(t_{f}) = v_{\max} ,
-\end{align*}
-where the objective may be understood in terms of keeping as close as possible
-to the intersection at all times.
+  \begin{alignedat}{2}\text{s.t.}\\ {}\end{alignedat} \quad &\begin{alignedat}{2}
+                     0 \leq \; &\dot{x}(t) \leq v_{\max} , \\
+                     {-a_{\max}} \leq \; &\ddot{x}(t) \leq a_{\max} , \\
+                    y(t) \leq \; & x(t) , \label{eq:follow} \\
+                    \end{alignedat} \\
+                    &\begin{alignedat}[t]{2}
+                    & x(0) = 0 , &&  x(t_{f}) = d(v,w) , \\
+                    & \dot{x}(0) = v_{\max} , \;\; && \dot{x}(t_{f}) = v_{\max} .
+                    \end{alignedat}
+  \end{aligned}
+\end{equation}
 %
-We believe that the optimal control is ``bang-bang'', meaning that every vehicle $i$ has a sequence of disjoint intervals
+We believe that the optimal control is always ``bang-bang'', meaning that there
+is sequence of disjoint intervals
 \begin{align*}
-  I_{i} = (D_{i1}, A_{i1}, \dots, D_{in}, A_{in})
+  (D_{1}, A_{1}, \dots, D_{n}, A_{n})
 \end{align*}
-and that its controller is given by
+so that the optimal controller is given by
 \begin{align*}
-  a_{i}(t) = \begin{cases}
-           {-a_{\max}} &\text{ if } t \in D_{ik} \text{ for some } k , \\
-           \phantom{-} a_{\max}   &\text{ if } t \in A_{ik} \text{ for some } k .
+  a(t) = \begin{cases}
+           {-a_{\max}} &\text{ if } t \in D_{k} \text{ for some } k , \\
+           \phantom{-} a_{\max}   &\text{ if } t \in A_{k} \text{ for some } k .
          \end{cases}
 \end{align*}
 
-For the single isolated vehicle, these bang-bang intervals, or \textit{bangs}
-for short, can be easily obtained.
+\begin{figure}[t]
+  \centering
+  \includegraphics[scale=1]{figures/motion/acceleration}
+  \caption{Full acceleration trajectory.}
+  \label{fig:acceleration}
+\end{figure}
+
+We will start by assuming that the system contains a single vehicle, so that we
+do not have to worry about keeping a safe distance to vehicle in front of it. We
+will show how the bang-bang intervals, or \textit{bangs} for short, can be
+obtained in this situation.
 %
-First, we will transform the current time scale to better suit our problem.
-{\color{blue} State transformations are common in optimal control.}
-For position $x$ at time $t$, we define the corresponding \textit{schedule time} by
+Without considering the boundary conditions, it follows from the vehicle
+dynamics that the time it takes to fully accelerate from zero to maximum
+velocity is given by
 \begin{align*}
-  \bar{t}(t, x) = t - x / v_{\max} .
+  T = v_{\max} / a_{\max} ,
 \end{align*}
+with corresponding trajectory $x^{*}$, given by
+\begin{align*}
+  x^{*}(t) = a_{\max} t^{2} / 2 \quad \text{ for }0 \leq t \leq T ,
+\end{align*}
+as illustrated in Figure~\ref{fig:acceleration}.
 %
-Given the vehicle dynamics constraints, without considering the boundary
-conditions, the time it takes to fully accelerate from zero to maximum velocity
-takes time
+First, we introduce a some sort of state transformation that will prove to be
+helpful. For position $x$ at time $t$, we define the corresponding \textit{schedule time}
+by
 \begin{align*}
-  T = v_{\max} / a_{\max}
+  \bar{t}(t, x) := t - x / v_{\max} .
 \end{align*}
-and the corresponding trajectory $x^{*}$ with initial position $x^{*}(0)=0$, is
-given by
-\begin{align*}
-  x^{*}(t) = a_{\max} t^{2} / 2 \quad \text{ for }0 \leq t \leq T .
-\end{align*}
-Time $T$ translated to schedule time, is given by
+In the following, we will use a bar above a symbol when dealing with schedule
+time.
+%
+For example, time duration $T$ translated to schedule time, is given by
 \begin{align*}
   \bar{T} &= \bar{t}(T, x^{*}(T)) - \bar{t}(0, 0) = T / 2 .
 \end{align*}
-{\color{blue} What kind of transformation is $\bar{t}$? Lines form some sort of equivalence classes in time-space.}
+{\color{blue} Transformation $\bar{t}$ induces equivalence classes in time-space, corresponding to lines with slope $v_{\max}$.}
+
+The crossing of $v$ and $w$ in schedule time are given by $b = \bar{t}(0, 0)$
+and $e = \bar{t}(t_{f}, x_{f})$, respectively.
 %
-Next, we define the start time $b = \bar{t}(0, 0)$ and end time $e = \bar{t}(t_{f}, x_{f})$.
+Whenever $t_{f}$ is sufficiently large, it is clear that we need a full
+deceleration and a full acceleration. Therefore, in schedule time, this would
+take $2 \bar{T}$ time.
 %
-Writing $(x)^{+}$ for $\max(x, 0)$, the amount of schedule time in which we have
-zero acceleration is given by
+However, for smaller $t_{f}$, time of deceleration and acceleration need to
+decrease equally. Therefore, writing $(x)^{+}$ for $\max(x, 0)$, the remaining
+amount of schedule time in which we have zero acceleration is given by
 \begin{align*}
-  \bar{t}_{n} = (e - b - 2\bar{T})^{+} .
+  \bar{t}_{n} = {(e - b - 2\bar{T})}^{+}
 \end{align*}
 and the length of each bang is
 \begin{align*}
-  \bar{t}_{b} = (e - b - \bar{t}_{n}) / 2
+  \bar{t}_{b} = (e - b - \bar{t}_{n}) / 2 ,
 \end{align*}
 so that the bangs are given by
 \begin{align*}
   \bar{D} = (b, b + \bar{t}_{b}) , \\
   \bar{A} = (e - \bar{t}_{b}, e) .
 \end{align*}
+The corresponding trajectory are shown in Figure~\ref{fig:single_trajectory}.
+
+\begin{figure}[t]
+  \centering
+\begin{subfigure}{0.4\textwidth}
+    \includegraphics[scale=1]{figures/motion/single_trajectory_split}
+    \caption{Positive waiting time $\bar{t}_{n} > 0$.}
+    \label{fig:single_trajectory_split}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.3\textwidth}
+    \includegraphics[scale=1]{figures/motion/single_trajectory_merged}
+    \caption{Vehicle does not stop.}
+    \label{fig:single_trajectory_merge}
+\end{subfigure}
+\caption{Optimal trajectory $x(t)$ for a single (isolated) vehicle with
+  corresponding deceleration bang $\bar{D}$ and acceleration bang $\bar{A}$ in
+  schedule time, in case the vehicle waits for some time (a) and in case the
+  vehicle does not come to a full stop (b).}
+  \label{fig:single_trajectory}
+\end{figure}
+
 
 \paragraph{Back to regular time.}
 We are now left with translating these bangs back to the regular time scale. Let
@@ -162,17 +242,80 @@ keep track of the current time $t_{c}$ and velocity $v_{c}$. Each time we
 process a bang $\bar{A}$ or $\bar{D}$, we update $v_{c} \leftarrow v_{c} \pm a_{\max} d$
 accordingly, and $t \leftarrow t + d$, where $d$ is the regular bang duration, computed
 using the formulas from above. This way, we obtain the sequence of bangs in
-regular time.
+regular time, which completely define the corresponding controller.
 
-\subsection*{Multiple vehicles}
 
-Let $L$ be the minimal distance between two consecutive vehicles. From a
-stationary position, we move to the next stationary position that is exactly $L$
+\section*{Multiple vehicles}
+
+\begin{figure}
+  \centering
+  \makebox[\textwidth][c]{% wider than textwidth
+    \includegraphics[width=1.1\textwidth]{figures/motion/tandem_annotated}
+  }
+  \caption{Tandem of intersections with indicated distances used in the capacity
+    calculation.}
+  \label{fig:tandem_annotated}
+\end{figure}
+
+
+We will now consider the case when the system contains multiple vehicles. Now,
+we need to take into account the safe following constraints. This also causes
+additional constraints to the crossing time scheduling problem, since the lane
+only provides space for a limited number of vehicles, which we investigate
+first.
+
+\subsection*{Capacity}
+
+Consider again the tandem of two intersection.
+%
+Suppose that we want to design the tandem network such that at least $c(v,w)$
+vehicles can enter and decelerate to some waiting position, from which it is
+also possible to accelerate again to full speed before crossing $w$.
+%
+Vehicles are required to drive at full speed $v=v_{\max}$ as long as they occupy
+any intersection. Therefore, a vehicle crossing $v$ can only start decelerating
+after $x(t) \geq L + W$, so the earliest position where a vehicle can come to a
+stop is $x = L + W + x^{*}(T)$.
+%
+Because vehicles need to gain maximum speed $v=v_{\max}$ before reaching $w$,
+the latest position where a vehicle can wait is $x_{f} - x^{*}(T)$.
+%
+Hence, in order to accomodate for $c(v,w)$ waiting vehicles, the length of the
+lane must satisfy
+\begin{align}
+  d(v, w) \geq L + W + 2x^{*}(T) + (c(v,w) - 1) L ,
+\end{align}
+as illustrated in Figure~\ref{fig:tandem_annotated}.
+%
+Conversely, given the lane length $d(v,w)$, the corresponding capacity is given
+by
+\begin{align}
+  c(v, w) = \texttt{floor}\left( \frac{d(v,w) - W - 2 x^{*}(T)}{L} \right) ,
+\end{align}
+where $\texttt{floor}(x)$ denotes the largest integer smaller than or equal to $x$.
+
+\begin{remark}
+  Without Assumption~\ref{assump1}, we cannot derive such a simple expression fo
+  the capacity, because it would depend on the specific combination of lengths
+  of the vehicles that arrived to the system.
+\end{remark}
+
+
+\subsection*{Bang merging}
+
+Now assume we have a feasible crossing time schedule, that satisfies the buffer constraints.
+
+We first describe the ``start-stop'' trajectory of a single vehicle, without
+considering safe following constraints.
+%
+Observe that $L$ is the minimal distance between two consecutive vehicles. From
+a waiting position, we move to the next waiting position that is exactly $L$
 units further on the lane. It is clear that we need equal acceleration and
 deceleration $\bar{D}=\bar{A}$. By symmetry, the vehicle moves $L/2$ during both
 acceleration and deceleration.
 %
 Assume $L/2 < x^{*}(T)$, then we find $\bar{A}$.
+{\color{blue} Still need to generalize this.}
 Let $t_{0}$ be such that $x^{*}(t_{0}) = L/2$, then
 \begin{align*}
 t_{0} = \sqrt{L / a_{\max}} ,
@@ -187,12 +330,19 @@ Therefore, we have
   \bar{A} = (b + \hat{t}, b + 2 \hat{t}) .
 \end{align*}
 
+\begin{figure}
+  \centering
+  \includegraphics{figures/motion/buffer}
+  \caption{Buffering vehicles.}
+\end{figure}
 
+
+\paragraph{Safe following constraints.}
+We now see how the trajectory of the predecessor influences the bangs of the current vehicle.
 Define
 \begin{align*}
   \delta = L / v_{\max} .
 \end{align*}
-
 
 
 \end{document}
