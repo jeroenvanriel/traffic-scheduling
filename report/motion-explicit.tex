@@ -9,7 +9,6 @@
 \usepackage{hyperref}
 \usepackage{datetime}
 \usepackage{outlines}
-\usepackage[round]{natbib}   % omit 'round' option if you prefer square brackets
 
 \usepackage[margin=3.8cm, top=3cm, bottom=3cm]{geometry}
 
@@ -427,55 +426,363 @@ earlier due to the shape of the trajectories.
 
 \section{Optimal control with state constraints}
 
-We will redefine problem~\eqref{eq:optimal_control} to better fit the common
-optimal control notation. In this section, $x(t) = (p(t), v(t))$ will refer to
-the \textit{state}, which consists of both the position $p(t)$ and velocity
-$v(t)$. It will be more convenient to define the target position $p_{f} = 0$ and
-consider the start position $p_{0} = - d(v, w)$, so that the target state is
-given by $(0, v_{\max}) = (0, 1)$. The \textit{control} is some function $u(t)$,
-which corresponds to acceleration in our particular problem.
-
-\begin{subequations}
+The general form of an optimal control problem with mixed and pure state
+inequality constraints is given by
 \begin{align}
-  \min \quad & \int_{t=0}^{T} |x(t)| dt \\
-  \text{ s.t. } \;\, & \dot{x}(t) = Ax(t) + Bu(t) , \\
-                     & x_{2} \leq 1 , \\
-                & x(0) = (-p_{0}, 1) , \\
-                & x(T) = (0, 1) , \\
-                & {-u_{\max}} \leq u(t) \leq u_{\max} , \\
-                & x(t) \leq y(t) ,
-\end{align}
-\end{subequations}
-
-
-
-General form of optimal control with state constraints
-\begin{subequations}
-\begin{align}
+  \begin{split}
+  \label{eq:state_constraints}
   \max \quad & \int_{t=0}^{T} F(x(t), u(t), t) dt \\
   \text{ s.t. } \;\, & \dot{x}(t) = f(x(t), u(t), t) , \quad x(0) = x_{0} , \\
                 & g(x(t), u(t), t) \geq 0 , \\
              & h(x(t), t) \geq 0 , \\
-             & a(x(T), T) \geq 0 \\
+             & a(x(T), T) \geq 0 , \\
              & b(x(T), T) = 0 .
+  \end{split}
 \end{align}
-\end{subequations}
+%
+We will redefine problem~\eqref{eq:optimal_control} to fit this notation. In
+this section, $x(t) = (x_{1}(t), x_{2}(t))$ is the \textit{state}, which
+consists of both the position $x_{1}(t)$ and velocity $x_{2}(t)$. The
+\textit{control} is some function $u(t)$, which corresponds to acceleration in
+our particular problem. Without loss of generality, we assume that
+$v_{\max} = 1$. It will be more convenient to consider the start position
+$p_{0} = - d(v, w)$, so that we have initial state $(p_{0}, 1)$ and target state
+$(0, 1)$.
+%
+Writing $y(t)$ for the state trajectory of the vehicle in front of the current
+vehicle, optimal control problem~\eqref{eq:optimal_control} is equivalent
+to~\eqref{eq:state_constraints} when setting
+\begin{align}
+  \label{eq:settings}
+\begin{split}
+  F(x, u, t) &= x_{1} , \\
+  f(x, u, t) &= (x_{2}, u) , \\
+  x_{0} &= (p_{0}, 1) , \\
+  g(x, u, t) &= u_{\max}^{2} - u^{2} , \\
+  h_{1}(x, t) &= x_{2} - x_{2}^{2} , \\
+  h_{2}(x, t) &= y_{1}(t) - x_{1} , \\
+  b(x, t) &= (x_{1}, x_{2} - 1) .
+\end{split}
+\end{align}
+%
+% \begin{align*}
+%   \max \int_{0}^{T} \underbrace{x_{1}(t)}_{F(x,u,t)} dt
+% \end{align*}
+% \begin{align*}
+%   \dot{x} = f(x,u,t) = \begin{pmatrix} x_{2} \\ u \end{pmatrix} , \quad
+%   x(0) = \begin{pmatrix}
+%            p_{0} \\ 1
+%          \end{pmatrix}
+% \end{align*}
+% \begin{align*}
+%   -u_{\max} \leq u(t) \leq u_{\max} \quad &\iff \quad \underbrace{u_{\max}^{2} - u^{2}}_{g(x,u,t)} \geq 0 \\[1em]
+%   0 \leq x_{2}(t) \leq 1 \quad &\iff \quad \underbrace{x_{2} - x_{2}^{2}}_{h(x,t)} \geq 0 \\[1em]
+%   x(T) = \begin{pmatrix} 0 \\ 1 \end{pmatrix} \quad &\iff \quad
+%   \underbrace{\begin{pmatrix}
+%     x_{1}(T) \\ x_{2}(T) - 1
+%   \end{pmatrix}}_{b(x(T), T)} = 0
+% \end{align*}
+%
+Instead of using quadratic expressions, both the mixed and the pure state
+constraint could have each been written as two linear constraints, e.g., we
+could have chosen $g(x, u, t) = (u_{\max} - u, u_{\max} + u)$. However, this does not satisfy
+the constraint qualification conditions of the theorem that we would like to
+apply.
 
+\subsection{No headway constraint: indirect approach}
 
-Linear autonomous optimal control has
+Before we analyze the general form of optimal controls of
+problem~(\ref{eq:state_constraints}--\ref{eq:settings}), we consider the
+situation in which the headway constraint $h_{2}$ can be ignored, which might
+occur when the preceding vehicle is sufficiently far away, or the current
+vehicle is the only vehicle in the system.
+
+When dealing with optimal control problems, the Pontryagin Maximum Principle (PMP) provides a
+family of first-order necessary conditions for optimality. We are going to apply
+such a PMP-style necessary condition that deals with mixed and pure state
+constraints to characterize the optimal control.
+%
+A common approach to deal with pure state inequality constraints $h$ is to
+introduce a multiplier $\eta$ and append $\eta h$ to the Hamiltonian, which is
+known as the direct adjoining approach. Instead, we use Theorem 5.1
+from~\cite{hartlSurveyMaximumPrinciples1995} (see also (4.29)
+in~\cite{sethiOptimalControlTheory2019}), which is a so-called indirect
+adjoining approach, because the $\eta h^{1}$ is appended to the Hamiltonian,
+where $h^{1}$ is defined as
 \begin{align*}
-  f(x(t), u(t), t) = A x(t) + B u(t),
+  h^{1} = \frac{dh}{dt} = \frac{\partial h}{\partial x}f + \frac{\partial h}{\partial t} .
 \end{align*}
-with $A, B$ constant $n\times n$ and $n \times m$ matrices.
+For our specific problem, we have
+\begin{align*}
+  h_{1}^{1}(x, u, t) = u - 2x_{2} u ,
+\end{align*}
+which shows that pure constraint $h_{1}$ is of first-order, because the control
+$u$ appears in this expression.
+%
+By adjoining $\mu g + \eta h_{1}^{1}$ to the Hamiltonian
+\begin{align*}
+  H(x, u, \lambda, t) = F(x,u,t) + \lambda f(x,u,t) = x_{1} + \lambda_{1}x_{2} + \lambda_{2}u ,
+\end{align*}
+we obtain the Lagrangian in so-called Pontryagin form
+\begin{align*}
+  L(x, u, \lambda, \mu, \eta, t) &= H(x, u, \lambda, t) + \mu g(x, u, t) + \eta h_{1}^{1}(x, u, t) \\
+  &= x_{1}  + \lambda_{1}x_{2} + \lambda_{2}u + \mu(u_{\max}^{2} - u^{2}) + \eta(u - 2x_{2}u) .
+\end{align*}
 
-The time-optimal control of a double integrator is often treated as example in
-introductory texts on optimal control theory. However, our problem differs from
-this version in the following ways:
-\begin{itemize}
-  \item We have a fixed terminal time $T$.
-  \item The safe following constraints are state constraints.
-  \item Target state is $(p(t), v(t)) = (0, 1)$.
-\end{itemize}
+Let $\{ x^{*}(t), u^{*}(t) \}$ denote an optimal pair for
+problem~(\ref{eq:state_constraints}--\ref{eq:settings}), then this pair must
+satisfy the necessary conditions in Theorem~5.1
+from~\cite{hartlSurveyMaximumPrinciples1995}.
+%
+The Hamiltonian maximizing condition is
+\begin{align*}
+  H(x^{*}(t), u^{*}(t), \lambda(t), t) \geq H(x^{*}(t), u, \lambda(t), t)
+\end{align*}
+at each $t \in [0, T]$ for all $u$ with $g(x^{*}(t), u, t) \geq 0$ and satisfying
+\begin{align*}
+  h_{1}^{1}(x^{*}(t),u,t) \geq 0 \; \text{ whenever } \; h_{1}(x^{*}(t),u,t) = 0 .
+\end{align*}
+%
+In our case, the latter condition reads
+\begin{align*}
+  u - 2x^{*}_{2}u \geq 0 \; \text{ whenever } \; x_{2}^{*} = \pm 1 ,
+\end{align*}
+%
+which is satisfied by optimal controllers satisfying
+\begin{align}
+  \label{eq:optimal_u}
+  \begin{split}
+  u^{*}(t) =
+  \begin{cases}
+  u_{\max} &\text{ when } \lambda_{2}(t) > 0, \; x^{*}_{2}(t) < 1 , \\
+  %0 \quad &\text{ when } \lambda_{2}(t) > 0, \; x^{*}_{2}(t) = 1 , \\
+  -u_{\max} &\text{ when } \lambda_{2}(t) < 0, \; x^{*}_{2}(t) > - 1 , \\
+  %0 &\text{ when } \lambda_{2}(t) < 0, \; x^{*}_{2}(t) = - 1 , \\
+  0 &\text{ otherwise. }
+  \end{cases}
+  \end{split}
+\end{align}
+
+We now investigate what the costate trajectory should look like.
+The adjoint equation is given by
+\begin{align*}
+  \dot{\lambda} = - L_{x}(x^{*}, u^{*}, \lambda, \mu, \eta, t) \iff
+  \begin{cases}
+    \dot{\lambda_{1}} = -1 , \\
+    \dot{\lambda_{2}} = - \lambda_{1} + 2 \eta u^{*} .
+  \end{cases}
+\end{align*}
+%
+The Lagrange multipliers $\mu(t)$ and $\eta(t)$ must satisfy the complementary slackness conditions
+\begin{align*}
+  \mu (u_{\max}^{2} - {(u^{*})}^{2}) = 0 ,& \quad \mu \geq 0 , \\
+  \eta (x_{2} - x_{2}^{2}) = 0 ,& \quad \eta \geq 0 \; \text{ and } \; \dot{\eta} \leq 0 .
+\end{align*}
+%
+Whenever $u^{*} \neq 0$ on any open interval, then it is clear that we must have
+$x_{2} \neq \pm 1$ on that interval, so the second complementary slackness
+condition requires that we have $\eta = 0$. At isolated points where
+$u^{*} \neq 0$, we can simply choose to set $\eta = 0$. Hence, $\eta u^{*} = 0$
+everywhere and we have $\dot{\lambda_{2}}(t) = -\lambda_{1}(t) = t + c_{1}$ for
+all $t \in [0, T]$, such that
+$\lambda_{2}(t) = \frac{1}{2}t^{2} + c_{1}t + c_{2}$ for some constants
+$c_{1}, c_{2}$.
+%
+In view of~\eqref{eq:optimal_u}, this shows that $u^{*}(t)$ has at most one
+period of deceleration and at most one period of acceleration.
+%
+Assume $\lambda_{2}(t)$ has two zeros, which we denote by $t_{d}$ and $t_{a}$,
+which give the start of the deceleration period and the start of the
+acceleration period, respectively.
+
+We now show how to compute $t_{a} - t_{d}$. Let $D$ denote the duration of the
+deceleration, which must of course equal the length of the acceleration, because
+$x_{2}(0) = x_{2}(T)$. Furthermore, $D$ must satisfy both $D \leq t_{a} - t_{d}$
+and $D \leq 1 / u_{\max}$ and can thus be defined as the smallest of these two
+bounds.
+%
+%We have $x_{1}^{*}(t) = t$ for $t \in [0, t_{d}]$.
+From the vehicle dynamics follows that, for all $t \in [t_{d}, t_{d} + D]$ in
+the deceleration period, we must have
+\begin{align*}
+  x_{2}^{*}(t) = 1 - u_{\max} (t-t_{d})
+\end{align*}
+and by integration, we obtain
+\begin{align*}
+  x_{1}^{*}(t) = x_{1}^{*}(t_{d}) + (t - t_{d}) - \frac{u_{\max}}{2}(t - t_{d})^{2} .
+\end{align*}
+%Next, $x_{1}^{*}(t) = x_{1}^{*}(t_{d} + D)$, for $t \in [t_{d} + D, t_{a}]$.
+%
+Similarly, for all $t \in [t_{a}, t_{a} + D]$ in the acceleration period, we must have
+\begin{align*}
+  x_{2}^{*}(t) = u_{\max} t
+\end{align*}
+and by integration, we obtain
+\begin{align*}
+  x_{1}^{*}(t) = x_{1}^{*}(t_{a}) + \frac{u_{\max}}{2}(t - t_{a})^{2} .
+\end{align*}
+%
+Because the vehicle is stationary in $[t_{d} + D, t_{a}]$, we have
+$x_{1}^{*}(t_{a}) = x_{1}^{*}(t_{d} + D)$.
+It is now easily verified that we have
+\begin{align*}
+  x^{*}_{1}(T) = p_{0} + T + t_{d} - t_{a} .
+\end{align*}
+Recall that $x^{*}_{1}(T) = 0$, so we obtain $t_{a} - t_{d} = p_{0} + T$.
+
+We now show that $t_{a}$ is uniquely determined.
+%
+From the complementary slackness conditions, we derive that
+\begin{align*}
+  \mu(t) = 0 \; & \text{ for } t \in (0, t_{d}) , \\
+  \eta(t) = 0 \;& \text{ for } t \in (t_{d}, t_{d} + D) , \\
+  \mu(t) = 0 \; & \text{ for } t \in (t_{d} + D, t_{a}) , \\
+  \eta(t) = 0 \;& \text{ for } t \in (t_{a}, t_{a} + D) , \\
+  \mu(t) = 0 \; & \text{ for } t \in (t_{a} + D, T) .
+\end{align*}
+%
+Now together with the condition
+\begin{align*}
+  \frac{\partial L}{\partial u} |_{u=u^{*}(t)} = 0 \iff \lambda_{2} - 2 \mu u^{*} - 2 \eta x_{2} + \eta = 0 ,
+\end{align*}
+this shows that we can choose $\mu$ and $\eta$ such that $\mu(t) \geq 0$ and $\eta(t) \geq 0$ and
+\begin{align*}
+  \lambda_{2}(t) = \eta(t) \; & \text{ for } t \in (0, t_{d}) , \\
+  \lambda_{2}(t) = -2 \mu(t) \; & \text{ for } t \in (t_{d}, t_{d} + D) , \\
+  \lambda_{2}(t) = -\eta(t) \; & \text{ for } t \in (t_{d} + D, t_{a}) , \\
+  \lambda_{2}(t) = 2 \mu(t) \; & \text{ for } t \in (t_{a}, t_{a} + D) , \\
+  \lambda_{2}(t) = \eta(t) \;& \text{ for } t \in (t_{a} + D, T) .
+\end{align*}
+%
+Suppose $t_{a} + D < T$, then for $t \in (t_{a} + D, T)$, we have
+$\dot{\eta}(t) = \dot{\lambda_{2}}(t) > 0$, which contradicts the necessary
+condition $\dot{\eta}(t) \leq 0$, hence $t_{a}= T - D$. This fixes a unique
+costate trajectory $\lambda_{2}(t)$ and hence a unique optimal controller
+$u^{*}(t)$ given by~\eqref{eq:optimal_u}.
+
+
+\subsection{No headway constraint: direct approach}
+
+Before we proceed with including the headway constraint, we also perform the direct approach.
+
+For $t$ in boundary interval (so where $h_{1}=0$), we have
+\begin{align*}
+  \eta^{d}(t) &= - \dot{\eta}(t) , \\
+  \lambda^{d}(t) &= \lambda(t) + \eta(t)h_{x}(x^{*}(t), t) .
+\end{align*}
+
+For $(0, t_{d})$, we have $x_{2}^{*} = 1$ and $\eta = \lambda_{2}$, so
+\begin{align*}
+  \eta^{d}(t) &= -\dot{\lambda}_{2}(t) = \lambda_{1}(t) , \\
+  \lambda^{d}(t) &= \begin{pmatrix} \lambda_{1}(t) \\ \lambda_{2}(t) \end{pmatrix} + \lambda_{2}(t) \begin{pmatrix} 0 \\ 1 - 2 x_{2}^{*} \end{pmatrix}
+  = \begin{pmatrix} \lambda_{1}(t) \\ 0  \end{pmatrix} .
+\end{align*}
+
+For $(t_{d}, t_{d} + D)$, we have $\eta^{d}(t) = \eta(t) = 0$.
+
+For $(t_{d} + D, t_{a})$, we have $x_{2}^{*} = 0$ and $\eta = - \lambda_{2}$, so
+\begin{align*}
+  \eta^{d}(t) &= \dot{\lambda}_{2}(t) = -\lambda_{1}(t) , \\
+  \lambda^{d}(t) &= \begin{pmatrix} \lambda_{1}(t) \\ \lambda_{2}(t) \end{pmatrix} - \lambda_{2}(t) \begin{pmatrix} 0 \\ 1 - 2 x_{2}^{*} \end{pmatrix} = \begin{pmatrix} \lambda_{1}(t) \\ 0 \end{pmatrix} .
+\end{align*}
+
+For $(t_{a}, t_{a} + D)$, we have $\eta^{d}(t) = \eta(t) = 0$.
+
+Using the same Hamiltonian as before,
+% \begin{align*}
+%   H(x, u, \lambda^{d}, t) = F(x,u,t) + \lambda^{d} f(x,u,t) = x_{1} + \lambda^{d}_{1} x_{2} + \lambda^{d}_{2} u
+% \end{align*}
+we write the Lagrangian
+\begin{align*}
+  L(x, u, \lambda^{d}, \mu, \eta^{d}, t) &= H(x, u, \lambda^{d}, t) + \mu g(x,u,t) + \eta^{d} h_{1}(x, t) \\
+  &= x_{1} + \lambda^{d}_{1}x_{2} + \lambda^{d}_{2}u + \mu (u_{\max}^{2} - u^{2}) + \eta^{d} (x_{2} - x_{2}^{2}) .
+\end{align*}
+
+The adjoint equation is given by
+\begin{align*}
+  \begin{cases}
+  \dot{\lambda}^{d}_{1} = -1 \\
+  \dot{\lambda}^{d}_{2} = -\lambda^{d}_{1} - \eta^{d} + 2\eta^{d} x_{2}
+  \end{cases}
+\end{align*}
+
+\begin{align*}
+  \frac{\partial L}{\partial u}|_{u=u^{*}(t)} = 0 \iff  \lambda^{d}_{2} = 2 \mu u^{*}
+\end{align*}
+
+
+Complementary slackness conditions
+\begin{align*}
+  \mu (u_{\max}^{2} - {(u^{*})}^{2}) = 0 ,& \quad \mu \geq 0 , \\
+ \eta^{d} (x_{2}^{*} - (x_{2}^{*})^{2}) = 0 ,& \quad \eta^{d} \geq 0 .
+\end{align*}
+
+The Hamiltonian maximizing condition is
+\begin{align*}
+  H(x^{*}(t), u^{*}(t), \lambda^{d}(t), t) \geq H(x^{*}(t), u, \lambda^{d}(t), t)
+\end{align*}
+at each $t \in [0, T]$ for all $u$ with $g(x^{*}(t), u, t) \geq 0$.
+
+
+\newpage
+\subsection{With headway constraint}
+
+We now return to the full problem~(\ref{eq:state_constraints}--\ref{eq:settings}) by considering the headway constraint $h_{2}$.
+%
+This constraint is of second order, because the control $u$ only appears in the
+second derivative, given by
+\begin{align*}
+  h_{2}^{2}(x, t) = -u .
+\end{align*}
+Because we have not found a clear indirect approach, we try to use the direct approach.
+
+Using the same Hamiltonian as before
+\begin{align*}
+  H(x, u, \lambda, t) = F(x,u,t) + \lambda f(x,u,t) = x_{1} + \lambda_{1} x_{2} + \lambda_{2} u
+\end{align*}
+we write the Lagrangian
+\begin{align*}
+  L(x, u, \lambda, \mu, \nu, t) &= H(x, u, \lambda, t) + \mu g(x,u,t) + \eta h(x, t) \\
+  &= x_{1} + \lambda_{1}x_{2} + \lambda_{2}u + \mu (u_{\max}^{2} - u^{2}) + \eta_{1} (x_{2} - x_{2}^{2}) + \eta_{2}(y_{1}(t) - x_{1})
+\end{align*}
+with multipliers $\mu$ and $\eta_{1}, \eta_{2}$.
+
+The adjoint equation
+\begin{align*}
+  \dot{\lambda} = - L_{x}(x^{*}, u^{*},  \lambda, \mu, \eta, t)
+\end{align*}
+for our problem is given by
+\begin{align*}
+  \begin{cases}
+  \dot{\lambda}_{1} = - 1 + \eta_{2} \\
+  \dot{\lambda}_{2} = - \lambda_{1} - \eta_{1} + 2\eta_{1}x_{2}
+  \end{cases}
+\end{align*}
+
+\begin{align*}
+  \frac{\partial L}{\partial u}|_{u=u^{*}(t)} = 0 \iff  \lambda_{2} = 2 \mu u^{*}
+\end{align*}
+
+Complementary slackness conditions
+\begin{align*}
+  \mu (u_{\max}^{2} - {(u^{*})}^{2}) = 0 ,& \quad \mu \geq 0 , \\
+ \eta_{1} (x_{2}^{*} - (x_{2}^{*})^{2}) = 0 ,& \quad \eta_{1} \geq 0 , \\
+ \eta_{2} (y_{1} - x_{1}^{*}) = 0 ,& \quad \eta_{2} \geq 0 .
+\end{align*}
+
+The Hamiltonian maximizing condition is
+\begin{align*}
+  H(x^{*}(t), u^{*}(t), \lambda(t), t) \geq H(x^{*}(t), u, \lambda(t), t)
+\end{align*}
+at each $t \in [0, T]$ for all $u$ with $g(x^{*}(t), u, t) \geq 0$.
+
+
+\textbf{See Exercise 4.12 in Sethi's ``Optimal Control Theory''}
+
+
+\newpage
+\bibliography{references}
+\bibliographystyle{ieeetr}
 
 
 \end{document}
