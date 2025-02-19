@@ -514,12 +514,70 @@ These are the \textit{type II} cutting planes.
 
 \subsection{Numerical examples}
 
-How to define heavy-load? Formalize the situation where ``there are only two
-very large platoons at the end of the schedule''.
+For each route $r \in \mathcal{R}$, we model the sequence of release times
+$a_{r} = (a_{r1}, a_{r2}, \dots)$ as a stochastic process, to which we refer as
+the \textit{arrival process}. Recall that constraints~\eqref{eq:conjunctive}
+ensure a safe following distance between consecutive vehicles on the same route.
+Therefore, we want the process to satisfy
+\begin{align*}
+  a_{(r, k)} + \rho_{(r,k)} \leq a_{(r, k + 1)} ,
+\end{align*}
+for all $k = 1, 2, \dots$. We start by assuming that all vehicles share the same
+dimensions so that $\rho_{i} = \rho$ for all $i \in \mathcal{N}$.
+%
+Let the interarrival times be denoted as $X_{n}$ with cumulative distribution
+function $F$ and mean $\mu$, assuming it exists. We define the arrival times $A_{n} = A_{n-1} + X_{n} + \rho$, for $n \geq 1$
+with $A_{0} = 0$.
+%
+The arrival process may be interpreted as an renewal process with interarrivals
+times $X_{n} + \rho$.
+%
+% To be precise, let $I_{t} \in \{0, 1\}$
+% denote the state of the process at time $t$ and assume the process starts in
+% state $I_{0} = 0$. Let $X_{1}, X_{2}, \dots$ denote the times spend in state $0$
+% and let $\rho$ be the time spend in state $1$.
+%
+Let $N_{t}$ denote the corresponding counting process, then by the \textit{renewal
+  theorem}, we obtain the \textit{limiting density} of vehicles
+%
+\begin{align*}
+  \mathbb{E}(N_{t + h}) - \mathbb{E}(N_{t}) \rightarrow \frac{h}{\rho + \mu} \quad \text{ as } t \rightarrow \infty ,
+\end{align*}
+for $h > 0$. Hence, we refer to the quantity $\lambda := {(\rho + \mu)}^{-1}$ as the
+arrival intensity.
 
-Multimodal interarrival time distribution to model the natural occurrence of platoons.
 
-Analyze running time of branch-and-cut and compare performance benefits of the different cutting planes.
+Consider two intersecting routes, with arrival processes
+$a_{1} = (a_{11}, a_{12}, \dots)$ and $a_{2} = (a_{21}, a_{22}, \dots)$, with
+arrival intensities $\lambda^{(1)}$ and $\lambda^{(2)}$, respectively. Given
+some time $t>0$, define the \textit{truncation} $a_{i}(t)$ as the finite
+subsequence $(a_{i1}, \dots, a_{ik})$ of $a_{i}$ such that $a_{ik} \leq t$.
+%
+Let $f^{*}(a_{1}(t), a_{2}(t))$ denote an optimal schedule for the crossing
+time scheduling problem with arrivals $a_{1}(t)$ and $a_{2}(t)$.
+%
+Given some schedule $y$, we say that it has a \textit{schedule renewal at
+  time} $t$ whenever there are two consecutive vehicles
+$(i, j) \in \mathcal{C}$ such that $t = y(i) + \sigma < y(j)$. Let $R(y)$ denote
+the total number of such renewals in schedule $y$. Now consider the following
+limit
+\begin{align*}
+  L = \lim_{t \rightarrow \infty} R(f^{*}(a_{1}(t), a_{2}(t))) .
+\end{align*}
+Whenever $L < \infty$, we say that the system is \textit{unstable}.
+Whenever $L = \infty$, we say the system is \textit{stable}.
+%
+Because there is in general no simple expression for $f^{*}$, it is not possible
+to state a necessary and sufficient condition for stability like often done for
+queueing systems. {\color{Navy}Argue that renewals do not change under $f^{*}$.}
+
+We want to compare arrival distributions with different $\lambda_{1}$ and
+$\lambda_{2}$ with the same $\mu$, modeling different degrees of platooning
+while keeping the load constant.
+%
+We can derive some numerical estimates of when the system becomes unstable.
+
+
 
 \section{Constructive heuristics}
 
