@@ -1,4 +1,4 @@
-\documentclass{article}
+\documentclass[a4paper]{article}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{xcolor}
@@ -38,8 +38,8 @@
 %\newtheorem{eg}{Example}[section]
 \newmarkedtheorem{eg}{Example}[section]
 \newtheorem{observation}{Observation}[section]
-\newtheorem{remark}{Remark}
 \theoremstyle{plain}
+\newtheorem{remark}{Remark}
 \newtheorem{define}{Definition}
 \newtheorem{proposition}{Proposition}
 \newtheorem{theorem}{Theorem}[section]
@@ -82,6 +82,7 @@ intersection $v$. Let the position of intersection's $w$ stopline be denoted by
 $x=d(v,w)$. To simplify the following discussion, we make the following
 assumption on the vehicle sizes.
 \begin{assump}
+  \label{assump:vehicle_geometry}
   All vehicles have the same length $L_{i} = L$ and width
   $W_{i} = W$.
 \end{assump}
@@ -117,6 +118,12 @@ maximum capacity as
 \begin{align}\label{eq:max_capacity}
   c(v, w) = \texttt{floor}\left( \frac{d(v,w) - W - 2x(\hat{t})}{L} \right) .
 \end{align}
+
+\begin{remark}
+  Without Assumption~\ref{assump:vehicle_geometry}, we cannot derive such a
+  simple formula for the capacity, because it depends on the specific lengths of
+  the vehicles that are arriving to the network.
+\end{remark}
 
 In order to guarantee that crossing time schedule $y$ allows feasible
 trajectories, we need to define additional constraints involving both the
