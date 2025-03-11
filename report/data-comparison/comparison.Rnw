@@ -12,6 +12,6 @@ data <- data %>% select(n_vehicles, set_name, opt_obj, opt_time, threshold_obj, 
 
 kbl(data,
     escape=F, booktabs=T, linesep = "",
-    col.names=c("vehicles", "distribution", "branch", "t", "threshold", "t", "neural", "t"),
-    caption="Comparison of heuristics and branch-and-cut approach based on delay per vehicle for different classes of instances with two routes. The first two columns specify the instance class based on the number of vehicles per route and the type of arrivals for each route. These arrival distributions are chosen such that the arrival intensity is the same, only the degree of platooning varies. Heuristics are fitted based on 10 train instances and results averaged over 10 test instances. For the heuristics, the training time is indicated. For branch-and-bound we indicate the inference time.")
+    col.names=c("vehicles", "distribution", "branch", "time", "thresh.", "time", "neural", "time"),
+    caption="Comparison of heuristics and branch-and-cut approach based on average delay per vehicle for different classes of instances with two routes. The first two columns specify the instance class based on the number of vehicles per route and the type of arrivals for each route. These arrival distributions are chosen such that the arrival intensity is the same, only the degree of platooning varies. Heuristics are fitted based on 100 train instances and results averaged over 100 test instances. For the heuristics, the training time is indicated. For branch-and-bound the inference time is indicated.")
 @
