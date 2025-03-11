@@ -98,13 +98,18 @@ class RecurrentEmbeddingModel(ActionTransform):
 
         for n in range(N):
             for l in range(self.lanes):
+                # first number indicates length of the horizon
                 length = int(obs[n, l, 0].item())
                 if length == 0:
                     continue
 
-                inp = torch.unsqueeze(obs[n, l,:length], 1)
-                out, _ = self.rnn(inp)
-                # we take the last output as embedding
+                # rest of sequence is actual horizon
+                horizon = obs[n, l, 1:1+length]
+                # reverse ("flip up down") the horizon
+                inp = torch.flipud(horizon)
+                # add dimension as required by RNN
+                out, _ = self.rnn(torch.unsqueeze(inp, 1))
+                # take the output at the last step as embedding
                 embedding[n, l] = out[-1]
 
         return self.network(torch.flatten(embedding, 1, 2).cuda())
@@ -116,7 +121,7 @@ class RecurrentEmbeddingModel(ActionTransform):
             LBs.extend(LB_lane[k_lane:])
         min_LB = min(LBs)
 
-        # ragged array; first number indicates length of the sequence
+        # construct the (truncated) horizons
         obs = np.zeros((self.lanes, self.max_horizon))
         lengths = np.empty((self.lanes, 1))
         for l, (LB_lane, k_lane) in enumerate(zip(automaton.LB, automaton.k)):
@@ -124,6 +129,7 @@ class RecurrentEmbeddingModel(ActionTransform):
             lengths[l] = actual_horizon
             obs[l, :actual_horizon] = LB_lane[k_lane:k_lane + actual_horizon] - min_LB
 
+        # create ragged array; first number indicates length of the horizon
         out = np.hstack([lengths, obs])
 
         # lane cycling
