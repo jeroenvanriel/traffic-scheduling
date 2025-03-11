@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-class ActionTransform:
+class ActionTransform(nn.Module):
 
     def inverse_action_transform(self, automaton, lane):
         # stay on last_lane when action == 0
@@ -30,8 +30,12 @@ class ActionTransform:
 
         return lane
 
+    def heuristic(self, automaton):
+        """Perform the actual trained heuristic."""
+        return self.action_transform(automaton, self.forward(self.state_transform(automaton)))
 
-class PaddedEmbeddingModel(nn.Module, ActionTransform):
+
+class PaddedEmbeddingModel(ActionTransform):
     """Should be used with 2 lanes, because of how actions are transformed to lanes."""
 
     def __init__(self, lanes, horizon):
@@ -69,7 +73,7 @@ class PaddedEmbeddingModel(nn.Module, ActionTransform):
         return torch.as_tensor(obs.flatten(), dtype=torch.float, device=torch.device('cuda'))
 
 
-class RecurrentEmbeddingModel(nn.Module, ActionTransform):
+class RecurrentEmbeddingModel(ActionTransform):
 
     def __init__(self, lanes, max_horizon):
         super().__init__()
