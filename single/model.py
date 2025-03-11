@@ -38,9 +38,9 @@ class ActionTransform(nn.Module):
 class PaddedEmbeddingModel(ActionTransform):
     """Should be used with 2 lanes, because of how actions are transformed to lanes."""
 
-    def __init__(self, lanes, horizon):
+    def __init__(self, lanes, max_horizon):
         super().__init__()
-        self.horizon = horizon
+        self.horizon = max_horizon
         self.lanes = lanes
         self.network = nn.Sequential(
             nn.Linear(lanes * horizon, 32),
