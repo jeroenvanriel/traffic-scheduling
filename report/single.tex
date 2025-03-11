@@ -88,7 +88,7 @@
   \2 robustness of control
 \end{outline}
 
-\section{Problem analysis}
+\section{Model definition and analysis}
 
 % general model: multi-agent optimal control problem
 % derivation of the following ``offline trajectory optimization problem for a single intersection'' should happen elsewhere
@@ -270,9 +270,9 @@ decomposition is possible.
 %
 Given $x_{i}(t)$, the \textit{crossing time} of vehicle $i$, when the vehicle
 first enters the intersection, and the corresponding \textit{exit time} are respectively
-\begin{align}
-  \inf \{ t: x_{i}(t) \in \mathcal{E}_{i} \}  \; \text{ and } \; \sup \{ t: x_{i}(t) \in \mathcal{E}_{i} \} .
-\end{align}
+\begin{align*}
+  \inf \{ t: x_{i}(t) \in \mathcal{E}_{i} \}  \;\; \text{ and } \; \sup \{ t: x_{i}(t) \in \mathcal{E}_{i} \} .
+\end{align*}
 %
 The upper-level problem is to find a set of feasible occupancy timeslots, for
 which the lower-level problem generates trajectories. We will use decision
@@ -280,32 +280,28 @@ variable $y(i)$ for the crossing time and write $y(i) + \sigma(i)$ for the exit
 time. It turns out that trajectories can be generated separately for each route,
 which yields the decomposition
 %
-\begin{subequations}
-\begin{align}
+\begin{align*}
   \min_{y, \sigma} \quad & \sum_{r \in \mathcal{R}} F(y_{r}, \sigma_{r}) \\
-  \text{ s.t. } \quad & y(i) + \sigma(i) \leq y(j) \text{ or } y(j) + \sigma(j) \leq y(i), & \text{ for all } (i, j) \in \mathcal{D} , \\
+  \text{ s.t. } \quad & y(i) + \sigma(i) \leq y(j) \text{ or } y(j) + \sigma(j) \leq y(i), & \text{ for all } \{i, j\} \in \mathcal{D} , \\
   & (y_{r}, \sigma_{r}) \in \mathcal{S}_{r} , & \text{ for all } r \in \mathcal{R} ,
-\end{align}
-\end{subequations}
+\end{align*}
 where $F(y_{r}, \sigma_{r})$ and $\mathcal{S}_{r}$ are the value function and
 set of feasible parameters, respectively, of the lower-level \textit{route trajectory optimization}
 problem
-\begin{subequations}
-\begin{align}
-  F(y_{r}, \sigma_{r}) = \min_{x_{r}} \quad & \sum_{i \in \mathcal{N}(r)} J(x_{i}) \\
+\begin{align*}
+  F(y_{r}, \sigma_{r}) = \min_{x_{r}} \quad & \sum_{i \in \mathcal{N}_{r}} J(x_{i}) \\
   \text{ s.t. } \quad & x_{i} \in D_{i}(s_{i,0}) , & \text{ for all } i \in \mathcal{N}_{r} , \\
   & x_{i}(y(i)) = B_{i} , & \text{ for all } i \in \mathcal{N}_{r} , \\
   & x_{i}(y(i) + \sigma(i)) = E_{i} , & \text{ for all } i \in \mathcal{N}_{r} , \\
   & x_{i}(t) - x_{j}(t) \geq L , & \text{ for all } (i, j) \in \mathcal{C} \cap \mathcal{N}_{r} ,
-\end{align}
-\end{subequations}
+\end{align*}
 where we used $\mathcal{N}_{r} = \{ i \in \mathcal{N} : r(i) = r \}$ and
 similarly for $x_{r}, y_{r}$ and $\sigma_{r}$ to group variables according to
 route. Note that the set of feasible parameters $\mathcal{S}_{r}$ implicitly
 depends on the initial states $s_{r,0}$ and system parameters.
 
 
-\subsection{Decomposition under delay objective}
+\subsection{Decomposition for delay objective}
 
 Assume that the trajectory performance criterion is exactly the crossing time,
 so $J(x_{i}) = \inf \{ t: x_{i}(t) \in \mathcal{E}_{i} \}$. This assumption
@@ -345,7 +341,7 @@ problem~\eqref{eq:offline_single_intersection} reduces to the following \textit{
   \min_{y} \quad & \sum_{i \in \mathcal{N}} y(i) \\
   \text{ s.t. } \quad & a_{i} \leq y(i) , & \text{ for all } i \in \mathcal{N} , \\
                     & y(i) + \rho \leq y(j) , & \text{ for all } (i,j) \in \mathcal{C} \label{eq:conjunctive} , \\
-                    & y(i) + \sigma \leq y(j) \text{ or } y(j) + \sigma \leq y(i) , & \text{ for all } (i,j) \in \mathcal{D} \label{eq:disjunctive} .
+                    & y(i) + \sigma \leq y(j) \text{ or } y(j) + \sigma \leq y(i) , & \text{ for all } \{i,j\} \in \mathcal{D} \label{eq:disjunctive} .
 \end{align}
 \end{subequations}
 This problem can be solved using off-the-shelf mixed-integer linear program solvers,
@@ -804,23 +800,25 @@ system with an exhaustive polling policy.
 
 
 \subsection{Neural heuristic}
+\label{sec:neural}
 
 We will now consider a class of heuristics that directly generalizes the
 threshold heuristic. Instead of looking at the earliest crossing time of the
-next vehicle in the current lane, we will now consider the earliest arrivals
+next vehicle in the current lane, we will now consider the earliest arrival
 times of all unscheduled vehicles across lanes.
 %
 Because we want to tune the heuristic based on problem instances, we will
-formulate it as a model $p_{\theta}(\eta_{t+1} | s_{t})$ of the conditional
-distribution over the next route, given the current partial order, where
-$\theta$ denotes the model parameters.
+formulate it as a model of the conditional probability
+$p_{\theta}(\eta_{t+1} | s_{t})$ of the next route, given the current partial
+order. Here, $\theta$ denotes the parameters that need to tuned to the specific class
+of problem instances.
 
 
 We will first explain how we parameterize $p_{\theta}$ as a function of the
 current non-final state $s_{t} = (s, \pi_{t})$ of the automaton.
 %
 In the following definitions, the dependence on $s_{t}$ will be left implicit
-to avoid cluttering the notation and let $k(r)$ again denote the number of
+to avoid cluttering the notation and we let $k(r)$ denote again the number of
 scheduled vehicles of route $r$. Observe that the overall earliest arrival time
 of any unscheduled vehicle in the system is given by
 \begin{align*}
@@ -837,10 +835,14 @@ Observe that horizons can be of arbitrary dimension. Therefore, we could
 restrict each horizon to a fixed length by using zero padding.
 %
 To avoid the zero padding operation, which can be problematic for states that
-are almost done, we can employ a recurrent architecture that is agnostic to the
-number of remaining unscheduled vehicles. Each variable-length horizon
-$h(r)$ is simply transformed into a fixed-length embedding using a plain Elman
-RNN by taking the output at the last step.
+are almost done, we employ a recurrent neural network for variable-length
+sequences, to obtain a model that is agnostic to the number of remaining
+unscheduled vehicles. Each horizon $h(r)$ is simply transformed into a
+fixed-length embedding by feeding it in reverse order through a plain Elman RNN.
+Generally speaking, the most recent inputs tend to have greater influence on the
+output of an RNN, which is why we feed the horizon in reverse order, such that
+those vehicles that are due first are processed last, since we expect those
+should have the most influence on the decision.
 %
 Finally, the horizon embeddings are arranged into a vector $H$, defined as
 \begin{align*}
@@ -917,34 +919,38 @@ and \textit{test instances}, respectively.
 %
 To enable a fair comparison across different instance classes, we report the
 quality of a solution in terms of the average delay divided by the
-instance size. More precisely, from now on we use the objective defined as
+instance size. More precisely, from now on we define the objective of some schedule $y$ as
 \begin{align*}
-  \textrm{obj}(y(s)) = \frac{1}{|\mathcal{N}|} \sum_{i \in \mathcal{N}} y_{i}(s) - a_{i} .
+  \textrm{obj}(y) = \frac{1}{|\mathcal{N}|} \sum_{i \in \mathcal{N}} y_{i} - a_{i} .
 \end{align*}
 %
-Ideally, we want to report the average \textit{optimality gap} of each heuristic, which is defined as
+Ideally, we want to report the average \textit{approximation ratio} of each
+heuristic, which is defined as
 \begin{align*}
   \alpha_{\text{approx}} = \frac{1}{|\mathcal{Y}|} \sum_{s \in \mathcal{Y}} \textrm{obj}(\hat{y}(s)) \, / \, \textrm{obj}(y^{*}(s)) ,
 \end{align*}
 where $y^{*}(s)$ denotes some optimal solution for instance $s$ and $\hat{y}(s)$
 denotes some solution computed by a heuristic fitted to $\mathcal{X}$.
 %
-Again, we use a fixed time limit per instance to bound the total computation
-time of the analysis. Therefore, we cannot compute $y^{*}(s)$ using the
-branch-and-cut procedure for large instances.
+Again, we use a fixed time limit of 60 seconds per instance to bound the total
+computation time of the analysis. Therefore, it might be that we cannot compute $y^{*}(s)$ using
+the branch-and-cut procedure for some of the larger instances.
 %
-Instead of reporting the real optimality gap $\alpha_{\text{approx}}$, we report
-the relative optimality gap, where we use the best solution that branch-and-cut
+Instead of reporting the actual approximation ratio $\alpha_{\text{approx}}$, we report the
+relative optimality gap, where we use the best solution that branch-and-cut
 obtains within the time limit as proxy for $y^{*}(s)$.
 
-The heuristics are fitted to the training data without much manual tweaking, but
-we create some plots that allow us to manually inspect the model fit.
+The heuristics can be fitted to the training data without requiring much manual tweaking.
 %
+The threshold heuristics is fitted by choosing the best value of $\tau$ from a fixed set of candidates through a simple search.
+The neural heuristics is trained for a fixed number of training steps. At regular intervals, we compute the average validation loss and store the current model parameters. At the end of the training, we pick the model parameters with the smallest validation loss.
+%
+We create some plots that allow us to manually inspect the model fit.
 For the threshold heuristics, we plot the average objective for the values of
 $\tau$ in the grid search, see Figure~\ref{fig:tau_fit}.
 %
-For the neural heuristic, we plot the loss during training, see
-Figure~\ref{fig:neural_fit}.
+For the neural heuristic, we plot the training and validation loss, see
+Figure~\ref{fig:neural_fit}. It can be seen that the model converges very steadily in all cases.
 
 \input{data-comparison/comparison-woven.tex}
 
@@ -1011,15 +1017,15 @@ The latter variant is sometimes referred to as \textit{beam search}.
 \end{table}
 
 
-\subsection{Regeneration theorem}
+% \subsection{Regeneration theorem}
 
-It has been observed that some optimal schedules seem to \textit{decompose} into
-parts, whenever the crossing times of consecutive vehicles are sufficiently far
-apart~\cite{limpensOnlinePlatoonForming2023}.
+% It has been observed that some optimal schedules seem to \textit{decompose} into
+% parts, whenever the crossing times of consecutive vehicles are sufficiently far
+% apart~\cite{limpensOnlinePlatoonForming2023}.
 
-\begin{proposition}
-  Let $s$ be an instance of crossing time scheduling problem~\eqref{eq:crossing_time_scheduling}.
-\end{proposition}
+% \begin{proposition}
+%   Let $s$ be an instance of crossing time scheduling problem~\eqref{eq:crossing_time_scheduling}.
+% \end{proposition}
 
 
 
@@ -1189,7 +1195,29 @@ calculating the lower bounds.
     arc under ordering $\pi'$.}\label{fig:platoon-preservation-diagram}
 \end{figure}
 
+
+\section{Implementation details}
+
+We have an \texttt{ActionTransform} base class with implementations
+\texttt{PaddedEmbeddingModel} and \texttt{RecurrentEmbeddingModel}. The
+\texttt{ActionTransform} class takes care of transforming actions in terms of
+staying on the same lane or moving to the next lane to actions in terms of
+absolute lane identifiers. Specifically, \texttt{action\_transform()} takes a
+logit of the binary choice model and outputs a lane identifier and
+\texttt{inverse\_action\_transform()} takes a lane identifier and outputs either
+zero or one.
+
+Both embedding models have a \texttt{state\_transform()} method that constructs
+a numerical observation tensor based on the state encoded in the automaton, as
+explained in Section~\ref{sec:neural}. We explicitly store the length of the
+horizon as the first entry of the tensor. Maybe we should use the
+\texttt{torch.nn.utils.rnn.pack\_sequence()} function that is available in
+\texttt{torch}.
+
+
+
 \newpage
+
 
 \begin{figure}
   \centering
@@ -1210,9 +1238,12 @@ calculating the lower bounds.
 \begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{figures/neural_fit.pdf}
-  \caption{Charts to verify neural heuristic model fit. For each indicated
-    instance training set, the training loss is plotted over all epochs. Recall
-    that the loss is defined as the average binary cross entropy loss.}
+  \caption{Loss plots to verify neural heuristic model fit. For each indicated
+    instance training set, the training loss is plotted for each training step
+    in blue and the validation loss is plotted as the dashed line. Recall that
+    the validation loss is the average binary cross entropy loss after a given
+    number of training steps. The training loss is plotted for each individual
+    step without smooting.}
   \label{fig:neural_fit}
 \end{figure}
 
