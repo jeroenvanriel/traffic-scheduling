@@ -21,7 +21,8 @@ references.bib
 
 ## misc
 /report/_minted-problem/
-/ordering/*.pkl
 /report/_minted-*
+/report/data-comparison/*-woven.tex
+/ordering/*.pkl
 /ordering/.ipynb_checkpoints/
 .ipynb_checkpoints
