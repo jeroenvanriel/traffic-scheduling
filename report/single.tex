@@ -558,8 +558,8 @@ for all $k = 1, 2, \dots$. We start by assuming that all vehicles share the same
 dimensions so that $\rho_{i} = \rho$ for all $i \in \mathcal{N}$.
 %
 Let the interarrival times be denoted as $X_{n}$ with cumulative distribution
-function $F$ and mean $\mu$, assuming it exists. We define the arrival times $A_{n} = A_{n-1} + X_{n} + \rho$, for $n \geq 1$
-with $A_{0} = 0$.
+function $F$ and mean $\mu$, assuming it exists. We define the arrival times
+$A_{n} = A_{n-1} + X_{n} + \rho$, for $n \geq 1$ with $A_{0} = 0$.
 %
 The arrival process may be interpreted as an renewal process with interarrivals
 times $X_{n} + \rho$.
@@ -630,7 +630,7 @@ vehicles in the instance. Therefore, we consider instances with two routes and
 measure the running time of branch-and-cut as a function of the number of
 vehicles per route.
 %
-In order to keep the total computation time limited, we set a time limit of 20
+In order to keep the total computation time limited, we set a time limit of 60
 seconds for solving each instance. Therefore, we should be careful when
 calculating the average running time, because some observations may correspond
 to the algorithm reaching the time limit, in which case the observation is said
@@ -649,7 +649,7 @@ planes seem to lower the running time the most.
   \caption{The average (censored) running time of the branch-and-cut procedure
     is plotted as a function of the number of arriving vehicles per route, for
     each of the three indicated cutting planes. Each average is computed over
-    $10$ problem instances. All instances use $\rho = 4$ and $\sigma = 1$. The arrivals
+    $20$ problem instances. All instances use $\rho = 4$ and $\sigma = 1$. The arrivals
     of each of the two routes are generated using the bimodal exponential
     interarrival times with $p=0.5, \mu_{s} = 0.1, \mu_{l} = 10$. This figure
     clearly shows that the conjunctive cutting planes provide the most runtime
@@ -924,9 +924,9 @@ instance size. More precisely, from now on we define the objective of some sched
 \end{align*}
 %
 Ideally, we want to report the average \textit{approximation ratio} of each
-heuristic, which is defined as
+heuristic, which we define as
 \begin{align*}
-  \alpha_{\text{approx}} = \frac{1}{|\mathcal{Y}|} \sum_{s \in \mathcal{Y}} \textrm{obj}(\hat{y}(s)) \, / \, \textrm{obj}(y^{*}(s)) ,
+  \alpha_{\text{approx}} = \frac{1}{|\mathcal{Y}|} \sum_{s \in \mathcal{Y}} \frac{\textrm{obj}(\hat{y}(s)) - \textrm{obj}(y^{*}(s))}{\textrm{obj}(y^{*}(s))} ,
 \end{align*}
 where $y^{*}(s)$ denotes some optimal solution for instance $s$ and $\hat{y}(s)$
 denotes some solution computed by a heuristic fitted to $\mathcal{X}$.
@@ -935,9 +935,9 @@ Again, we use a fixed time limit of 60 seconds per instance to bound the total
 computation time of the analysis. Therefore, it might be that we cannot compute $y^{*}(s)$ using
 the branch-and-cut procedure for some of the larger instances.
 %
-Instead of reporting the actual approximation ratio $\alpha_{\text{approx}}$, we report the
-relative optimality gap, where we use the best solution that branch-and-cut
-obtains within the time limit as proxy for $y^{*}(s)$.
+Instead of reporting the actual approximation ratio $\alpha_{\text{approx}}$, we
+report the approximation ratio computed using the best solution that
+branch-and-cut obtains within the time limit as proxy for $y^{*}(s)$.
 
 The heuristics can be fitted to the training data without requiring much manual tweaking.
 %
