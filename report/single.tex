@@ -4,6 +4,7 @@
 \usepackage{amssymb}
 \usepackage[svgnames]{xcolor}
 \usepackage{amsthm}
+\usepackage{thmtools, thm-restate}
 \usepackage{dsfont}
 \usepackage{graphicx}
 \usepackage{hyperref}
@@ -67,25 +68,6 @@
 
 \tableofcontents
 
-\section{Introduction}
-
-
-\begin{outline}
-  \1 general intro
-  \2 societal relevance
-  \2 outlook
-  \2 other (non)technical challenges
-  \1 literature review
-  \2 Autonomous Intersection Management
-  \2 Hult et al.
-  \2 Miculescu \& Karaman
-  \1 overview of problem aspects
-  \2 offline vs online
-  \2 stochastic elements
-  \2 crossing order
-  \2 trajectory generation
-  \2 robustness of control
-\end{outline}
 
 \section{Model definition and analysis}
 
@@ -508,11 +490,11 @@ problem. Roughly speaking, whenever a vehicle can be scheduled immediately after
 its predecessor, this should happen in any optimal schedule. We will use these
 necessary conditions to define two types of additional cutting planes.
 
-\begin{proposition}\label{prop:exhaustive}
+\begin{restatable}{proposition}{Exhaustive}\label{prop:exhaustive}
   If $y$ is an optimal schedule for~\eqref{eq:crossing_time_scheduling},
-  satisfying $y_{i} + \rho \geq a_{j}$ for some $(i,j) \in \mathcal{C}$, then $j$
-  follows immediately after $i$, so $y_{i} + \rho = y_{j}$.
-\end{proposition}
+  satisfying $y_{i^{*}} + \rho \geq a_{j^{*}}$ for some $(i^{*},j^{*}) \in \mathcal{C}$, then $j^{*}$
+  follows immediately after $i^{*}$, so $y_{i^{*}} + \rho = y_{j^{*}}$.
+\end{restatable}
 
 In order to model this type of necessary condition, we introduce for every
 conjunctive pair $(i,j) \in \mathcal{C}$ a binary variable $\delta_{ij} \in \{0, 1\}$ that
@@ -1096,14 +1078,16 @@ calculating the lower bounds.
 \end{figure}
 
 
-\begin{proposition}\label{prop:exhaustive}
-  Consider an instance of~\eqref{eq:crossing_time_scheduling} with
-  $\rho_{i} = \rho$ and $\sigma_{i} = \sigma > \rho$ for all
-  $i \in \mathcal{N}$. Suppose $y$ is an optimal schedule with
-  $y_{i^{*}} + \rho \geq r_{j^{*}}$, for some $(i^{*},j^{*}) \in \mathcal{C}$,
-  then $j^{*}$ follows immediately after $i^{*}$, so
-  $y_{i^{*}} + \rho = y_{j^{*}}$.
-\end{proposition}
+% \begin{proposition}
+%   Consider an instance of~\eqref{eq:crossing_time_scheduling} with
+%   $\rho_{i} = \rho$ and $\sigma_{i} = \sigma > \rho$ for all
+%   $i \in \mathcal{N}$. Suppose $y$ is an optimal schedule with
+%   $y_{i^{*}} + \rho \geq r_{j^{*}}$, for some $(i^{*},j^{*}) \in \mathcal{C}$,
+%   then $j^{*}$ follows immediately after $i^{*}$, so
+%   $y_{i^{*}} + \rho = y_{j^{*}}$.
+% \end{proposition}
+
+\Exhaustive*
 \begin{proof}
   Suppose the ordering $\pi$ of $y$ is such that
   $\pi^{-1}(i^{*}) + 1 < \pi^{-1}(j^{*})$.
