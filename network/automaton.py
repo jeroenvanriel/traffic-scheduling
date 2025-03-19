@@ -2,6 +2,7 @@ from util import vehicle_indices, route_indices, order_indices, pos_along_route,
 import networkx as nx
 from networkx import topological_sort
 from collections import defaultdict
+from matplotlib import colormaps
 
 
 def next_intersection(route, v):
@@ -9,6 +10,31 @@ def next_intersection(route, v):
     ix = route.index(v)
     if ix + 1 < len(route):
         return route[ix + 1]
+
+
+class DisjunctiveGraph(nx.DiGraph):
+
+    def remove_done_edges(self):
+        to_remove = [edge for x, y in self.nodes(data=True) if y['done']==1 for
+                     edge in [*self.out_edges(x), *self.in_edges(x)]]
+        self.remove_edges_from(to_remove)
+
+
+    def draw(self, intersection=None):
+        pos = {}
+        nodes = []
+        for r, k, v in self.nodes:
+            if intersection is None or v == intersection:
+                nodes.append((r, k, v))
+                pos[r, k, v] = (k, r)
+
+        nx.draw_networkx(self.subgraph(nodes), pos=pos, with_labels=False,
+                         node_size=1600, arrowsize=20)
+
+        # indices
+        labels = { (r, k, v): f"{r}: {k}\n{v}" for r, k, v in self.subgraph(nodes) }
+        nx.draw_networkx_labels(self.subgraph(nodes), labels=labels,
+                                font_size=9, pos={ i: (pos[i][0], pos[i][1]) for i in pos })
 
 
 class Automaton:
@@ -43,7 +69,7 @@ class Automaton:
 
         ### compute disjunctive graph for empty ordering ###
 
-        self.D = nx.DiGraph()
+        self.D = DisjunctiveGraph()
         self.rho = instance['rho']
         self.sigma = instance['sigma']
 
