@@ -90,4 +90,10 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
     g.optimize()
 
     y = { k : (v.X if hasattr(v, 'X') else v) for k, v in y.items() }
-    return y, g.getObjective().getValue()
+    res = { 'y': y, 'obj': g.getObjective().getValue() }
+
+    res['done'] = int(g.status == gp.GRB.OPTIMAL)
+    res['gap'] = g.MIPGap
+    res['time'] = g.Runtime
+
+    return res
