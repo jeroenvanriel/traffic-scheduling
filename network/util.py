@@ -29,6 +29,13 @@ def order_indices(indices):
     """Return dict of order indices n[r] for each class r, sorted in increasing order."""
     return { route: sorted([k for (r, k) in indices if r == route]) for route in route_indices(indices) }
 
+def routes_at_intersection(instance):
+    """Returns dict mapping intersection v to all the route indices that cross v."""
+    routes = { v: set() for v in instance['G'].nodes }
+    for i, route in enumerate(instance['route']):
+        for v in route:
+            routes[v].add(i)
+    return routes
 
 def indexed_arrivals(instance):
     """Get tuples (r, k, release date) for every vehicle in instance, sorted by

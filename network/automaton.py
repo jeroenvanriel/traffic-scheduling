@@ -1,4 +1,4 @@
-from util import vehicle_indices, route_indices, order_indices, pos_along_route, dist
+from util import vehicle_indices, route_indices, order_indices, routes_at_intersection, pos_along_route, dist
 import networkx as nx
 from networkx import topological_sort
 from collections import defaultdict
@@ -15,6 +15,7 @@ def next_intersection(route, v):
 class DisjunctiveGraph(nx.DiGraph):
 
     def remove_done_edges(self):
+        """Remove all edges from or to nodes that are done."""
         to_remove = [edge for x, y in self.nodes(data=True) if y['done']==1 for
                      edge in [*self.out_edges(x), *self.in_edges(x)]]
         self.remove_edges_from(to_remove)
@@ -53,19 +54,25 @@ class Automaton:
         self.instance = instance
         self.G = instance['G']
         self.route = instance['route']
-        self.done = False
 
         self.indices = vehicle_indices(instance)
         self.route_indices = route_indices(self.indices) # "r"
         self.order_indices = order_indices(self.indices) # "k"
+        self.crossing_indices = [ (r, v) for r in self.route_indices for v in self.route[r][1:-1] ]
+        self.routes_at_intersection = routes_at_intersection(instance)
+
+        self.crossing_done = { (r, v): False for (r, v) in self.crossing_indices }
+        self.done = False
 
         # local order for every intersection
         self.order = { v: [] for v in self.G.intersections }
+        # route index r of last scheduled vehicle at intersection v
+        self.last_scheduled_route = { v: None for v in self.G.intersections }
         # order index k of last scheduled vehicle of route r at intersection v
-        self.last_scheduled = { (r, v): None for r in self.route_indices for v in self.route[r][1:-1] }
-        # order indices ("k") of unscheduled vehicles for every class-intersection pair
+        self.last_scheduled_order = { (r, v): None for r, v in self.crossing_indices }
+        # order indices ("k") of unscheduled vehicles for every route-intersection pair
         # (we use list(...) to create a copy)
-        self.unscheduled = { (r, v): list(self.order_indices[r]) for r in self.route_indices for v in self.route[r][1:-1] }
+        self.unscheduled = { (r, v): list(self.order_indices[r]) for r, v in self.crossing_indices }
 
         ### compute disjunctive graph for empty ordering ###
 
@@ -92,11 +99,16 @@ class Automaton:
                         self.D.add_edge((r, k, v), (r, k, w), weight=dist(self.G, v, w) / instance['vmax'])
 
                         # buffer constraint
-                        if capacity := self.G[v][w]['capacity'] >= 0:
+                        if (capacity := self.G[v][w]['capacity']) >= 0:
                             k2 = k + capacity
                             if (r, k2) in self.indices:
                                 rho_vw = capacity * self.rho - dist(self.G, v, w) / instance['vmax']
                                 self.D.add_edge((r, k, w), (r, k2, v), weight=rho_vw)
+
+        # reference to the conjunctive chains (used by recurrent embedding model)
+        self.conjunctive_chains = {}
+        for r, v in self.crossing_indices:
+            self.conjunctive_chains[r, v] = [self.D.nodes[r, k, v] for k in self.unscheduled[r, v]]
 
         ### initialize attributes for empty ordering ###
 
@@ -129,14 +141,15 @@ class Automaton:
 
         # check if r has still unscheduled vehicles at v
         if len(self.unscheduled[r, v]) == 0:
-            raise Exception("All vehicles in this class have already been scheduled at this intersection.")
+            raise Exception("All vehicles in this route have already been scheduled at this intersection.")
 
         # pop from the start
         next_vehicle = self.unscheduled[r, v][0]
         del self.unscheduled[r, v][0]
         # append to local order
         self.order[v].append((r, next_vehicle))
-        self.last_scheduled[r, v] = next_vehicle
+        self.last_scheduled_route[v] = r
+        self.last_scheduled_order[r, v] = next_vehicle
 
         # update done attribute in disjunctive graph
         self.D.nodes[r, next_vehicle, v]['done'] = 1
@@ -157,8 +170,11 @@ class Automaton:
         # compute LB for new partial schedule by updating in topological order
         self.update_LB()
 
-        # done when all vehicles have been scheduled
-        self.done = all(len(self.unscheduled[r, v]) == 0 for r in self.route_indices for v in self.route[r][1:-1])
+        # check crossing done
+        self.crossing_done[r, v] = len(self.unscheduled[r, v]) == 0
+        # done when all crossings done
+        self.done = all(self.crossing_done[r, v] for (r, v) in self.crossing_indices)
+
 
 
     def get_obj(self):
