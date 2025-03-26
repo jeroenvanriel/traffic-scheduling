@@ -541,7 +541,20 @@ cutting planes?
 }
 \end{itemize}
 
-\section{Constructive heuristic}
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{figures/network/disjunctive_graph}
+  \caption{Empty disjunctive graph belonging to a tandem of two intersections,
+    labeled $(1, 1)$ and $(2, 1)$. There are three routes
+    $\mathcal{R} = \{0, 1, 2\}$. On route 0, four vehicle are arriving, the
+    other two routes have 3 arrivals each. Conjunctive arcs are drawn as from
+    left to right, travel arcs are drawn from top to bottom and disjunctive arcs
+    are drawn as dotted lines. Two buffer constraints are drawn as diagonal
+    arcs, corresponding to a capacity of 2 vehicles for the lane between both
+    intersections.}
+\end{figure}
+
+\section{Constructive heuristics}
 
 Like for problems with a single intersection, we want to investigate possible
 constructive heuristics In this case, the step-by-step construction can again be
@@ -563,7 +576,7 @@ Similarly as in the single intersection scheduling problem, we will now consider
 heuristics that select the next action given the current partial disjunctive
 graph, which determines the next vehicle for which the crossing time is fixed.
 Before we turn our attention to deep learning models, we will consider a
-straightforward extension of the treshold heuristic.
+straightforward extension of the threshold heuristic.
 
 \subsection{Exhaustive heuristic}
 
@@ -576,7 +589,7 @@ exhaustive scheduling policy to obtain the local ordering.
 We will use the performance of this heuristic as a baseline when evaluating
 heuristics based on a neural architecture.
 
-\subsection{Neural network-specific heuristic}
+\subsection{Neural constructive heuristic}
 
 We want to model optimal solutions using a similar auto-regressive model like we
 used for a single intersection. This means that we want to predict the next
@@ -602,13 +615,14 @@ for every state of the automaton. These types of problems, where the output is
 required to be a set, are called multi-label classification.
 
 % ignore multi-label nature of problem, just sample and fit
-Let us start by ignoreing the multi-label nature of the problem by defining
-a model that selects a single next action.
+Let us start by ignoring the multi-label nature of the problem by defining a
+model that selects a single next action.
 %
-Define the horizon for each crossing. Each horizon starts at the next
-unscheduled vehicle for each crossing. At each intersection, we compute the
-minimal crossing time lower bound across all unscheduled vehicles and we
-subtract this from all the lower bounds in each horizon at this intersection.
+For each crossing, we define a \textit{horizon} as a sequence of arrival time
+lower bounds as follows. Each horizon starts at the next unscheduled vehicle for
+each crossing. At each intersection, we compute the minimal crossing time lower
+bound across all unscheduled vehicles and we subtract this from all the lower
+bounds in each horizon at this intersection.
 %
 To collect expert demonstration state-action pairs, we sample some intersection
 order and replay the sequence of actions on the automaton to generate the
@@ -616,14 +630,45 @@ corresponding sequence of state-action pairs.
 
 % define multi-label model
 
-\subsection{Neural network-agnostic heuristic}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\textwidth]{figures/network/solution_equivalence}
+  \caption{When we fix the ordering of actions locally at every intersection,
+    the global order of actions is not unique, because the local sequences may
+    be merged in any way. Suppose we have a tandem of two intersections and the
+    horizontal arrows correspond to taking the next local action at intersection
+    1, the vertical arrows correspond to taking next local action at
+    intersection 2. The figure shows two possible global orders. Of course, the
+    exact global order does not matter for the final schedule. However, it might
+    be that trajectories near the boundary of the grid are harder to learn from
+    data than trajectories that keep closer to the diagonal. The intuition is
+    that we need to ``look into the future'' more to learn the former, while in
+    the latter trajectories, progress in the two intersections is more balanced.}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1.5]{figures/network/state_action_collection}
+  \caption{Possible strategy for collecting state-action pairs: one action
+    look-ahead. At every state $s$ with a set of possible actions
+    $\mathcal{A}(s)$, we add all state-action pairs
+    $\{ (s, a) : a \in \mathcal{A}(s) \}$, but we pick a single action $a^{*}$
+    to move the automaton further. In the figure, the state-action pairs are
+    depicted as solid arrows. The encircled dots are the states that are
+    actually visited. Observe that this procedure can be naturally generalized
+    to a look-ahead of arbitrary depth.}
+\end{figure}
+
+\subsection{Network-agnostic architecture}
 
 We now focus on models that generalize across network sizes. In particular, we
-are interested models that can be learned on relatively small networks (for
-which exact solutions might be tractable) and applied to larger networks.
+are interested in models that can be learned on relatively small networks (for
+which exact solutions might be tractable) and can then be applied to larger
+networks.
 
-We use a GIN to compute an embedding for each node, which is fed through an MLP
-and softmax to produce a probability over nodes. The GNN computes node
+We use a GIN to compute an embedding for each node, which is then fed through an
+MLP and softmax to produce a probability over nodes. The GNN computes node
 embeddings, which are mapped to a score for each node. We compute the softmax
 over the scores of the nodes and then compute the negative log likelihood loss
 for backpropagation.
