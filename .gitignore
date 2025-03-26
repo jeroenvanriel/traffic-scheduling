@@ -22,7 +22,7 @@ references.bib
 ## misc
 /report/_minted-problem/
 /report/_minted-*
-/report/data-comparison/*-woven.tex
+/report/data-single/*-woven.tex
 /ordering/*.pkl
 /ordering/.ipynb_checkpoints/
 .ipynb_checkpoints
