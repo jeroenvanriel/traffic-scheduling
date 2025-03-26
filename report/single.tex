@@ -884,6 +884,64 @@ schedule by $\hat{y}_{\theta}(s)$.
     $\eta_{t} = 2$.}\label{fig:neural_embedding}
 \end{figure}
 
+\subsection{Reinforcement learning}
+
+% imitation learning -> RL (on/off-policy)
+Instead of using state-action pairs as examples to fit the model in a supervised
+fashion (imitation learning), we can also choose to use the Reinforcement
+Learning (RL) paradigm, in which the data collection process is guided by some
+policy. Generally speaking, RL methods that use the current learned policy for
+data collection are referred to as \textit{on-policy} methods, methods that use
+a fixed separate policy for data collection are referred to as
+\textit{off-policy}.
+
+% reward definition
+Training policies using the reinforcement learning paradigm requires a
+definition of a reward.
+%
+For each transition of the state automaton, we can define a corresponding
+reward, effectively yielding a deterministic Markov Decision Process (MDP).
+Specifically, we define the reward at the transition to state $t$ to be
+\begin{align*}
+  R_{t} = \sum_{i \in \mathcal{N}} \beta_{t-1}(i) - \beta_{t}(i) .
+\end{align*}
+Hence, the total episodic reward is given by the telescoping sum
+\begin{align*}
+  \sum_{t=1}^{N} R_{t} = \sum_{i \in \mathcal{R}} \beta_{0}(i) - \beta_{N}(i)  = \sum_{i \in \mathcal{N}} \beta_{0}(i) - \textrm{obj}(y_{\eta}) ,
+\end{align*}
+where $y_{\eta}$ denotes the final schedule, so maximizing the episodic reward
+corresponds to minimizing of the objective, as desired.
+
+
+% REINFORCE
+Policy-based methods work with an explicit parameterization of the policy. The
+model parameters are then tuned based on experience, often using some form of
+(stochastic) gradient descent to optimize the expected total return.
+%
+Therefore, the gradient of the expected total return plays a central role. The following relationship is known as the Policy Gradient Theorem.
+\begin{align*}
+  \nabla \mathbb{E}_{a \sim p_{\theta}(a | s)} R(s, a) &= \nabla \sum_{a} p_{\theta}(a | s) R(s, a) \\
+  &= \sum_{a} \nabla p_{\theta}(a | s) R(s, a) \\
+  &= \sum_{a} p_{\theta}(a | s) \frac{\nabla p_{\theta}(a | s)}{p_{\theta}(a | s)} R(s, a) \\
+  &= \mathbb{E}_{a \sim p_{\theta}(a | s)} \left[  \frac{\nabla p_{\theta}(a | s)}{p_{\theta}(a | s)} R(s, a) \right] \\
+  &= \mathbb{E}_{a \sim p_{\theta}(a | s)} [ \nabla \log p_{\theta}(a | s) R(s, a) ] .
+\end{align*}
+%
+The well-known REINFORCE estimator is a direct application of the Policy
+Gradient Theorem. It is computed by sampling some action
+$a \sim p_{\theta}(a | s)$ and then estimating the gradient as
+\begin{align*}
+  \nabla \mathbb{E}_{a \sim p_{\theta}(a | s)} R(s, a) \approx \nabla \log p_{\theta}(a | s) R(s, a) .
+\end{align*}
+%
+% add baseline to reduce variance
+To reduce variance of the estimator, we can incorporate a so-called
+\textit{baseline}, which is an estimate of the expected return of the current
+state.
+%
+In the context of combinatorial optimization, the value of the baseline may be
+interpreted as estimating the relative difficulty of an instance?
+
 
 \subsection{Performance evaluation}
 
@@ -1196,9 +1254,13 @@ logit of the binary choice model and outputs a lane identifier and
 \texttt{inverse\_action\_transform()} takes a lane identifier and outputs either
 zero or one.
 %
-Both embedding models have a \texttt{state\_transform()} method that constructs
-a numerical observation tensor based on the state encoded in the automaton, as
-explained in Section~\ref{sec:neural}.
+Both embedding models have a \texttt{state\_transform()} method that constructs a
+numerical observation tensor based on the state encoded in the automaton, as
+explained in Section~\ref{sec:neural}. Note that all three of the above functions are fixed,
+in the sense that they do not rely on any learnable parameters. The reason for
+treating these fixed parts of the model separately is that prevents us from
+recomputing these transformations, because it allows us to store the transformed
+state-action pairs to disk to use across different training runs.
 %
 Figure~\ref{fig:state-action-transforms} shows an overview of the state and action transform functions and how
 they are related to each other.
