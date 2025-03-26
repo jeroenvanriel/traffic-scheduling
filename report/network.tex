@@ -523,56 +523,118 @@ for $y_{(v,w)} \in \mathcal{S}_{(v,w)}$.
 
 \subsection{Crossing time scheduling}
 
+\begin{itemize}
+  \renewcommand\labelitemi{--}
+{\color{gray}
 % job-shop disjunctive graph
-Introduce general job-shop problem and disjunctive graph.
+\item Introduce general job-shop problem and disjunctive graph.
 % define travel constraints
-Introduce travel constraints and explain corresponding new type of arc in disjunctive graph.
+\item Introduce travel constraints and its disjunctive graph arcs.
 % define buffer constraints
-Introduce buffer constraints and corresponding new arc in disjunctive graph.
+\item Introduce buffer constraints and its disjunctive graph arcs.
 
-\subsection{Branch-and-bound}
-Formulate MILP problem and investigate how the solving time scales with network
+% branch-and-bound
+\item Formulate MILP problem and investigate how the solving time scales with network
 size in terms of number of intersections and number of vehicles in the network.
-Doe the single intersection cutting planes still hold? Are there any obvious
+Do the single intersection cutting planes still hold? Are there any obvious
 cutting planes?
+}
+\end{itemize}
 
 \section{Constructive heuristic}
 
 Like for problems with a single intersection, we want to investigate possible
-constructive heuristics
-%
-In this case, the step-by-step construction can again be understood in terms of
-transitioning from a partial disjunctive graph to the next partial disjunctive
-graph by fixing the direction of some disjunctive arc.
-%
+constructive heuristics In this case, the step-by-step construction can again be
+understood in terms of transitioning from a partial disjunctive graph to the
+next partial disjunctive graph by fixing the direction of some disjunctive arc.
 Instead of only the route index, we now also need to specify the intersection to
-identify a unique disjunctive arc.
+identify a unique disjunctive arc, hence the following definition.
 
-We solve the instance to optimality with an exact method. Next, we use the
-resulting crossing time schedule to compute actions for the automaton that lead
-to the same schedule. However, this sequence of actions is not unique: the order
-in which intersections are considered does not matter for the final schedule.
-Therefore, we sample some intersection order and replay the sequence of actions
-on the automaton to generate the corresponding sequence of state-action pairs.
-At this point, we copy the whole disjunctive graph for each state.
-Alternatively, we could use some sort of masking for non-final states.
+\begin{define}
+  Each pair $(r, v)$ of a route $r \in \mathcal{R}$ and some intersection
+  $v \in V_{r}$ which vehicles on $r$ encounter is called a \textit{crossing}.
+  We say a crossing is done (pending) when all its vehicles are done (pending).
+  Similarly, we say an intersection is done (pending) when it all its crossings
+  are done (pending). Therefore, the set of \textit{valid actions} is exactly
+  the set of pending crossings.
+\end{define}
 
+Similarly as in the single intersection scheduling problem, we will now consider
+heuristics that select the next action given the current partial disjunctive
+graph, which determines the next vehicle for which the crossing time is fixed.
+Before we turn our attention to deep learning models, we will consider a
+straightforward extension of the treshold heuristic.
 
-We now have the following classification task: map disjunctive graph to an
-action (route-intersection pair). We use a GIN to compute an embedding for each
-node, which is fed through an MLP and softmax to produce a probability over
-nodes. In Zhang et al., each action corresponds to a unique node, encoding the
+\subsection{Exhaustive heuristic}
+
+It is straightforward to extend the exhaustive policy (threshold heuristic with
+$\tau = 0$) to networks of intersections. When the network of intersections is a
+Directed Acyclic Graph (DAG), we can visit the intersections in topological
+order. For each visited intersection, we apply the single intersection
+exhaustive scheduling policy to obtain the local ordering.
+%
+We will use the performance of this heuristic as a baseline when evaluating
+heuristics based on a neural architecture.
+
+\subsection{Neural network-specific heuristic}
+
+We want to model optimal solutions using a similar auto-regressive model like we
+used for a single intersection. This means that we want to predict the next
+action, given the current state of the automaton, or equivalently, the current
+partial disjunctive graph.
+% not yet network-agnostic through parameter sharing
+Before we consider models that can generalize to larger networks by using
+parameter sharing and message-passing schemes, we investigate the fit of a model
+that is based on recurrent embeddings of the horizons of crossings, similar to
+the recurrent embeddings of the horizons in the single intersection case.
+
+% explain imitation learning
+We start by considering the imitation learning setting. Therefore, we sample a
+collection of training instances, which are solved to optimality using the MILP
+formulation. Next, we use the resulting crossing time schedule to compute
+actions for the automaton that lead to the same schedule.
+% multiple correct actions
+However, this sequence of actions is not unique: the order in which
+intersections are considered does not matter for the final schedule, see Figure.
+% TODO: insert illustration of equivalence
+Instead of a single next action, the model should model the set of valid actions
+for every state of the automaton. These types of problems, where the output is
+required to be a set, are called multi-label classification.
+
+% ignore multi-label nature of problem, just sample and fit
+Let us start by ignoreing the multi-label nature of the problem by defining
+a model that selects a single next action.
+%
+Define the horizon for each crossing. Each horizon starts at the next
+unscheduled vehicle for each crossing. At each intersection, we compute the
+minimal crossing time lower bound across all unscheduled vehicles and we
+subtract this from all the lower bounds in each horizon at this intersection.
+%
+To collect expert demonstration state-action pairs, we sample some intersection
+order and replay the sequence of actions on the automaton to generate the
+corresponding sequence of state-action pairs.
+
+% define multi-label model
+
+\subsection{Neural network-agnostic heuristic}
+
+We now focus on models that generalize across network sizes. In particular, we
+are interested models that can be learned on relatively small networks (for
+which exact solutions might be tractable) and applied to larger networks.
+
+We use a GIN to compute an embedding for each node, which is fed through an MLP
+and softmax to produce a probability over nodes. The GNN computes node
+embeddings, which are mapped to a score for each node. We compute the softmax
+over the scores of the nodes and then compute the negative log likelihood loss
+for backpropagation.
+%
+Like in Zhang et al., each action corresponds to a unique node, encoding the
 operations that is dispatched next. However, we only really need to provide a
 route-intersection pair, but how to exploit this in the policy model?
-
-The GNN computes node embeddings, which are mapped to a score for each node. We
-compute the softmax over the scores of the nodes and then compute the negative
-log likelihood loss for backpropagation.
-
-
-The model can be evaluated in two ways: we can measure how well the model fits
-unseen expert demonstration state-action pairs or we can measure the schedule
-quality when completely executing the learning policy.
+%
+At this point, during the collection of observation-action pairs, we copy the
+whole disjunctive graph for each state. Alternatively, we could use some sort of
+masking for non-final states.
 
 
 
