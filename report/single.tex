@@ -645,47 +645,68 @@ planes seem to lower the running time the most.
 
 % constructive scheduling
 Methods that rely on the branch-and-cut framework are guaranteed to find an
-optimal solution, but their running time scale very badly with increasing
-instance sizes. Therefore, we are interested in developing heuristics to obtain
-good approximations in reasonable time. A common approach for developing such
-heuristics in the scheduling literature is to try and construct a good schedule
-in a step-by-step fashion. For our crossing time scheduling problem, we will
-consider methods to incrementally construct a vehicle ordering, to which we will
-refer as \textit{constructive heuristics}.
-
-% introduce partial ordering and automaton model
-% In order to support to upcoming discussion, we first introduce some auxiliary
-% concepts and notation.
+optimal solution, but we saw that their running times scale very badly with
+increasing instance sizes. Therefore, we are interested in developing heuristics
+to obtain good approximations in limited time. A common approach for developing
+such heuristics found in the scheduling literature is to try and construct a
+good schedule in a step-by-step fashion, to which we refer as
+\textit{constructive heuristics}. For the crossing time scheduling problem, we
+may consider methods that incrementally construct a vehicle ordering.
 %
-In what follows, we will work with a partial ordering $\pi$, considered to be a
-permutation of the set of scheduled vehicles, denoted as
-$\mathcal{N}(\pi) \subset \mathcal{N}$.
-%
-% For each partial ordering $\pi$, the corresponding disjunctive graph $G(\pi)$ is
-% incomplete, meaning that some of the disjunctive arcs have not yet been added.
-% lane ordering automaton
 Observe that ordering vehicles is equivalent to ordering the routes, due to the
-conjunctive constraints, so we will define constructive heuristics in terms of
-repeatedly choosing the next route. Hence, it may be helpful to model this
+fixed relative order of vehicles on the same route, encoded by the conjunctive
+constraints. This means that each valid schedule $y$ corresponds to some route
+order $\eta$.
+Given some valid route order $\eta$, let $y_{\eta}(s)$ denote the schedule that is
+obtained by executing $\eta$ on the automaton. We say that route order $\eta$ is
+optimal whenever $y_{\eta}(s)$ is optimal.
+
+Instead of trying to map a problem instance directly to some optimal route
+order, a single route is added to the route order at each step. At every step,
+the route order induces a partial ordering $\pi$, considered to be a permutation
+of the set of scheduled vehicles.
+%
+It may be helpful to model this
 process as a deterministic finite-state automaton, where the set of route
 indices acts as the input alphabet $\mathcal{R} = \{ 1, \dots, n \}$. Let $S$ denote
 the state space and let $\delta: S \times \mathcal{R} \rightarrow S$ denote the transition function.
 % states
-Let $s$ denote an instance of crossing time scheduling problem~\eqref{eq:crossing_time_scheduling}. Formally, we
-must consider $s$ to be a fixed part of the state, so it does not change with
-transitions. The other part of the state is the current partial ordering $\pi$.
+Let $s$ denote an instance of crossing time scheduling
+problem~\eqref{eq:crossing_time_scheduling}. We consider $s$ to be a fixed part
+of the state, so it does not change with transitions. The other part of the
+state is the current partial ordering $\pi$. The initial state is
+$s_{0} = (s, \varnothing)$.
 % transitions
-Let $(s, \pi) \in S$ denote the current state and let $r \in \mathcal{R}$ denote the
-next input. Let $i \in \mathcal{N} \setminus \mathcal{N}(\pi)$ denote the next unscheduled
-vehicle on route $r$, then the system transitions to $(s, \pi \mdoubleplus i)$,
-where we use $\mdoubleplus$ to denote sequence concatenation. If no such vehicle
-exists, the transition is undefined.
+Let $s_{t} = (s, \pi) \in S$ denote some state and let $r \in \mathcal{R}$. Let $i$
+denote the next unscheduled vehicle on route $r$, then the system transitions to
+$s_{t+1} = (s, \pi \mdoubleplus i)$, where we use $\mdoubleplus$ to denote sequence
+concatenation. If no such vehicle exists, the transition is undefined.
 %
-We will use $\eta$ to denote a valid sequence of route indices, we let $y_{\eta}(s)$
-denote the schedule that is obtained by executing $\eta$ on the automaton. We say
-that route order $\eta$ is optimal whenever $y_{\eta}(s)$ is optimal. In the
-following, we will use $\mathrm{obj}(y)$ to denote the objective value of
-schedule $y$, which is just the sum of the crossing times of all the vehicles.
+Now suppose that we have some mapping $p : S \rightarrow \mathcal{R}$ to
+determine the next route, the final state can be determined by recursively
+computing
+\begin{align*}
+  s_{t} = \delta(s_{t-1}, p(s_{t-1})) .
+\end{align*}
+%
+The goal is now to find a mapping $p$ such that the final state
+$s_{N} = (s, \pi^{*})$ contains some optimal ordering $\pi^{*}$.
+%
+Observe that such a mapping must exist, because we can always set
+$p(s_{t}) = \eta^{*}_{t+1}$ for every step $t$, given some optimal route order
+$\eta^{*}$. However, we do not hope to find an explicit representation of $p$,
+because it would in general be very complex, so our aim is to find good
+approximations.
+%
+Instead of selecting a single next route at each step, it is often helpful to
+define $p$ in terms of a probability distribution over routes
+$p(\eta_{t+1} | s_{t})$. This leads to a probability distribution over the route
+order, factorized as
+\begin{align*}
+  p(\eta | s) &= \prod_{t=1}^{N} p(\eta_{t} | s_{t-1}) = \prod_{t=1}^{N} p(\eta_{t} | s, \eta_{1:t-1}) ,
+\end{align*}
+which belongs to the class of autoregressive generative
+models~\cite{tomczakDeepGenerativeModeling2024}.
 
 %
 % multi-step transition
@@ -705,28 +726,14 @@ schedule $y$, which is just the sum of the crossing times of all the vehicles.
 % and contains precisely $n_r = |\{ i \in \mathcal{N} : r(i) = r \}|$ occurrences
 % of route $r \in \mathcal{R}$.
 
-Instead of trying to map an instance $s$ directly to some optimal route order, we consider
-a mapping $p : S \rightarrow \mathcal{R}$ such that setting $s_{0} = (s, \varnothing)$ and repeatedly
-evaluating
-\begin{align*}
-  s_{t} = \delta(s_{t-1}, p(s_{t-1}))
-\end{align*}
-yields a final state $s_{N}(s, \pi^{*})$, where $\pi^{*}$ is an optimal ordering and
-$N = \sum_{r \in \mathcal{R}} n_{r}$ denotes the total number of steps required
-to arrive at a final state.
-%
-Observe that such a mapping must exist, because we can always set
-$p(s_{t}) = \eta^{*}_{t+1}$ for every step $t$, given some optimal lane order
-$\eta^{*}$. However, we do not hope to find an explicit representation of $p$,
-because it would in general be very complex, so our aim is to find good
-approximations.
 
-The approximations that we will propose are based on the the earliest crossing
-times of the unscheduled vehicles at each state $s_{t}$. Note that definition
-in~\eqref{eq:lower_bounds} still makes sense for partial orderings; the only
-difference is that the corrsponding disjunctive graph $G(\pi)$ is not complete.
-We will use $\beta_{t}$ to refer to the earliest crossing times,
-using $t$ to emphasize its dependency on the current state $s_{t} = (s, \pi)$.
+The models that we will propose are based on the the earliest crossing times of
+the unscheduled vehicles at each state $s_{t}$. Note that the definition in~\eqref{eq:lower_bounds}
+still makes sense for partial orderings; the only difference is that the
+corrsponding disjunctive graph $G(\pi)$ is not complete. We will use $\beta_{t}$ to
+refer to the earliest crossing times, using $t$ to emphasize its dependency on
+the current state $s_{t}$.
+
 
 
 \subsection{Threshold heuristic}
