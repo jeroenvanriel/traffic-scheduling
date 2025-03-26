@@ -583,11 +583,14 @@ straightforward extension of the threshold heuristic.
 It is straightforward to extend the exhaustive policy (threshold heuristic with
 $\tau = 0$) to networks of intersections. When the network of intersections is a
 Directed Acyclic Graph (DAG), we can visit the intersections in topological
-order. For each visited intersection, we apply the single intersection
-exhaustive scheduling policy to obtain the local ordering.
+order. When an intersection is visited, we apply the single intersection
+exhaustive scheduling policy on the disjunctive subgraph induced by the nodes
+belonging to that intersection in order to obtain the local ordering.
 %
 We will use the performance of this heuristic as a baseline when evaluating
-heuristics based on a neural architecture.
+heuristics based on a neural architecture. Furthermore, it also provides a
+\textit{baseline} during reinforcement learning, reducing the variance of the
+REINFORCE estimator.
 
 \subsection{Neural constructive heuristic}
 
@@ -608,7 +611,8 @@ formulation. Next, we use the resulting crossing time schedule to compute
 actions for the automaton that lead to the same schedule.
 % multiple correct actions
 However, this sequence of actions is not unique: the order in which
-intersections are considered does not matter for the final schedule, see Figure.
+intersections are considered does not matter for the final schedule, see
+Figure~\ref{fig:solution_equivalence}.
 % TODO: insert illustration of equivalence
 Instead of a single next action, the model should model the set of valid actions
 for every state of the automaton. These types of problems, where the output is
@@ -624,11 +628,37 @@ each crossing. At each intersection, we compute the minimal crossing time lower
 bound across all unscheduled vehicles and we subtract this from all the lower
 bounds in each horizon at this intersection.
 %
-To collect expert demonstration state-action pairs, we sample some intersection
-order and replay the sequence of actions on the automaton to generate the
-corresponding sequence of state-action pairs.
+Next, each horizon is embedded using an Elman RNN. These embeddings are then fed
+through a feedforward network to produce a logit for each crossing, see
+Figure~\ref{fig:rnn_model}.
+
+% collecting expert demonstration
+Expert demonstration state-action pairs can be collected in different ways.
+% sample a single intersection order for each instance
+For each solved instance in the training set, we can randomly select a single
+intersection order and replay the sequence of actions on the automaton to
+generate the corresponding sequence of state-action pairs.
+% multiple intersection order per instance
+However, the model might become more robust when training on multiple samples of
+intersections orders per instance.
+% lookahead
+Another possible strategy is to use a kind of fixed lookahead sampling
+procedure, as illustrated in Figure~\ref{fig:state_action_collection}.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{figures/network/rnn_model}
+  \caption{Illustration of model with RNN encoding of horizon at each crossing.
+    The disjunctive graph nodes whose lower bounds are part of the current
+    horizons are indicated with rectangles. The RNN embeddings (open circles)
+    are fed through a final feedforward network to produce a logit (dots) for
+    each crossing.}
+  \label{fig:rnn_model}
+\end{figure}
 
 % define multi-label model
+Instead of ignoring the multi-label nature of the problem, we can also design
+models that explicitly dictate the intersection visit order.
 
 
 \begin{figure}
@@ -645,6 +675,7 @@ corresponding sequence of state-action pairs.
     data than trajectories that keep closer to the diagonal. The intuition is
     that we need to ``look into the future'' more to learn the former, while in
     the latter trajectories, progress in the two intersections is more balanced.}
+  \label{fig:solution_equivalence}
 \end{figure}
 
 \begin{figure}
@@ -658,6 +689,7 @@ corresponding sequence of state-action pairs.
     depicted as solid arrows. The encircled dots are the states that are
     actually visited. Observe that this procedure can be naturally generalized
     to a look-ahead of arbitrary depth.}
+  \label{fig:state_action_collection}
 \end{figure}
 
 \subsection{Network-agnostic architecture}
