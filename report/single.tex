@@ -1193,15 +1193,15 @@ Both embedding models have a \texttt{state\_transform()} method that constructs
 a numerical observation tensor based on the state encoded in the automaton, as
 explained in Section~\ref{sec:neural}.
 %
-See figure~\ref{fig:state-action-transforms} for an overview of the state and
-action transform functions.
+Figure~\ref{fig:state-action-transforms} shows an overview of the state and action transform functions and how
+they are related to each other.
 %
 We explicitly store the length of the
 horizon as the first entry of the tensor. Maybe we should use the
 \texttt{torch.nn.utils.rnn.pack\_sequence()} function that is available in
 \texttt{torch}.
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   \includegraphics[scale=1]{figures/state_action_transforms}
   \caption{Schematic of the state and action transform functions used for
