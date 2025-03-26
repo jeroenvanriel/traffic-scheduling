@@ -1188,14 +1188,28 @@ absolute lane identifiers. Specifically, \texttt{action\_transform()} takes a
 logit of the binary choice model and outputs a lane identifier and
 \texttt{inverse\_action\_transform()} takes a lane identifier and outputs either
 zero or one.
-
+%
 Both embedding models have a \texttt{state\_transform()} method that constructs
 a numerical observation tensor based on the state encoded in the automaton, as
-explained in Section~\ref{sec:neural}. We explicitly store the length of the
+explained in Section~\ref{sec:neural}.
+%
+See figure~\ref{fig:state-action-transforms} for an overview of the state and
+action transform functions.
+%
+We explicitly store the length of the
 horizon as the first entry of the tensor. Maybe we should use the
 \texttt{torch.nn.utils.rnn.pack\_sequence()} function that is available in
 \texttt{torch}.
 
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{figures/state_action_transforms}
+  \caption{Schematic of the state and action transform functions used for
+    imitation learning. Given some optimal state-action training pair, the
+    \texttt{target} logit is computed from the optimal action using the inverse
+    action transform.}
+  \label{fig:state-action-transforms}
+\end{figure}
 
 
 \newpage
