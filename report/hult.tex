@@ -1,0 +1,213 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{amsthm}
+\usepackage{dsfont}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{datetime}
+\usepackage{outlines}
+\usepackage[round]{natbib}
+
+\usepackage{matlab-prettifier}
+
+\newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
+
+\newcommand{\newmarkedtheorem}[1]{%
+  \newenvironment{#1}
+    {\pushQED{\qed}\csname inner@#1\endcsname}
+    {\popQED\csname endinner@#1\endcsname}%
+  \newtheorem{inner@#1}%
+}
+
+\theoremstyle{definition}
+%\newtheorem{eg}{Example}[section]
+\newmarkedtheorem{eg}{Example}[section]
+\newtheorem{observation}{Observation}[section]
+\newtheorem{define}{Definition}[section]
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{assump}{Assumption}[section]
+\newtheorem{remark}{Remark}[section]
+
+\author{Jeroen van Riel}
+\date{\monthyeardate\today}
+\title{}
+
+\begin{document}
+
+
+\subsection*{Vehicle dynamics}
+
+In control theory, it is common to model motion dynamics of a system in terms of
+a state vector $x(t) \in \mathbb{R}^{n}$ and a control input vector
+$u(t) \in \mathbb{R}^{m}$, which result in a scalar position $y(t)$ via the
+equations
+\begin{subequations}
+\begin{align}
+  \dot{x}(t) &= A x(t) + B u(t) , \\
+  y(t) &= C x(t) .
+\end{align}
+\end{subequations}
+%
+Furthermore, it is common to restrict the state and control trajectories by
+imposing linear constraints
+\begin{subequations}\label{eq:control_constraints}
+\begin{align}
+  G x(t) \leq b , \\
+  F u(t) \leq d .
+\end{align}
+\end{subequations}
+
+In the discussion that follows, each vehicle is modeled as a \textit{double
+  integrator}, with $x(t) = (p(t), v(t))$, where $p(t)$ and $v(t)$ are the
+scalar position along a predefined path and corresponding velocity,
+respectively. The three matrices are chosen such that
+\begin{subequations}
+\begin{align}
+  \dot{x}(t) &= \begin{pmatrix} 0 & 1 \\ 0 & 0 \end{pmatrix} x(t) + \begin{pmatrix} 0 \\ 1 \end{pmatrix} u(t), \\
+  y(t) &= \begin{pmatrix} 1 & 0 \end{pmatrix} x(t),
+\end{align}
+\end{subequations}
+which may simply be rewritten as
+\begin{align}
+  \label{eq:motion_dynamics}
+  \dot{p}(t) = v(t) , \quad
+  \dot{v}(t) = u(t) , \quad
+  y(t) = p(t) ,
+\end{align}
+where we recognize that the control input $u(t)$ corresponds directly to the
+acceleration of the vehicle.
+%
+Furthermore, the constraints~\eqref{eq:control_constraints} are chosen such that
+the acceleration is bound from above and below, so
+\begin{align}
+  \label{eq:bounded_acceleration}
+  \underline{u} \leq u(t) \leq \overline{u} .
+\end{align}
+For technical reasons, it is assumed the system is \textit{strongly output
+  monotone}, defined as
+\begin{align}
+  \label{eq:output_monotone}
+  \dot{y}(t) \geq \epsilon ,
+\end{align}
+for some $\epsilon > 0$, which means that a vehicle cannot stop or reverse, but
+can move at an arbitrarily low speed.
+
+
+\subsection*{Intersection model}
+
+Consider an intersection with $L$ lanes. We define the index set
+\begin{align}
+  \mathcal{I} = \{ (l, k) : k \in \{1, \dots, n_{l}\}, \; l \in \{1, \dots L\}\} ,
+\end{align}
+where $n_{l}$ denotes the number of vehicles of lane $l$. To
+further help with notation, given vehicle index $i = (r,s) \in \mathcal{I}$, we
+define $l(i) = r$ and $k(i) = s$.
+
+We assume that the position $p_{i}(t)$ of some vehicle $i \in \mathcal{I}$
+corresponds to the physical front of the vehicle. In order to model collision
+avoidance, we say that a vehicle \textit{occupies the intersection} whenever
+$p_{i}(t) \in [L_{i}, H_{i}] = \mathcal{E}_{i}$. The collision avoidance
+constraints are then given by
+\begin{align}
+  (p_{i}(t), p_{j}(t)) \notin \mathcal{E}_{i} \times \mathcal{E}_{j},
+\end{align}
+for all $t$ and for all pairs of indices $i, j \in \mathcal{I}$ with
+$l(i) \neq l(j)$, which we collect in the set $\mathcal{D}$.
+%
+Furthermore, in order to model a safe distance between vehicles on the same
+lane, we require that
+\begin{align}
+  p_{i}(t) - p_{j}(t) \geq P ,
+\end{align}
+for all $t$ and all pairs of indices $i, j \in \mathcal{I}$ such that
+$l(i) = l(j), \; k(i) + 1 = k(j)$, which we collect in $\mathcal{C}$.
+%
+Let $D_{i}(x_{i,0})$ denote the set of feasible trajectories
+$x_{i}(t) = (p_{i}(t), v_{i}(t), u_{i}(t))$ given some initial state $x_{i,0}$
+and satisfying the vehicle dynamics given by
+equations~\eqref{eq:motion_dynamics},~\eqref{eq:bounded_acceleration}
+and~\eqref{eq:output_monotone}. Given some performance criterion
+\begin{align}
+  J(x_{i}) = \int_{0}^{t_{f}} \Lambda(x_{i}(t)) dt ,
+\end{align}
+where $t_{f}$ denotes the final time, the coordination problem is formulated as
+\begin{subequations}\label{eq:full_problem}
+\begin{align}
+  \min_{\mathbf{x}(t)} \quad & \sum_{i \in \mathcal{I}} J(x_{i}) \\
+  \text{s.t.} \quad  & x_{i} \in D_{i}(x_{i,0}) , &\text{for all } i \in \mathcal{I} , \\
+                & (p_{i}(t), p_{j}(t))  \notin \mathcal{E}_{i} \times \mathcal{E}_{j} , &\text{for all } (i,j) \in \mathcal{D} , \\
+                & p_{i}(t) - p_{j}(t) \geq P, &\text{for all } (i,j) \in \mathcal{C} ,
+\end{align}
+\end{subequations}
+where $\mathbf{x}(t) = [\, x_{i}(t) : i \in \mathcal{I} \,]$.
+
+\subsection*{Exact solution}
+
+We discretize problem~\eqref{eq:full_problem} on a uniform time grid.
+Let $K$ denote the number of discrete time steps and let $\Delta t$ denote the time step size.
+%
+We use the forward Euler integration scheme as follows
+\begin{subequations}
+\begin{align}
+  p_{i}(t + \Delta t) = p_{i}(t) + v_{i}(t) \Delta t , \\
+  v_{i}(t + \Delta t) = v_{i}(t) + u_{i}(t) \Delta t .
+\end{align}
+\end{subequations}
+The disjunctive constraints are formulated using the big-M technique by the constraints
+\begin{subequations}
+\begin{align}
+  p_{i}(t) \leq L + \delta_{i}(t) M , \\
+  H - \gamma_{i}(t) M \leq p_{i}(t) , \\
+  \delta_{i}(t) + \delta_{j}(t) + \gamma_{i}(t) + \gamma_{j}(t) \leq 3 ,
+\end{align}
+\end{subequations}
+where $\delta_{i}(t), \gamma_{i}(t) \in \{ 0, 1 \}$ for all $i \in \mathcal{I}$
+and $M$ is a sufficiently large number.
+%
+Finally, the follow constraints can simply be enforced at each time step for
+each pair of consecutive vehicles in $\mathcal{C}$.
+
+\subsection*{Decomposition}
+
+The \textit{entry} and \textit{exit} times of vehicle $i$ are given,
+respectively, by
+\begin{align}
+  \tau_{i} = t : p_{i}(t) = L_{i} , \quad \xi_{i} = t : p_{i}(t) = H_{i} .
+\end{align}
+
+Define the optimization problem
+\begin{subequations}
+\begin{align}
+  \label{eq:F_opt}
+  F_{i}(\tau_{i}, \xi_{i}) = \min_{x_{i}(t)} & \; J(x_{i}) \\
+                              \text{s.t. } & x_{i} \in D_{i}(x_{i,0}), \\
+                                           & p_{i}(\tau_{i}) = L, \\
+                                           & p_{i}(\xi_{i}) = H.
+\end{align}
+\end{subequations}
+
+Given some vehicle $i = (l, k)$, define
+\begin{align}
+  \mathcal{N}(i, n) = \{ j \in \mathcal{I} : l(j) = l(i), \; k(j) \in \{ k(i), \dots, k(i) + n - 1\}\} ,
+\end{align}
+to which refer to as the \textit{lane successors} of vehicle $i$. Now we
+generalize problem~\eqref{eq:F_opt} by defining
+\begin{subequations}
+\begin{align}
+  F(i, \tau, \xi, n) = \min_{x_{j}(t) : j \in \mathcal{N}(i, n)} & \; \sum_{j \in \mathcal{N}(i, n)} J(x_{j}) \\
+                          \text{s.t. } & x_{j} \in D_{j}(x_{j,0}), \text{ for all  } j \in \mathcal{N}(i, n) , \\
+                                       & p_{i}(\tau) = L, \\
+                                       & p_{j}(\xi) = H, \text{ for } j = (l(i), k(i) + n - 1) , \\
+                                       & p_{a}(t) - p_{b}(t) \geq P, \text{ for all } (a, b) \in \mathcal{N}(i, n)^{2} \cap \mathcal{C} ,
+\end{align}
+\end{subequations}
+%
+such that $F_{i}(\tau_{i}, \xi_{i}) = F(i, \tau_{i}, \xi_{i}, 1)$.
+
+The idea is to generalize scheduling of single vehicle time slots to scheduling of time slots for platoons of consecutive vehicles.
+
+\end{document}
