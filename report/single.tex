@@ -102,7 +102,7 @@ dynamics, given some initial state $s_{i,0} = (x_{i}(0), v_{i}(0))$.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.4\textwidth]{figures/single_intersection_example.png}
+  \includegraphics[width=0.4\textwidth]{figures/single/single_intersection_example.png}
   \caption{Illustration of a single intersection with vehicles drawn as grey
     rectangles. Vehicles approach the intersection from the east and from the
     south and cross it without turning. Note that the first two waiting vehicles
@@ -223,7 +223,7 @@ Figure~\ref{fig:direct_transcription_example}.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.8\textwidth]{figures/trajectories_general.pdf}
+  \includegraphics[width=0.8\textwidth]{figures/single/trajectories_general.pdf}
   \caption{Example of optimal trajectories obtained using the direct
     transcription method with
     $L = 5, \, \mathcal{E}_{i} \equiv \mathcal{E} = [50, 70], \, v_{d} = 20, \; T=120, \, \Delta t = 0.1$
@@ -357,7 +357,7 @@ the trajectory of the vehicle preceding the current vehicle.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.8\textwidth]{figures/trajectories_delay.pdf}
+  \includegraphics[width=0.8\textwidth]{figures/single/trajectories_delay.pdf}
   \caption{Example trajectories of vehicles from a single route, for some random
     arrival times and scheduled crossing times, computed by solving the linear
     program obtained from direct transcription of problem \texttt{MotionSynthesize}. We
@@ -627,7 +627,7 @@ planes seem to lower the running time the most.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.7\textwidth]{data-comparison/running_times.pdf}
+  \includegraphics[width=0.7\textwidth]{data-single/running_times.pdf}
   \caption{The average (censored) running time of the branch-and-cut procedure
     is plotted as a function of the number of arriving vehicles per route, for
     each of the three indicated cutting planes. Each average is computed over
@@ -768,7 +768,7 @@ system with an exhaustive polling policy.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/threshold}
+  \includegraphics[width=0.9\textwidth]{figures/single/threshold}
   \caption{Illustration of the threshold heuristic for a specific situation
     during scheduling. The upper row represents the current partial schedule,
     where the vehicle marked with $*$ is from route 1, whereas all other
@@ -867,7 +867,7 @@ schedule by $\hat{y}_{\theta}(s)$.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/embedding}
+  \includegraphics[width=0.9\textwidth]{figures/single/embedding}
   \caption{Schematic overview of how
     $p_{\theta}(\eta_{t+1} | s_{t}) = f(H(s_{t}))$, the conditional distribution
     over the next route to be chosen, is computed from the current route
@@ -933,7 +933,7 @@ $\tau$ in the grid search, see Figure~\ref{fig:tau_fit}.
 For the neural heuristic, we plot the training and validation loss, see
 Figure~\ref{fig:neural_fit}. It can be seen that the model converges very steadily in all cases.
 
-\input{data-comparison/comparison-woven.tex}
+\input{data-single/comparison-woven.tex}
 
 \section{Local search}
 
@@ -1071,7 +1071,7 @@ calculating the lower bounds.
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/lower-bound-lemma.pdf}
+  \includegraphics[width=0.9\textwidth]{figures/single/lower-bound-lemma.pdf}
   \caption{Sketch of the four cases distinguished in the proof of
     Lemma~\ref{lb_lemma}. Arc weights are given and disjunctive arcs
     $\mathcal{O}(\pi)$ are drawn with a dashed line.}\label{fig:lb_lemma}
@@ -1169,7 +1169,7 @@ calculating the lower bounds.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{figures/platoon-preservation-proof-diagram.pdf}
+  \includegraphics[width=0.8\textwidth]{figures/single/platoon-preservation-proof-diagram.pdf}
   \caption{Sketch of the nodes and most important arcs used in the proof of
     Proposition~\ref{prop:exhaustive}. Dashed arcs represent chains of
     unspecified length. The two open arrows indicate the new direction of their
@@ -1202,7 +1202,7 @@ horizon as the first entry of the tensor. Maybe we should use the
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/tau_fit.pdf}
+  \includegraphics[width=0.9\textwidth]{figures/single/tau_fit.pdf}
   \caption{Charts to verify threshold heuristic model fit. For each indicated
     instance training set, the average delay
     $\sum_{s \in \mathcal{X}} \textrm{obj}(y_{\tau}(s)) \, / \, {|\mathcal{X}|}$
@@ -1218,7 +1218,7 @@ horizon as the first entry of the tensor. Maybe we should use the
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/neural_fit.pdf}
+  \includegraphics[width=0.9\textwidth]{figures/single/neural_fit.pdf}
   \caption{Loss plots to verify neural heuristic model fit. For each indicated
     instance training set, the training loss is plotted for each training step
     in blue and the validation loss is plotted as the dashed line. Recall that
