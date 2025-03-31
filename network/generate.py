@@ -106,5 +106,5 @@ def generate_simple_instance(G, routes,
         'rho': vehicle_l / vmax,
         'sigma': (vehicle_l + vehicle_w) / vmax,
     }
-    set_capacity(instance)
+    #set_capacity(instance)
     return instance
