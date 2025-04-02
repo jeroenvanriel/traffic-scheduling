@@ -108,3 +108,10 @@ def generate_simple_instance(G, routes,
     }
     #set_capacity(instance)
     return instance
+
+
+if __name__ == "__main__":
+    """Generate a sample instance on a 3x2 grid network."""
+    G, routes = generate_grid_network(3, 2)
+    instance = generate_simple_instance(G, routes)
+    print(instance)
