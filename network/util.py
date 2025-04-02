@@ -31,10 +31,11 @@ def order_indices(indices):
 
 def routes_at_intersection(instance):
     """Returns dict mapping intersection v to all the route indices that cross v."""
-    routes = { v: set() for v in instance['G'].nodes }
+    routes = { v: [] for v in instance['G'].nodes }
     for i, route in enumerate(instance['route']):
         for v in route:
-            routes[v].add(i)
+            if i not in routes[v]:
+                routes[v].append(i)
     return routes
 
 def indexed_arrivals(instance):

@@ -1,8 +1,5 @@
 from util import vehicle_indices, route_indices, order_indices, routes_at_intersection, pos_along_route, dist
 import networkx as nx
-from networkx import topological_sort
-from collections import defaultdict
-from matplotlib import colormaps
 
 
 def next_intersection(route, v):
@@ -61,18 +58,21 @@ class Automaton:
         self.crossing_indices = [ (r, v) for r in self.route_indices for v in self.route[r][1:-1] ]
         self.routes_at_intersection = routes_at_intersection(instance)
 
-        self.crossing_done = { (r, v): False for (r, v) in self.crossing_indices }
+        self.pending_intersections = self.G.intersections.copy()
+        self.pending_crossings = self.crossing_indices.copy()
+        # unscheduled vehicle order indices at each crossing
+        self.unscheduled = { (r, v): self.order_indices[r].copy() for r, v in self.crossing_indices }
+
         self.done = False
+
+        self.last_intersection = None
+        # last scheduled route r at intersection v
+        self.last_route = { v: None for v in self.G.intersections }
+        # last scheduled vehicle order k at crossing (r, v)
+        self.last_order = { (r, v): None for r, v in self.crossing_indices }
 
         # local order for every intersection
         self.order = { v: [] for v in self.G.intersections }
-        # route index r of last scheduled vehicle at intersection v
-        self.last_scheduled_route = { v: None for v in self.G.intersections }
-        # order index k of last scheduled vehicle of route r at intersection v
-        self.last_scheduled_order = { (r, v): None for r, v in self.crossing_indices }
-        # order indices ("k") of unscheduled vehicles for every route-intersection pair
-        # (we use list(...) to create a copy)
-        self.unscheduled = { (r, v): list(self.order_indices[r]) for r, v in self.crossing_indices }
 
         ### compute disjunctive graph for empty ordering ###
 
@@ -105,11 +105,6 @@ class Automaton:
                                 rho_vw = capacity * self.rho - dist(self.G, v, w) / instance['vmax']
                                 self.D.add_edge((r, k, w), (r, k2, v), weight=rho_vw)
 
-        # reference to the conjunctive chains (used by recurrent embedding model)
-        self.conjunctive_chains = {}
-        for r, v in self.crossing_indices:
-            self.conjunctive_chains[r, v] = [self.D.nodes[r, k, v] for k in self.unscheduled[r, v]]
-
         ### initialize attributes for empty ordering ###
 
         # set release dates as lower bounds on entry nodes
@@ -129,52 +124,52 @@ class Automaton:
 
 
     def update_LB(self):
-        for v in topological_sort(self.D):
+        for v in nx.topological_sort(self.D):
             for u in self.D.predecessors(v):
                 self.D.nodes[v]['LB'] = max(self.D.nodes[v]['LB'], self.D.nodes[u]['LB'] + self.D.edges[u, v]['weight'])
 
 
     def step(self, r, v):
-        # check if v is an intersection on route of route r
-        if v not in self.route[r] or self.route[r].index(v) in [0, len(self.route[r]) - 1]:
-            raise Exception(f"Node {v} is not an intersection on the route of route {r}")
+        if v not in self.route[r][1:-1]:
+            raise Exception(f"Node {v} is not an intersection on route {r}.")
 
-        # check if r has still unscheduled vehicles at v
+        if (r, v) not in self.pending_crossings:
+            raise Exception(f"Crossing {(r, v)} is already done.")
+
+        # order index for current action
+        k = self.unscheduled[r, v].pop(0)
+        self.order[v].append((r, k))
+
+        # record current action
+        self.last_intersection = v
+        self.last_route[v] = r
+        self.last_order[r, v] = k
+
+        # update pending crossings and intersections
         if len(self.unscheduled[r, v]) == 0:
-            raise Exception("All vehicles in this route have already been scheduled at this intersection.")
-
-        # pop from the start
-        next_vehicle = self.unscheduled[r, v][0]
-        del self.unscheduled[r, v][0]
-        # append to local order
-        self.order[v].append((r, next_vehicle))
-        self.last_scheduled_route[v] = r
-        self.last_scheduled_order[r, v] = next_vehicle
+            self.pending_crossings.remove((r, v))
+        if all(((r, v) not in self.pending_crossings) for r in self.routes_at_intersection[v]):
+            self.pending_intersections.remove(v)
+        self.done = len(self.pending_crossings) == 0
 
         # update done attribute in disjunctive graph
-        self.D.nodes[r, next_vehicle, v]['done'] = 1
+        self.D.nodes[r, k, v]['done'] = 1
 
         # update action mask
-        self.D.nodes[r, next_vehicle, v]['action_mask'] = 0
-        if len(self.unscheduled[r, v]) > 0:
+        self.D.nodes[r, k, v]['action_mask'] = 0
+        if (r, v) in self.pending_crossings:
             # valid action becomes next operation of route r at v
-            self.D.nodes[r, next_vehicle + 1, v]['action_mask'] = 1
+            self.D.nodes[r, k + 1, v]['action_mask'] = 1
 
         # add disjunctive arcs from (r0, k0) to first unscheduled (r1, k1) with r0 != r1 and intersecting routes
-        r0, k0 = r, next_vehicle
+        r0, k0 = r, k
         for r1 in self.route_indices:
-            if r0 != r1 and v in self.route[r1] and len(self.unscheduled[r1, v]) > 0:
+            if r0 != r1 and v in self.route[r1] and (r1, v) in self.pending_crossings:
                 k1 = self.unscheduled[r1, v][0] # first unscheduled vehicle of route r1
                 self.D.add_edge((r0, k0, v), (r1, k1, v), weight=self.sigma)
 
         # compute LB for new partial schedule by updating in topological order
         self.update_LB()
-
-        # check crossing done
-        self.crossing_done[r, v] = len(self.unscheduled[r, v]) == 0
-        # done when all crossings done
-        self.done = all(self.crossing_done[r, v] for (r, v) in self.crossing_indices)
-
 
 
     def get_obj(self):
