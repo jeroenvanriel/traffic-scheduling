@@ -655,21 +655,19 @@ may consider methods that incrementally construct a vehicle ordering.
 %
 Observe that ordering vehicles is equivalent to ordering the routes, due to the
 fixed relative order of vehicles on the same route, encoded by the conjunctive
-constraints. This means that each valid schedule $y$ corresponds to some route
-order $\eta$.
-Given some valid route order $\eta$, let $y_{\eta}(s)$ denote the schedule that is
-obtained by executing $\eta$ on the automaton. We say that route order $\eta$ is
-optimal whenever $y_{\eta}(s)$ is optimal.
+constraints. Hence, for every problem instance $s$, each valid schedule $y$
+corresponds to some route order $\eta$, so we will write $y = y_{\eta}(s)$ and we
+say that route order $\eta$ is optimal whenever $y_{\eta}(s)$ is optimal.
 
 Instead of trying to map a problem instance directly to some optimal route
-order, a single route is added to the route order at each step. At every step,
-the route order induces a partial ordering $\pi$, considered to be a permutation
-of the set of scheduled vehicles.
+order, we construct it in a step-by-step fashion. At every step, the partial
+route order induces a partial vehicle ordering $\pi$, considered to be a
+permutation of the set of scheduled vehicles.
 %
-It may be helpful to model this
-process as a deterministic finite-state automaton, where the set of route
-indices acts as the input alphabet $\mathcal{R} = \{ 1, \dots, n \}$. Let $S$ denote
-the state space and let $\delta: S \times \mathcal{R} \rightarrow S$ denote the transition function.
+It may be helpful to model this process as a deterministic finite-state
+automaton, where the set of route indices acts as the input alphabet
+$\mathcal{R} = \{ 1, \dots, n \}$. Let $S$ denote the state space and let
+$\delta: S \times \mathcal{R} \rightarrow S$ denote the transition function.
 % states
 Let $s$ denote an instance of crossing time scheduling
 problem~\eqref{eq:crossing_time_scheduling}. We consider $s$ to be a fixed part
@@ -677,20 +675,20 @@ of the state, so it does not change with transitions. The other part of the
 state is the current partial ordering $\pi$. The initial state is
 $s_{0} = (s, \varnothing)$.
 % transitions
-Let $s_{t} = (s, \pi) \in S$ denote some state and let $r \in \mathcal{R}$. Let $i$
-denote the next unscheduled vehicle on route $r$, then the system transitions to
-$s_{t+1} = (s, \pi \mdoubleplus i)$, where we use $\mdoubleplus$ to denote sequence
-concatenation. If no such vehicle exists, the transition is undefined.
+Let $s_{t} = (s, \pi) \in S$ denote some state and let $r \in \mathcal{R}$ be the next
+input that was chosen. Let $i$ denote the next unscheduled vehicle on route $r$,
+then the system transitions to $s_{t+1} = (s, \pi \mdoubleplus i)$, where
+$\mdoubleplus$ denotes sequence concatenation. If there was no next unscheduled
+vehicle $i$, the transition is undefined.
 %
-Now suppose that we have some mapping $p : S \rightarrow \mathcal{R}$ to
-determine the next route, the final state can be determined by recursively
-computing
+Suppose that we have some mapping $p : S \rightarrow \mathcal{R}$ to determine the next
+route, the final state can be determined by recursively computing
 \begin{align*}
   s_{t} = \delta(s_{t-1}, p(s_{t-1})) .
 \end{align*}
 %
 The goal is now to find a mapping $p$ such that the final state
-$s_{N} = (s, \pi^{*})$ contains some optimal ordering $\pi^{*}$.
+$s_{N} = (s, \pi^{*})$ correspond to some optimal ordering $\pi^{*}$.
 %
 Observe that such a mapping must exist, because we can always set
 $p(s_{t}) = \eta^{*}_{t+1}$ for every step $t$, given some optimal route order
@@ -707,6 +705,21 @@ order, factorized as
 \end{align*}
 which belongs to the class of autoregressive generative
 models~\cite{tomczakDeepGenerativeModeling2024}.
+%
+To select a single sequence $\eta$ from such a model, we would ideally want to pick the maximum likelihood estimator
+\begin{align*}
+  \arg\max_{\eta} p(\eta | s) .
+\end{align*}
+However, note that this is very expensive to compute in general, because without
+additional structural model assumption, this would require
+$O(|\mathcal{R}|^{N})$ evaluations of the model $p(\eta_{t}|s_{t-1})$ in the
+worst case. Therefore, in practice one often uses \textit{greedy inference},
+which means that we pick the maximum likelihood symbol
+$\arg\max_{\eta_{t}} p(\eta_{t} | s_{t-1})$ at every position $t$.
+% other inference methods
+Other inference strategies have been proposed in the context of modelling
+combinatorial optimization problems, see for example the ``Sampling'' and
+``Active Search'' strategies in~\cite{belloNeuralCombinatorialOptimization2017}.
 
 %
 % multi-step transition
@@ -909,8 +922,10 @@ Hence, the total episodic reward is given by the telescoping sum
 \begin{align*}
   \sum_{t=1}^{N} R_{t} = \sum_{i \in \mathcal{R}} \beta_{0}(i) - \beta_{N}(i)  = \sum_{i \in \mathcal{N}} \beta_{0}(i) - \textrm{obj}(y_{\eta}) ,
 \end{align*}
-where $y_{\eta}$ denotes the final schedule, so maximizing the episodic reward
-corresponds to minimizing of the objective, as desired.
+where $y_{\eta}$ denotes the final schedule and $N$ is the total number of
+actions (equal to the total number of vehicles in the instance). Therefore,
+maximizing the episodic reward corresponds to minimizing of the objective, as
+desired.
 
 
 % REINFORCE
