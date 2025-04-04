@@ -1,0 +1,35 @@
+% silent package loading
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
+
+\caption{\label{tab:unnamed-chunk-2}Comparison of threshold heuristics.}
+\centering
+\begin{tabular}[t]{cc|c|ccc|c|ccc|c|ccc|c|c}
+\toprule
+n & size & MILP & $\tau = 0$  (gap)\\
+\midrule
+5 & 2x1 & 57.27 & 65.27 (11.45\%)\\
+5 & 3x1 & 57.67 & 68.34 (15.44\%)\\
+5 & 3x2 & 57.35 & 69.17 (18.32\%)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}
+
+\caption{\label{tab:unnamed-chunk-2}Comparison of neural heuristics.}
+\centering
+\begin{tabular}[t]{cc|c|c|ccc|c|c|ccc|c|c|ccc|c|c|ccc|c|c|c}
+\toprule
+n & size & random (gap) & exhaustive (gap) & alternate (gap)\\
+\midrule
+5 & 2x1 & 58.98 (2.98\%) & 58.90 (2.84\%) & 58.15 (1.53\%)\\
+5 & 3x1 & 60.03 (4.11\%) & 59.42 (3.04\%) & 58.74 (1.86\%)\\
+5 & 3x2 & 61.28 (6.86\%) & 60.49 (5.47\%) & 58.62 (2.22\%)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{knitrout}

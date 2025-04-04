@@ -128,7 +128,7 @@ expressions of these trajectories.
 
 Now assume that some vehicle is scheduled to exit $v$ at time $t_{0}$ and to
 enter $w$ at some time $t_{f}$. Let $p_{0} = -d(v,w) + W$ denote the position of
-the vehicle when it starts to exit $v$. Let $y(t)$ denote the trajectory of the
+the vehicle when it starts to exit $v$. Let $y(t)$ denote the position of the
 vehicle that drives in front of the current one, assuming it exists. In order to
 keep the vehicle as close to $w$ as possible at every time, while respecting
 the double integrator vehicle dynamics $\dot{p} = v, \, \ddot{p} = u$, we can
@@ -140,7 +140,7 @@ generate a trajectory by solving the optimal control problem
   \begin{alignedat}{2}\text{s.t.}\\ {}\end{alignedat} \quad &\begin{alignedat}{2}
                      0 \leq \; &v(t) \leq v_{\max} , \\
                      {-a_{\max}} \leq \; &u(t) \leq a_{\max} , \\
-                    y(t) \leq \; & p(t) , \\
+                    y(t) + L \leq \; & p(t) , \\
                     \end{alignedat} \\
                     &\begin{alignedat}[t]{2}
                     & p(t_{0}) = p_{0} , &&  p(t_{f}) = 0 , \\
@@ -152,8 +152,8 @@ generate a trajectory by solving the optimal control problem
 This problem can be solved by using a direct transcription method. After
 observing some example solutions, we believe that the optimal control should
 switch between no acceleration and either full acceleration or full
-deceleration, i.e., we have a control function $u(t) := \ddot{x}(t)$ satisfies
-$u(t) \in \{-a_{\max}, 0, a_{\max}\}$ and some sequence of alternating
+deceleration, i.e., we have a control function $u(t) := \ddot{x}(t)$ that
+satisfies $u(t) \in \{-a_{\max}, 0, a_{\max}\}$ and some sequence of alternating
 deceleration and acceleration periods, represented by some sequence of disjoint
 intervals
 \begin{align*}
@@ -196,8 +196,8 @@ observe that there is a lot of structure in how the trajectory of a vehicle
 influences the trajectories of later vehicles. In this section, we provide a
 direct way to explicitly calculate trajectories, without proving that these
 trajectories are always feasible and optimal. Instead, we verify correctness of
-our method numerically by comparing the output to direct transcription for
-various system parameters and crossing times.
+our method numerically by comparing our explicit trajectories to the the output
+of direct transcription for various system parameters and crossing times.
 
 We start by investigating the limit on the number of vehicles that can occupy
 the lane at the same time. Imagine that vehicles enter the lane until it is full
@@ -206,13 +206,14 @@ the lane by crossing $w$.
 %
 Without any additional constraints, it follows from the vehicle dynamics that
 the time it takes to fully accelerate from rest to maximum velocity is given by
-$d_{f} = v_{\max} / a_{\max}$ and with corresponding trajectory
+$d_{f} = v_{\max} / a_{\max}$ and the corresponding full acceleration trajectory
+is given by
 \begin{align*}
   p^{*}(t) = a_{\max} t^{2} / 2 \quad \text{ for } 0 \leq t \leq d_{f} .
 \end{align*}
-Because we assume that maximum
-deceleration is also $a_{\max}$, it also takes $d_{f}$ time to fully decelerate
-from maximum velocity to rest.
+To keep the presentation simple, we assume that maximum deceleration is also
+$a_{\max}$, so it also takes $d_{f}$ time to fully decelerate from maximum
+velocity to rest.
 %
 Suppose that we want to design the tandem network such that at least $c(v,w)$
 vehicles can enter and decelerate to some waiting position, from which it is
@@ -220,8 +221,8 @@ also possible to accelerate again to full speed before crossing $w$.
 %
 Vehicles are required to drive at full speed as long as they occupy
 any intersection. Therefore, a vehicle crossing $v$ can only start decelerating
-after $p(t) \geq W + L$, so the earliest position where a vehicle can come to a
-stop is $p = W + L + p^{*}(d_{f})$.
+after $p(t) \geq p_{0} + L$, so the earliest position where a vehicle can come to a
+stop is $p = p_{0} + L + p^{*}(d_{f})$.
 %
 Because vehicles need to gain maximum speed before reaching $w$,
 the position closest to $w$ where a vehicle can wait is $- p^{*}(d_{f})$.
@@ -275,14 +276,14 @@ become disjoint.
 %
 Specifically, let
 \begin{align*}
-  t_{d} := t_{0} + \frac{d(v,w) - W - p_{d}}{v_{\max}}
+  t_{d} := t_{0} + \frac{p_{d} - p_{0}}{v_{\max}}
 \end{align*}
 be the start of the initial deceleration interval
 $D_{0} := [t_{d}, t_{d} + d_{f}]$, which is exactly the moment the vehicle needs
 to start decelerating in order to stop at the first waiting position $p_{1}$, so
 at time $t_{d}$ the vehicle is at position $p_{d}$. Similarly, let
 $t_{a} = t_{f} - d_{f}$ be the start of the final acceleration interval
-$A_{f} := [t_{a}, t_{a} + d_{f}]$. Now for every $k = 1, \dots, c(v,w) - 1$, we
+$A_{f} := [t_{a}, t_{f}]$. Now for every $k = 1, \dots, c(v,w) - 1$, we
 consider a pair of start-stop intervals
 $S_{k} := (A_{k}, D_{k}) = ([t_{k}, t_{k} + d_{s}], [t_{k} + d_{s}, t_{k} + 2 d_{s}])$
 at some starting time $t_{k}$, moving the vehicle from $p_{k}$ to $p_{k+1}$. We
@@ -296,8 +297,8 @@ First, we show how to merge $D_{0}$ and $S_{1}$.
 When we have $t_{d} + d_{f} \leq t_{1}$, it is clear that both parts are already
 completely disjoint, so we do not have to do anything further.
 % case 2: merging
-As $t_{d}$ and $t_{1}$ get closer than $d_{f}$, we need to start merging $D_{0}$
-and $A_{1}$ as we will show. In this case, we observe that $D_{0}$ gets shorter
+When $t_{d}$ and $t_{1}$ are closer than $d_{f}$, we need to merge $D_{0}$
+and $A_{1}$. In this case, we observe that $D_{0}$ gets shorter
 at the end by some $\epsilon$ and the acceleration part of $S_{1}$ gets shorter at the
 beginning, also by the same amount $\epsilon$, because the velocities must match. More
 precisely, we construct two new consecutive intervals
@@ -410,10 +411,11 @@ We now show how $t_{k}$ follow from the trajectory of the preceding vehicle.
 We now extend the single intersection model to a network of intersections
 without turning routes, illustrated in Figure~\ref{fig:network_illustration}.
 % network definition
-We define a directed graph $(V,E)$ with nodes $V$ and arcs $E$, representing the
-possible paths that vehicles can follow. Nodes of in-degree at least two are
-called \textit{intersections}. Nodes with only outgoing arcs are
-\textit{entrypoints} and nodes with only incoming arcs are \textit{exitpoints}.
+We define a directed graph $(\bar{V},E)$ with nodes $\bar{V}$ and arcs $E$,
+representing the possible paths that vehicles can follow. Nodes with only
+outgoing arcs are \textit{entrypoints} and nodes with only incoming arcs are \textit{exitpoints}.
+Let $V$ be the set of \textit{intersections}, which are all the nodes with
+in-degree at least two.
 %
 Let $d(v, w)$ denote the distance between nodes $v$ and $w$.
 %
@@ -498,15 +500,13 @@ objective function as
 We show how to reduce the resulting problem to a scheduling problem, like we did
 in the single intersection case.
 %
-It is not clear whether vehicles will always cross intersections at full speed,
-but we will simply require vehicles to do so from here on.
-Furthermore, we will again assume that all vehicles share the same geometry.
-Hence, the
-occupation time $\sigma \equiv \sigma(i,v)$ is the same for all vehicles and
-intersections. For this reason, we will write the shorthand $y_{r} \in \mathcal{S}_{r}$,
-because $\sigma_{r}$ is no longer a free variable.
+We will again assume Assumption~\ref{assump:same_geometry} and
+Assumption~\ref{assump:full_speed}, so vehicles will always cross intersections
+at full speed, and all vehicles share the same geometry. Hence, the occupation
+time $\sigma \equiv \sigma(i,v)$ is the same for all vehicles and intersections. For this
+reason, we will write the shorthand $y_{r} \in \mathcal{S}_{r}$, because $\sigma_{r}$
+is no longer a free variable.
 
-%
 As a consequence of Assumption~\ref{assump:same_geometry} and Assumption~\ref{assump:full_speed},
 each lower-level trajectory optimization problem for a given route
 $r \in \mathcal{R}$ decomposes into a sequence of problems, each corresponding to
@@ -527,7 +527,7 @@ for $y_{(v,w)} \in \mathcal{S}_{(v,w)}$.
   \renewcommand\labelitemi{--}
 {\color{gray}
 % job-shop disjunctive graph
-\item Introduce general job-shop problem and disjunctive graph.
+\item Introduce general job-shop problem and disjunctive graph, see Figure~\ref{fig:disjunctive_graph}.
 % define travel constraints
 \item Introduce travel constraints and its disjunctive graph arcs.
 % define buffer constraints
@@ -541,109 +541,153 @@ cutting planes?
 }
 \end{itemize}
 
+Lower bounds $\beta(i, v)$ on the crossing times of vehicles, where
+$i = (r, k) \in \mathcal{N}$ is some vehicle index and $v \in V_{r}$.
+
 \begin{figure}
   \centering
   \includegraphics[scale=1]{figures/network/disjunctive_graph}
   \caption{Empty disjunctive graph belonging to a tandem of two intersections,
-    labeled $(1, 1)$ and $(2, 1)$. There are three routes
-    $\mathcal{R} = \{0, 1, 2\}$. On route 0, four vehicle are arriving, the
-    other two routes have 3 arrivals each. Conjunctive arcs are drawn as from
-    left to right, travel arcs are drawn from top to bottom and disjunctive arcs
-    are drawn as dotted lines. Two buffer constraints are drawn as diagonal
-    arcs, corresponding to a capacity of 2 vehicles for the lane between both
-    intersections.}
+    labeled $v$ and $w$. There are three routes $\mathcal{R} = \{0, 1, 2\}$. On
+    route 0, four vehicle are arriving, the other two routes have 3 arrivals
+    each. Conjunctive arcs are drawn as from left to right, travel arcs are
+    drawn from top to bottom and disjunctive arcs are drawn as dotted lines. Two
+    buffer constraints are drawn as diagonal arcs, corresponding to a capacity
+    of 2 vehicles for the lane between both intersections.}
+  \label{fig:disjunctive_graph}
 \end{figure}
 
+\newpage
 \section{Constructive heuristics}
 
-Like for problems with a single intersection, we want to investigate possible
-constructive heuristics In this case, the step-by-step construction can again be
-understood in terms of transitioning from a partial disjunctive graph to the
-next partial disjunctive graph by fixing the direction of some disjunctive arc.
-Instead of only the route index, we now also need to specify the intersection to
-identify a unique disjunctive arc, hence the following definition.
-
-\begin{define}
-  Each pair $(r, v)$ of a route $r \in \mathcal{R}$ and some intersection
-  $v \in V_{r}$ which vehicles on $r$ encounter is called a \textit{crossing}.
-  We say a crossing is done (pending) when all its vehicles are done (pending).
-  Similarly, we say an intersection is done (pending) when it all its crossings
-  are done (pending). Therefore, the set of \textit{valid actions} is exactly
-  the set of pending crossings.
-\end{define}
-
-Similarly as in the single intersection scheduling problem, we will now consider
-heuristics that select the next action given the current partial disjunctive
-graph, which determines the next vehicle for which the crossing time is fixed.
-Before we turn our attention to deep learning models, we will consider a
-straightforward extension of the threshold heuristic.
-
-\subsection{Exhaustive heuristic}
-
-It is straightforward to extend the exhaustive policy (threshold heuristic with
-$\tau = 0$) to networks of intersections. When the network of intersections is a
-Directed Acyclic Graph (DAG), we can visit the intersections in topological
-order. When an intersection is visited, we apply the single intersection
-exhaustive scheduling policy on the disjunctive subgraph induced by the nodes
-belonging to that intersection in order to obtain the local ordering.
+Like in the single intersection case, we are going to model optimal solutions
+using autoregressive models.
 %
-We will use the performance of this heuristic as a baseline when evaluating
-heuristics based on a neural architecture. Furthermore, it also provides a
-\textit{baseline} during reinforcement learning, reducing the variance of the
-REINFORCE estimator.
+In the single intersection case, we argued that each schedule is uniquely
+defined by its route order $\eta$. Generalizing this to the case of multiple
+intersections, we see that a schedule is uniquely defined by the collection of
+route orders $\eta^{v}$ at each intersection $v \in V$. Instead of working with
+such a set of sequences, we will intertwine the sequences to obtain a single
+\textit{crossing sequence} $\eta$, which is a sequence of pairs $(r, v)$ of a
+route $r \in \mathcal{R}$ at some intersection $v \in V_{r}$ and we will refer
+to such a pair as a \textit{crossing}. Of course, this crossing sequence can be
+constructed in many different ways, because it does not matter in which order
+the intersections are considered, to which we will refer as the
+\textit{intersection visit order}.
+% \begin{align*}
+%   | \{ t : \nu_{t} = v \} | = |\eta^{v}| \quad \text{ for each } v \in V ,
+% \end{align*}
+Given some problem instance $s$, we will consider autoregressive models of the form
+\begin{align}
+  \label{eq:autoregressive}
+  p(\eta | s) =  \prod_{t=1}^{N} p(\eta_{t}| s, \eta_{1:t-1}) .
+\end{align}
+
+These models can also be understood in terms of a step-by-step schedule
+construction process that transitions from a partial schedule state
+$s_{t} = (s, \eta_{1:t})$ to the next state $s_{t+1}$ by selecting some
+\textit{action} $\eta_{t} = (r_{t}, v_{t})$. We say a crossing is pending when
+it still has unscheduled vehicles. Similarly, we say an intersection is pending
+when some of its crossings are still pending. Therefore, the set of \textit{valid actions}
+$\mathcal{A}(s_{t})$ at some intermediate state $s_{t}$ is exactly the set of
+pending crossings.
+%
+% multiple correct actions
+We again emphasize that multiple sequences of actions lead to the same schedule,
+because the order in which intersections are considered does not matter for the
+final schedule, which is illustrated in Figure~\ref{fig:solution_equivalence}.
+%
+The models that we study will mostly be parameterized as some function of the
+disjunctive graph representation $G_{t}$ of partial schedule $s_{t}$, so an
+alternative way of writing~\eqref{eq:autoregressive} that emphasizes this is
+\begin{align*}
+  p(\eta = ((r_{1}, v_{1}), \dots, (r_{N}, v_{N})) \; | \; s) = \prod_{t=1}^{N} p(r_{t}, v_{t} | G_{t-1}) .
+\end{align*}
+
+Instead of modeling the probability distribution $p(r_{t}, v_{t} | G_{t-1})$
+over crossings, we apply the chain rule to factorize this joint probability as
+\begin{align*}
+  p(r_{t}, v_{t} | G_{t-1}) = p(r_{t} | v_{t} , G_{t-1}) p (v_{t} | G_{t-1}) .
+\end{align*}
+This allows us to consider models that assume some fixed intersection visit
+order $\mu$, such that instead of a single next action, the model should model a
+set of actions, one for each intersection.
+%
+We will show that $\mu$ has a considerable impact on the final schedule quality.
+However, it is not clear a priori which $\mu$ is best, so we will propose some
+possible ways to define $p(v_{t} | G_{t-1})$.
+% random
+First of all, the simple \textit{random} strategy would be to sample some
+intersection with pending crossings at each step.
+% ``boundary'' (or ``exhaustive'')
+In the \textit{boundary} strategy, we keep visiting the same intersection until
+it is done (when it has no pending crossings anymore), then move to some next
+intersection. When the network of intersections is free of cycles, we could for
+example follow some topological order. We use the term ``boundary'' because this
+strategy produces trajectories along the boundary of the grid in
+Figure~\ref{fig:solution_equivalence}.
+% ``alternate''
+In the \textit{alternating} strategy, we keep alternating between intersection
+to keep the number of scheduled vehicles balanced among them. This produces
+trajectories that can be understood as being close to the ``diagonal'' of the
+grid in Figure~\ref{fig:solution_equivalence}.
+
+It is straightforward to extend the threshold rule to networks of
+intersections, when assuming a fixed intersection visit order. Each time some
+next intersection is visited, we apply the single intersection threshold rule to
+pick the next route. This is straightforward to do, because we can just consider
+the disjunctive subgraph induced by the nodes belonging to that intersection to
+arrive at the single intersection case.
+%
+Furthermore, the definition of the threshold rule itself does not depend on the
+network of intersections. This is a desirable property, because it allows us to
+tune the threshold on small networks and then apply it on larger ones.
+
 
 \subsection{Neural constructive heuristic}
 
-We want to model optimal solutions using a similar auto-regressive model like we
-used for a single intersection. This means that we want to predict the next
-action, given the current state of the automaton, or equivalently, the current
-partial disjunctive graph.
-% not yet network-agnostic through parameter sharing
-Before we consider models that can generalize to larger networks by using
-parameter sharing and message-passing schemes, we investigate the fit of a model
-that is based on recurrent embeddings of the horizons of crossings, similar to
-the recurrent embeddings of the horizons in the single intersection case.
-
-% explain imitation learning
-We start by considering the imitation learning setting. Therefore, we sample a
-collection of training instances, which are solved to optimality using the MILP
-formulation. Next, we use the resulting crossing time schedule to compute
-actions for the automaton that lead to the same schedule.
-% multiple correct actions
-However, this sequence of actions is not unique: the order in which
-intersections are considered does not matter for the final schedule, see
-Figure~\ref{fig:solution_equivalence}.
-% TODO: insert illustration of equivalence
-Instead of a single next action, the model should model the set of valid actions
-for every state of the automaton. These types of problems, where the output is
-required to be a set, are called multi-label classification.
-
-% ignore multi-label nature of problem, just sample and fit
-Let us start by ignoring the multi-label nature of the problem by defining a
-model that selects a single next action.
+We will now propose a neural network parameterization of
+$p(r_{t} | v_{t}, G_{t-1})$ and train it based on optimal schedules in a
+supervised learning setting. The model can be best understood as solving a
+so-called multi-label classification problem, because it needs to provide a
+distribution over routes at every intersection.
 %
-For each crossing, we define a \textit{horizon} as a sequence of arrival time
-lower bounds as follows. Each horizon starts at the next unscheduled vehicle for
-each crossing. At each intersection, we compute the minimal crossing time lower
-bound across all unscheduled vehicles and we subtract this from all the lower
-bounds in each horizon at this intersection.
+The training data set $\mathcal{X}$ consists of pairs
+$(G_{t-1}, (r_{t}, v_{t}))$, to which we refer to as \textit{state-action} pairs
+to draw the parallel with the terminology used in reinforcement learning.
 %
-Next, each horizon is embedded using an Elman RNN. These embeddings are then fed
-through a feedforward network to produce a logit for each crossing, see
-Figure~\ref{fig:rnn_model}.
-
-% collecting expert demonstration
-Expert demonstration state-action pairs can be collected in different ways.
+To obtain these pairs, we sample a collection of problem instances, which are
+solved to optimality using a MILP solver. For each optimal schedule, we compute
+the corresponding optimal route order $\eta^{v}$ for each intersection.
+%
+From these, we can construct $\mathcal{X}$ in different ways.
 % sample a single intersection order for each instance
-For each solved instance in the training set, we can randomly select a single
-intersection order and replay the sequence of actions on the automaton to
-generate the corresponding sequence of state-action pairs.
+For example, for each solved instance, we can randomly select some intersection
+visit order $\mu$, which fixes the crossing order $\eta$. We can then replay
+this sequence of actions step-by-step to obtain the corresponding sequence of
+state-action pairs.
 % multiple intersection order per instance
-However, the model might become more robust when training on multiple samples of
-intersections orders per instance.
+The model might become more robust when training on multiple samples of
+intersections visit orders per instance.
+% fixed intersection order
+Alternatively, we can consider one of the fixed intersection visit orders
+described at the start of this section (random, exhaustively, alternating).
 % lookahead
-Another possible strategy is to use a kind of fixed lookahead sampling
-procedure, as illustrated in Figure~\ref{fig:state_action_collection}.
+Furthermore, combined with one of the above strategies, we can also employ some
+kind of fixed lookahead procedure, as illustrated in
+Figure~\ref{fig:state_action_collection}.
+% inference
+At inference time, use the same intersection visit order as during training and
+at each step we select greedily select $r_{t}$.
+
+We will now describe how the model is parameterized based on recurrent
+embeddings of the sequences of crossing time lower bounds for unscheduled
+vehicles at each crossing, exactly the same as how we defined the
+\textit{horizons} in the single intersection model. Each such horizon is
+embedded using an Elman RNN. These embeddings are then fed through a feedforward
+network to produce a logit for each crossing, see Figure~\ref{fig:rnn_model}.
+
+\input{data-network/comparison-woven.tex}
 
 \begin{figure}
   \centering
@@ -656,11 +700,6 @@ procedure, as illustrated in Figure~\ref{fig:state_action_collection}.
   \label{fig:rnn_model}
 \end{figure}
 
-% define multi-label model
-Instead of ignoring the multi-label nature of the problem, we can also design
-models that explicitly dictate the intersection visit order.
-
-
 \begin{figure}
   \centering
   \includegraphics[width=0.4\textwidth]{figures/network/solution_equivalence}
@@ -672,7 +711,7 @@ models that explicitly dictate the intersection visit order.
     intersection 2. The figure shows two possible global orders. Of course, the
     exact global order does not matter for the final schedule. However, it might
     be that trajectories near the boundary of the grid are harder to learn from
-    data than trajectories that keep closer to the diagonal. The intuition is
+    data than trajectories that stay closer to the diagonal. The intuition is
     that we need to ``look into the future'' more to learn the former, while in
     the latter trajectories, progress in the two intersections is more balanced.}
   \label{fig:solution_equivalence}
@@ -692,6 +731,27 @@ models that explicitly dictate the intersection visit order.
   \label{fig:state_action_collection}
 \end{figure}
 
+\subsection{Performance evaluation}
+
+For some given problem instance, let $N$ denote the length of a crossing
+sequence, so it is also the total number of vehicle-intersection pairs $(i, v)$
+that need to be scheduled. To allow a fair comparison of methods accross
+instances of different sizes, both in terms of the number of vehicles as the
+size of the network, we define the objective of schedule $y$ as the average
+delay per vehicle-intersection pair, as given by
+\begin{align*}
+  \textrm{obj}(y) = \frac{1}{N} \sum_{i \in \mathcal{N}} \sum_{v \in V_{r(i)}} y(i, v) - a(i, v) .
+\end{align*}
+
+
+{\color{Navy} We will use the performance of threshold heuristic as a baseline
+  when evaluating heuristics based on a neural architecture. Furthermore, it
+  also provides a \textit{baseline} during reinforcement learning, reducing the
+  variance of the REINFORCE estimator. }
+
+
+
+\newpage
 \subsection{Network-agnostic architecture}
 
 We now focus on models that generalize across network sizes. In particular, we

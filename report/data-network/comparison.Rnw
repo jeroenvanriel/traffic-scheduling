@@ -1,0 +1,23 @@
+% silent package loading
+<<include=F>>=
+library(dplyr)
+library(kableExtra)
+library(qwraps2)
+@
+
+<<echo=F>>=
+data <- read.csv("results.csv", check.names=FALSE)
+
+data1 <- data %>% select(n_arrivals, grid, opt_obj_scaled, exhaustive)
+data2 <- data %>% select(n_arrivals, grid, rnn_random, rnn_boundary, rnn_alternate)
+
+kbl(data1,
+    escape=F, booktabs=T, linesep = "", align="cc|c|c",
+    col.names=c("n", "size", "MILP", "$\\tau = 0$  (gap)"),
+    caption="Comparison of threshold heuristics.")
+
+kbl(data2,
+    escape=F, booktabs=T, linesep = "", align="cc|c|c|c",
+    col.names=c("n", "size", "random (gap)", "exhaustive (gap)", "alternate (gap)"),
+    caption="Comparison of neural heuristics.")
+@
