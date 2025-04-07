@@ -1003,8 +1003,12 @@ branch-and-cut obtains within the time limit as proxy for $y^{*}(s)$.
 
 The heuristics can be fitted to the training data without requiring much manual tweaking.
 %
-The threshold heuristics is fitted by choosing the best value of $\tau$ from a fixed set of candidates through a simple search.
-The neural heuristics is trained for a fixed number of training steps. At regular intervals, we compute the average validation loss and store the current model parameters. At the end of the training, we pick the model parameters with the smallest validation loss.
+The threshold heuristics is fitted by choosing the best value of $\tau$ from a
+fixed set of candidates through a simple search. The neural heuristics is
+trained for a fixed number of training steps. At regular intervals, we compute
+the average validation loss and store the current model parameters. At the end
+of the training, we pick the model parameters with the smallest validation loss.
+The results are listed in Table~\ref{tab:results}.
 %
 We create some plots that allow us to manually inspect the model fit.
 For the threshold heuristics, we plot the average objective for the values of
