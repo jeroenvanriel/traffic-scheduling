@@ -1110,7 +1110,7 @@ calculating the lower bounds.
   of $j$ in $\pi$, so $\pi^{-1}(i) + 1 = \pi^{-1}(j)$, then
 \begin{align}
   \label{eq:lb_lemma}
-  \text{\upshape LB}_\pi(j) = \max \{ r_{j}, \text{\upshape LB}_\pi(i) + w(i, j) \} .
+  \beta_\pi(j) = \max \{ r_{j}, \beta_\pi(i) + w(i, j) \} .
 \end{align}
 \end{lemma}
 \begin{proof}
@@ -1118,10 +1118,10 @@ calculating the lower bounds.
   then the incoming disjunctive arcs of $j$ are
   $N^{-}_{\pi}(j) \setminus \{ i \} \subset N^{-}_{\pi}(i)$. Therefore, we have
   \begin{align*}
-    \max_{v \in N^{-}_{\pi}(j) \setminus \{i\}} \text{LB}_\pi(v) + \sigma_{v} \leq \text{LB}_\pi(i) ,
+    \max_{v \in N^{-}_{\pi}(j) \setminus \{i\}} \beta_\pi(v) + \sigma_{v} \leq \beta_\pi(i) ,
   \end{align*}
   so that
-      $\text{LB}_\pi(v) + w(v,j) \leq \text{LB}_\pi(i) + w(i,j)$
+      $\beta_\pi(v) + w(v,j) \leq \beta_\pi(i) + w(i,j)$
   for all $v \in N_{\pi}^{-}(j)$.
 
   Otherwise, we have $(i, j) \in \mathcal{O}(\pi)$.
@@ -1129,24 +1129,24 @@ calculating the lower bounds.
   Let $v \in \mathcal{N}$ such that $(v, j)$ is an arc.
   If $(v,j) \in \mathcal{C}$, then we have
   \begin{align*}
-    \text{LB}_\pi(v) + w(v,j) =
-    \text{LB}_\pi(v) + \rho_{v} \leq \text{LB}_\pi(v) + \sigma_{v} + \sigma_{i} \leq \text{LB}_\pi(i) + w(i,j) ,
+    \beta_\pi(v) + w(v,j) =
+    \beta_\pi(v) + \rho_{v} \leq \beta_\pi(v) + \sigma_{v} + \sigma_{i} \leq \beta_\pi(i) + w(i,j) ,
   \end{align*}
   where the second inequality follows from $(v,i) \in \mathcal{O}(\pi)$.
   %
   If $(v, j) \in \mathcal{O}(\pi)$ with $l(v) \neq l(i)$, then $(v,i) \in \mathcal{O}(\pi)$, so
   \begin{align*}
-    \text{LB}_\pi(v) + w(v, j) = \text{LB}_\pi(v) + w(v, i) \leq \text{LB}_\pi(i) \leq \text{LB}_\pi(i) + w(i,j) .
+    \beta_\pi(v) + w(v, j) = \beta_\pi(v) + w(v, i) \leq \beta_\pi(i) \leq \beta_\pi(i) + w(i,j) .
   \end{align*}
   If $(v, j) \in \mathcal{O}(\pi)$ with $l(v) = l(i)$, then there is a path of conjunctive arcs between $v$ and
-  $i$, so we must have $\text{LB}_\pi(v) + \rho_{v} \leq \text{LB}_\pi(i)$.
+  $i$, so we must have $\beta_\pi(v) + \rho_{v} \leq \beta_\pi(i)$.
   Furthermore, from $w(v,j) = \sigma_{v} = \rho_{v} + s$ follows that
   \begin{align*}
-    \text{LB}_\pi(v) + w(v,j) = \text{LB}_\pi(v) + \rho_{v} + s \leq \text{LB}_\pi(i) + s \leq \text{LB}_\pi(i) + w(i, j) .
+    \beta_\pi(v) + w(v,j) = \beta_\pi(v) + \rho_{v} + s \leq \beta_\pi(i) + s \leq \beta_\pi(i) + w(i, j) .
   \end{align*}
 
   To conclude, we have shown that
-  $\text{LB}_\pi(v) + w(v,j) \leq \text{LB}_\pi(i) + w(i,j)$ for any
+  $\beta_\pi(v) + w(v,j) \leq \beta_\pi(i) + w(i,j)$ for any
   $v \in N^{-}_{\pi}(j)$, from which statement~\eqref{eq:lb_lemma} follows.
 \end{proof}
 
