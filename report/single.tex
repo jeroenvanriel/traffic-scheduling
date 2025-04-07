@@ -974,14 +974,13 @@ characterize the distribution of problem instances are number of routes and
 number of arrivals per route, distribution of interarrival times, arrival
 intensity per route and degree of platooning.
 
-We will refer to the total number of vehicles in an instance as its \textit{size}.
-%
 In the following, let $\mathcal{X}$ and $\mathcal{Y}$ denote a set of \textit{training instances}
 and \textit{test instances}, respectively.
 %
 To enable a fair comparison across different instance classes, we report the
-quality of a solution in terms of the average delay divided by the
-instance size. More precisely, from now on we define the objective of some schedule $y$ as
+quality of a solution in terms of the average delay divided by the total number
+of vehicle arrivals in the instance. More precisely, from now on we define the
+objective of some schedule $y$ as
 \begin{align*}
   \textrm{obj}(y) = \frac{1}{|\mathcal{N}|} \sum_{i \in \mathcal{N}} y_{i} - a_{i} .
 \end{align*}
@@ -1062,6 +1061,8 @@ The latter variant is sometimes referred to as \textit{beam search}.
 \newcommand*{\0}{{\color{red}0}}%
 
 \begin{table}
+\caption{Neighborhood of route order $\eta = (\0, \1, \1, \0, \0, \1, \1, \1, \0, \0)$.}
+\label{tab:local_search}
 \begin{center}
 \begin{tabular}{c|c|c}
   platoon id  & left-shift & right-shift \\
@@ -1072,8 +1073,6 @@ The latter variant is sometimes referred to as \textit{beam search}.
   5 & (\0, \1, \1, \0, \0, \0, \1, \1, \1, \0) &
 \end{tabular}
 \end{center}
-\caption{Neighborhood of route order $\eta = (\0, \1, \1, \0, \0, \1, \1, \1, \0, \0)$.}
-\label{tab:local_search}
 \end{table}
 
 
