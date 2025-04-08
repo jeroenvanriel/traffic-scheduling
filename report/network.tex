@@ -75,9 +75,9 @@
   }
   \caption{Tandem of two intersections $v$ and $w$ with lane of length $d(v,w)$.
     The grey rectangle represents some vehicle that just left intersection $v$.
-    We will assume that a vehicle has maximum speed as long as it occupies an
-    intersection, so it is only allowed to decelerate once it passes this
-    position.}
+    We assume that vehicles must drive at maximum speed as long as they occupy
+    any intersection, so deceleration is only allowed from the shown position
+    onwards.}
   \label{fig:tandem}
 \end{figure}
 
@@ -129,10 +129,15 @@ expressions of these trajectories.
 Now assume that some vehicle is scheduled to exit $v$ at time $t_{0}$ and to
 enter $w$ at some time $t_{f}$. Let $p_{0} = -d(v,w) + W$ denote the position of
 the vehicle when it starts to exit $v$. Let $y(t)$ denote the position of the
-vehicle that drives in front of the current one, assuming it exists. In order to
-keep the vehicle as close to $w$ as possible at every time, while respecting
-the double integrator vehicle dynamics $\dot{p} = v, \, \ddot{p} = u$, we can
-generate a trajectory by solving the optimal control problem
+vehicle that drives in front of the current one, assuming there is one. To avoid
+collision with this vehicle, the current vehicle must keep an appropriate
+headway distance of at least $L$, so we enforce the \textit{safe headway}
+constraint $p(t) + L \leq y(t)$ at all times.
+%
+In order to keep the vehicle as close to $w$ as possible at every time, while
+respecting the double integrator vehicle dynamics
+$\dot{p} = v, \, \ddot{p} = u$, we can generate a trajectory by solving the
+optimal control problem
 \begin{equation}
   \label{eq:optimal_control}
   \begin{aligned}
@@ -140,7 +145,7 @@ generate a trajectory by solving the optimal control problem
   \begin{alignedat}{2}\text{s.t.}\\ {}\end{alignedat} \quad &\begin{alignedat}{2}
                      0 \leq \; &v(t) \leq v_{\max} , \\
                      {-a_{\max}} \leq \; &u(t) \leq a_{\max} , \\
-                    y(t) + L \leq \; & p(t) , \\
+                    p(t) + L \leq \; & y(t) , \\
                     \end{alignedat} \\
                     &\begin{alignedat}[t]{2}
                     & p(t_{0}) = p_{0} , &&  p(t_{f}) = 0 , \\
@@ -149,37 +154,277 @@ generate a trajectory by solving the optimal control problem
   \end{aligned}
 \end{equation}
 %
-This problem can be solved by using a direct transcription method. After
-observing some example solutions, we believe that the optimal control should
-switch between no acceleration and either full acceleration or full
-deceleration, i.e., we have a control function $u(t) := \ddot{x}(t)$ that
-satisfies $u(t) \in \{-a_{\max}, 0, a_{\max}\}$ and some sequence of alternating
-deceleration and acceleration periods, represented by some sequence of disjoint
-intervals
+This problem can be solved by using direct transcription. After observing some
+example solutions, we believe that the optimal controller is of the following
+form.
+
+\begin{proposition}
+  \label{prop:optimal_control}
+  Optimal control $u(t)$ for problem~\eqref{eq:optimal_control} switches between
+  no acceleration and either full acceleration or full deceleration, i.e., we
+  have a control function $u(t) := \ddot{x}(t)$ that satisfies
+  $u(t) \in \{-a_{\max}, 0, a_{\max}\}$ and some sequence of alternating
+  deceleration and acceleration periods, represented by some sequence of
+  disjoint intervals
 \begin{align*}
   (D_{0}, A_{1}, D_{1}, \dots, A_{n-1}, D_{n-1}, A_{n}) ,
 \end{align*}
 so that the optimal controller is given by
-\begin{align*}
+\begin{align}
   u(t) = \begin{cases}
            {-a_{\max}} &\text{ if } t \in D_{k} \text{ for some } k , \\
            \phantom{-} a_{\max}   &\text{ if } t \in A_{k} \text{ for some } k , \\
            \phantom{-} \;\, 0 &\text{ otherwise. }
          \end{cases}
+\end{align}
+\end{proposition}
+
+We show that problem~\eqref{eq:optimal_control} is a special case of optimal
+control problems of the form
+\begin{align}
+  \begin{split}
+  \label{eq:state_constraints}
+  \max \quad & \int_{t=0}^{T} F(x(t), u(t), t) dt \\
+  \text{ s.t. } \;\, & \dot{x}(t) = f(x(t), u(t), t) , \quad x(0) = x_{0} , \\
+                & g(x(t), u(t), t) \geq 0 , \\
+             & h(x(t), t) \geq 0 , \\
+             & a(x(T), T) \geq 0 , \\
+             & b(x(T), T) = 0 ,
+  \end{split}
+\end{align}
+where $x$ is the vector of state variables and $u$ is the control input.
+%
+Here, the constraints $g$ are called mixed state constraints, because they
+involve both state and control variables, while constraints $h$ are called pure
+state constraints.
+%
+Instead of writing $p$ and $v$ separately, we will now write the state as a
+vector $x(t) = (x_{1}(t), x_{2}(t))$ with position $x_{1}(t)$ and velocity
+$x_{2}(t)$. The control function $u(t)$ corresponds to acceleration. Without
+loss of generality, we assume that $v_{\max} = 1$. The initial state is
+$(p_{0}, 1)$ and the target state is $(0, 1)$.
+%
+Writing $y(t)$ for the state trajectory of the vehicle in front of the current
+vehicle, optimal control problem~\eqref{eq:optimal_control} is equivalent
+to~\eqref{eq:state_constraints} when setting\footnote{Instead of using quadratic
+  expressions, both the mixed and the pure state constraint could have each been
+  written as two linear constraints, e.g., we could have chosen
+  $g(x, u, t) = (u_{\max} - u, u_{\max} + u)$. However, this does not satisfy
+  the constraint qualification conditions of the theorem that we use in
+  Section~\ref{sec:single_vehicle}}
+\begin{align}
+  \label{eq:settings}
+\begin{split}
+  F(x, u, t) &= x_{1} , \\
+  f(x, u, t) &= (x_{2}, u) , \\
+  x_{0} &= (p_{0}, 1) , \\
+  g(x, u, t) &= u_{\max}^{2} - u^{2} , \\
+  h_{1}(x, t) &= x_{2} - x_{2}^{2} , \\
+  h_{2}(x, t) &= y_{1}(t) - x_{1} - L , \\
+  b(x, t) &= (x_{1}, x_{2} - 1) .
+\end{split}
+\end{align}
+%
+% \begin{align*}
+%   \max \int_{0}^{T} \underbrace{x_{1}(t)}_{F(x,u,t)} dt
+% \end{align*}
+% \begin{align*}
+%   \dot{x} = f(x,u,t) = \begin{pmatrix} x_{2} \\ u \end{pmatrix} , \quad
+%   x(0) = \begin{pmatrix}
+%            p_{0} \\ 1
+%          \end{pmatrix}
+% \end{align*}
+% \begin{align*}
+%   -u_{\max} \leq u(t) \leq u_{\max} \quad &\iff \quad \underbrace{u_{\max}^{2} - u^{2}}_{g(x,u,t)} \geq 0 \\[1em]
+%   0 \leq x_{2}(t) \leq 1 \quad &\iff \quad \underbrace{x_{2} - x_{2}^{2}}_{h(x,t)} \geq 0 \\[1em]
+%   x(T) = \begin{pmatrix} 0 \\ 1 \end{pmatrix} \quad &\iff \quad
+%   \underbrace{\begin{pmatrix}
+%     x_{1}(T) \\ x_{2}(T) - 1
+%   \end{pmatrix}}_{b(x(T), T)} = 0
+% \end{align*}
+%
+
+\subsection{Special case: single vehicle}
+\label{sec:single_vehicle}
+
+Before we analyze problem~(\ref{eq:state_constraints}--\ref{eq:settings}) in the
+general, we consider the situation in which the headway constraint $h_{2}$ can
+be ignored, which might occur when the preceding vehicle is sufficiently far
+away, or the current vehicle is the only vehicle in the system. In that case, we
+can prove Proposition~\ref{prop:optimal_control} and provide explicit
+expressions for $D_{k}$ and $A_{k}$ of the optimal trajectory.
+%
+% The proof uses a variant of the Pontryagin Maximum Principle, specifically
+% tailored to problems with state
+% constraints~\cite{hartlSurveyMaximumPrinciples1995}.
+%
+When dealing with optimal control problems, the Pontryagin Maximum Principle (PMP) provides a
+family of first-order necessary conditions for optimality. We are going to apply
+such a PMP-style necessary condition that deals with mixed and pure state
+constraints to characterize the optimal control.
+%
+A common approach to deal with pure state inequality constraints $h$ is to
+introduce a multiplier $\eta$ and append $\eta h$ to the Hamiltonian, which is
+known as the direct adjoining approach. Instead, we use Theorem 5.1
+from~\cite{hartlSurveyMaximumPrinciples1995} (see also (4.29)
+in~\cite{sethiOptimalControlTheory2019}), which is a so-called indirect
+adjoining approach, because the $\eta h^{1}$ is appended to the Hamiltonian,
+where $h^{1}$ is defined as
+\begin{align*}
+  h^{1} = \frac{dh}{dt} = \frac{\partial h}{\partial x}f + \frac{\partial h}{\partial t} .
 \end{align*}
 
-\subsection{Single vehicle}
-
-We can proof the above hypothesis and provide explicit expressions for $D_{k}$
-and $A_{k}$ of the optimal trajectory whenever the safe following constraint
-$y(t) \leq p(t)$ is never active and can essentially be ignored, either because
-there is no vehicle ahead or it is sufficiently far away.
+\begin{proof}[Proof of Proposition~\ref{prop:optimal_control} without safe
+  headway constraint]
+The first derivate of pure state constraint $h_{1}$ is given by
+\begin{align*}
+  h_{1}^{1}(x, u, t) = u - 2x_{2} u ,
+\end{align*}
+which shows that $h_{1}$ is of first-order, because the control $u$ appears
+after differentiating once.
 %
-The proof uses a variant of the Pontryagin Maximum Principle, specifically
-tailored to problems with state
-constraints~\cite{hartlSurveyMaximumPrinciples1995}.
+By adjoining $\mu g + \eta h_{1}^{1}$ to the Hamiltonian
+\begin{align*}
+  H(x, u, \lambda, t) = F(x,u,t) + \lambda f(x,u,t) = x_{1} + \lambda_{1}x_{2} + \lambda_{2}u ,
+\end{align*}
+we obtain the Lagrangian in so-called Pontryagin form
+\begin{align*}
+  L(x, u, \lambda, \mu, \eta, t) &= H(x, u, \lambda, t) + \mu g(x, u, t) + \eta h_{1}^{1}(x, u, t) \\
+  &= x_{1}  + \lambda_{1}x_{2} + \lambda_{2}u + \mu(u_{\max}^{2} - u^{2}) + \eta(u - 2x_{2}u) .
+\end{align*}
+%
+Let $\{ x^{*}(t), u^{*}(t) \}$ denote an optimal pair for
+problem~(\ref{eq:state_constraints}--\ref{eq:settings}), then this pair must
+satisfy the necessary conditions in Theorem~5.1
+from~\cite{hartlSurveyMaximumPrinciples1995}.
+%
+The Hamiltonian maximizing condition is
+\begin{align*}
+  H(x^{*}(t), u^{*}(t), \lambda(t), t) \geq H(x^{*}(t), u, \lambda(t), t)
+\end{align*}
+at each $t \in [0, T]$ for all $u$ with $g(x^{*}(t), u, t) \geq 0$ and satisfying
+\begin{align*}
+  h_{1}^{1}(x^{*}(t),u,t) \geq 0 \; \text{ whenever } \; h_{1}(x^{*}(t),u,t) = 0 .
+\end{align*}
+%
+In our case, the latter condition reads
+\begin{align*}
+  u - 2x^{*}_{2}u \geq 0 \; \text{ whenever } \; x_{2}^{*} = \pm 1 ,
+\end{align*}
+%
+which is satisfied by optimal controllers satisfying
+\begin{align}
+  \label{eq:optimal_u}
+  \begin{split}
+  u^{*}(t) =
+  \begin{cases}
+  u_{\max} &\text{ when } \lambda_{2}(t) > 0, \; x^{*}_{2}(t) < 1 , \\
+  %0 \quad &\text{ when } \lambda_{2}(t) > 0, \; x^{*}_{2}(t) = 1 , \\
+  -u_{\max} &\text{ when } \lambda_{2}(t) < 0, \; x^{*}_{2}(t) > - 1 , \\
+  %0 &\text{ when } \lambda_{2}(t) < 0, \; x^{*}_{2}(t) = - 1 , \\
+  0 &\text{ otherwise. }
+  \end{cases}
+  \end{split}
+\end{align}
 
-\newpage
+We now investigate what the costate trajectory should look like.
+The adjoint equation is given by
+\begin{align*}
+  \dot{\lambda} = - L_{x}(x^{*}, u^{*}, \lambda, \mu, \eta, t) \iff
+  \begin{cases}
+    \dot{\lambda_{1}} = -1 , \\
+    \dot{\lambda_{2}} = - \lambda_{1} + 2 \eta u^{*} .
+  \end{cases}
+\end{align*}
+%
+The Lagrange multipliers $\mu(t)$ and $\eta(t)$ must satisfy the complementary slackness conditions
+\begin{align*}
+  \mu (u_{\max}^{2} - {(u^{*})}^{2}) = 0 ,& \quad \mu \geq 0 , \\
+  \eta (x_{2} - x_{2}^{2}) = 0 ,& \quad \eta \geq 0 \; \text{ and } \; \dot{\eta} \leq 0 .
+\end{align*}
+%
+Whenever $u^{*} \neq 0$ on any open interval, then it is clear that we must have
+$x_{2} \neq \pm 1$ on that interval, so the second complementary slackness
+condition requires that we have $\eta = 0$. At isolated points where
+$u^{*} \neq 0$, we can simply choose to set $\eta = 0$. Hence, $\eta u^{*} = 0$
+everywhere and we have $\dot{\lambda_{2}}(t) = -\lambda_{1}(t) = t + c_{1}$ for
+all $t \in [0, T]$, such that
+$\lambda_{2}(t) = \frac{1}{2}t^{2} + c_{1}t + c_{2}$ for some constants
+$c_{1}, c_{2}$.
+%
+In view of~\eqref{eq:optimal_u}, this shows that $u^{*}(t)$ has at most one
+period of deceleration and at most one period of acceleration.
+%
+Assume $\lambda_{2}(t)$ has two zeros, which we denote by $t_{d}$ and $t_{a}$,
+which give the start of the deceleration period and the start of the
+acceleration period, respectively.
+
+We now show how to compute $t_{a} - t_{d}$. Let $D$ denote the duration of the
+deceleration, which must of course equal the length of the acceleration, because
+$x_{2}(0) = x_{2}(T)$. Furthermore, $D$ must satisfy both $D \leq t_{a} - t_{d}$
+and $D \leq 1 / u_{\max}$ and can thus be defined as the smallest of these two
+bounds.
+%
+%We have $x_{1}^{*}(t) = t$ for $t \in [0, t_{d}]$.
+From the vehicle dynamics follows that, for all $t \in [t_{d}, t_{d} + D]$ in
+the deceleration period, we must have
+\begin{align*}
+  x_{2}^{*}(t) = 1 - u_{\max} (t-t_{d})
+\end{align*}
+and by integration, we obtain
+\begin{align*}
+  x_{1}^{*}(t) = x_{1}^{*}(t_{d}) + (t - t_{d}) - \frac{u_{\max}}{2}(t - t_{d})^{2} .
+\end{align*}
+%Next, $x_{1}^{*}(t) = x_{1}^{*}(t_{d} + D)$, for $t \in [t_{d} + D, t_{a}]$.
+%
+Similarly, for all $t \in [t_{a}, t_{a} + D]$ in the acceleration period, we must have
+\begin{align*}
+  x_{2}^{*}(t) = u_{\max} t
+\end{align*}
+and by integration, we obtain
+\begin{align*}
+  x_{1}^{*}(t) = x_{1}^{*}(t_{a}) + \frac{u_{\max}}{2}(t - t_{a})^{2} .
+\end{align*}
+%
+Because the vehicle is stationary in $[t_{d} + D, t_{a}]$, we have
+$x_{1}^{*}(t_{a}) = x_{1}^{*}(t_{d} + D)$.
+It is now easily verified that we have
+\begin{align*}
+  x^{*}_{1}(T) = p_{0} + T + t_{d} - t_{a} .
+\end{align*}
+Recall that $x^{*}_{1}(T) = 0$, so we obtain $t_{a} - t_{d} = p_{0} + T$.
+
+We now show that $t_{a}$ is uniquely determined.
+%
+From the complementary slackness conditions, we derive that
+\begin{align*}
+  \mu(t) = 0 \; & \text{ for } t \in (0, t_{d}) , \\
+  \eta(t) = 0 \;& \text{ for } t \in (t_{d}, t_{d} + D) , \\
+  \mu(t) = 0 \; & \text{ for } t \in (t_{d} + D, t_{a}) , \\
+  \eta(t) = 0 \;& \text{ for } t \in (t_{a}, t_{a} + D) , \\
+  \mu(t) = 0 \; & \text{ for } t \in (t_{a} + D, T) .
+\end{align*}
+%
+Now together with the condition
+\begin{align*}
+  \frac{\partial L}{\partial u} |_{u=u^{*}(t)} = 0 \iff \lambda_{2} - 2 \mu u^{*} - 2 \eta x_{2} + \eta = 0 ,
+\end{align*}
+this shows that we can choose $\mu$ and $\eta$ such that $\mu(t) \geq 0$ and $\eta(t) \geq 0$ and
+\begin{align*}
+  \lambda_{2}(t) = \eta(t) \; & \text{ for } t \in (0, t_{d}) , \\
+  \lambda_{2}(t) = -2 \mu(t) \; & \text{ for } t \in (t_{d}, t_{d} + D) , \\
+  \lambda_{2}(t) = -\eta(t) \; & \text{ for } t \in (t_{d} + D, t_{a}) , \\
+  \lambda_{2}(t) = 2 \mu(t) \; & \text{ for } t \in (t_{a}, t_{a} + D) , \\
+  \lambda_{2}(t) = \eta(t) \;& \text{ for } t \in (t_{a} + D, T) .
+\end{align*}
+%
+Suppose $t_{a} + D < T$, then for $t \in (t_{a} + D, T)$, we have
+$\dot{\eta}(t) = \dot{\lambda_{2}}(t) > 0$, which contradicts the necessary
+condition $\dot{\eta}(t) \leq 0$, hence $t_{a}= T - D$. This fixes a unique
+costate trajectory $\lambda_{2}(t)$ and hence a unique optimal controller
+$u^{*}(t)$ given by~\eqref{eq:optimal_u}.
+\end{proof}
+
 
 \begin{figure}
   \centering
@@ -235,7 +480,9 @@ lane must satisfy
 as illustrated in Figure~\ref{fig:tandem_annotated}.
 %
 Conversely, given the lane length $d(v,w)$, the corresponding lane capacity is
-given by
+given by\footnote{Without Assumption~\ref{assump:same_geometry}, we cannot
+  derive such a simple formula, because it would depend on the specific lengths
+  of those vehicles currently in the system.}
 \begin{align*}
   c(v, w) = \texttt{floor}\left( \frac{d(v,w) - W - 2 p^{*}(d_{f})}{L} \right) ,
 \end{align*}
@@ -394,9 +641,8 @@ We now show how $t_{k}$ follow from the trajectory of the preceding vehicle.
 %   \label{fig:merge}
 % \end{figure}
 
-\subsubsection{Schedule time approach}
-
 \newpage
+
 \section{Trajectories in networks}
 
 \begin{figure}
@@ -521,7 +767,37 @@ Hence, we will now focus on a tandem of two intersections and investigate the
 trajectories of vehicles in this with the goal of stating sufficient conditions
 for $y_{(v,w)} \in \mathcal{S}_{(v,w)}$.
 
-\subsection{Crossing time scheduling}
+\subsection{Crossing time scheduling as extension of job-shop scheduling}
+
+The Job-Shop Scheduling Problem (JSSP) is a widely studied problem in which a
+set of $n$ jobs must be assigned to non-overlapping time slots on a set of $m$
+machines. Each job $i$ has a set of $n_{i}$ operations
+$O_{i1}, \dots, O_{in_{i}}$ that need to be executed in this order. Each
+operation $O_{ij}$ requires $p_{ij}$ processing time on machine $M_{ij}$. Each
+machine can process at most one operation and early preemption is not allowed.
+The task of the scheduler is to determine a valid schedule of start times
+$y_{ij}$ for each operation, while minimizing some objective function. Let
+$C_{ij} = y_{ij} + p_{ij}$ denote the \textit{completion time} of operation
+$O_{ij}$, then the \textit{makespan} objective is given by the latest completion
+time $\max_{i,j} C_{ij}$. Another objective is the \textit{total completion
+  time}, given by
+\begin{align*}
+  \sum_{i=1}^{n} \sum_{j=1}^{m} C_{ij} ,
+\end{align*}
+which may be intuitively be thought of as representing some sort of total cost
+of inventory, assuming we need to physically store jobs somewhere.
+
+A commonly used representation of JSSP instances is the \textit{disjunctive
+  graph} $G = (\mathcal{O}, \mathcal{C}, \mathcal{D})$, with vertices
+$\mathcal{O} = \{ O_{ik} : 1 \leq i \leq n, 1 \leq k \leq n_{i} \}$
+corresponding all the operations. The set of \textit{conjunctive arcs}
+$\mathcal{C}$ encodes all the precedence constraints
+$O_{i,k} \rightarrow O_{i,k+1} $ among each job's operations. The set of
+\textit{disjunctive edges} $\mathcal{D}$ consists of undirected edges between
+each pair of operations from distinct jobs that need to be processed on the same
+machine, effectively encoding all such \textit{conflicts}. Each valid schedule
+induces an ordering of operations on machines that is encoded by fixing the
+direction of each disjunctive edge such that we obtain a direct acyclic graph.
 
 \begin{itemize}
   \renewcommand\labelitemi{--}
@@ -541,8 +817,50 @@ cutting planes?
 }
 \end{itemize}
 
+Let $y(i,v)$ denote the crossing time of vehicle $i$ at intersection $v \in V$.
+Let $\mathcal{C}$ be the conjunctive pairs and let $\mathcal{D}^{v}$ denote the
+disjunctive pairs at intersection $v \in V$.
+%
+Writing $\texttt{conj(\dots)}$ and $\texttt{disj}(\dots)$ for the usual
+conjunctive and disjunctive constraints, we propose to solve the optimization
+problem
+\begin{subequations}\label{eq:network_problem}
+\begin{align}
+  \min_{y} \quad & \sum_{i \in \mathcal{N}} \sum_{v \in \mathcal{R}(l(i))} y(i,v) & \\
+  \text{s.t.} \quad & r_{i} \leq y(i, v_{0}(l(i))) & \text{ for } i \in \mathcal{N} , \\
+  & \texttt{conj}(y(i,v), y(j,v)) & \text{ for } (i,j) \in \mathcal{C}, v \in V , \\
+  & \texttt{disj}(y(i,v), y(j,v)) & \text{ for } \{i,j\} \in \mathcal{D}^{v}, v \in V , \\
+  & y(i, v) + d(v, w) \leq y(i, w) & \text{ for } i \in \mathcal{N}(l), (l, v, w) \in E, \label{eq:travel_delay} \\
+  & y(i, w) + \rho(v, w) \leq y(j, v) & \text{ for } (i,j,v,w) \in \mathcal{F} , \label{eq:buffer_constraints}
+\end{align}
+\end{subequations}
+where $\mathcal{F}$ is defined as
+\begin{align*}
+  \mathcal{F} = \{ (i,j,v,w) : i,j \in \mathcal{N}(l), k(i) + c(v,w) = k(j),  (l,v,w) \in E\}
+\end{align*}
+and we have $\rho(v, w) = c(v, w) L - d(v, w)$. Each $(i,j,v,w) \in \mathcal{F}$
+represents a pair of vehicles driving on the same lane $(v,w)$, for which the
+first vehicle must have made enough space in the lane before vehicle $j$ can
+enter.
+
+
 Lower bounds $\beta(i, v)$ on the crossing times of vehicles, where
 $i = (r, k) \in \mathcal{N}$ is some vehicle index and $v \in V_{r}$.
+
+There are two natural choices for the objective to optimize in this scheduling
+setting.
+%
+We minimize the time each vehicle is in the system, which is equivalent to
+minimizing the crossing time at the last intersection of each vehicle's route, written as
+\begin{align*}
+  \text{obj}_{1}(y) = \min \sum_{i \in \mathcal{N}} y(i, v_{r}(m_{r})) .
+\end{align*}
+Alternatively, it also makes sense to minimize the crossing time at every
+intersection along each vehicle's route, so we can also minimize
+\begin{align*}
+  \text{obj}_{2}(y) = \min \sum_{i \in \mathcal{N}} \sum_{v \in V_{r(i)}} y(i, v) .
+\end{align*}
+
 
 \begin{figure}
   \centering
@@ -565,15 +883,14 @@ using autoregressive models.
 %
 In the single intersection case, we argued that each schedule is uniquely
 defined by its route order $\eta$. Generalizing this to the case of multiple
-intersections, we see that a schedule is uniquely defined by the collection of
+intersections, we see that a schedule is uniquely defined by the set of
 route orders $\eta^{v}$ at each intersection $v \in V$. Instead of working with
 such a set of sequences, we will intertwine the sequences to obtain a single
 \textit{crossing sequence} $\eta$, which is a sequence of pairs $(r, v)$ of a
 route $r \in \mathcal{R}$ at some intersection $v \in V_{r}$ and we will refer
 to such a pair as a \textit{crossing}. Of course, this crossing sequence can be
 constructed in many different ways, because it does not matter in which order
-the intersections are considered, to which we will refer as the
-\textit{intersection visit order}.
+the intersections are considered, which is illustrated in Figure~\ref{fig:solution_equivalence}.
 % \begin{align*}
 %   | \{ t : \nu_{t} = v \} | = |\eta^{v}| \quad \text{ for each } v \in V ,
 % \end{align*}
@@ -597,25 +914,52 @@ We again emphasize that multiple sequences of actions lead to the same schedule,
 because the order in which intersections are considered does not matter for the
 final schedule, which is illustrated in Figure~\ref{fig:solution_equivalence}.
 %
-The models that we study will mostly be parameterized as some function of the
-disjunctive graph representation $G_{t}$ of partial schedule $s_{t}$, so an
+The models that we study can be understood as being parameterized as some
+function of the disjunctive graph $G_{t}$ of partial schedule $s_{t}$, so an
 alternative way of writing~\eqref{eq:autoregressive} that emphasizes this is
-\begin{align*}
+\begin{align}
   p(\eta = ((r_{1}, v_{1}), \dots, (r_{N}, v_{N})) \; | \; s) = \prod_{t=1}^{N} p(r_{t}, v_{t} | G_{t-1}) .
-\end{align*}
-
-Instead of modeling the probability distribution $p(r_{t}, v_{t} | G_{t-1})$
-over crossings, we apply the chain rule to factorize this joint probability as
-\begin{align*}
-  p(r_{t}, v_{t} | G_{t-1}) = p(r_{t} | v_{t} , G_{t-1}) p (v_{t} | G_{t-1}) .
-\end{align*}
-This allows us to consider models that assume some fixed intersection visit
-order $\mu$, such that instead of a single next action, the model should model a
-set of actions, one for each intersection.
+\end{align}
 %
-We will show that $\mu$ has a considerable impact on the final schedule quality.
-However, it is not clear a priori which $\mu$ is best, so we will propose some
-possible ways to define $p(v_{t} | G_{t-1})$.
+Not all routes are valid at every intersection, so instead of modeling the joint
+probability distribution $p(r_{t}, v_{t} | G_{t-1})$ over crossings, we apply
+the chain rule to factorize this as
+\begin{align}
+  p(r_{t}, v_{t} | G_{t-1}) = p(r_{t} | v_{t} , G_{t-1}) p (v_{t} | G_{t-1}) .
+\end{align}
+In this case, the model $p(r_{t} | v_{t}, G_{t-1})$ can be thought of as
+predicting a set of actions, one for each intersection.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/network/solution_equivalence}
+  \caption{When each route order is locally fixed at every intersection, the
+    global crossing sequence is not uniquely determined, because these local
+    sequences may be merged in any order. Suppose we have a tandem of two
+    intersections and a horizontal arrows correspond to taking the next local
+    action at intersection $v$, a vertical arrows correspond to taking next
+    local action at intersection $w$. Each valid crossing sequence corresponds
+    to some path from the top-left to the bottom-right corner. Although any such
+    crossing sequence produces the same schedule, it might be that our
+    autoregressive model fits better on some sequences than others. For example,
+    we might expect that sequences on the boundary of the grid, shown in the
+    left grid, are harder to learn from data than sequences that stay closer to
+    the diagonal, like in the right grid. The intuition is that we need to
+    ``look into the future'' more to learn the former, while in the latter
+    trajectories, progress in the two intersections is more balanced.}
+  \label{fig:solution_equivalence}
+\end{figure}
+
+In the general class of autoregressive models for inputs and outputs with sets,
+of which our model above is a special case (we have a set of sequences as
+output), it has been noted before that the order in which inputs or outputs are
+presented to the model during training has a considerable impact on the eventual
+model fit~\cite{vinyalsOrderMattersSequence2016}.
+%
+For our model, we also expect to find such differences. Specifically, we will
+investigate the impact of the order in which intersections are visited, which is
+determined by $p(v_{t} | G_{t-1})$. We now propose some heuristic ways to define
+$p(v_{t} | G_{t-1})$. Later, we will consider a neural network parameterization.
 % random
 First of all, the simple \textit{random} strategy would be to sample some
 intersection with pending crossings at each step.
@@ -627,13 +971,16 @@ example follow some topological order. We use the term ``boundary'' because this
 strategy produces trajectories along the boundary of the grid in
 Figure~\ref{fig:solution_equivalence}.
 % ``alternate''
-In the \textit{alternating} strategy, we keep alternating between intersection
-to keep the number of scheduled vehicles balanced among them. This produces
-trajectories that can be understood as being close to the ``diagonal'' of the
-grid in Figure~\ref{fig:solution_equivalence}.
+In the \textit{alternating} strategy, we keep alternating between intersection to keep
+the number of scheduled vehicles balanced among them. This produces trajectories
+that can be understood as being close to the ``diagonal'' of the grid in
+Figure~\ref{fig:solution_equivalence}. Again, the order in which we alternate between intersections may
+again be based on some topological order.
 
+
+\paragraph{Threshold heuristics.}
 It is straightforward to extend the threshold rule to networks of
-intersections, when assuming a fixed intersection visit order. Each time some
+intersections, when assuming a fixed intersection order. Each time some
 next intersection is visited, we apply the single intersection threshold rule to
 pick the next route. This is straightforward to do, because we can just consider
 the disjunctive subgraph induced by the nodes belonging to that intersection to
@@ -645,6 +992,7 @@ tune the threshold on small networks and then apply it on larger ones.
 
 
 \subsection{Neural constructive heuristic}
+\label{sec:neural_constructive}
 
 We will now propose a neural network parameterization of
 $p(r_{t} | v_{t}, G_{t-1})$ and train it based on optimal schedules in a
@@ -654,7 +1002,8 @@ distribution over routes at every intersection.
 %
 The training data set $\mathcal{X}$ consists of pairs
 $(G_{t-1}, (r_{t}, v_{t}))$, to which we refer to as \textit{state-action} pairs
-to draw the parallel with the terminology used in reinforcement learning.
+to draw the parallel with the terminology used in the reinforcement learning
+literature.
 %
 To obtain these pairs, we sample a collection of problem instances, which are
 solved to optimality using a MILP solver. For each optimal schedule, we compute
@@ -663,31 +1012,59 @@ the corresponding optimal route order $\eta^{v}$ for each intersection.
 From these, we can construct $\mathcal{X}$ in different ways.
 % sample a single intersection order for each instance
 For example, for each solved instance, we can randomly select some intersection
-visit order $\mu$, which fixes the crossing order $\eta$. We can then replay
+order $\mu$, which fixes the crossing order $\eta$. We can then replay
 this sequence of actions step-by-step to obtain the corresponding sequence of
 state-action pairs.
 % multiple intersection order per instance
 The model might become more robust when training on multiple samples of
-intersections visit orders per instance.
+intersections orders per instance.
 % fixed intersection order
-Alternatively, we can consider one of the fixed intersection visit orders
-described at the start of this section (random, exhaustively, alternating).
+Alternatively, we can consider one of the fixed intersection orders
+described at the start of this section (random, boundary, alternating).
 % lookahead
 Furthermore, combined with one of the above strategies, we can also employ some
 kind of fixed lookahead procedure, as illustrated in
 Figure~\ref{fig:state_action_collection}.
 % inference
-At inference time, use the same intersection visit order as during training and
-at each step we select greedily select $r_{t}$.
+At inference time, we use the same intersection order as during training and at
+each step we greedily select $r_{t}$.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1.2]{figures/network/state_action_collection}
+  \caption{Possible strategy for collecting state-action pairs: one action
+    look-ahead. At every state $s_{t}$ with a set of possible actions
+    $\mathcal{A}(s_{t})$, we add all state-action pairs
+    $\{ (s, a) : a \in \mathcal{A}(s) \}$, but we pick a single action $a^{*}$
+    to move to the next state. In the figure, the state-action pairs are
+    depicted as solid arrows. The encircled dots are the states that are
+    actually visited. Observe that this procedure can be naturally generalized
+    to a look-ahead of arbitrary depth.}
+  \label{fig:state_action_collection}
+\end{figure}
 
 We will now describe how the model is parameterized based on recurrent
-embeddings of the sequences of crossing time lower bounds for unscheduled
-vehicles at each crossing, exactly the same as how we defined the
-\textit{horizons} in the single intersection model. Each such horizon is
-embedded using an Elman RNN. These embeddings are then fed through a feedforward
-network to produce a logit for each crossing, see Figure~\ref{fig:rnn_model}.
-
-\input{data-network/comparison-woven.tex}
+embeddings of the sequences of crossing time lower bounds at each crossing, in a
+somewhat similarly to how we used the horizons in the single intersection model.
+%
+Let $k(r, v)$ denote the number of scheduled vehicles at crossing $(r, v)$ and
+let $n_{r}$ denote the total number of vehicles on route $r$. For each crossing
+$(r, v)$, consider the earliest crossing time of the next unscheduled vehicle,
+which we denote as
+\begin{align*}
+  T(r, v) = \beta(r, k(r, v) + 1, v) .
+\end{align*}
+We define the \textit{horizon} of crossing $(r, v)$ to be the sequence of relative lower bounds
+\begin{align*}
+  h(r, v) = (\beta(r, k(r, v) + 2, v) - T, \dots, \beta(r, n_{r}, v) - T) .
+\end{align*}
+%
+Each such horizon is embedded using an Elman RNN. To produce a logit for each
+crossing, these embeddings are fed through a feedforward network, consisting of
+two hidden layers of size 128 and 64 neurons with relu activation and batch
+normalization layers in between. See Figure~\ref{fig:rnn_model} for a schematic
+overview of the architecture. {\color{Navy} Next: instead of $h(r, v)$, feed
+  $(T(r, v), h(r, v))$ to the FF.}
 
 \begin{figure}
   \centering
@@ -700,56 +1077,46 @@ network to produce a logit for each crossing, see Figure~\ref{fig:rnn_model}.
   \label{fig:rnn_model}
 \end{figure}
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.4\textwidth]{figures/network/solution_equivalence}
-  \caption{When we fix the ordering of actions locally at every intersection,
-    the global order of actions is not unique, because the local sequences may
-    be merged in any way. Suppose we have a tandem of two intersections and the
-    horizontal arrows correspond to taking the next local action at intersection
-    1, the vertical arrows correspond to taking next local action at
-    intersection 2. The figure shows two possible global orders. Of course, the
-    exact global order does not matter for the final schedule. However, it might
-    be that trajectories near the boundary of the grid are harder to learn from
-    data than trajectories that stay closer to the diagonal. The intuition is
-    that we need to ``look into the future'' more to learn the former, while in
-    the latter trajectories, progress in the two intersections is more balanced.}
-  \label{fig:solution_equivalence}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=1.5]{figures/network/state_action_collection}
-  \caption{Possible strategy for collecting state-action pairs: one action
-    look-ahead. At every state $s$ with a set of possible actions
-    $\mathcal{A}(s)$, we add all state-action pairs
-    $\{ (s, a) : a \in \mathcal{A}(s) \}$, but we pick a single action $a^{*}$
-    to move the automaton further. In the figure, the state-action pairs are
-    depicted as solid arrows. The encircled dots are the states that are
-    actually visited. Observe that this procedure can be naturally generalized
-    to a look-ahead of arbitrary depth.}
-  \label{fig:state_action_collection}
-\end{figure}
-
-\subsection{Performance evaluation}
-
-For some given problem instance, let $N$ denote the length of a crossing
-sequence, so it is also the total number of vehicle-intersection pairs $(i, v)$
-that need to be scheduled. To allow a fair comparison of methods accross
-instances of different sizes, both in terms of the number of vehicles as the
-size of the network, we define the objective of schedule $y$ as the average
-delay per vehicle-intersection pair, as given by
+To train the model, we use the Adam optimizer with learning rate~$10^{-4}$ and a
+batch size of $40$ state-action pairs. We experienced a case of the exploding
+gradients problem when we did not use the batch normalization layers. To allow a fair comparison of methods accross instances of different
+sizes, both in terms of the number of vehicles as the size of the network, we
+adapt both objective as follows.
+% objective variant 1
+For the first variant, we define
 \begin{align*}
-  \textrm{obj}(y) = \frac{1}{N} \sum_{i \in \mathcal{N}} \sum_{v \in V_{r(i)}} y(i, v) - a(i, v) .
+  \text{obj}_{1}^{*}(y) = \frac{1}{|\mathcal{N}|}\min \sum_{i \in \mathcal{N}} y(i, v_{r}(m_{r})) - a(i, v_{r}(m_{r})) .
 \end{align*}
+Given some problem instance, let $N$ denote the length of a crossing sequence,
+so it is also the total number of vehicle-intersection pairs $(i, v)$ that need
+to be scheduled. For the second objective variant, we consider the average delay
+per vehicle-intersection pair, as given by
+\begin{align*}
+  \text{obj}_{2}^{*}(y) = \frac{1}{N} \sum_{i \in \mathcal{N}} \sum_{v \in V_{r(i)}} y(i, v) - a(i, v) .
+\end{align*}
+For the current comparison we use $\text{obj}_{2}^{*}$, the results are listed
+in Table~\ref{tab:results}.
+
+\input{data-network/comparison-woven.tex}
 
 
-{\color{Navy} We will use the performance of threshold heuristic as a baseline
-  when evaluating heuristics based on a neural architecture. Furthermore, it
-  also provides a \textit{baseline} during reinforcement learning, reducing the
-  variance of the REINFORCE estimator. }
+\subsection{Reinforcement learning}
 
+Instead of using a fixed training set $\mathcal{X}$ of state-action pairs during
+training, we can fit our model from the perspective of a reinforcement learning
+problem, which we already alluded to in Section~\ref{sec:neural_constructive}.
+%
+More precisely, given some scheduling problem instance $s$, we are dealing with
+a Deterministic Markov Decision Process (DMDP), where partial disjunctive graphs
+serve as states and actions correspond to crossings.
+%
+The potential benefit of using reinforcement learning is that we do not have to
+fix an intersection order: our hope is that the training procedure will
+automatically converge to some good intersection order.
 
+{\color{Navy} The threshold heuristic ($\tau = 0$) can provide a
+  \textit{baseline} for reinforcement learning, reducing the variance of the
+  REINFORCE estimator.}
 
 \newpage
 \subsection{Network-agnostic architecture}
