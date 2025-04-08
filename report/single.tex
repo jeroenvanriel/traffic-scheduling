@@ -664,10 +664,13 @@ order, we construct it in a step-by-step fashion. At every step, the partial
 route order induces a partial vehicle ordering $\pi$, considered to be a
 permutation of the set of scheduled vehicles.
 %
-It may be helpful to model this process as a deterministic finite-state
-automaton, where the set of route indices acts as the input alphabet
-$\mathcal{R} = \{ 1, \dots, n \}$. Let $S$ denote the state space and let
-$\delta: S \times \mathcal{R} \rightarrow S$ denote the transition function.
+It may be helpful to model this process as a finite-state automaton, where the
+set of route indices acts as the action space\footnote{We will later define a
+  reward, which turns the automaton into a deterministic Markov decision
+  process, so we find it more natural to say ``action space'' instead of the
+  common terminology ``input alphabet''.} $\mathcal{R} = \{ 1, \dots, n \}$. Let $S$
+denote the state space and let $\delta: S \times \mathcal{R} \rightarrow S$ denote the transition
+function.
 % states
 Let $s$ denote an instance of crossing time scheduling
 problem~\eqref{eq:crossing_time_scheduling}. We consider $s$ to be a fixed part
@@ -676,7 +679,7 @@ state is the current partial ordering $\pi$. The initial state is
 $s_{0} = (s, \varnothing)$.
 % transitions
 Let $s_{t} = (s, \pi) \in S$ denote some state and let $r \in \mathcal{R}$ be the next
-input that was chosen. Let $i$ denote the next unscheduled vehicle on route $r$,
+action that was chosen. Let $i$ denote the next unscheduled vehicle on route $r$,
 then the system transitions to $s_{t+1} = (s, \pi \mdoubleplus i)$, where
 $\mdoubleplus$ denotes sequence concatenation. If there was no next unscheduled
 vehicle $i$, the transition is undefined.
@@ -779,7 +782,7 @@ that minimizes the average empirical objective over some set of training
 instances $\mathcal{X}$, by defining
 %
 \begin{align*}
-  \hat{\tau} = \arg\min_{\tau \geq 0} \sum_{s \in \mathcal{X}} \textrm{obj}(y_{\tau}(s)) .
+  \tau(\mathcal{X}) = \arg\min_{\tau \geq 0} \sum_{s \in \mathcal{X}} \textrm{obj}(y_{\tau}(s)) .
 \end{align*}
 
 With the specific choice $\tau = 0$, the threshold rule is related to the \textit{exhaustive policy}
@@ -858,6 +861,19 @@ the vector.
 Using some fully connected neural network $f$, this global embedding is mapped to
 the probability distribution $p_{\theta}(\eta_{t+1} | s_{t}) = f(H(s_{t}))$.
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/single/embedding}
+  \caption{Schematic overview of the neural heuristic. The distribution over the
+    next route is parameterized as
+    $p_{\theta}(\eta_{t+1} | s_{t}) = f(H(s_{t}))$, which is computed from the
+    current route horizons $h$ via embedding $\bar{h}$ and the cyling trick to
+    obtain $H$. Observe that the particular cycling shown in the figure
+    corresponds to a situation in which the current route is
+    $\eta_{t} = 2$.}\label{fig:neural_embedding}
+\end{figure}
+
+
 Note that the above model depends on the parameters of $f$ and possibly on the
 parameters of the embedding, when using the recurrent approach. Let $\theta$
 denote the vector of all these parameters.
@@ -886,17 +902,6 @@ lanes. We ignore lanes that have no unscheduled vehicles left and take the
 argmax of the remaining probabilities. We will denote the corresponding complete
 schedule by $\hat{y}_{\theta}(s)$.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\textwidth]{figures/single/embedding}
-  \caption{Schematic overview of how
-    $p_{\theta}(\eta_{t+1} | s_{t}) = f(H(s_{t}))$, the conditional distribution
-    over the next route to be chosen, is computed from the current route
-    horizons via embedding and the cyling trick. Observe that this particular
-    cycling corresponds to a situation in which the current route is
-    $\eta_{t} = 2$.}\label{fig:neural_embedding}
-\end{figure}
-
 \subsection{Reinforcement learning}
 
 % imitation learning -> RL (on/off-policy)
@@ -909,11 +914,10 @@ a fixed separate policy for data collection are referred to as
 \textit{off-policy}.
 
 % reward definition
-Training policies using the reinforcement learning paradigm requires a
-definition of a reward.
+The reinforcement learning paradigm requires the definition of a reward.
 %
 For each transition of the state automaton, we can define a corresponding
-reward, effectively yielding a deterministic Markov Decision Process (MDP).
+reward, effectively yielding a deterministic Markov decision process.
 Specifically, we define the reward at the transition to state $t$ to be
 \begin{align*}
   R_{t} = \sum_{i \in \mathcal{N}} \beta_{t-1}(i) - \beta_{t}(i) .
@@ -927,28 +931,42 @@ actions (equal to the total number of vehicles in the instance). Therefore,
 maximizing the episodic reward corresponds to minimizing of the objective, as
 desired.
 
+Let the return at step $t$ be defined as
+\begin{align*}
+  G_{t} = \sum_{k=t + 1}^{T} R_{k} ,
+\end{align*}
+where $T$ denotes the number of total steps, which is fixed in our case.
 
 % REINFORCE
 Policy-based methods work with an explicit parameterization of the policy. The
 model parameters are then tuned based on experience, often using some form of
 (stochastic) gradient descent to optimize the expected total return.
 %
-Therefore, the gradient of the expected total return plays a central role. The following relationship is known as the Policy Gradient Theorem.
+Therefore, the gradient of the expected return
+plays a central role. The
+following identity is generally known as the Policy Gradient Theorem:
 \begin{align*}
-  \nabla \mathbb{E}_{a \sim p_{\theta}(a | s)} R(s, a) &= \nabla \sum_{a} p_{\theta}(a | s) R(s, a) \\
-  &= \sum_{a} \nabla p_{\theta}(a | s) R(s, a) \\
-  &= \sum_{a} p_{\theta}(a | s) \frac{\nabla p_{\theta}(a | s)}{p_{\theta}(a | s)} R(s, a) \\
-  &= \mathbb{E}_{a \sim p_{\theta}(a | s)} \left[  \frac{\nabla p_{\theta}(a | s)}{p_{\theta}(a | s)} R(s, a) \right] \\
-  &= \mathbb{E}_{a \sim p_{\theta}(a | s)} [ \nabla \log p_{\theta}(a | s) R(s, a) ] .
+  \nabla \mathbb{E}_{p_{\theta}} G_{0} &\propto \sum_{s} \mu(s) \sum_{a} q_{p_{\theta}}(s, a) \nabla p_{\theta}(a | s) \\
+  &= \mathbb{E}_{p_{\theta}}\left[ \sum_{a} q_{p_{\theta}} (S_{t}, a) \nabla p_{\theta} (a | S_{t}) \right] \\
+  &= \mathbb{E}_{p_{\theta}}\left[ \sum_{a} p_{\theta}(a | S_{t}) q_{p_{\theta}} (S_{t}, a) \frac{\nabla p_{\theta} (a | S_{t})}{p_{\theta} (a | S_{t})} \right] \\
+  &= \mathbb{E}_{p_{\theta}}\left[ q_{p_{\theta}} (S_{t}, A_{t}) \frac{\nabla p_{\theta} (A_{t} | S_{t})}{p_{\theta} (A_{t} | S_{t})} \right] \\
+  &= \mathbb{E}_{p_{\theta}} \left[ G_{t} \log \nabla p_{\theta} (A_{t} | S_{t}) ] .
 \end{align*}
+% \begin{align*}
+%   \nabla \mathbb{E}_{a \sim p_{\theta}(a | s)} R(s, a) &= \nabla \sum_{a} p_{\theta}(a | s) R(s, a) \\
+%   &= \sum_{a} \nabla p_{\theta}(a | s) R(s, a) \\
+%   &= \sum_{a} p_{\theta}(a | s) \frac{\nabla p_{\theta}(a | s)}{p_{\theta}(a | s)} R(s, a) \\
+%   &= \mathbb{E}_{a \sim p_{\theta}(a | s)} \left[  \frac{\nabla p_{\theta}(a | s)}{p_{\theta}(a | s)} R(s, a) \right] \\
+%   &= \mathbb{E}_{a \sim p_{\theta}(a | s)} [ \nabla \log p_{\theta}(a | s) R(s, a) ] .
+% \end{align*}
 %
 The well-known REINFORCE estimator is a direct application of the Policy
-Gradient Theorem. It is computed by sampling some action
-$a \sim p_{\theta}(a | s)$ and then estimating the gradient as
+Gradient Theorem. At each step $t$, we update the parameters $\theta$ using a
+gradient ascent update
 \begin{align*}
-  \nabla \mathbb{E}_{a \sim p_{\theta}(a | s)} R(s, a) \approx \nabla \log p_{\theta}(a | s) R(s, a) .
+  \theta \leftarrow \theta + \alpha G_{t} \nabla \log p_{\theta}(A_{t} | S_{t}) ,
 \end{align*}
-%
+with some fixed learning rate $\alpha$.
 % add baseline to reduce variance
 To reduce variance of the estimator, we can incorporate a so-called
 \textit{baseline}, which is an estimate of the expected return of the current
