@@ -15,10 +15,7 @@ class ActionTransform(nn.Module):
 
         return torch.as_tensor(out, dtype=torch.float, device=torch.device('cuda'))
 
-    def action_transform(self, automaton, logit):
-        action = logit > 0
-        action = int(action.detach().cpu().numpy()[0])
-
+    def action_transform(self, automaton, action):
         if automaton.last_lane == None:
             lane = action
         else:
@@ -30,9 +27,13 @@ class ActionTransform(nn.Module):
 
         return lane
 
-    def heuristic(self, automaton):
-        """Perform the actual trained heuristic."""
-        return self.action_transform(automaton, self.forward(self.state_transform(automaton)))
+    def greedy_heuristic(self, automaton):
+        """Perform the actual trained heuristic by doing greedy action selection."""
+        logit = self.forward(self.state_transform(automaton))
+        #action = logit.item() > 0
+        action = logit > 0
+        action = int(action.detach().cpu().numpy()[0])
+        return self.action_transform(automaton, action)
 
 
 class PaddedEmbeddingModel(ActionTransform):

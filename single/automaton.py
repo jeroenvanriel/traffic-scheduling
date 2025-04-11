@@ -34,6 +34,8 @@ class Automaton:
         # update number of scheduled vehicles
         self.k[lane] += 1
 
+        prev_obj = sum(sum(self.LB[lane]) for lane in range(self.N))
+
         # update LB according to new partial schedule
         self.LB = LB(self.instance, {'y': self.y})
 
@@ -41,6 +43,9 @@ class Automaton:
         self.done = (self.k == self.K).all()
 
         self.last_lane = lane
+
+        # reward is change in partial objective (negative)
+        return prev_obj - sum(sum(self.LB[lane]) for lane in range(self.N))
 
 
     def exhaustive(self, lane):
