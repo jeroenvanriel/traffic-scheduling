@@ -118,7 +118,7 @@ $\gamma \leq \gamma_{1}$ and $\gamma \leq \gamma_{2}$.
 \begin{define}\label{def:stopping-trajectory}
   Given some trajectory $\gamma \in \mathcal{D}[a,b]$ and some time $\xi \in [a, b]$, consider the
   \emph{stopping trajectory} $\gamma[\xi]$ that is identical to the original trajectory until
-  $\xi$, from which it starts decelerating to a full stop, so that at time
+  $\xi$, from where it starts decelerating to a full stop, so that at time
   $t \geq \xi$, the position is given by
 \begin{subequations}
 \begin{align}
@@ -256,8 +256,8 @@ trajectory $\gamma[\xi(t_{0}, x_{0})]$.
   %denote the end of the deceleration of $\gamma_{1}[t_{c}]$,
   then under the conditions
   \begin{enumerate}[leftmargin=5em]
-    \item[(C1)\quad] $\gamma_{2} \geq \gamma_{1}[a_{1}]$,
-    \item[(C2)\quad] $b_{2} \geq t_{c} + \dot{\gamma}_{1}(t_{c}) / \omega$,
+    \item[\normalfont(C1)\quad] $\gamma_{2} \geq \gamma_{1}[a_{1}]$,
+    \item[\normalfont(C2)\quad] $b_{2} \geq t_{c} + \dot{\gamma}_{1}(t_{c}) / \omega$,
   \end{enumerate}
   there is a unique trajectory $\varphi$ such that
   \begin{enumerate}[label=(\roman*)\quad,leftmargin=5em]
@@ -270,9 +270,12 @@ trajectory $\gamma[\xi(t_{0}, x_{0})]$.
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.9]{figures/motion/rough/curvejoiningproof}
-  \caption{Sketch of the proof of Lemma~\ref{lemma:curvejoining} with some
-    stopping trajectories drawn in grey.}%
+  \includegraphics[scale=1.0]{figures/motion/rough/curvejoiningproof}
+  \caption{Sketch of some quantities used in the proof of
+    Lemma~\ref{lemma:curvejoining}, including some stopping trajectory
+    candidates drawn in grey. The one satisfying the conditions of
+    Lemma~\ref{lemma:curvejoining} is marked as $\varphi_{1}$. The little open
+    dot halfway on $\gamma_{2}$ is refered to in Remark~\ref{rem:conditions}.}%
   \label{fig:proof}
 \end{figure}
 
@@ -397,8 +400,8 @@ trajectory $\gamma[\xi(t_{0}, x_{0})]$.
     T = \{ \tau > t_{c} : g(\tau, \gamma_{2}(\tau)) = \dot{\gamma}_{2}(\tau), \; \xi(\tau, \gamma_{2}(\tau)) < t_{c} \} ,
   \end{align}
   so continuity of $g$ shows that it is a closed set (Lemma~\ref{lemma:levelset}). It is not
-  necessarily connected (see Figure \dots), so it is the union of a sequence of
-  disjoint closed intervals $T_{1}, T_{2}, \dots, T_{n}$.
+  necessarily connected (see for example Figure~\ref{fig:proof}), so it is the
+  union of a sequence of disjoint closed intervals $T_{1}, T_{2}, \dots, T_{n}$.
 
   \2 Define $\tau_{i} := \min \, T_{i}$ and let $\varphi_{i} := \varphi_{[\tau_{i}]}$
   denote the unique stopping trajectory through $(\tau_{i}, \gamma_{2}(\tau_{i}))$.
@@ -458,9 +461,9 @@ trajectory $\gamma[\xi(t_{0}, x_{0})]$.
 
   \2 We have $\gamma_{1}[a_{1}](t) \leq \gamma_{2}(t) \leq \gamma_{1}[t_{c}](t)$ for
   $t \in \{ t_{f}, t_{d} \}$, so the intermediate value theorem guarantees that
-  $s(t)$ actually exists in both cases, because there is some $\xi$ such that
-  $\gamma_{2}(t) = \gamma_{1}[\xi](t)$ and thus $s(t) = g(t, \gamma_{2}(t)) = \dot{\gamma}_{1}[\xi](t)$
-  exists.
+  $s(t)$ actually exists in both cases, because there is some
+  $a_{1} \leq \xi < t_{c}$ such that $\gamma_{2}(t) = \gamma_{1}[\xi](t)$ and thus
+  $s(t) = g(t, \gamma_{2}(t)) = \dot{\gamma}_{1}[\xi](t)$ exists.
 
   \2 In both cases above, we have
   $\dot{\gamma}_{2}(t_{c}) < \dot{\gamma}_{1}(t_{c}) = s(t_{c})$ and
@@ -469,39 +472,31 @@ trajectory $\gamma[\xi(t_{0}, x_{0})]$.
   $\dot{\gamma_{2}}(\tau_{1}) = s(\tau_{1})$, which is a consequence of the intermediate
   value theorem.
 
-  \1 If $i \geq 2$, then $\varphi_{i} > \gamma_{2}$ somewhere. Let $i \geq 1$,
-  we show that $\varphi_{i+1}(t) > \gamma_{2}(t)$ for some $t$.
+  \1 If $i \geq 2$, then $\varphi_{i} > \gamma_{2}$ somewhere.
 
-  \2 Recall the lower bound property, so $\gamma_{2}(t) \geq \varphi_{i}(t)$ and
+  \2 Let $i \geq 1$, we show that $\varphi_{i+1}(t) > \gamma_{2}(t)$ for some $t$.
+  %
+  Recall the lower bound property, so $\gamma_{2}(t) \geq \varphi_{i}(t)$ and
   $\dot{\gamma}_{2}(t) \geq \dot{\varphi}_{i}(t)$ for $t \geq \tau_{i}$.
-
-  \2 Define $\hat{\tau}_{i} := \max \, T_{i}$, such that
+  %
+  Define $\hat{\tau}_{i} := \max \, T_{i}$, such that
   $T_{i} = [\tau_{i}, \hat{\tau}_{i}]$, then by definition of $T_{i}$, there
   must be some $\delta > 0$ such that
   \begin{align}
     \gamma_{2}(\hat{\tau}_{i} + \delta) > \varphi_{i}(\hat{\tau}_{i} + \delta) ,
   \end{align}
-  since otherwise $\gamma_{2} = \varphi$ on some open neighborhood of
-  $\hat{\tau}_{i}$ and thus also
+  since otherwise $\gamma_{2} = \varphi_{i}$ on some open neighborhood of
+  $\hat{\tau}_{i}$ and then also
   \begin{align}
-    \dot{\gamma}_{2}(t) = \dot{\varphi}_{i}(t) = g(t, \varphi_{i}(t)) = g(t, \gamma_{2}(t)), \quad \text{ (recall \eqref{eq:phi-tangent}) }
+    \dot{\gamma}_{2}(t) = \dot{\varphi}_{i}(t) \overset{\text{\eqref{eq:phi-tangent}}}{=} g(t, \varphi_{i}(t)) = g(t, \gamma_{2}(t)),
   \end{align}
   which contradicts the definition of $\hat{\tau}_{i}$.
-
-  \2 Therefore, we have $\gamma_{2}(t) > \varphi_{i}(t)$ for all $t \geq \hat{\tau}_{i} + \delta$. For $t = \tau_{i+1}$ in particular, it follows that
-  \begin{align}
-    \varphi_{i+1}(\tau_{i+1}) = \gamma_{2}(\tau_{i+1}) > \varphi_{i}(\tau_{i+1}) ,
-  \end{align}
-  which shows that $\varphi_{i+1} > \varphi_{i}$ on $(\xi_{i}, \infty)$, due to
-  Property~\ref{prop:xi-unique}.
-
-  \2 Since $\xi_{i+1} < t_{c}$, we have
-  $\varphi_{i+1}(\xi_{i+1}) < \gamma_{2}(\xi_{i+1})$, but also
+  %
+  Therefore, we have $\gamma_{2}(t) > \varphi_{i}(t)$ for all $t \geq \hat{\tau}_{i} + \delta$. For
+  $t = \tau_{i+1}$, in particular, it follows that
+  $\varphi_{i+1}(\tau_{i+1}) = \gamma_{2}(\tau_{i+1}) > \varphi_{i}(\tau_{i+1})$, which shows that
+  $\varphi_{i+1} > \varphi_{i}$ on $(\xi_{i}, \infty)$, due to Property~\ref{prop:xi-unique}, but this means that
   $\varphi_{i+1}(\tau_{i}) > \varphi_{i}(\tau_{i}) = \gamma_{2}(\tau_{i})$.
-  Therefore, there must be some $\tau^{*} \in (\xi_{i+1}, \tau_{i})$, such that
-  $\varphi_{i+1}(\tau^{*}) = \gamma_{2}(\tau)$ and
-  $\dot{\varphi}_{i+1}(\tau^{*}) > \dot{\gamma}_{2}(\tau^{*})$, so
-  $\varphi_{i+1}$ crosses $\gamma_{2}$ at $\tau^{*}$.
 
   \1 If $\varphi_{i} > \gamma_{2}$ somewhere, then $i \geq 2$.
 
@@ -523,26 +518,25 @@ trajectory $\gamma[\xi(t_{0}, x_{0})]$.
   %
   Furthermore, observe that $\gamma_{2}(\tau_{0}) = \varphi_{i}(\tau_{0})$ and
   $\gamma_{2}(\tau_{i}) = \varphi_{i}(\tau_{i})$ require that
-  \begin{align}
+  \begin{align}\label{eq:distance-traveled}
     \int_{\tau_{0}}^{\tau_{i}} \dot{\gamma}_{2}(t) dt  = \int_{\tau_{0}}^{\tau_{i}} \dot{\varphi}_{i}(t) dt .
   \end{align}
 
-  \2 Since $\dot{\gamma}_{2}(\tau_{0}) < \dot{\varphi}_{i}(\tau_{0})$, there
-  must be some $t \in (\tau_{0}, \tau_{i})$ such that
-  $\dot{\gamma}_{2}(t) > \dot{\varphi}_{i}(t)$.
+  \2 Since $\dot{\gamma}_{2}(\tau_{0}) < \dot{\varphi}_{i}(\tau_{0})$, it follows
+  from~\eqref{eq:distance-traveled} that there must be some $t \in (\tau_{0}, \tau_{i})$
+  such that $\dot{\gamma}_{2}(t) > \dot{\varphi}_{i}(t)$.
+  %
+  Together with $s(\tau_{0}) = \dot{\varphi}_{i}(\tau_{0}) > \dot{\gamma}_{2}(\tau_{0})$
+  and $s(t) \leq \dot{\varphi}_{i}(t)$ for $t \in [\tau_{0}, \tau_{i}]$, this means there is some $\tau^{*}$ such
+  that $\dot{\gamma}_{2}(\tau^{*}) = s(\tau^{*})$, again as a consequence of the
+  intermediate value theorem. Therefore, $\tau^{*} \in T_{j}$ for some $j < i$, which
+  shows that $i \geq 2$.
 
-  \2 Since
-  $\dot{\gamma}_{2}(\tau_{0}) < s(\tau_{0}) = \dot{\varphi}_{i}(\tau_{0})$ and
-  $s(t) \leq \dot{\varphi}_{i}(t)$ for $t \in [\tau_{0}, \tau_{i}]$, this means
-  there is some $\tau^{*}$ such that $\dot{\gamma}_{2}(\tau^{*}) = s(\tau^{*})$,
-  again as a consequence of the intermediate value theorem. Therefore,
-  $\tau^{*} \in T_{j}$ for some $j < i$, which shows that $i \geq 2$.
 
-
-  \1 In conclusion, the above two points establish that
-  $\varphi_{i} \leq \gamma_{2}$ if and only if $i=1$, so that $\varphi := \varphi_{1}$ is
-  the unique trajectory satisfying the stated requirements.
-  \qedhere
+  \1 The above two points establish that $\varphi_{i} \leq \gamma_{2}$ if and only if $i=1$.
+  To conclude, we have shown that $\varphi := \varphi_{1}$ exists and is the unique
+  trajectory satisfying the stated requirements with $\tau = \tau_{i}$ and
+  $\xi = \xi(\tau_{i}, \gamma_{2}(\tau_{i}))$. \qedhere
 \end{outline}
 \end{proof}
 
@@ -555,11 +549,18 @@ trajectory $\gamma[\xi(t_{0}, x_{0})]$.
   \label{fig:curvejoining}
 \end{figure}
 
-\begin{remark}
-  Note that condition (C1) in Lemma~\ref{lemma:curvejoining} is necessary, because Figure \dots shows
-  a configuration in which the trajectories cannot be joined. Condition (C2)
-  is not necessary, because Figure \dots shows a valid configuration that can be
-  joined, but which does not satisfy this condition.
+\begin{remark}\label{rem:conditions}
+  It is easy to see that condition (C1) in Lemma~\ref{lemma:curvejoining} is necessary. Suppose there
+  is some $t_{x} \in (t_{c}, \infty)$ such that
+  $\gamma_{1}[a_{1}](t_{x}) > \gamma_{2}(t_{x})$, then for any other
+  $\xi \in (a_{1}, t_{c})$, we have $\gamma_{1}[\xi](t_{x}) > \gamma_{2}(t_{x})$
+  as well, due to the lower bound property of stopping trajectories, so
+  requirement \textit{(iii)} is violoated.
+  %
+  Condition (C2) is not necessary, which can for example be seen from the
+  stopping trajectory in Figure~\ref{fig:proof} satisfying the conditions
+  (in grey), which would have been valid even if $\gamma_{2}$ ended somewhat
+  earlier than $t_{f}$, for example until the open dot.
 \end{remark}
 
 Suppose we have two trajectories that cross each other exactly once.
@@ -664,7 +665,7 @@ $\gamma \in D[a, b]$.
   \includegraphics[scale=1]{figures/motion/rough/proof}
   \caption{Sketch of how the three boundaries are joined to form the
     optimal trajectory.}%
-  \label{fig:proof}
+  \label{fig:theorem-proof}
 \end{figure}
 
 \begin{figure}
