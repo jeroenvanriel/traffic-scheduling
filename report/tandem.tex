@@ -30,6 +30,9 @@
 \usepackage{lipsum}
 \usepackage[activate={true,nocompatibility},final,tracking=true,kerning=true,spacing=true,factor=500,stretch=15,shrink=15]{microtype}
 
+\usepackage{apptools}
+\AtAppendix{\counterwithin{lemma}{section}}
+
 \addtolength{\skip\footins}{2mm}
 
 \input{data/knitr_init.tex}
@@ -425,7 +428,7 @@ trajectory $\gamma[\xi(t_{0}, x_{0})]$.
   %
   Since $g(t, x)$ is continuous in $t$ and Lipschitz continuous in $x$, it is a
   consequence of the (local) existence and uniqueness theorem
-  (Picard-Lindel{\"o}f) that $\gamma_{2} = \varphi_{i}$ on $T_{i}$.
+  (see Lemma~\ref{lemma:picard}) that $\gamma_{2} = \varphi_{i}$ on $T_{i}$.
   %
   Hence, we have $\varphi_{i} = \varphi_{[\tau]}$ for any $\tau \in T_{i}$, so we regard
   $\varphi_{i}$ as being the canonical stopping trajectory for $T_{i}$.
@@ -683,11 +686,11 @@ $\gamma \in D[a, b]$.
   is open.
 \end{proof}
 
-\begin{lemma}
+\begin{lemma}\label{lemma:picard}
+  Let $D \subseteq \mathbb{R} \times \mathbb{R}^{n}$ be some closed rectangle such that
+  $(t_{0}, x_{0}) \in \interior D$.
   Let $f : D \rightarrow \mathbb{R}^{n}$ be a function that is continuous in $t$
-  and globally Lipschitz continuous in $x$. If there exists some closed
-  rectangle $D \subseteq \mathbb{R} \times \mathbb{R}^{n}$ such that
-  $(t_{0}, x_{0}) \in \interior D$, then there exists some $\varepsilon > 0$
+  and globally Lipschitz continuous in $x$, then there exists some $\varepsilon > 0$
   such that the initial value problem
   \begin{align}
     \label{eq:1}
