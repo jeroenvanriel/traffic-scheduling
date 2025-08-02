@@ -598,28 +598,28 @@ Our main interest in $\gamma_{1} * \gamma_{2}$ is due to the following property.
 \begin{lemma}
   Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{2}]$ and
   $\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$ be such that $\gamma_{1} * \gamma_{2}$ exists. All
-  trajectories $\gamma \in \mathcal{D}[a, b]$ that are such that
-  $\gamma \leq \min\{\gamma_{1}, \gamma_{2}\}$, must satisfy $\gamma \leq \gamma_{1} * \gamma_{2}$.
+  trajectories $\mu \in \mathcal{D}[a, b]$ that are such that
+  $\mu \leq \min\{\gamma_{1}, \gamma_{2}\}$, must satisfy $\mu \leq \gamma_{1} * \gamma_{2}$.
 \end{lemma}
 \begin{proof}
-  Write $\psi := \gamma_{1} * \gamma_{2}$ as a shorthand. We obviously have
-  $\gamma \leq \psi$ on $[a_{1}, \xi] \cup [\tau, b_{2}]$, so consider the interval $(\xi, \tau)$ of the joining
+  Write $\gamma := \gamma_{1} * \gamma_{2}$ as a shorthand. We obviously have
+  $\mu \leq \gamma$ on $[a_{1}, \xi] \cup [\tau, b_{2}]$, so consider the interval $(\xi, \tau)$ of the joining
   deceleration part. Suppose there exists some $t_{d} \in (\xi, \tau)$ such that
-  $\gamma(t_{d}) > \psi(t_{d})$. Because $\gamma(\xi) \leq \psi(\xi)$, this means that $\gamma$ must
-  intersect $\psi$ at least once in $\halfopen{\xi}{t_{d}}$, so let
-  $t_{c} := \sup \, \{ t \in \halfopen{\xi}{t_{d}} : \gamma(t) = \psi(t) \}$ be the latest
-  time of intersection such that $\gamma \geq \psi$ on $[t_{c}, t_{d}]$. There must be
-  some $t_{c} \in [t_{c}, t_{d}]$ such that $\dot{\gamma}(t_{v}) > \dot{\psi}(t_{v})$, otherwise
+  $\mu(t_{d}) > \gamma(t_{d})$. Because $\mu(\xi) \leq \gamma(\xi)$, this means that $\mu$ must
+  intersect $\gamma$ at least once in $\halfopen{\xi}{t_{d}}$, so let
+  $t_{c} := \sup \, \{ t \in \halfopen{\xi}{t_{d}} : \mu(t) = \gamma(t) \}$ be the latest
+  time of intersection such that $\mu \geq \gamma$ on $[t_{c}, t_{d}]$. There must be
+  some $t_{c} \in [t_{c}, t_{d}]$ such that $\dot{\mu}(t_{v}) > \dot{\gamma}(t_{v})$, otherwise
   \begin{align*}
-    \gamma(t_{d}) = \gamma(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{\gamma}(t) dt \leq \psi(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{\psi}(t) dt = \psi(d_{t}) ,
+    \mu(t_{d}) = \mu(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{\mu}(t) dt \leq \gamma(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{\gamma}(t) dt = \gamma(d_{t}) ,
   \end{align*}
   which contradicts our choice of $t_{d}$. Hence, for every
   $t \in [t_{v}, \tau]$, we have
   \begin{align*}
-    \dot{\gamma}(t) \geq \dot{\gamma}(t_{v}) - \omega (t - t_{v}) > \dot{\psi}(t_{v}) - \omega(t - t_{v}) = \dot{\psi}(t) .
+    \dot{\mu}(t) \geq \dot{\mu}(t_{v}) - \omega (t - t_{v}) > \dot{\gamma}(t_{v}) - \omega(t - t_{v}) = \dot{\gamma}(t) .
   \end{align*}
-  It follows that $\gamma(\tau) > \psi(\tau)$, which contradicts
-  $\gamma \leq \gamma_{2}$.
+  It follows that $\mu(\tau) > \gamma(\tau)$, which contradicts
+  $\mu \leq \gamma_{2}$.
 \end{proof}
 
 \newpage
