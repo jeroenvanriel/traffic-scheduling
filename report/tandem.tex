@@ -563,44 +563,34 @@ trajectory $\gamma[\xi(t_{0}, x_{0})]$.
   $t_{f}$, for example until the open dot.
 \end{remark}
 
-Suppose we have two trajectories that cross each other exactly once.
-Lemma~\ref{lemma:curvejoining} gives conditions under which, roughly speaking,
-these trajectories can be glued together to form a smooth trajectory by
-introducing a stopping trajectory in between, as illustrated in Figure~\ref{fig:curvejoining}.
-%
-Suppose we have two trajectories $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and
-$\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$ that are intersecting at exactly a
-single time $t_{c}$. We are looking for some trajectory $\psi$ that satisfies
-$\psi \in \mathcal{D}[a_{1}, b_{2}]$ and
-$\psi \leq \min\{\gamma_{1}, \gamma_{2}\}$.
-%
-When the two trajectories intersect tangentially, i.e., with equal derivatives
-at $t_{c}$, it is clear that $\min\{\gamma_{1}, \gamma_{2}\}$ is the unique
-trajectory satisfying these requirements. When the intersection is not
-tangentially, it follows from Lemma~\ref{lemma:curvejoining} that $\psi$ is
-given by
-\begin{align}
-  \psi(t) =
-  \begin{cases}
-    \gamma_{1}(t) & \text{ for } t < \tau , \\
-    \varphi(t) & \text{ for } t \in [\tau, \xi] , \\
-    \gamma_{2}(t) & \text{ for } t > \xi ,
-  \end{cases}
-\end{align}
-where $\varphi$ and $(\tau,\xi)$ are as given by
-Lemma~\ref{lemma:curvejoining}.
-%
-To conclude, the above discussion motivates and justifies the following
-definition.
+Suppose we have two trajectories that cross each other exactly once. Lemma~\ref{lemma:curvejoining}
+gives conditions under which, roughly speaking, these trajectories can be glued
+together to form a smooth trajectory by introducing a stopping trajectory in
+between, as illustrated in Figure~\ref{fig:curvejoining}. The above discussion motivates and
+justifies the following definition.
 
 \begin{define}
   Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and
   $\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$ and suppose they intersect at
   exactly a single time $t_{c}$. We write $\gamma_{1} * \gamma_{2}$ to denote
-  the unique trajectory that satisfies
-  $\gamma_{1} * \gamma_{2} \in \mathcal{D}[a_{1}, b_{2}]$ and
-  $\gamma_{1} * \gamma_{2} \leq \min\{\gamma_{1}, \gamma_{2}\}$.
+  the unique trajectory
+  \begin{align}
+    (\gamma_{1} * \gamma_{2})(t) =
+    \begin{cases}
+      \gamma_{1}(t) & \text{ for } t < \tau , \\
+      \gamma_{1}[\xi](t) & \text{ for } t \in [\tau, \xi] , \\
+      \gamma_{2}(t) & \text{ for } t > \xi ,
+    \end{cases}
+  \end{align}
+  satisfying $\gamma_{1} * \gamma_{2} \in \mathcal{D}[a_{1}, b_{2}]$, where
+  $\tau$ and $\xi$ are as given by Lemma~\ref{lemma:curvejoining}.
+  %
+  If $\gamma_{1}$ and $\gamma_{2}$ are intersecting tangentially, so
+  $\dot{\gamma}_{1}(t_{c}) = \dot{\gamma}_{2}(t_{c})$, then we define
+  $\tau=\xi=t_{c}$.
 \end{define}
+
+Our main interest in $\gamma_{1} * \gamma_{2}$ is due to the following property.
 
 \begin{lemma}
   Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{2}]$ and
