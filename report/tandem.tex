@@ -101,7 +101,27 @@
 \renewcommand{\labelitemii}{\textbullet}
 \renewcommand{\labelitemiii}{\textbullet}
 
-\section{Joining two trajectories}
+\section{Joining crossing trajectories}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{figures/motion/rough/curvejoining}
+  \caption{Two intersecting trajectories joined together by a part of a stopping
+    trajectory.}%
+  \label{fig:curvejoining}
+\end{figure}
+
+Consider two crossing trajectories $\gamma_{1}$ and $\gamma_{2}$ like in
+Figure~\ref{fig:curvejoining}. Roughly speaking, we want to construct a new
+trajectory $\mu$ by finding some times $\xi$ and $\tau$ such that
+$\mu = \gamma_{1}$ until $\xi$ and $\mu = \gamma_{2}$ after $\tau$ and such that
+full deceleration during the interval $[\xi, \tau]$ takes us from $\gamma_{1}$
+onto $\gamma_{2}$, with matching tangents.
+%
+After precisely defining the kind of trajectories we allow, we show that such a
+\emph{joined trajectory} is unique, when it exists. Furthermore, we provide a
+condition for existence and show a certain upper bounding property, which we
+will apply in the next section to characterize optimal trajectories.
 
 Let $\dot{x}(t)$ and $\ddot{x}(t)$ denote the first and second derivative of
 $x(t)$ with respect to time $t$.
@@ -348,27 +368,28 @@ stopping trajectory through each point $(t, x) \in U$.
   $(\omega + \bar{\omega})$.
 \end{proof}
 
-We are now ready to state and prove our central technical result.
+We are now ready to state and prove uniqueness of joined trajectories.
 
 \begin{lemma}\label{lemma:curvejoining}
   Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and
   $\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$ be two trajectories that are intersecting
   at exactly one time $t_{c}$ and assume
-  $\dot{\gamma}_{1}(t_{c}) > \dot{\gamma}_{2}(t_{c})$,
+  $\dot{\gamma}_{1}(t_{c}) > \dot{\gamma}_{2}(t_{c})$.
   %Define $t_{f} := t_{c} + \dot{\gamma}_{1}(t_{c}) / \omega$,
   %denote the end of the deceleration of $\gamma_{1}[t_{c}]$,
-  then under the conditions
-  \begin{enumerate}[leftmargin=5em]
-    \item[\normalfont(C1)\quad] $\gamma_{2} \geq \gamma_{1}[a_{1}]$,
-    \item[\normalfont(C2)\quad] $\dot{\gamma}_{2}(b_{2}) = 1$, %$b_{2} \geq t_{c} + \dot{\gamma}_{1}(t_{c}) / \omega$,
-  \end{enumerate}
-  there is a unique trajectory $\varphi$ such that
+  % then under the conditions
+  % \begin{enumerate}[leftmargin=5em]
+  %   \item[\normalfont(C1)\quad] $\gamma_{2} \geq \gamma_{1}[a_{1}]$,
+  %   \item[\normalfont(C2)\quad] $\dot{\gamma}_{2}(b_{2}) = 1$, %$b_{2} \geq t_{c} + \dot{\gamma}_{1}(t_{c}) / \omega$,
+  % \end{enumerate}
+  If there exists a trajectory $\varphi$ such that
   \begin{enumerate}[label=(\roman*)\quad,leftmargin=5em]
     \item $\varphi = \gamma_{1}[\xi]$, for some $\xi < t_{c}$,
     \item $\varphi(\tau) = \gamma_{2}(\tau)$ and
           $\dot{\varphi}(\tau) = \dot{\gamma_{2}}(\tau)$, for some $\tau > t_{c}$,
-    \item $\varphi \leq \gamma_{2}$.
+    \item $\varphi \leq \gamma_{2}$,
   \end{enumerate}
+  then $\varphi$ is unique.
 \end{lemma}
 
 \begin{figure}
@@ -376,9 +397,10 @@ We are now ready to state and prove our central technical result.
   \includegraphics[scale=1.0]{figures/motion/rough/curvejoiningproof}
   \caption{Sketch of some quantities used in the proof of
     Lemma~\ref{lemma:curvejoining}, including some stopping trajectory
-    candidates drawn in grey. The one satisfying the conditions of
-    Lemma~\ref{lemma:curvejoining} is marked as $\varphi_{1}$. The little open
-    dot halfway on $\gamma_{2}$ is refered to in Remark~\ref{rem:conditions}.}%
+    candidates drawn in grey. The unique stopping trajectory satisfying the requirements of
+    Lemma~\ref{lemma:curvejoining} is marked as $\varphi_{1}$.
+    % The little open dot halfway on $\gamma_{2}$ is refered to in Remark~\ref{rem:conditions}.
+  }%
   \label{fig:proof}
 \end{figure}
 
@@ -459,46 +481,46 @@ We are now ready to state and prove our central technical result.
   % small $\delta > 0$, but this contradicts the definition of $\tau'$. Therefore,
   % $\tau' = \hat{\tau}_{i}$.
 
-  \1 Next, we show that $\tau_{1}$ and thus $\varphi_{1}$ exists.
-  % and $t_{f} := t_{c} + \dot{\gamma}_{1}(t_{c}) / \omega$.
-  This part relies on conditions (C1) and (C2).
-  %
-  Note that $s(\tau) := g(\tau, \gamma_{2}(\tau))$ is a continuous function.
-  %
-  We have $\gamma_{1}[a_{1}](t) \leq \gamma_{2}(t) \leq \gamma_{1}[t_{c}](t)$ for
-  $t \in \{ t_{c}, b_{2} \}$, so the intermediate value theorem guarantees that
-  $s(t)$ actually exists in both cases, because there is some
-  $a_{1} \leq \xi < t_{c}$ such that $\gamma_{2}(t) = \gamma_{1}[\xi](t)$ and thus
-  $s(t) = g(t, \gamma_{2}(t)) = \dot{\gamma}_{1}[\xi](t)$ exists.
-  %
-  We have $\dot{\gamma}_{2}(t_{c}) < \dot{\gamma}_{1}(t_{c}) = s(t_{c})$ and
-  $\dot{\gamma}_{2}(b_{2}) = 1 \geq s(b_{2})$, so there must be some smallest
-  $\tau_{1} \in \openhalf{t_{c}}{b_{2}}$ such that
-  $\dot{\gamma}_{1}(\tau_{1}) = s(\tau_{1})$, as a consequence of the
-  intermediate value theorem.
+  % \1 Next, we show that $\tau_{1}$ and thus $\varphi_{1}$ exists.
+  % % and $t_{f} := t_{c} + \dot{\gamma}_{1}(t_{c}) / \omega$.
+  % This part relies on conditions (C1) and (C2).
+  % %
+  % Note that $s(\tau) := g(\tau, \gamma_{2}(\tau))$ is a continuous function.
+  % %
+  % We have $\gamma_{1}[a_{1}](t) \leq \gamma_{2}(t) \leq \gamma_{1}[t_{c}](t)$ for
+  % $t \in \{ t_{c}, b_{2} \}$, so the intermediate value theorem guarantees that
+  % $s(t)$ actually exists in both cases, because there is some
+  % $a_{1} \leq \xi < t_{c}$ such that $\gamma_{2}(t) = \gamma_{1}[\xi](t)$ and thus
+  % $s(t) = g(t, \gamma_{2}(t)) = \dot{\gamma}_{1}[\xi](t)$ exists.
+  % %
+  % We have $\dot{\gamma}_{2}(t_{c}) < \dot{\gamma}_{1}(t_{c}) = s(t_{c})$ and
+  % $\dot{\gamma}_{2}(b_{2}) = 1 \geq s(b_{2})$, so there must be some smallest
+  % $\tau_{1} \in \openhalf{t_{c}}{b_{2}}$ such that
+  % $\dot{\gamma}_{1}(\tau_{1}) = s(\tau_{1})$, as a consequence of the
+  % intermediate value theorem.
 
-  \2 Suppose $\gamma_{2}(t_{f}) \leq \gamma_{1}[t_{c}](t_{f})$, then it follows from the fact
-  that $g$ is non-decreasing in $x$ that
-  $g(t_{f}, \gamma_{2}(t_{f})) \leq g(t_{f}, \gamma_{1}[t_{c}](t_{f})) = \dot{\gamma}_{1}(t_{c}) - \omega(t_{f} - t_{c}) = 0$,
-  so $s(t_{f}) = 0$.
+  % \2 Suppose $\gamma_{2}(t_{f}) \leq \gamma_{1}[t_{c}](t_{f})$, then it follows from the fact
+  % that $g$ is non-decreasing in $x$ that
+  % $g(t_{f}, \gamma_{2}(t_{f})) \leq g(t_{f}, \gamma_{1}[t_{c}](t_{f})) = \dot{\gamma}_{1}(t_{c}) - \omega(t_{f} - t_{c}) = 0$,
+  % so $s(t_{f}) = 0$.
 
-  \2 Otherwise $\gamma_{2}(t_{f}) > \gamma_{1}[t_{c}](t_{f})$, then it follows
-  (from Lemma \dots) that $\gamma_{2}$ crosses $\gamma_{1}[t_{c}]$ at some time
-  $t_{d} \in (t_{c}, t_{f})$ with
-  $\dot{\gamma}_{2}(t_{d}) > \gamma_{1}[t_{c}](t_{d}) = s(t_{d})$.
+  % \2 Otherwise $\gamma_{2}(t_{f}) > \gamma_{1}[t_{c}](t_{f})$, then it follows
+  % (from Lemma \dots) that $\gamma_{2}$ crosses $\gamma_{1}[t_{c}]$ at some time
+  % $t_{d} \in (t_{c}, t_{f})$ with
+  % $\dot{\gamma}_{2}(t_{d}) > \gamma_{1}[t_{c}](t_{d}) = s(t_{d})$.
 
-  \2 We have $\gamma_{1}[a_{1}](t) \leq \gamma_{2}(t) \leq \gamma_{1}[t_{c}](t)$ for
-  $t \in \{ t_{f}, t_{d} \}$, so the intermediate value theorem guarantees that
-  $s(t)$ actually exists in both cases, because there is some
-  $a_{1} \leq \xi < t_{c}$ such that $\gamma_{2}(t) = \gamma_{1}[\xi](t)$ and thus
-  $s(t) = g(t, \gamma_{2}(t)) = \dot{\gamma}_{1}[\xi](t)$ exists.
+  % \2 We have $\gamma_{1}[a_{1}](t) \leq \gamma_{2}(t) \leq \gamma_{1}[t_{c}](t)$ for
+  % $t \in \{ t_{f}, t_{d} \}$, so the intermediate value theorem guarantees that
+  % $s(t)$ actually exists in both cases, because there is some
+  % $a_{1} \leq \xi < t_{c}$ such that $\gamma_{2}(t) = \gamma_{1}[\xi](t)$ and thus
+  % $s(t) = g(t, \gamma_{2}(t)) = \dot{\gamma}_{1}[\xi](t)$ exists.
 
-  \2 In both cases above, we have
-  $\dot{\gamma}_{2}(t_{c}) < \dot{\gamma}_{1}(t_{c}) = s(t_{c})$ and
-  $\dot{\gamma}_{2}(t_{d}) \geq s(t_{d})$ for some $t_{d} \in \openhalf{t_{c}}{t_{f}}$.
-  Hence, there must be some smallest $\tau_{1} \in \openhalf{t_{c}}{t_{d}}$ such that
-  $\dot{\gamma_{2}}(\tau_{1}) = s(\tau_{1})$, which is a consequence of the intermediate
-  value theorem.
+  % \2 In both cases above, we have
+  % $\dot{\gamma}_{2}(t_{c}) < \dot{\gamma}_{1}(t_{c}) = s(t_{c})$ and
+  % $\dot{\gamma}_{2}(t_{d}) \geq s(t_{d})$ for some $t_{d} \in \openhalf{t_{c}}{t_{f}}$.
+  % Hence, there must be some smallest $\tau_{1} \in \openhalf{t_{c}}{t_{d}}$ such that
+  % $\dot{\gamma_{2}}(\tau_{1}) = s(\tau_{1})$, which is a consequence of the intermediate
+  % value theorem.
 
   \1 If $i \geq 2$, then $\varphi_{i} > \gamma_{2}$ somewhere.
 
@@ -562,46 +584,34 @@ We are now ready to state and prove our central technical result.
 
 
   \1 The above two points establish that $\varphi_{i} \leq \gamma_{2}$ if and only if $i=1$.
-  To conclude, we have shown that $\varphi := \varphi_{1}$ exists and is the unique
+  To conclude, we have shown that if $\varphi := \varphi_{1}$ exists, it is the unique
   trajectory satisfying the stated requirements with $\tau = \tau_{i}$ and
   $\xi = \xi(\tau_{i}, \gamma_{2}(\tau_{i}))$. \qedhere
 \end{outline}
 \end{proof}
 
 
-\begin{figure}
-  \centering
-  \includegraphics[scale=1]{figures/motion/rough/curvejoining}
-  \caption{Two intersecting trajectories joined together by a part of a stopping
-    trajectory.}%
-  \label{fig:curvejoining}
-\end{figure}
+% \begin{remark}\label{rem:conditions}
+%   It is easy to see that condition (C1) in Lemma~\ref{lemma:curvejoining} is necessary. Suppose there
+%   is some $t_{x} \in (t_{c}, \infty)$ such that
+%   $\gamma_{1}[a_{1}](t_{x}) > \gamma_{2}(t_{x})$, then for any other
+%   $\xi \in (a_{1}, t_{c})$, we have $\gamma_{1}[\xi](t_{x}) > \gamma_{2}(t_{x})$
+%   as well, due to the lower bound property of stopping trajectories, so
+%   requirement \textit{(iii)} is violated.
+%   %
+%   Condition (C2) is not necessary, which can be seen from stopping trajectory
+%   $\varphi_{1}$ in Figure~\ref{fig:proof}, which satisfies the conditions, but
+%   would also have been valid if $\gamma_{2}$ ended somewhat earlier than
+%   $t_{f}$, for example until the open dot.
+% \end{remark}
 
-\begin{remark}\label{rem:conditions}
-  It is easy to see that condition (C1) in Lemma~\ref{lemma:curvejoining} is necessary. Suppose there
-  is some $t_{x} \in (t_{c}, \infty)$ such that
-  $\gamma_{1}[a_{1}](t_{x}) > \gamma_{2}(t_{x})$, then for any other
-  $\xi \in (a_{1}, t_{c})$, we have $\gamma_{1}[\xi](t_{x}) > \gamma_{2}(t_{x})$
-  as well, due to the lower bound property of stopping trajectories, so
-  requirement \textit{(iii)} is violated.
-  %
-  Condition (C2) is not necessary, which can be seen from stopping trajectory
-  $\varphi_{1}$ in Figure~\ref{fig:proof}, which satisfies the conditions, but
-  would also have been valid if $\gamma_{2}$ ended somewhat earlier than
-  $t_{f}$, for example until the open dot.
-\end{remark}
-
-Suppose we have two trajectories that cross each other exactly once. Lemma~\ref{lemma:curvejoining}
-gives conditions under which, roughly speaking, these trajectories can be glued
-together to form a smooth trajectory by introducing a stopping trajectory in
-between, as illustrated in Figure~\ref{fig:curvejoining}. The above discussion motivates and
-justifies the following definition.
+The uniqueness result justifies the following definition of joined trajectories.
 
 \begin{define}
   Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and
   $\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$ and suppose they intersect at
   exactly a single time $t_{c}$. We write $\gamma_{1} * \gamma_{2}$ to denote
-  the unique trajectory
+  the unique \emph{joined trajectory}
   \begin{align}
     (\gamma_{1} * \gamma_{2})(t) =
     \begin{cases}
@@ -610,15 +620,33 @@ justifies the following definition.
       \gamma_{2}(t) & \text{ for } t > \xi ,
     \end{cases}
   \end{align}
-  satisfying $\gamma_{1} * \gamma_{2} \in \mathcal{D}[a_{1}, b_{2}]$, where
-  $\tau$ and $\xi$ are as given by Lemma~\ref{lemma:curvejoining}.
+  satisfying $\gamma_{1} * \gamma_{2} \in \mathcal{D}[a_{1}, b_{2}]$, when it exists.
   %
-  If $\gamma_{1}$ and $\gamma_{2}$ are intersecting tangentially, so
-  $\dot{\gamma}_{1}(t_{c}) = \dot{\gamma}_{2}(t_{c})$, then we define
-  $\tau=\xi=t_{c}$.
+  If $\dot{\gamma}_{1}(t_{c}) = \dot{\gamma}_{2}(t_{c})$, then we define $\tau=\xi=t_{c}$.
 \end{define}
 
-Our main interest in $\gamma_{1} * \gamma_{2}$ is due to the following two results.
+Next, we discuss existence of joined trajectories.
+
+\begin{lemma}
+  Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and
+  $\gamma_{2} \in \mathcal{D}[a_{2},b_{2}]$. If there is some trajectory
+  $\mu \in \mathcal{D}[a_{1}, b_{2}]$ such that
+  $\mu \leq \min\{\gamma_{1}, \gamma_{2}\}$ and
+  \begin{align*}
+    \mu(a_{1}) = \gamma_{1}(a_{1}), \quad \mu(b_{2}) = \gamma_{2}(b_{2}), \\
+    \dot{\mu}(a_{1}) = \dot{\gamma}_{1}(a_{1}), \quad \dot{\mu}(b_{2}) = \dot{\gamma_{2}}(b_{2}).
+  \end{align*}
+  then $\gamma_{1} * \gamma_{2}$ exists.
+\end{lemma}
+\begin{proof}
+  There are some $\xi$ and $\tau$ with $\xi \leq \tau$, such that
+  $\{ \mu = \gamma_{1}, \dot{\mu} = \dot{\gamma_{1}} \}$ on $[a_{1}, \xi]$ and
+  $\{ \mu = \gamma_{2}, \dot{\mu} = \dot{\gamma_{2}} \}$ on $[\tau, b_{2}]$.
+\end{proof}
+
+
+Our main interest in $\gamma_{1} * \gamma_{2}$ is due to the following upper bounding
+property.
 
 \begin{lemma}\label{lemma:upperbound}
   Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{2}]$ and
@@ -646,25 +674,6 @@ Our main interest in $\gamma_{1} * \gamma_{2}$ is due to the following two resul
   It follows that $\mu(\tau) > \gamma(\tau)$, which contradicts
   $\mu \leq \gamma_{2}$.
 \end{proof}
-
-\begin{lemma}
-  Given $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and $\gamma_{2} \in \mathcal{D}[a_{2},b_{2}]$, if $\gamma_{1} * \gamma_{2}$ does not exists, then there is no $\mu \in \mathcal{D}[a_{1}, b_{2}]$ such that
-  \begin{itemize}[leftmargin=3em]
-    \item $\mu \leq \min\{\gamma_{1}, \gamma_{2}\}$,
-    \item $\mu(a_{1}) = \gamma_{1}(a_{1}), \quad \mu(b_{2}) = \gamma_{2}(b_{2})$,
-    \item $\dot{\mu}(a_{1}) = \dot{\gamma}_{1}(a_{1}), \quad \dot{\mu}(b_{2}) = \dot{\gamma_{2}}(b_{2})$.
-  \end{itemize}
-\end{lemma}
-\begin{proof}
-  Suppose $\mu$ satisfying all the above requirements exists, so there are some
-  $\xi$ and $\tau$ such that $\mu = \gamma_{1}$, $\dot{\mu} = \dot{\gamma_{1}}$
-  on $[a_{1}, \xi]$ and $\mu = \gamma_{2}$, $\dot{\mu} = \dot{\gamma_{2}}$ on
-  $[\tau, b_{2}]$, then we show that $\gamma_{1} * \gamma_{2}$ must exist.
-
-  Suppose that $\ddot{\mu} = -\omega$ not on the whole of $[\xi, \tau]$,
-  otherwise $\mu = \gamma_{1} * \gamma_{2}$.
-\end{proof}
-
 
 \section{Optimal trajectories as joined upper bounds}
 
@@ -756,8 +765,15 @@ vehicle.
 
 
 \begin{define}
-  Let $\gamma \in \mathcal{D}[a, b]$ be called \emph{alternating} if there exists
+  Let $\gamma \in \mathcal{D}[a, b]$ be called \emph{alternating} if for all $t \in [a, b]$,
+  we have $\ddot{\gamma}(t) \in \{-\omega, 0, \bar{\omega}\}$ and
+  $\ddot{\gamma}(t) = 0 \implies \dot{\gamma}(t) \in \{0, 1\}$.
 \end{define}
+
+Observe that we can distinguish four consecutive phases of an alternating
+trajectory: full speed $\dot{\gamma} = 1$, full deceleration
+$\ddot{\gamma} = -\omega$, full stop $\dot{\gamma} = 0$ and full acceleration
+$\ddot{\gamma} = \bar{\omega}$.
 
 \begin{lemma}
   Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and $\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$ be both alternating, then when $\gamma_{1} * \gamma_{2}$ exists, it is also alternating.
