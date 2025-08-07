@@ -4,16 +4,16 @@
 \usepackage{amssymb}
 \usepackage[svgnames]{xcolor}
 \usepackage{amsthm}
-\makeatletter
-\def\th@plain{%
-  \thm@notefont{}% same as heading font
-  \itshape % body font
-}
-\def\th@definition{%
-  \thm@notefont{}% same as heading font
-  \normalfont % body font
-}
-\makeatother
+% \makeatletter
+% \def\th@plain{%
+%   \thm@notefont{}% same as heading font
+%   \itshape % body font
+% }
+% \def\th@definition{%
+%   \thm@notefont{}% same as heading font
+%   \normalfont % body font
+% }
+% \makeatother
 \usepackage{dsfont}
 \usepackage{graphicx}
 \usepackage{caption}
@@ -24,6 +24,7 @@
 \usepackage{float}
 \usepackage{booktabs}
 \usepackage{enumitem}
+\usepackage{tabto}
 \usepackage{mathtools}
 \usepackage{nicematrix}
 \usepackage{nccmath}
@@ -81,6 +82,7 @@
 \newtheorem{assump}{Assumption\hspace{0.25em}\ignorespaces}
 
 \DeclareMathOperator{\interior}{int}
+\newcommand*\diff{\mathop{}\!\mathrm{d}}
 
 % cref settings
 \crefname{equation}{equation}{equations}
@@ -88,12 +90,37 @@
 
 \newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
 
-\author{Jeroen van Riel} \date{\monthyeardate\today} \title{Vehicle trajectories
-  in a tandem of intersections}
+\author{Jeroen van Riel}
+\date{\monthyeardate\today}
+
+\title{Trajectory optimization for vehicles in a lane model with minimum
+  following distance and boundary conditions}
 
 \begin{document}
 
 \maketitle
+
+\begin{abstract}
+  This section considers a model of a single-lane road on which overtaking is
+  not allowed.
+  %
+  Vehicles are modeled as double integrators with bounds on speed and
+  acceleration. Consecutive vehicles must keep some fixed \textit{following
+    distance} to avoid collisions.
+  %
+  It is assumed that vehicles enter and exit the lane at
+  predetermined \textit{schedule times}. Whenever a vehicle enters or exits, it
+  must drive at full speed.
+  %
+  For an optimization objective that, roughly speaking, minimizes the distance
+  to the end of the lane at all times, we present an algorithm to compute an
+  optimal set of trajectories.
+  %
+  Assuming some minimum lane length, we characterize feasibility of this
+  trajectory optimization problem in terms of a system of linear inequalities
+  involving the schedule times.
+  %
+\end{abstract}
 
 \newcommand\halfopen[2]{\ensuremath{[#1,#2)}}
 \newcommand\openhalf[2]{\ensuremath{(#1,#2]}}
@@ -101,7 +128,293 @@
 \renewcommand{\labelitemii}{\textbullet}
 \renewcommand{\labelitemiii}{\textbullet}
 
-\section{Joining crossing trajectories}
+\section{Lane model}
+
+Vehicles are modeled as double integrators with bounded speed and acceleration,
+which means that we only consider their longitudinal position on the lane. Let
+$\mathcal{D}[a,b]$ denote the set of valid \emph{trajectories}, which we define as all
+continuously differentiable functions $x : [a,b] \rightarrow \mathbb{R}$ satisfying the
+constraints
+\begin{align}
+  0 \leq \dot{x}(t) \leq 1 \quad \text{ and } \quad
+  {-\omega} \leq \ddot{x}(t) \leq \bar{\omega} , \quad \text{ for all } t \in [a,b] ,
+\end{align}
+for some $\omega, \bar{\omega} > 0$ and we use $\dot{x}$ and $\ddot{x}$ to
+denote the first and second derivative with respect to time $t$. When we have a
+general positive speed upper bound, we can always apply an appropriate scaling
+of the time axis and the acceleration bounds to obtain the form.
+%
+Consider positions $A, B \in \mathbb{R}$, such that $B \geq A$, which denote the
+start\footnote{We could have assumed $A=0$, but we will later piece together
+  multiple lanes to model intersections.} and end position of the lane.
+%
+Let $\bar{D}[a, b] \subset \mathcal{D}[a, b]$ denote the set of trajectories $x$ that
+satisfy the boundary conditions
+\begin{align}
+  x(a) = A \; \text{ and } \; x(b) = B .
+\end{align}
+Even further, let $D[a,b] \subset \bar{D}[a, b]$ induce the boundary conditions
+\begin{align}
+  \dot{x}(a) = \dot{x}(b) = 1 .
+\end{align}
+In words, these boundary conditions require that a vehicle arrives to and
+departs from the lane at predetermined times $a$ and $b$ and do so at full
+speed.
+
+Let $L > 0$ denote the required \textit{following distance} between consecutive
+vehicles.
+%
+Suppose we have $N$ vehicles that are scheduled to traverse the lane. For each
+vehicle $i$, let $a_{i}$ and $b_{i}$ denote the \textit{schedule time} for entry
+and exit, respectively. A feasible solution consists of a sequence of
+trajectories $x_{1}, \dots, x_{N}$ such that
+\begin{subequations}\label{eq:feasibility}
+\begin{align}
+x_{i} \in D[a_{i}, b_{i}] \quad \quad & \text{ for each } i, \\
+x_{i} \leq x_{i-1} - L \quad \quad &\text{ for each } i \geq 2,
+\end{align}
+\end{subequations}
+%
+where we use the shorthand notation $\gamma_{1} \leq \gamma_{2}$ to mean
+$\gamma_{1}(t) \leq \gamma_{2}(t)$ for all
+$t \in [a_{1}, b_{1}] \cap [a_{2}, b_{2}]$, given some
+$\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and
+$\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$.
+% We use $\gamma \leq \min \{ \gamma_{1}, \dots, \gamma_{n} \}$ as a shorthand for $\gamma \leq \gamma_{1}, \dots, \gamma \leq \gamma_{n}$.
+
+\pagebreak
+
+As optimization objective, we will consider
+\begin{align}\label{eq:objective}
+  \max \; \sum_{i=1}^{N} \int_{a_{i}}^{b_{i}} x_{i}(t) \diff t ,
+\end{align}
+which, roughly speaking, seeks to keep all vehicles as close to the end of the
+lane at all times.
+%
+In particular, we will show that optimal trajectories can be understood as the
+concatenation of at most four different types of trajectory parts. Based on this
+observation, we present an algorithm to compute optimal trajectories.
+%
+Assuming $(\omega, \bar{\omega},A,B,L)$ to be fixed, with lane length $B-A$
+sufficiently large, we will show that feasibility of the trajectory optimization
+problem is completely characterized by a system of linear inequalities in
+$a_{i}$ and $b_{i}$.
+
+Note that objective~\eqref{eq:objective} does not capture energy efficiency in
+any way. Although this is not desirable in practice, it is precisely this
+assumption that enables the analysis in this section. Deriving a similar
+characterization of feasibility and optimal trajectories under an objective that
+does model energy concumption is an interesting topic for further research.
+
+\section{Single vehicle problem}
+
+We will first consider a somewhat generalized version of the
+constraints~\eqref{eq:feasibility} for a single vehicle $i$. Therefore, we
+lighten the notation slightly by dropping the vehicle index $i$ and instead of
+$x_{i-1} - L$, we assume we are given some arbitrary \emph{lead vehicle
+  boundary} $\bar{x} \in \bar{D}[\bar{a}, \bar{b}]$, then we consider the
+optimization problem
+\begin{align}
+  \max_{x \in D[a, b]} \int_{a}^{b} x(t) \diff t \quad \text{ such that } \quad x \leq \bar{x} .
+\end{align}
+to which we will refer as the \emph{single vehicle problem}.
+
+\subsection{Necessary conditions}
+
+For every trajectory $x \in D[a,b]$, we derive two upper
+bounding trajectories $x^{1}$ and $\hat{x}$ and one lower bounding trajectory
+$\check{x}$, see Figure~\ref{fig:necessary-conditions}.
+%
+Using these bounding trajectories, we will then formulate four necessary
+conditions for feasibility of the single vehicle problem.
+
+Let the \emph{full speed boundary} $x^{1}$ be defined as
+\begin{align}
+  x^{1}(t) = A + t - a,
+\end{align}
+for all $t \in [a, b]$, then we clearly have $x \leq x^{1}$.
+%
+Next, since deceleration is at most $\omega$, we have
+$\dot{x}(t) \geq \dot{x}(a) - \omega(t - a) = 1 - \omega(t - a)$, which we
+combine with the speed constraint $\dot{x} \geq 0$ to derive
+$\dot{x}(t) \geq \max\{0, 1 - \omega (t - a) \}$. Hence, we obtain the lower
+bound
+\begin{align}\label{eq:check-x}
+  x(t) = x(a) + \int_{a}^{t} \dot{x}(\tau) \diff \tau \geq A + \int_{a}^{t} \max\{0, 1 - \omega (\tau - a) \} \diff \tau =: \check{x}(t) .
+\end{align}
+%
+Analogously, we derive an upper bound from the fact that acceleration is at most $\bar{\omega}$. Observe that we have
+$\dot{x}(t) + \bar{\omega} (b - t) \geq \dot{x}(b) = 1$, which we combine
+with the speed constraint $\dot{x}(t) \geq 0$ to derive
+$\dot{x}(t) \geq \max \{ 0, 1 - \bar{\omega}(b - t) \}$. Hence, we obtain the
+upper bound
+\begin{align}\label{eq:hat-x}
+  x(t) = x(b) - \int_{t}^{b} \dot{x}(\tau) \diff \tau
+  \leq B - \int_{t}^{b} \max\{ 0, 1 -\bar{\omega} (b - \tau) \} \diff \tau =: \hat{x}(t) .
+\end{align}
+%
+We refer to $\check{x}$ and $\hat{x}$ as the \emph{entry boundary} and
+\emph{exit boundary}, respectively.
+
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{figures/motion/rough/necessary-conditions}
+  \caption{Illustration of the four bounding trajectories
+    $\bar{x}, x^{1}, \hat{x}, \check{x}$ that bound feasible trajectories from
+    above and below. We also drew an example of a feasible trajectory $x$ in
+    blue. The horizontal axis represents time and the vertical axis corresponds
+    to the position on the lane, so the vertical dashed grey lines correspond to
+    the start and end of the lane.}%
+  \label{fig:necessary-conditions}
+\end{figure}
+
+\pagebreak
+
+\begin{lemma}\label{lemma:necessary-conditions}
+  Let $\bar{x} \in \bar{D}[\bar{a}, \bar{b}]$ and assume there exists a
+  trajectory $x \in D[a, b]$ such that $x \leq \bar{x}$, then the following
+  conditions must hold \TabPositions{3cm}
+  \begin{enumerate}[label=(\roman*)\quad,leftmargin=5em]
+    \item $b-a \geq B-A$, \tab (full speed constraint)
+    \item $\bar{b} \leq b$, \tab (downstream order constraint)
+    \item $\bar{a} \leq a$, \tab (upstream order constraint)
+    \item $\bar{x} \geq \check{x}$. \tab (entry space constraint)
+  \end{enumerate}
+\end{lemma}
+\begin{proof}
+  Each of the conditions corresponds somehow to one of the four bounding
+  trajectories defined above.
+  %
+  Observe that $x^{1}(t) = B$ for $t = a + (B-A)$, which can be interpreted as
+  the earliest time of departure from the lane. This shows that
+  $b \geq a + (B-A)$, which is equivalent with (i).
+  %
+  % When (i) is violated, $x$ must cross $x^{1}$ somewhere, which means that the
+  % maximum speed constraint must be violated.
+  When either (ii) or (iii) is violated, the constraint $x \leq \bar{x}$
+  conflicts with one of the boundary conditions $x(a) = A$ or $x(b) = B$. To see
+  that (iv) must hold, suppose that $\bar{x}(\tau) < \check{x}(\tau)$ for some
+  time $\tau$. Since $\bar{a} \leq a$, this means that $\bar{a}$ must intersect
+  $\check{a}$ from above. Therefore, any trajectory that satisfies
+  $x \leq \bar{x}$ must also intersect $\check{a}$ from above, which contradicts
+  the assumption that $x$ was a feasible solution.
+\end{proof}
+
+We show that the boundaries $\hat{x}$ and $\check{x}$ together could yield yet
+another necessary condition. It is straightforward to verify
+from~\cref{eq:hat-x,eq:check-x} that $\hat{x}(t) \geq B - 1/(2\bar{\omega})$ and
+$\check{x}(t) \leq A + 1/(2\omega)$. Therefore, whenever
+$B - A < 1/(2\bar{\omega}) + 1/(2\omega)$, these boundaries intersect for
+certain values of $a$ and $b$. Because the exact condition is somewhat
+cumbersome to characterize, we avoid this case by simply assuming that the lane
+length is sufficiently large.
+
+\begin{assump}\label{eq:AB-assumption}
+  The length of the lane satisfies $B - A \geq 1/(2\omega) + 1/(2\bar{\omega})$.
+\end{assump}
+
+\newpage
+
+\subsection{Optimal trajectories}
+
+\begin{define}
+  Consider some $\mu : [a, b] \rightarrow \mathbb{R}$, then we say $\mu$ is a
+  \emph{piecewise trajectory} if and only if $\mu$ is continuous on $[a,b]$ and
+  there exists a finite subdivision $\{t_{0}, \dots, t_{n}\}$ of $[a, b]$ such
+  that $\mu \in \mathcal{D} (t_{i}, t_{i+1})$ for every
+  $i \in \{ 0, \dots, n-1\}$.
+\end{define}
+%
+Given some piecewise trajectory $\mu$, we are looking for
+$\gamma^{*} \in \mathcal{D}[a, b]$ such that $\gamma \leq \gamma^{*}$ for all
+$\gamma \in \mathcal{D}[a, b]$ such that $\gamma \leq \mu$.
+
+\newpage
+
+We will show that the necessary conditions of
+Lemma~\ref{lemma:necessary-conditions} are also sufficient for feasibility of
+the single vehicle problem by constructing an optimal trajectory $x^{*}$.
+%
+Roughly speaking, our construction is based on some kind of \emph{concatenation}
+of trajectories $x_{1}, x_{2}$, denoted by $x_{1} * x_{2}$, which we will define
+precisely below. Using this notation, we will construct the optimal trajectory
+as $x^{*} = $ $x^{1} * (\bar{x} * \hat{x})$, see Figure~\ref{fig:theorem-proof}
+for a rough idea of the kind of construction we are after.
+
+Consider two arbitrary trajectories $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$
+and $\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$, then we define their
+\emph{minimum concatenation} to be
+\begin{align}
+  \min\{ \gamma_{1}, \gamma_{2} \}(t) := \min\{ \gamma_{1}(t), \gamma_{2}(t) \}  \quad \text{ for } \, t \in [a_{1}, b_{1}] \cap [a_{2}, b_{2}] .
+\end{align}
+%
+Suppose $\gamma_{1}$ and $\gamma_{2}$ intersect at precisely a single time
+$t_{c} \in [a_{1},b_{1}] \cap [a_{2}, b_{2}]$. When
+$\dot{\gamma}_{1}(t_{c}) = \dot{\gamma}_{2}(t_{c})$, it is easily seen that the
+minimum concatenation satisfies
+$\min\{\gamma_{1}, \gamma_{2} \} \in \mathcal{D}[a, b]$, where
+$[a, b] := [a_{1}, b_{1}] \cap [a_{2}, b_{2}]$.
+%
+When $\dot{\gamma}_{1}(t_{c}) > \dot{\gamma}_{2}(t_{c})$, we consider the
+prototypical concatenation $(\gamma_{1} * \gamma_{2})[\xi, \tau]$, by defining
+\begin{align}
+  (\gamma_{1} * \gamma_{2})[\xi, \tau](t) :=
+  \begin{cases}
+      \gamma_{1}(t) & \text{ for } t < \xi , \\
+      \gamma_{1}[\xi](t) & \text{ for } t \in [\xi, \tau] , \\
+      \gamma_{2}(t) & \text{ for } t > \tau .
+  \end{cases}
+\end{align}
+
+\begin{lemma}\label{lemma:unique}
+  If there exist an $\varphi := (\gamma_{1} * \gamma_{2})[\xi, \tau]$
+  such that
+  \begin{enumerate}[label=(\roman*)\quad,leftmargin=5em]
+    \item $\varphi(\tau) = \gamma_{2}(\tau)$ and
+          $\dot{\varphi}(\tau) = \dot{\gamma_{2}}(\tau)$
+    \item $\varphi \leq \gamma_{2}$,
+  \end{enumerate}
+  then $\varphi$ is unique.
+\end{lemma}
+
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{figures/motion/rough/proof}
+  \caption{Sketch of how the three upper bounding trajectories are joined to
+    form the optimal trajectory $x^{*} = x^{1} * (\bar{x} * \hat{x})$, drawn in
+    green, for the single vehicle problem.}%
+  \label{fig:theorem-proof}
+\end{figure}
+
+\newpage
+
+\begin{define}\label{def:stopping-trajectory}
+  Given some trajectory $x \in \mathcal{D}[a,b]$ and some time $\xi \in [a, b]$, consider the
+  \emph{stopping trajectory} $x[\xi]$ that is identical to the original trajectory until
+  $\xi$, from where it starts decelerating to a full stop, so that at time
+  $t \geq \xi$, the position is given by
+\begin{subequations}
+\begin{align}
+  x[\xi](t) &= x(\xi) + \int_{\xi}^{t} \max\{0, \dot{x}(\xi) - \omega(\tau-\xi) \} \diff \tau \\
+                     &= x(\xi) + \begin{cases}
+                                        \dot{x}(\xi)(t-\xi) - \omega(t-\xi)^{2} / 2 &\text{ for } t \leq \xi + \dot{x}(\xi) / \omega , \\
+                                        {(\dot{x}(\xi))}^{2} / (2 \omega) &\text{ for } t \geq \xi + \dot{x}(\xi) / \omega .
+                                        \end{cases} \label{eq:underbound}
+\end{align}
+\end{subequations}
+\end{define}
+
+This definition guarantees $x[\xi] \in \mathcal{D}\halfopen{a}{\infty}$.
+%
+Note that a stopping trajectory serves as a lower bound in the sense that, for any
+$z \in\mathcal{D}[c,d]$ such that $x = z$ on $[a, \xi] \cap [c, d]$, we
+have $x \leq z$ and $\dot{x} \leq \dot{z}$.
+%
+
+\newpage
+
 
 \begin{figure}
   \centering
@@ -123,44 +436,7 @@ After precisely defining the kind of trajectories we allow, we show that such a
 condition for existence and show a certain upper bounding property, which we
 will apply in the next section to characterize optimal trajectories.
 
-Let $\dot{x}(t)$ and $\ddot{x}(t)$ denote the first and second derivative of
-$x(t)$ with respect to time $t$.
-%
-Let $\mathcal{D}[a,b]$ denote the set of valid \emph{trajectories}, which we
-define as continuously differentiable functions $\gamma : [a,b] \rightarrow \mathbb{R}$
-satisfying the constraints
-\begin{align}
-  0 \leq \dot{\gamma}(t) \leq 1 \quad \text{ and } \quad
-  {-\omega} \leq \ddot{\gamma}(t) \leq \bar{\omega} , \quad \text{ for all } t \in [a,b] .
-\end{align}
-%
-For $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}], \gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$, when
-we write $\gamma_{1} \leq \gamma_{2}$ without explicitly mentioning where it applies, we mean
-$t \in [a_{1}, b_{1}] \cap [a_{2}, b_{2}]$. We also write $\gamma \leq \min \{ \gamma_{1}, \gamma_{2} \}$ as a shorthand for
-$\gamma \leq \gamma_{1}$ and $\gamma \leq \gamma_{2}$.
 
-\begin{define}\label{def:stopping-trajectory}
-  Given some trajectory $\gamma \in \mathcal{D}[a,b]$ and some time $\xi \in [a, b]$, consider the
-  \emph{stopping trajectory} $\gamma[\xi]$ that is identical to the original trajectory until
-  $\xi$, from where it starts decelerating to a full stop, so that at time
-  $t \geq \xi$, the position is given by
-\begin{subequations}
-\begin{align}
-  \gamma[\xi](t) &= \gamma(\xi) + \int_{\xi}^{t} \max\{0, \dot{\gamma}(\xi) - \omega(\tau-\xi) \} d\tau \\
-                     &= \gamma(\xi) + \begin{cases}
-                                        \dot{\gamma}(\xi)(t-\xi) - \omega(t-\xi)^{2} / 2 &\text{ for } t \leq \xi + \dot{\gamma}(\xi) / \omega , \\
-                                        {(\dot{\gamma}(\xi))}^{2} / (2 \omega) &\text{ for } t \geq \xi + \dot{\gamma}(\xi) / \omega .
-                                        \end{cases} \label{eq:underbound}
-\end{align}
-\end{subequations}
-\end{define}
-
-The above definition guarantees $\gamma[\xi] \in \mathcal{D}\halfopen{a}{\infty}$.
-%
-Note that a stopping trajectory serves as a lower bound in the sense that, for any
-$\mu\in\mathcal{D}[c,d]$ such that $\gamma = \mu$ on $[a, \xi] \cap [c, d]$, we
-have $\gamma \leq \mu$ and $\dot{\gamma} \leq \dot{\mu}$.
-%
 Furthermore, $\gamma[\xi](t)$ is a non-decreasing function in terms of either of its
 arguments, while fixing the other. To see this for $\xi$, fix any $t$ and
 consider $\xi_{1} \leq \xi_{2}$, then note that $\gamma[\xi_{1}](t)$ is a lower
@@ -337,6 +613,8 @@ stopping trajectory through each point $(t, x) \in U$.
   \qedhere
 \end{outline}
 \end{proof}
+
+\pagebreak
 
 \begin{property}
   Function $g$ is non-decreasing and Lipschitz continuous in $x$.
@@ -569,7 +847,7 @@ We are now ready to state and prove uniqueness of joined trajectories.
   Furthermore, observe that $\gamma_{2}(\tau_{0}) = \varphi_{i}(\tau_{0})$ and
   $\gamma_{2}(\tau_{i}) = \varphi_{i}(\tau_{i})$ require that
   \begin{align}\label{eq:distance-traveled}
-    \int_{\tau_{0}}^{\tau_{i}} \dot{\gamma}_{2}(t) dt  = \int_{\tau_{0}}^{\tau_{i}} \dot{\varphi}_{i}(t) dt .
+    \int_{\tau_{0}}^{\tau_{i}} \dot{\gamma}_{2}(t) \diff t  = \int_{\tau_{0}}^{\tau_{i}} \dot{\varphi}_{i}(t) \diff t .
   \end{align}
 
   \2 Since $\dot{\gamma}_{2}(\tau_{0}) < \dot{\varphi}_{i}(\tau_{0})$, it follows
@@ -615,9 +893,9 @@ The uniqueness result justifies the following definition of joined trajectories.
   \begin{align}
     (\gamma_{1} * \gamma_{2})(t) =
     \begin{cases}
-      \gamma_{1}(t) & \text{ for } t < \tau , \\
-      \gamma_{1}[\xi](t) & \text{ for } t \in [\tau, \xi] , \\
-      \gamma_{2}(t) & \text{ for } t > \xi ,
+      \gamma_{1}(t) & \text{ for } t < \xi , \\
+      \gamma_{1}[\xi](t) & \text{ for } t \in [\xi, \tau] , \\
+      \gamma_{2}(t) & \text{ for } t > \tau ,
     \end{cases}
   \end{align}
   satisfying $\gamma_{1} * \gamma_{2} \in \mathcal{D}[a_{1}, b_{2}]$, when it exists.
@@ -638,10 +916,8 @@ Next, we discuss existence of joined trajectories.
   \end{align*}
   then $\gamma_{1} * \gamma_{2}$ exists.
 \end{lemma}
-\begin{proof}
-  There are some $\xi$ and $\tau$ with $\xi \leq \tau$, such that
-  $\{ \mu = \gamma_{1}, \dot{\mu} = \dot{\gamma_{1}} \}$ on $[a_{1}, \xi]$ and
-  $\{ \mu = \gamma_{2}, \dot{\mu} = \dot{\gamma_{2}} \}$ on $[\tau, b_{2}]$.
+\begin{proof} {\color{Navy} Still todo, but I can adapt an earlier version of
+    this argument, which was previously part of Lemma 1.}
 \end{proof}
 
 
@@ -664,7 +940,7 @@ property.
   time of intersection such that $\mu \geq \gamma$ on $[t_{c}, t_{d}]$. There must be
   some $t_{c} \in [t_{c}, t_{d}]$ such that $\dot{\mu}(t_{v}) > \dot{\gamma}(t_{v})$, otherwise
   \begin{align*}
-    \mu(t_{d}) = \mu(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{\mu}(t) dt \leq \gamma(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{\gamma}(t) dt = \gamma(d_{t}) ,
+    \mu(t_{d}) = \mu(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{\mu}(t) \diff t \leq \gamma(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{\gamma}(t) \diff t = \gamma(d_{t}) ,
   \end{align*}
   which contradicts our choice of $t_{d}$. Hence, for every
   $t \in [t_{v}, \tau]$, we have
@@ -675,99 +951,17 @@ property.
   $\mu \leq \gamma_{2}$.
 \end{proof}
 
-\section{Optimal trajectories as joined upper bounds}
 
-Consider the set $D[a,b] \subset \mathcal{D}[a, b]$ of trajectories
-$\gamma$ that satisfy the following additional constraints
-\begin{align}
-  \gamma(a) = A, \quad \gamma(b) = B, \quad \dot{\gamma}(a) = \dot{\gamma}(b) = 1 ,
-\end{align}
-for some fixed $A, B$ such that
-\begin{align}\label{eq:AB-assumption}
-  B - A \geq 1/(2\omega) + 1/(2\bar{\omega}).
-\end{align}
-%Throughout the following discussion, we will assume that $A, B$ are fixed and write $D[a, b]$ instead.
-%
-For every such trajectory $\gamma \in D[a,b]$, we derive two upper bounding
-trajectories.
-%
-First of all, let $x^{1} \in D(-\infty, \infty)$ be defined as
-$x^{1}(t) = A + t - a$, then it is clearly an upper bound for any trajectory
-$\gamma \in D[a, b]$.
-%
-Furthermore, note that we have $\dot{\gamma}(t) + \bar{\omega} (b - t) \geq \dot{\gamma}(b) = 1$,
-which can be rewritten to $\dot{\gamma}(t) \geq 1 - \bar{\omega} (b - t)$. Combined with
-$\dot{\gamma}(t) \geq 0$, this gives
-\begin{align}
-  \dot{\gamma}(t) \geq \max \{ 0, 1 - \bar{\omega}(b - t) \} .
-\end{align}
-Hence, we derive the upper bound $\hat{x} \in D \openhalf{-\infty}{b}$ from the inequality
-\begin{subequations}
-\begin{align}
-  \gamma(t) &= \gamma(b) - \int_{t}^{b} \dot{\gamma}(\tau) d \tau \\
-  &\leq B - \int_{t}^{b} \max\{ 0, 1 -\bar{\omega} (b - \tau) \} d \tau =: \hat{x}(t) .
-\end{align}
-\end{subequations}
-%and note that $\hat{x} \in D\openhalf{-\infty}{b}$.
-%
-
-\begin{lemma}
-  Optimal control problem
-  \begin{align}
-    \max_{x \in D[a,b]} \int_{a}^{b} x(t) dt
-  \end{align}
-  has a solution if and only if
-  \begin{align}\label{eq:travel-constraint}
-    b-a \geq B-A ,
-  \end{align}
-  and the optimal solution is given
-  by $x^{1} * \hat{x}$.
-\end{lemma}
-\begin{proof}
-  Let $\gamma_{1} = x^{1}$ and $\gamma_{2} = \hat{x}$, then we show that the
-  conditions of Lemma~\ref{lemma:curvejoining} are satisfied. Note that
-  condition (C2) is always satisfied by definition of $\hat{x}$.
-  %
-  It follows from the definition of $x^{1}$ and
-  Definition~\ref{def:stopping-trajectory} that $x^{1}[a] \leq A + 1/(2\omega)$.
-  Similarly, the definition of $\hat{x}$ ensures that
-  $\hat{x} \geq B - 1/(2\bar{\omega})$. Therefore, by
-  assumption~\eqref{eq:AB-assumption} and \eqref{eq:travel-constraint}, we have
-  $\gamma_{2} = \hat{x} \geq x^{1}[a] = \gamma_{1}[a]$, which shows that
-  condition (C1) is satisfied.
-  %
-  Since condition (C1) is also necessary (Remark~\ref{rem:conditions}), we may
-  conclude that a solution exists if and only if $b-a \geq B-A$. It follows
-  immediately from Lemma~\ref{lemma:upperbound} that $x^{1} * \hat{x}$ is an
-  optimal solution if the problem is feasible, because any feasible solution $x$
-  must satisfy $x \leq \min\{x^{1}, \hat{x}\}$.
-\end{proof}
-
-We extend the previous lemma by considering an additional upper bound $\bar{x}$
-for trajectories, to model a \emph{lead vehicle} driving in front of the current
-vehicle.
-
-\begin{lemma}\label{lemma:lead-constraint}
-  Let $\bar{x} \in \mathcal{D}[\bar{a}, \bar{b}]$, then optimal control
-  problem
-  \begin{align}
-    \max_{x \in D[a,b]} \int_{a}^{b} x(t) dt \quad \text{ such that } \; x \leq \bar{x} .
-  \end{align}
-  has a solution if and only if the joined trajectory
-  $x^{1} * (\bar{x} * \hat{x})$ exists. When a solution exists, this joined
-  trajectory is also an optimal solution.
-\end{lemma}
-\begin{proof}
-  Note that $x^{1}$, $\hat{x}$ and $\bar{x}$ are all upper bounds for any
-  feasible trajectory, so optimality of $x^{1} * (\bar{x} * \hat{x})$ follows
-  immediately from Lemma~\ref{lemma:upperbound}.
-\end{proof}
-
+\newpage
+\section{Computing optimal trajectories}
 
 \begin{define}
   Let $\gamma \in \mathcal{D}[a, b]$ be called \emph{alternating} if for all $t \in [a, b]$,
-  we have $\ddot{\gamma}(t) \in \{-\omega, 0, \bar{\omega}\}$ and
-  $\ddot{\gamma}(t) = 0 \implies \dot{\gamma}(t) \in \{0, 1\}$.
+  we have
+  \begin{align}
+    \ddot{\gamma}(t) \in \{-\omega, 0, \bar{\omega}\} \quad \text{ and } \quad
+  \ddot{\gamma}(t) = 0 \implies \dot{\gamma}(t) \in \{0, 1\}.
+  \end{align}
 \end{define}
 
 Observe that we can distinguish four consecutive phases of an alternating
@@ -778,9 +972,6 @@ $\ddot{\gamma} = \bar{\omega}$.
 \begin{lemma}
   Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and $\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$ be both alternating, then when $\gamma_{1} * \gamma_{2}$ exists, it is also alternating.
 \end{lemma}
-\begin{proof}
-
-\end{proof}
 
 \begin{remark}
   From the proof above, it also becomes clear that a connecting deceleration can only happen between the following four pairs of partial trajectories:
@@ -792,22 +983,15 @@ $\ddot{\gamma} = \bar{\omega}$.
   \end{align*}
 \end{remark}
 
+\section{Feasibility as system of linear inequalities}
 
-\begin{figure}
-  \centering
-  \includegraphics[scale=1]{figures/motion/rough/proof}
-  \caption{Sketch of how the three upper bounding trajectories are joined to
-    form the optimal trajectory $x^{1} * (\bar{x} * \hat{x})$ in
-    Lemma~\ref{lemma:lead-constraint}.}%
-  \label{fig:theorem-proof}
-\end{figure}
 
-\begin{figure}
-  \centering
-  \includegraphics[scale=1]{figures/motion/rough/bufferconstraint}
-  \caption{Illustration of buffer constraint.}%
-  \label{fig:bufferconstraint}
-\end{figure}
+% \begin{figure}
+%   \centering
+%   \includegraphics[scale=1]{figures/motion/rough/bufferconstraint}
+%   \caption{Illustration of buffer constraint.}%
+%   \label{fig:bufferconstraint}
+% \end{figure}
 
 
 \newpage
