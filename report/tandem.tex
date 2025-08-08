@@ -122,6 +122,8 @@
   %
 \end{abstract}
 
+% \tableofcontents
+
 \newcommand\halfopen[2]{\ensuremath{[#1,#2)}}
 \newcommand\openhalf[2]{\ensuremath{(#1,#2]}}
 
@@ -314,9 +316,197 @@ length is sufficiently large.
   The length of the lane satisfies $B - A \geq 1/(2\omega) + 1/(2\bar{\omega})$.
 \end{assump}
 
-\newpage
+\pagebreak
 
 \subsection{Optimal trajectories}
+
+Assuming the four conditions of Lemma~\ref{lemma:necessary-conditions} hold, we will construct an optimal
+solution $x^{*}$ for the single vehicle problem, thereby showing that these
+conditions are thus also sufficient for feasibility.
+%
+First, we construct $x^{*}$ by combining the upper boundaries $\bar{x}$,
+$\hat{x}$ and $x^{1}$ in a certain way to obtain a smooth trajectory satisfying
+$x^{*} \in D[a,b]$.
+%
+We show that $x^{*}$ is still an upper boundary for any other feasible solution,
+which shows that it is optimal.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{figures/motion/rough/proof}
+  \caption{The minimum boundary $\gamma$, induced by three upper boundaries
+    $\bar{x}$, $\hat{x}$ and $x^{1}$, is smoothened around the two times where
+    its derivative is discontinuous to obtain the smooth optimal trajectory
+    $x^{*}$, drawn in green.}%
+  \label{fig:optimal-construction}
+\end{figure}
+
+The starting point of the construction is the \emph{minimum boundary}
+$\gamma : [a,b] \rightarrow \mathbb{R}$ induced by the upper boundaries, defined as
+\begin{align}\label{eq:min-boundary}
+  \gamma(t) := \min \{ \bar{x}(t), \hat{x}(t), x^{1}(t) \} .
+\end{align}
+%
+Obviously, $\gamma$ is still a valid upper boundary for any feasible solution,
+%
+but in general, $\gamma$ may have a discontinuous derivative at some\footnote{In fact, it can be shown that, under the necessary conditions, there are at most two of such discontinuities.} isolated
+points in time.
+
+\begin{define}\label{def:piecewise-trajectory}
+  We say $\mu : [a, b] \rightarrow \mathbb{R}$ is a \emph{piecewise trajectory
+    (with downward bends)} if and only if there exists a finite subdivision
+  $a = t_{0} < \cdots < t_{n+1} = b$ such that
+  $\mu|_{[t_{i}, t_{i+1}]} \in \mathcal{D}[t_{i}, t_{i+1}]$, for
+  $i \in \{0, \dots, n\}$ and the one-sided limits satisfy
+  $\dot{\mu}(t_{i}^{-}) > \dot{\mu}(t_{i}^{+})$, for $i \in \{1, \dots, n\}$.
+\end{define}
+
+It is not difficult to see from Figure~\ref{fig:necessary-conditions} that,
+under the necessary conditions, $\gamma$ satisfies the above definition. In
+other words, $\gamma$ consists of a number of pieces that are smooth and satisfy
+the vehicle dynamics, with possibly some sharp bend downwards where these pieces
+connect.
+%
+Next, we present a simple procedure to smoothen out this kind of discontinuity
+by decelerating from the original trajectory somewhat before $t_{c}$, as
+illustrated in Figure~\ref{fig:optimal-construction}. We show that this
+procedure can be repeated at every point of discontinuity.
+
+\subsubsection{Stopping trajectory.}
+In order to formalize the smoothing procedure, we will first define some
+parameterized family of functions to model the deceleration part.
+%
+Recall the derivation of $\check{x}$ in equation~\eqref{eq:check-x} and the discussion
+preceding it, which we will now generalize a bit.
+%
+Let $x \in \mathcal{D}[a, b]$ be some smooth trajectory, then observe that $\dot{x}(t) \geq \dot{x}(\xi) - \omega(t - \xi)$ for all $t \in [a, b]$.
+Combining this with the constraint $\dot{x}(t) \in [0, 1]$, this yields
+\begin{align}
+  \dot{x}(t) \geq \max\{ 0, \, \min\{1, \, \dot{x}(\xi) - \omega (t - \xi) \}\} =: \{\dot{x}(\xi) - \omega(t-\xi)\}_{[0,1]} ,
+\end{align}
+where use $\{ \cdot \}_{[0,1]}$ as a shorthand for this clipping operation.
+%
+Hence, for any $t \in [a,b]$, we obtain the following lower bound
+\begin{align}\label{eq:stopping-trajectory}
+  x(t) = x(\xi) + \int_{\xi}^{t} \dot{x}(\tau) \diff \tau \geq x(\xi) + \int_{\xi}^{t} \{\dot{x}(\xi) - \omega(\tau - \xi)\}_{[0,1]} \diff \tau =: x[\xi] (t) ,
+\end{align}
+where we will refer to the right-hand side as the \emph{stopping trajectory} of $x$ at
+$\xi$.
+%
+We can expand the integral further by carefully evaluating the clipping
+operation. Observe that the expression within the clipping operation reaches the
+bounds $1$ and $0$ for $\delta_{1} := \xi - (1-\dot{x}(\xi))/\omega$ and
+$\delta_{0} := \xi + \dot{x}(\xi)/\omega$, respectively. Using this notation, a
+simple calculation shows that
+\begin{align}\label{eq:stopping-trajectory-explicit}
+  x[\xi](t) = x(\xi) +
+  \begin{cases}
+    {(1 - \dot{x}(\xi))}^{2} / (2\omega) + t - \xi & \text{ for } t \leq \delta_{1} , \\
+    \dot{x}(\xi)(t - \xi) - \omega{(t-\xi)}^{2} /2 & \text{ for } t \in [\delta_{1} , \delta_{0}] , \\
+    {(\dot{x}(\xi))}^{2}/(2\omega) & \text{ for } t \geq \delta_{0} .
+  \end{cases}
+\end{align}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{figures/motion/rough/stopping-trajectory}
+  \caption{Illustration of a stopping trajectory of $\mu$ at $\xi$. This
+    particular trajectory $\mu$ has a discontinuous first derivative at two points, of
+    which we identify the first one as $t_{c}$. The careful reader may notice
+    that this $\mu$ cannot occur as the minimum boundary as defined in
+    equation~\eqref{eq:min-boundary}, but we stress again that this is not
+    required for the smoothing procedure.}%
+  \label{fig:stopping-trajectory}
+\end{figure}
+
+
+\subsubsection{Smoothing procedure}
+Let $\mu$ be some piecewise trajectory defined on $[a, b]$ and let
+$a = t_{0} < \cdots < t_{n=1} = b$ as in
+Definition~\ref{def:piecewise-trajectory}.
+%
+First of all, notice that we can consider the stopping trajectory of $\mu$ at
+any $\xi \in [a,b]$ without any problems. {\color{Navy} This is not true,
+  because the definition is ambiguous at every $t_{i}$, since $\dot{\mu}(t_{i})$
+  does not exist. We can choose to pick $\dot{\mu}(t_{i}^{-})$.} However, please
+note that the lower bound~\eqref{eq:stopping-trajectory} is no longer guaranteed
+to be valid over any interval $[t_{i}, t_{i+1}]$ that does not contain $\xi$.
+%
+From here on, we assume that $\mu \geq \mu[a]$ and $\mu \geq \mu[b]$.
+
+We first show how to smoothen the first discontinuity at $t_{1}$.
+%
+Pick some $\xi \in \halfopen{a}{t_{1}}$, then we consider the distance between
+$\mu[\xi](t)$ and $\mu(t)$ for all times $t \geq t_{1}$, by defining
+\begin{align}
+  d(\xi) := \min_{t \in [t_{1}, b]} \mu(t) - \mu[\xi](t) .
+\end{align}
+Since $\mu$ and $\mu[\xi]$ are both continuous, this minimum actually exists due
+to the extreme value theorem.
+%
+Furthermore, since $\mu(t) - \mu[\xi](t)$ is continuous as a function of $t$ and
+the minimum is taken over a closed interval, $d$ must be continuous as well (see
+Lemma~\ref{lemma:inf-continuous}).
+
+{\color{Navy} Show that $d$ is non-increasing. This follows from the uniqueness
+  property of stopping trajectories.}
+
+Now observe that $d(a) \geq 0$, because $\mu \geq \mu[a]$ by assumption.
+%
+It follows from the fact that $\dot{\mu}(t_{1}^{-}) > \dot{\mu}(t_{1}^{+})$ that
+$\mu < \mu[t_{1}]$ on $(t_{1}, t_{1} + \epsilon)$ for some small $\epsilon > 0$.
+This shows that $d(t_{1}) < 0$.
+%
+It follows from the intermediate value theorem that there must exist some $\xi_{1}$ such that $d(\xi_{1}) = 0$.
+%
+In fact, since $d$ is continuous and non-increasing, the level set
+$X := \{ \xi: d(\xi) = 0 \}$ is a closed interval.
+
+Now let $t^{*} \in [t_{1}, b]$ be such that the minimum in the definition of
+$d(\xi_{1}) = 0$ is attained, i.e., $\mu(t^{*}) = \mu[\xi_{1}](t^{*})$.
+%
+If $t^{*}$ is a local minimum in $(t_{1}, b)$, then it is necessary that
+$\dot{\mu}(t^{*}) = \dot{\mu}[\xi_{1}](t^{*})$. Note that $t^{*}=t_{1}$ cannot
+happen. {\color{Navy}When $t^{*} = b$, argue that the derivatives must match as
+  a consequence of assumption $\mu \geq \mu[b]$.}
+
+
+\subsubsection{Optimality after smoothing}
+
+
+{\color{Navy} Observe that the necessary conditions require $\gamma(a) = A$,
+  $\gamma(b) = B$ and $\dot{\gamma}(a) = \dot{\gamma}(b) = 1$, so whenever we
+  have $\gamma \in \mathcal{D}[a, b]$, we automatically have $\gamma \in D[a,b]$
+  so that $\gamma$ is already an optimal solution. }
+
+\begin{lemma}\label{lemma:upperbound}
+  Let $\mu \in \mathcal{P}[a,b]$ be a piecewise trajectory and let
+  $\mu^{*} \in \mathcal{D}[a,b]$ denote the result after smoothing. All
+  trajectories $x \in \mathcal{D}[a, b]$ that are such that
+  $x \leq \mu$, must satisfy $x \leq \mu^{*}$.
+\end{lemma}
+\begin{proof}
+  Consider the interval $(\xi, \tau)$ of a joining deceleration part. Suppose
+  there exists some $t_{d} \in (\xi, \tau)$ such that
+  $x(t_{d}) > \mu(t_{d})$. Because $x(\xi) \leq \mu(\xi)$, this means
+  that $x$ must intersect $\mu$ at least once in $\halfopen{\xi}{t_{d}}$,
+  so let
+  $t_{c} := \sup \, \{ t \in \halfopen{\xi}{t_{d}} : x(t) = \mu(t) \}$ be
+  the latest time of intersection such that $x \geq \mu$ on
+  $[t_{c}, t_{d}]$. There must be some $t_{c} \in [t_{c}, t_{d}]$ such that
+  $\dot{x}(t_{v}) > \dot{\mu}(t_{v})$, otherwise
+  \begin{align*}
+    x(t_{d}) = x(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{x}(t) \diff t \leq \mu(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{\mu}(t) \diff t = \mu(d_{t}) ,
+  \end{align*}
+  which contradicts our choice of $t_{d}$. Hence, for every
+  $t \in [t_{v}, \tau]$, we have
+  \begin{align*}
+    \dot{x}(t) \geq \dot{x}(t_{v}) - \omega (t - t_{v}) > \dot{\mu}(t_{v}) - \omega(t - t_{v}) = \dot{\mu}(t) .
+  \end{align*}
+  It follows that $x(\tau) > \mu(\tau)$, which contradicts the assumption.
+\end{proof}
+
+\newpage
 
 \begin{define}
   Consider some $\mu : [a, b] \rightarrow \mathbb{R}$, then we say $\mu$ is a
@@ -331,16 +521,6 @@ $\gamma^{*} \in \mathcal{D}[a, b]$ such that $\gamma \leq \gamma^{*}$ for all
 $\gamma \in \mathcal{D}[a, b]$ such that $\gamma \leq \mu$.
 
 \newpage
-
-We will show that the necessary conditions of
-Lemma~\ref{lemma:necessary-conditions} are also sufficient for feasibility of
-the single vehicle problem by constructing an optimal trajectory $x^{*}$.
-%
-Roughly speaking, our construction is based on some kind of \emph{concatenation}
-of trajectories $x_{1}, x_{2}$, denoted by $x_{1} * x_{2}$, which we will define
-precisely below. Using this notation, we will construct the optimal trajectory
-as $x^{*} = $ $x^{1} * (\bar{x} * \hat{x})$, see Figure~\ref{fig:theorem-proof}
-for a rough idea of the kind of construction we are after.
 
 Consider two arbitrary trajectories $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$
 and $\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$, then we define their
@@ -378,15 +558,6 @@ prototypical concatenation $(\gamma_{1} * \gamma_{2})[\xi, \tau]$, by defining
   then $\varphi$ is unique.
 \end{lemma}
 
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=1]{figures/motion/rough/proof}
-  \caption{Sketch of how the three upper bounding trajectories are joined to
-    form the optimal trajectory $x^{*} = x^{1} * (\bar{x} * \hat{x})$, drawn in
-    green, for the single vehicle problem.}%
-  \label{fig:theorem-proof}
-\end{figure}
 
 \newpage
 
@@ -1029,6 +1200,12 @@ $\ddot{\gamma} = \bar{\omega}$.
   Picard-Lindel{\"o}f or Cauchy-Lipschitz theorem. The above statement is based
   on the Wikipedia page on this theorem, so we still need a slightly better
   reference.}
+
+\begin{lemma}\label{lemma:inf-continuous}
+  Let $f : X \times Y \rightarrow \mathbb{R}$ be some continuous function. If
+  $Y$ is compact, then the function $g : X \rightarrow \mathbb{R}$, defined as
+  $g(x) = \inf \{ f(x,y) : y\in Y\}$, is also continuous.
+\end{lemma}
 
 \end{document}
 
