@@ -82,6 +82,8 @@
 \newtheorem{assump}{Assumption\hspace{0.25em}\ignorespaces}
 
 \DeclareMathOperator{\interior}{int}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
 \newcommand*\diff{\mathop{}\!\mathrm{d}}
 
 % cref settings
@@ -336,7 +338,9 @@ which shows that it is optimal.
   \caption{The minimum boundary $\gamma$, induced by three upper boundaries
     $\bar{x}$, $\hat{x}$ and $x^{1}$, is smoothened around time $t_{1}$ and
     $t_{2}$, where the derivative is discontinuous, to obtain the smooth optimal
-    trajectory $x^{*}$, drawn in green.}%
+    trajectory $x^{*}$, drawn in green. The times $\xi_{i}$ and $\tau_{i}$
+    correspond to the start and end of the connecting deceleration boundary as
+    defined in Section~\ref{sec:smoothing}.}%
   \label{fig:optimal-construction}
 \end{figure}
 
@@ -394,6 +398,10 @@ Hence, for any $t \in [a,b]$, we obtain the following lower bound
 \end{align}
 where we will refer to the right-hand side as the \emph{deceleration boundary} of $x$
 at $\xi$.
+%
+Observe that this definition indeed generalizes the definition of $\check{x}$,
+because we have $\check{x}=(x[a])|_{[a,b]}$, so $x[a]$ restricted to the
+interval $[a,b]$.
 
 Note that $x[\xi]$ depends on $x$ only through the two real numbers $x(\xi)$ and
 $\dot{x}(\xi)$. It will be convenient later to rewrite the right-hand side
@@ -446,7 +454,7 @@ $\mu[\xi] := x^{-}[\mu(\xi), \dot{\mu}(\xi), \xi]$.
 However, when $\xi \in \{ t_{1}, \dots, t_{n}\}$, the derivative
 $\dot{\mu}(\xi)$ is not defined, so we to use the left-sided limit instead, by
 defining $\mu[\xi] := x^{-}[\mu(\xi), \dot{\mu}(\xi^{-}), \xi]$.
-%
+
 Finally, please note that we cannot just replace $x$ with $\mu$ in
 inequality~\eqref{eq:stopping-trajectory} to obtain a similar bound for the
 whole interval $[a,b]$.
@@ -457,12 +465,12 @@ then what remains true is that $\xi \in I$ implies $\mu(t) \geq \mu[\xi](t)$ for
 every $t \in I$.
 
 
-\subsubsection{Smoothing procedure}
+\subsubsection{Smoothing procedure}\label{sec:smoothing}
 Let $\mu \in \mathcal{P}[a,b]$ be some piecewise trajectory and let
 $a = t_{0} < \cdots < t_{n+1} = b$ again denote the subdivision as in Definition~\ref{def:piecewise-trajectory}.
 %
-We first show how to smoothen the discontinuity at $t_{1}$ and then we argue how
-to repeat this process for the remaining times $t_{i}$.
+We first show how to smoothen the discontinuity at $t_{1}$ and then argue how to
+repeat this process for the remaining times $t_{i}$.
 
 \begin{assump}
   Throughout the following discussion, we assume $\mu \geq \mu[a]$ and $\mu \geq \mu[b]$.
@@ -481,6 +489,7 @@ due to the extreme value theorem (Weierstrass).
 Furthermore, since the minimum is taken of a continuous function over a closed
 interval, $d$ is a continuous function as well (see Lemma~\ref{lemma:inf-continuous}).
 
+\paragraph{Existence.}
 Observe that $d(a) \geq 0$, because $\mu \geq \mu[a]$ by assumption.
 %
 By definition of $t_{1}$, we have $\dot{\mu}(t_{1}^{-}) > \dot{\mu}(t_{1}^{+})$,
@@ -490,10 +499,12 @@ $\epsilon > 0$, which shows that $d(t_{1}) < 0$.
 Therefore, the intermediate value theorem ensures that there is some
 $\xi_{1} \in \halfopen{a}{t_{1}}$ such that $d(\xi_{1}) = 0$.
 
-Next, we are going to show that $\mu[\xi_{1}]$ is unique. More precisely, for
-any $\xi \in \halfopen{a}{t_{1}}$ such that $d(\xi) = 0$, we have
-$\mu[\xi] = \mu[\xi_{1}]$.
-%
+\paragraph{Uniqueness.}
+We will see that $\xi_{1}$ itself is not necessarily unique. Instead, we are
+going to show that the connecting deceleration boundary $\mu[\xi_{1}]$ is unique. More
+precisely, for any $\xi \in \halfopen{a}{t_{1}}$ such that $d(\xi) = 0$, we will show
+that $\mu[\xi] = \mu[\xi_{1}]$.
+
 The first step is to establish that the level set
 \begin{align}
   X := \{ \xi \in \halfopen{a}{t_{1}} : d(\xi) = 0 \}
@@ -505,11 +516,10 @@ $\halfopen{a}{t_{1}}$, which together with continuity implies the desired result
 To show that $d$ is non-increasing, it suffices to show that $\mu[\xi](t)$ is
 non-decreasing as a function of $\xi$, for every $t \in [t_{1}, b]$.
 %
-Therefore, we compute the partial derivative of $\mu[\xi]$ with respect to
-$\xi$.
+We can do this by computing the partial derivative of $\mu[\xi]$ with respect to $\xi$
+and verifying it is non-negativity.
 %
-Recall the definition of $\mu[\xi]$ based on the definition of $x^{-}$ in
-equation~\eqref{eq:x-}.
+Recall the definition of $\mu[\xi]$, based on $x^{-}$ in equation~\eqref{eq:x-}.
 %
 Using the same notation, we write
 $\delta_{1} = \xi - (1 - \dot{\mu}(\xi))/\omega$ and
@@ -525,19 +535,46 @@ $\delta_{0} = \xi + \dot{\mu}(\xi)/\omega$ and compute
   \end{cases}
 \end{align}
 %
-It is easily verified that these three cases match at $\delta_{1}$ and
-$\delta_{0}$. Now consider any $\xi \in \halfopen{a}{t_{1}}$ and
-$t \in [t_{1}, b]$, then we have $\delta_{1} \leq \xi \leq t$, so we only have
-to verify the second and third case.
+It is easily verified that these three cases match at $\delta_{1}$ and $\delta_{0}$, which
+justifies the overlapping cases for $t$.
 %
-In the second case, we have
-$\dot{\mu}(\xi) + \ddot{\mu}(\xi)(t-\xi) - \dot{\mu}(\xi) + \omega(t-\xi) = (\ddot{\mu}(\xi) + \omega)(t-\xi) \geq 0$.
+Consider any $\xi \in \halfopen{a}{t_{1}}$ and $t \in [t_{1}, b]$, then we have $\delta_{1} \leq \xi \leq t$,
+so we verify the second and third case.
 %
-The third case gives
-$\dot{\mu}(\xi) + \ddot{\mu}(\xi)\dot{\mu}(\xi)/\omega \geq \dot{\mu}(\xi) + (-\omega)\dot{\mu}(\xi)/\omega = 0$.
+In the second case, so $t \in [\delta_{1},\delta_{0}]$, we have
+\begin{align}\label{eq:case2}
+  \frac{\partial}{\partial \xi} \mu[\xi](t) = (\ddot{\mu}(\xi) + \omega)(t-\xi) \geq 0 .
+\end{align}
+%
+In the third case, so $t \geq \delta_{0}$, we have
+\begin{align}\label{eq:case3}
+  \frac{\partial}{\partial \xi} \mu[\xi](t) \geq \dot{\mu}(\xi) + (-\omega)\dot{\mu}(\xi)/\omega = 0 .
+\end{align}
+This concludes the argument for $X$ being a closed interval.
+
+Next, let $\xi \in X$ such that $d(\xi) = 0$.
+
+For the above two cases, observe that we have equality in~\eqref{eq:case2} if
+and only if there is equality in~\eqref{eq:case3}, which happens when
+$\ddot{\mu}(\xi) = -\omega$.
+%
+This observation is key to the remaining argument.
+
+Let $t^{*} \in [t_{1}, b]$ denote a minimizer of the expression of
+$d(\xi_{1}) = 0$, so
+\begin{align}
+  t^{*} = \argmin_{t \in [t_{1},b]} \mu(t)  \mu[\xi_{1}](t)
+\end{align}
+
+Suppose
+
+
+\paragraph{Matching derivatives.}
+It remains to show that $\mu[\xi_{1}]$ touches $\mu$ tangentially.
+
+\paragraph{Repeat for remaining discontinuities.}
 
 \begin{outline}
-  \1 Show that $\mu[\xi]$ is the same, regardless of $\xi \in X$.
 
   \1 Let $t^{*} \in [t_{1}, b]$ be a minimizer of the minimum $d(\xi_{1}) = 0$,
   such that $\mu(t^{*}) = \mu[\xi_{1}](t^{*})$.
@@ -598,584 +635,169 @@ $\dot{\mu}(\xi) + \ddot{\mu}(\xi)\dot{\mu}(\xi)/\omega \geq \dot{\mu}(\xi) + (-\
 \newpage
 \section{Computing optimal trajectories}
 
+Recall the original trajectory optimization problem
+\begin{subequations}
+\begin{alignat}{3}
+  &G(a,b) := \; &\max        \quad  & \sum_{i=1}^{N} \int_{a_{i}}^{b_{i}} x_{i}(t) \diff t , \\
+  &             &\text{s.t.} \quad
+  & x_{i} \in D[a_{i},b_{i}] & \text{ for each } i \in \{1, \dots, N\} , \\
+  &&& x_{i} \leq x_{i-1} - L & \text{ for each } i \in \{2, \dots, N\} ,
+\end{alignat}
+\end{subequations}
+where we use $a$ and $b$ to denote the vectors of arrival and departure times.
+It is straightforward to decompose this problem into a sequence of instances of
+the single vehicle problems as follows. Let the optimal solution of the single
+vehicle problem be denoted as
+\begin{align}
+  x^{*}(\alpha, \beta, \bar{x}) := \argmax_{x \in D[\alpha,\beta]} \int_{\alpha}^{\beta} x(t) \quad \text{ such that  } x \leq \bar{x}
+\end{align}
+and let $F(\alpha, \beta, \bar{x})$ denote the corresponding objective value. It
+is clear that the optimal trajectories $x^{*}_{i}$ can be recursively computed
+as
+\begin{subequations}
+\begin{align}
+  x^{*}_{1} &= x^{*}(a_{1}, b_{1}, \varnothing) , \\
+  x^{*}_{i} &= x^{*}(a_{i}, b_{i}, x^{*}_{i-1})  ,  \quad \text{ for } i \geq 2 .
+\end{align}
+\end{subequations}
+We use the notation $\bar{x} = \varnothing$ to denote the single vehicle problem
+without the boundary constraint. Alternatively, we could think about this as
+having some $\bar{x} \in \bar{D}[\bar{a},\bar{b}]$ with very small
+$\bar{a} \ll a$ and $\bar{b} \ll b$.
+%
+The corresponding objective value is simply given by
+\begin{align}
+  G(a, b) = F(a_{1}, b_{1}, \varnothing) + \sum_{i=2}^{N} F(a_{i}, b_{i}, x^{*}_{i-1}) .
+\end{align}
+
+\subsection{Alternating trajectories}
+
+Due to the recursive nature of the problem, we will see that optimal
+trajectories possess a particularly simple structure, which enables a very
+simple computation.
+
 \begin{define}
-  Let $\gamma \in \mathcal{D}[a, b]$ be called \emph{alternating} if for all $t \in [a, b]$,
-  we have
+  Let a trajectory $\gamma \in \mathcal{D}[a, b]$ be called \emph{alternating} if for all
+  $t \in [a, b]$, we have
   \begin{align}
     \ddot{\gamma}(t) \in \{-\omega, 0, \bar{\omega}\} \quad \text{ and } \quad
-  \ddot{\gamma}(t) = 0 \implies \dot{\gamma}(t) \in \{0, 1\}.
+    \ddot{\gamma}(t) = 0 \implies \dot{\gamma}(t) \in \{0, 1\}.
   \end{align}
 \end{define}
 
-Observe that we can distinguish four consecutive phases of an alternating
-trajectory: full speed $\dot{\gamma} = 1$, full deceleration
-$\ddot{\gamma} = -\omega$, full stop $\dot{\gamma} = 0$ and full acceleration
-$\ddot{\gamma} = \bar{\omega}$.
+We now argue that each vehicle's optimal trajectory $x^{*}_{i}$ is alternating.
+First, consider $x^{*}_{1} = x^{*}(a_{1}, b_{1}, \varnothing)$, which is
+constructed by joining $x^{1}$ and $\hat{x}$ together by smoothing. Observe that
+$x^{1}$ and $\hat{x}$ are both alternating. Let
+$\gamma_{1}(t) = \min\{x^{1}_{1}(t), \hat{x}_{1}(t) \}$ be the minimum boundary,
+then it is clear that the smoothened $x^{*}_{1} = \gamma_{1}^{*}$ must also be
+alternating, because we only added a part of deceleration at some interval
+$[\xi, \tau]$, which clearly satisfies $\ddot{\gamma}_{1}^{*}(t) = -\omega$ for
+$t \in [\xi,\tau]$.
+%
+Assume that $x^{*}_{i-1}$ is alternating, we can similarly argue that
+$x^{*}_{i}$ is alternating. Again, let
+$\gamma_{i}(t) = \min\{\bar{x}^{*}_{i-1}, \hat{x}_{i}(t), x^{1}_{i}(t)\}$ be the
+minimum boundary. After adding the required decelerations for smoothing, it is
+clear that $x^{*}_{i} = \gamma^{*}_{i}$ must also be alternating.
 
-\begin{lemma}
-  Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and $\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$ be both alternating, then when $\gamma_{1} * \gamma_{2}$ exists, it is also alternating.
-\end{lemma}
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.9]{figures/motion/tandem_trajectory}
+  \caption{Some example of an alternating vehicle trajectory. The particular
+    shape of this trajectory is due to two preceding vehicles, which causes the
+    two \emph{bumps} at the times where these vehicles depart from the lane.}
+  \label{fig:tandem_trajectory}
+\end{figure}
 
-Derive $x^{+}$ similarly to how we derived $x^{-}$ when we introduced the
-deceleration boundary.
+Observe that an alternating trajectory $\gamma \in \mathcal{D}[a,b]$ can be described
+as a sequence of four types of consecutive repeating phases, see
+Figure~\ref{fig:tandem_trajectory} for an example.
+%
+In general, there exists a partition of $[a,b]$, denoted by
+\begin{align*}
+  a = t_{f1} \leq t_{d1} \leq t_{s1} \leq t_{a1} \leq t_{f2} \leq t_{d2} \leq t_{s2} \leq t_{a2} \leq \dots \leq t_{f,n+1} = b,
+\end{align*}
+such that we have the consecutive intervals
+\begin{alignat*}{3}
+  F_{i} &:= [t_{f,i}, t_{d,i}] \quad &\text{ (full speed), } \quad
+  S_{i} &:= [t_{s,i}, t_{a,i}] \quad &\text{ (stopped), } \\
+  D_{i} &:= [t_{d,i}, t_{s,i}] \quad &\text{ (deceleration), } \quad
+  A_{i} &:= [t_{a,i}, t_{f,i+1}] \quad  &\text{ (acceleration), }
+\end{alignat*}
+%
+such that on these intervals, $\gamma$ satisfies
+%
+\begin{alignat*}{3}
+  &\dot{\gamma}(t) = 1 && \text{ for } t \in F_{i} , \quad \quad
+  &&\dot{\gamma}(t) = 0 && \text{ for } t \in S_{i} ,\\
+  &\ddot{\gamma}(t) = -\omega \quad && \text{ for } t \in D_{i} , \quad \quad
+  &&\ddot{\gamma}(t) = \bar{\omega} \quad && \text{ for } t \in A_{i} .
+\end{alignat*}
+%
+We will define parameterized functions $x^{1}$, $x^{-}$, $x^{0}$, $x^{+}$ to
+describe $\gamma$ on each of these four types of intervals.
+%
+In the next section, we will show that this makes the smoothing procedure
+particularly simple.
 
-\begin{remark}
-  From the proof above, it also becomes clear that a connecting deceleration can only happen between the following four pairs of partial trajectories:
-  \begin{align*}
-     x^{+} \rightarrow x^{+} , \quad \quad
-     x^{+} \rightarrow x^{0} , \quad \quad
-     x^{1} \rightarrow x^{+} , \quad \quad
-     x^{1} \rightarrow x^{0} .
-  \end{align*}
-\end{remark}
+\subsection{Calculating smoothing times}
+
+{\color{Navy}Derive $x^{+}$ similarly to how we derived $x^{-}$ when we
+  introduced the deceleration boundary.}
+
+It can be shown that smoothing introduces a part of deceleration $x^{-}$ only
+between the four pairs of partial trajectories
+\begin{align*}
+    x^{+} \rightarrow x^{+} , \quad \quad
+    x^{+} \rightarrow x^{0} , \quad \quad
+    x^{1} \rightarrow x^{+} , \quad \quad
+    x^{1} \rightarrow x^{0} .
+\end{align*}
+%
 
 \section{Feasibility as system of linear inequalities}
 
+{\color{Navy} Show that the follow constraint $a_{i} \geq \bar{a}_{i}$ can be written in terms of $a_{i-1}$.}
 
-% \begin{figure}
-%   \centering
-%   \includegraphics[scale=1]{figures/motion/rough/bufferconstraint}
-%   \caption{Illustration of buffer constraint.}%
-%   \label{fig:bufferconstraint}
-% \end{figure}
-
-\newpage
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=1]{figures/motion/rough/curvejoining}
-  \caption{Two intersecting trajectories joined together by a part of a stopping
-    trajectory.}%
-  \label{fig:curvejoining}
-\end{figure}
-
-Consider two crossing trajectories $\gamma_{1}$ and $\gamma_{2}$ like in
-Figure~\ref{fig:curvejoining}. Roughly speaking, we want to construct a new
-trajectory $\mu$ by finding some times $\xi$ and $\tau$ such that
-$\mu = \gamma_{1}$ until $\xi$ and $\mu = \gamma_{2}$ after $\tau$ and such that
-full deceleration during the interval $[\xi, \tau]$ takes us from $\gamma_{1}$
-onto $\gamma_{2}$, with matching tangents.
-%
-After precisely defining the kind of trajectories we allow, we show that such a
-\emph{joined trajectory} is unique, when it exists. Furthermore, we provide a
-condition for existence and show a certain upper bounding property, which we
-will apply in the next section to characterize optimal trajectories.
-
-
-Furthermore, $\gamma[\xi](t)$ is a non-decreasing function in terms of either of its
-arguments, while fixing the other. To see this for $\xi$, fix any $t$ and
-consider $\xi_{1} \leq \xi_{2}$, then note that $\gamma[\xi_{1}](t)$ is a lower
-bound for $\gamma[\xi_{2}](t)$.
-%
-\begin{property}
-  Both $\gamma[\xi](t)$ and $\dot{\gamma}[\xi](t)$ are continuous when considered as functions
-  of $(\xi, t)$.
-\end{property}
-\begin{proof}
-  Write $f(\xi, t) := \gamma[\xi](t)$ to emphasize that we are dealing with two variables.
-  Recall that $\dot{\gamma}$ is continuous by assumption, so the equation
-  $\tau = \xi + \dot{\gamma}(\xi)/\omega$ defines a separation boundary of the
-  domain of $f$. Both cases of~\eqref{eq:underbound} are continuous and they
-  agree at this boundary, so $f$ is continuous on all of its domain.
-  %
-  Since $x \mapsto \max\{0, x \}$ is continuous, it is easy to see that also
-  $(\xi, t) \mapsto \dot{\gamma}[\xi](t) = \max\{0, \dot{\gamma}(\xi) - \omega (\tau - \xi) \}$
-  is continuous.
-\end{proof}
-
-Because $\gamma[\xi](t)$ is continuous and non-decreasing in $\xi$, the set
-\begin{align}\label{eq:X}
-  X(t_{0}, x_{0}) := \{\xi : \gamma[\xi](t_{0}) = x_{0}\}
-\end{align}
-is a closed interval (follows from Lemma~\ref{lemma:levelset}), so we can consider the maximum
-\begin{align}\label{eq:xi}
-  \xi(t_{0}, x_{0}) := \max X(t_{0}, x_{0}) .
-\end{align}
-%
-Consider the closed region $\bar{U} := \{ (t, x) : \gamma[a](t) \leq x \leq \gamma[b](t) \}$.
-For each $(t_{0}, x_{0}) \in \bar{U}$, there must be some $\xi_{0}$ such that
-$\gamma[\xi_{0}](t_{0}) = x_{0}$, as a consequence of the intermediate value theorem and the
-above continuity property.
-%
-Consider $\bar{U}$ without the points on $\gamma$, which we denote by
-\begin{align}\label{eq:U}
-  U := \bar{U} \setminus \{ (t,x) : \gamma(t) = x\}.
-\end{align}
-Next, we prove that $\gamma[\xi_{0}]$ is actually unique if $(t_{0}, x_{0}) \in U$, so that we
-may regard $\xi(t_{0}, x_{0})$ as the canonical representation of this unique
-trajectory $\gamma[\xi(t_{0}, x_{0})]$.
-
-\begin{property}\label{prop:xi-unique}
-  For $(t_{0}, x_{0}) \in U$, if
-  $\gamma[\xi_{1}](t_{0}) = \gamma[\xi_{2}](t_{0}) = x_{0}$, then
-  $\gamma[\xi_{1}] = \gamma[\xi_{2}]$.
-\end{property}
-\begin{proof}
-  Suppose $t_{0} < \xi_{i}$, then $x_{0} = \gamma[\xi_{i}](t_{0}) = \gamma(t_{0})$ contradicts the assumption $(t_{0}, x_{0}) \in U$.
-  %
-  Therefore, assume $\xi_{1} \leq \xi_{2} < t_{0}$, without loss of generality.
-  %
-  Since $\gamma[\xi_{1}] = \gamma[\xi_{2}]$ on $[a, \xi_{1}]$, note that
-  we have the lower bounds
-  \begin{align}\label{eq:lowerbounds}
-    \gamma[\xi_{1}] \leq \gamma[\xi_{2}] \quad \text{ and } \quad \dot{\gamma}[\xi_{1}] \leq \dot{\gamma}[\xi_{2}].
-  \end{align}
-  %
-  We must have $\dot{\gamma}[\xi_{1}](t_{0}) = \dot{\gamma}[\xi_{2}](t_{0})$,
-  because otherwise $\gamma[\xi_{1}] > \gamma[\xi_{2}]$ somewhere in a
-  sufficiently small neighborhood of $t_{0}$, which contradicts the first lower
-  bound.
-
-  It is clear from Definition~\ref{def:stopping-trajectory} that
-  \begin{align*}
-    \ddot{\gamma}[\xi_{i}](t) =
-    \begin{cases}
-      \ddot{\gamma}(t) & \text{ for } t < \xi_{i} , \\
-      - \omega & \text{ for } t \in (\xi_{i}, \xi_{i} + \dot{\gamma}(\xi_{i})/\omega) , \\
-      0 & \text{ for } t > \xi_{i} + \dot{\gamma}(\xi_{i})/ \omega ,
-    \end{cases}
-  \end{align*}
-  for both $i \in \{ 1, 2\}$.
-  %
-  Note that
-  $\dot{\gamma}(\xi_{1}) - \omega(\xi_{2}-\xi_{1}) \leq \dot{\gamma}(\xi_{2})$,
-  which can be rewritten as
-  \begin{align*}
-    \xi_{2} + \dot{\gamma}(\xi_{2}) / \omega \geq \xi_{1} + \dot{\gamma}(\xi_{1}) / \omega .
-  \end{align*}
-  This shows that $\ddot{\gamma}[\xi_{1}](t) \geq \ddot{\gamma}[\xi_{2}](t)$, for every
-  $t \geq \xi_{2}$. Because
-  $\dot{\gamma}[\xi_{1}](t_{0}) = \dot{\gamma}[\xi_{2}](t_{0})$, this in turn
-  ensures that $\dot{\gamma}[\xi_{1}](t) \geq \dot{\gamma}[\xi_{2}](t)$ for $t \geq t_{0}$.
-  Together with the opposite inequality in~\eqref{eq:lowerbounds}, we conclude
-  that on $\halfopen{t_{0}}{\infty}$, we have $\dot{\gamma}[\xi_{1}] = \dot{\gamma}[\xi_{2}]$
-  and thus $\gamma[\xi_{1}] = \gamma[\xi_{2}]$.
-
-  It remains to show that $\gamma[\xi_{1}] = \gamma[\xi_{2}]$ on $[\xi_{1}, t_{0}]$, so consider the smallest
-  $t^{*} \in (\xi_{1}, t_{0})$ such that $\gamma[\xi_{1}](t^{*}) < \gamma[\xi_{2}](t^{*})$.
-  %
-  Since $\dot{\gamma}[\xi_{1}] \leq \dot{\gamma}[\xi_{2}]$, this implies that $\gamma[\xi_{1}](t) < \gamma[\xi_{2}](t)$ for
-  all $t \geq t^{*}$, but this contradicts the assumption $\gamma[\xi_{1}](t_{0}) = \gamma[\xi_{2}](t_{0})$.
-\end{proof}
-
-% previous argument of the above property
-%
-% Suppose we have $\xi_{1} \leq \xi_{2}$ such that $\gamma[\xi_{1}](\tau) = \gamma[\xi_{2}](\tau)$
-% for some $\tau \geq \xi_{1}$, then we must have
-% $\dot{\gamma}[\xi_{1}](\tau) = \dot{\gamma}[\xi_{2}](\tau)$, because otherwise
-% $\gamma[\xi_{1}]$ and $\gamma[\xi_{2}]$ would be crossing at time $\tau$, which
-% contradicts the fact that $\gamma[\xi_{1}]$ is a lower bound for $\gamma[\xi_{2}]$.
-% Hence, $\gamma[\xi_{1}] = \gamma[\xi_{2}]$ for the whole domain
-% $\halfopen{a}{\infty}$.
-% %
-% Such a situation occurs whenever $\xi_{1}$ and $\xi_{2}$ both lie in an
-% interval where $\ddot{\gamma}(t) = -\omega$.
-
-To further support the analysis below, we define the auxiliary function
+We need to express the entry space constraint, condition (iv) in
+Lemma~\ref{lemma:necessary-conditions}, in terms of the schedule times. Recall
+that this conditions requires that
 \begin{align}
-  g(t, x) := \dot{\gamma}_{1}[\xi(t, x)](t),
+  \bar{x}_{i} \geq \check{x}_{i} .
 \end{align}
-which gives the slope of the unique
-stopping trajectory through each point $(t, x) \in U$.
+We will show that this condition can be rewritten in the form
+\begin{align}
+  a_{i} \geq \check{a}_{i}(a) ,
+\end{align}
+where $\check{a}_{i}(a,b)$ denotes some expression of the schedule times
+$a_{1}, \dots, a_{n}$.
 
-\begin{property}
-  Function $g$ is continuous in $(t, x)$.
-\end{property}
-\begin{proof}
-  We write a neighborhood of $x$ as
-  $N_{\varepsilon}(x) := (x - \varepsilon, x + \varepsilon)$. We will write
-  $f_{x}(\xi, t) = \gamma_{1}[\xi](t)$,
-  $f_{v}(\xi, t) = \dot{\gamma}_{1}[\xi](t)$ and
-  $h_{t}(\xi) = \gamma_{1}[\xi](t)$ to emphasize the quantities that we treat as
-  variables. Observe that $h_{t}^{-1}(x) = X(t, x)$.
-
-\begin{outline}
-  \1 Let $x_{0} = f_{x}(\xi_{0}, \tau_{0})$ and $v_{0} = f_{v}(\xi_{0}, \tau_{0})$ for
-  some $\xi_{0}$ and $\tau_{0}$ and pick some arbitrary $\varepsilon > 0$. Note that
-  $\xi_{0} \in [\xi_{1}, \xi_{2}] := h_{\tau_{0}}^{-1}(x_{0})$.
-  %
-  We apply the $\varepsilon$-$\delta$ definition of continuity to each of these endpoints. Let
-  $i \in \{1, 2\}$, then there exist $\delta_{i} > 0$ such that
-  \begin{align*}
-  \xi \in N_{\delta_{i}}(\xi_{i}),\, \tau \in N_{\delta_{i}}(\tau_{0}) \implies
-  f_{v}(\xi, \tau) \in N_{\varepsilon}(v_{0}).
-  \end{align*}
-  Let $\delta = \min\{ \delta_{1}, \delta_{2} \}$ and define $N_{1} := (\xi_{1} - \delta, \xi_{2} + \delta)$
-  and $N_{2} := N_{\delta}(\tau_{0})$, then
-  \begin{align*}
-  \xi \in N_{1},\, \tau \in N_{2} \implies f_{v}(\xi, \tau) \in N_{\varepsilon}(v_{0}) .
-  \end{align*}
-  This is obvious when $\xi$
-  is chosen to be in one of $N_{\delta_{i}}(\xi_{i})$. Otherwise, we must have $\xi \in [\xi_{1}, \xi_{2}]$,
-  in which case $f_{v}(\xi, \tau) = f_{v}(\xi_{1}, \tau) \in N_{\varepsilon}(v_{0})$.
-
-  \1 Because $h_{\tau_{0}}(\xi)$ is continuous, the image $I := h_{\tau_{0}}(N_{1})$
-  must be an interval containing $x_{0}$, with
-  $\inf I = h_{\tau_{0}}(\xi_{1} - \delta)$ and
-  $\sup I = h_{\tau_{0}}(\xi_{2} + \delta)$.
-  %
-  We argue that $I$ contains $x_{0}$ in its interior. For sake of
-  contradiction, suppose $x_{0} = \max I$, then $h_{\tau_{0}}(\xi_{2} + \delta') = x_{0}$,
-  for each $\delta' \in (0, \delta)$, because $h_{\tau_{0}}$ is non-decreasing, but this
-  contradicts the definition of $\xi_{2}$. Similarly, when $x_{0} = \min I$, then
-  $h_{\tau_{0}}(\xi_{1} - \delta') = x_{0}$, for each $\delta' \in (0, \delta)$, which contradicts the
-  definition of $\xi_{1}$.
-
-  \1 Define $\nu := \min \{ x_{0} - \inf I, \sup I - x_{0}\}$ and
-  $N_{3} := (x_{0} - \nu / 2, x_{0} + \nu / 2)$. Because $h_{\tau}(\xi)$ is also
-  continuous in $\tau$, there exists a neighborhood $N_{2}^{*} \subset N_{2}$ of
-  $\tau_{0}$ such that for every $\tau \in N_{2}^{*}$, we have
-  \begin{align*}
-  &h_{\tau}(\xi_{1} - \delta) \leq h_{\tau_{0}}(\xi_{1} - \delta) + \nu/2 = \inf I + \nu /2 < x_{0} - \nu/2 , \\
-  &h_{\tau}(\xi_{2} + \delta) \geq h_{\tau_{0}}(\xi_{2} + \delta) - \nu/2 = \sup I - \nu /2 > x_{0} + \nu/2 ,
-  \end{align*}
-  which shows that $h_{\tau}(N_{1}) \supset N_{3}$. It follows that
-  $h_{\tau}^{-1}(N_{3}) \subset N_{1}$.
-
-  \1 Finally, take any $\tau \in N_{2}^{*}$ and $x \in N_{3}$, then there exists
-  some $\xi \in N_{1}$ such that $h_{\tau}(\xi) = x$ and
-  $g(\tau, x) = f_{v}(\max h_{\tau}^{-1}(x), \tau) = f_{v}(\xi, \tau) \in N_{\varepsilon}(v_{0})$.
-  \qedhere
-\end{outline}
-\end{proof}
-
-\pagebreak
-
-\begin{property}
-  Function $g$ is non-decreasing and Lipschitz continuous in $x$.
-\end{property}
-\begin{proof}
-  Let $x_{1} \leq x_{2}$ and $\tau$ such that $g(\tau, x_{1})$ and
-  $g(\tau, x_{2})$ are defined. There must be $\xi_{1} \leq \xi_{2}$ such that
-  $h_{\tau}(\xi_{1}) = x_{1}$ and $h_{\tau}(\xi_{2}) = x_{2}$ and we have
-  \begin{align*}
-    g(\tau, x_{1}) = \dot{\gamma}_{1}[\xi_{1}](\tau)
-    &= \max\{0, \dot{\gamma}_{1}(\xi_{1}) - \omega(\tau - \xi_{1}) \} \\
-    &= \max\{0, \dot{\gamma}_{1}(\xi_{1}) - \omega(\xi_{2} - \xi_{1}) - \omega(\tau - \xi_{2}) \} \\
-    &\leq \max\{0, \dot{\gamma}_{1}(\xi_{2}) - \omega(\tau - \xi_{2}) \}
-    = \dot{\gamma}_{1}[\xi_{2}](\tau) = g(\tau, x_{2}) .
-  \end{align*}
-  %
-  Furthermore, we have
-  $\dot{\gamma}_{1}(\xi_{2}) \leq \dot{\gamma}_{1}(\xi_{1}) + \bar{\omega}(\xi_{2} - \xi_{1})$,
-  so that
-  \begin{align*}
-    g(\tau, x_{2}) &= \max\{0, \dot{\gamma}_{1}(\xi_{2}) - \omega(\tau - \xi_{2}) \} \\
-              &\leq \max\{0, \dot{\gamma}_{1}(\xi_{1}) + \bar{\omega}(\xi_{2} - \xi_{1}) - \omega(\tau - \xi_{2}) \} \\
-              &= \max\{0, \dot{\gamma}_{1}(\xi_{1}) - \omega(\tau-\xi_{1}) + (\omega + \bar{\omega})(\xi_{2} - \xi_{1}) \} \\
-              &\leq \max\{0, \dot{\gamma}_{1}(\xi_{1}) - \omega(\tau - \xi_{1}) \} + (\omega + \bar{\omega})(\xi_{2} - \xi_{1}) \\
-              &= g(\tau, x_{1}) + (\omega + \bar{\omega})(\xi_{2} - \xi_{1}) .
-  \end{align*}
-  Observe that, together with the above non-decreasing property, this shows that
-  $g$ is Lipschitz continuous in $x$, with Lipschitz constant
-  $(\omega + \bar{\omega})$.
-\end{proof}
-
-We are now ready to state and prove uniqueness of joined trajectories.
-
-\begin{lemma}\label{lemma:curvejoining}
-  Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and
-  $\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$ be two trajectories that are intersecting
-  at exactly one time $t_{c}$ and assume
-  $\dot{\gamma}_{1}(t_{c}) > \dot{\gamma}_{2}(t_{c})$.
-  %Define $t_{f} := t_{c} + \dot{\gamma}_{1}(t_{c}) / \omega$,
-  %denote the end of the deceleration of $\gamma_{1}[t_{c}]$,
-  % then under the conditions
-  % \begin{enumerate}[leftmargin=5em]
-  %   \item[\normalfont(C1)\quad] $\gamma_{2} \geq \gamma_{1}[a_{1}]$,
-  %   \item[\normalfont(C2)\quad] $\dot{\gamma}_{2}(b_{2}) = 1$, %$b_{2} \geq t_{c} + \dot{\gamma}_{1}(t_{c}) / \omega$,
-  % \end{enumerate}
-  If there exists a trajectory $\varphi$ such that
-  \begin{enumerate}[label=(\roman*)\quad,leftmargin=5em]
-    \item $\varphi = \gamma_{1}[\xi]$, for some $\xi < t_{c}$,
-    \item $\varphi(\tau) = \gamma_{2}(\tau)$ and
-          $\dot{\varphi}(\tau) = \dot{\gamma_{2}}(\tau)$, for some $\tau > t_{c}$,
-    \item $\varphi \leq \gamma_{2}$,
-  \end{enumerate}
-  then $\varphi$ is unique.
-\end{lemma}
+In conclusion, feasibility is expressed through the system of linear
+inequalities
+\begin{subequations}
+\begin{align}
+  b_{i} - a_{i} &\geq B - A &\text{ for all } i \in \{1, \dots, N\}, \\
+  a_{i} &\geq  a_{i-1} - 1/\omega &\text{ for all } i \in \{2, \dots, N\} , \\
+  b_{i} &\geq  b_{i-1} - 1/\omega &\text{ for all } i \in \{2, \dots, N\} , \\
+  a_{i} &\leq \check{a}_{i}(a) &\text{ for all } i \in \{2, \dots, N \} .
+\end{align}
+\end{subequations}
 
 \begin{figure}
   \centering
-  \includegraphics[scale=1.0]{figures/motion/rough/curvejoiningproof}
-  \caption{Sketch of some quantities used in the proof of
-    Lemma~\ref{lemma:curvejoining}, including some stopping trajectory
-    candidates drawn in grey. The unique stopping trajectory satisfying the requirements of
-    Lemma~\ref{lemma:curvejoining} is marked as $\varphi_{1}$.
-    % The little open dot halfway on $\gamma_{2}$ is refered to in Remark~\ref{rem:conditions}.
-  }%
-  \label{fig:proof}
+  \includegraphics[scale=1]{figures/motion/rough/bufferconstraint}
+  \caption{Illustration of entry space constraint and the induced minimum entry
+    time $\check{a}$.}%
+  \label{fig:bufferconstraint}
 \end{figure}
 
-\begin{proof}
-  Define the set $U$ and the functions $X(t, x)$ and $\xi(t, x)$ as we did in \cref{eq:X,eq:xi,eq:U} for $\gamma$ above, but now for $\gamma_{1}$.
-\begin{outline}
-
-  % \1 Define $g$ such that $g(x, \tau) = \dot{\gamma}_{1}[\xi](\tau)$
-  % for any $\xi$ such that $\gamma_{1}[\xi](\tau) = x$.
-
-  % \2 Writing $h_{\tau}(\xi) := f_{x}(\xi, \tau)$, we define
-  % $h_{\tau}^{-1}(x) := \{ \xi : f_{x}(\xi, \tau) = x \}$. Because this is the level set of a
-  % continuous non-decreasing function, it must be a closed interval (Lemma~\ref{lemma:levelset}).
-  % Hence, $g(x, \tau) := f_{v}(\max h_{\tau}^{-1}(x), \tau)$ is well-defined.
-
-  \1 Identify for which parameters $\xi < t_{c} < \tau$ we have
-  $\gamma_{1}[\xi](\tau) = \gamma_{2}(\tau)$ and $\dot{\gamma_{1}}[\xi](\tau) = \dot{\gamma}_{2}(\tau)$.
-
-  \2 For each $\tau > t_{c}$, observe that $(\tau, \gamma_{2}(\tau)) \in U$. It follows
-  from Property~\ref{prop:xi-unique} that
-  $\varphi_{[\tau]} := \gamma_{1}[\xi(\tau, \gamma_{2}(\tau))]$ is the unique stopping trajectory such
-  that $\varphi_{[\tau]}(\tau) = \gamma_{2}(\tau)$.
-  %
-  Next, we investigate when this unique trajectory touches $\gamma_{2}$
-  tangentially. More precisely, consider the set of times
-  \begin{align}
-    T := \{ \tau > t_{c} : \dot{\varphi}_{[\tau]}(\tau) = \dot{\gamma}_{2}(\tau), \; \xi(\tau, \gamma_{2}(\tau)) < t_{c} \},
-  \end{align}
-  %
-  which can also be written as
-  \begin{align}
-    T = \{ \tau > t_{c} : g(\tau, \gamma_{2}(\tau)) = \dot{\gamma}_{2}(\tau), \; \xi(\tau, \gamma_{2}(\tau)) < t_{c} \} ,
-  \end{align}
-  so continuity of $g$ shows that it is a closed set (Lemma~\ref{lemma:levelset}). It is not
-  necessarily connected (see for example Figure~\ref{fig:proof}, in which $\varphi_{1}$ and
-  $\varphi_{2}$ touch $\gamma_{2}$ tangentially on separated intervals). In
-  general, $T$ is the union of a sequence of disjoint closed intervals
-  $T_{1}, T_{2}, \dots, T_{n}$.
-
-  \2 Define $\tau_{i} := \min \, T_{i}$ and let $\varphi_{i} := \varphi_{[\tau_{i}]}$
-  denote the unique stopping trajectory through $(\tau_{i}, \gamma_{2}(\tau_{i}))$.
-  %
-  For $\tau \in T_{i}$, we have
-  $\dot{\gamma}_{2}(\tau) = g(\tau, \gamma_{2}(\tau))$ by definition of $T_{i}$.
-  %
-  Moreover, we have
-  \begin{align}\label{eq:phi-tangent}
-    \dot{\varphi}_{i}(t) = g(t, \varphi_{i}(t)),
-  \end{align}
-  for every $t$ for which these quantities are defined, so in particular on $T_{i}$.
-  %
-  This shows that $\gamma_{2}$ and $\varphi_{i}$ are both solutions to the initial value problem
-  \begin{align}
-    \begin{cases}
-      \,\dot{x}(t)\, = g(t, x(t)) \;  \text{ for } t \in T_{i} , \\
-      x(\tau_{i}) = \gamma_{2}(\tau_{i}) .
-    \end{cases}
-  \end{align}
-  %
-  Since $g(t, x)$ is continuous in $t$ and Lipschitz continuous in $x$, it is a
-  consequence of the (local) existence and uniqueness theorem
-  (Lemma~\ref{lemma:picard}) that $\gamma_{2} = \varphi_{i}$ on $T_{i}$.
-  %
-  Hence, we have $\varphi_{i} = \varphi_{[\tau]}$ for any $\tau \in T_{i}$, so we regard
-  $\varphi_{i}$ as being the canonical stopping trajectory for $T_{i}$.
-
-  % Let $\tau'$ be the largest $\tau \in T_{i}$ such that
-  % $\gamma_{2}(\tau) = \varphi_{i}(\tau)$. Suppose $\tau' < \hat{\tau}_{i}$, then by
-  % the existence and uniqueness theorem (Picard-Lindel{\"o}f) there exists a
-  % unique solution of the initial value problem
-  % \begin{align*}
-  %   \dot{\phi}(t) = g(t, \phi(t)), \quad \phi(\tau') = \gamma_{2}(\tau')
-  % \end{align*}
-  % on the interval $[\tau' - \delta, \tau' + \delta]$ for some $\delta > 0$.
-  %
-  % But $\varphi_{i}$ is a solution, so
-  % $\varphi_{i}(\tau' + \delta) = \gamma_{2}(\tau' + \delta)$ for some sufficiently
-  % small $\delta > 0$, but this contradicts the definition of $\tau'$. Therefore,
-  % $\tau' = \hat{\tau}_{i}$.
-
-  % \1 Next, we show that $\tau_{1}$ and thus $\varphi_{1}$ exists.
-  % % and $t_{f} := t_{c} + \dot{\gamma}_{1}(t_{c}) / \omega$.
-  % This part relies on conditions (C1) and (C2).
-  % %
-  % Note that $s(\tau) := g(\tau, \gamma_{2}(\tau))$ is a continuous function.
-  % %
-  % We have $\gamma_{1}[a_{1}](t) \leq \gamma_{2}(t) \leq \gamma_{1}[t_{c}](t)$ for
-  % $t \in \{ t_{c}, b_{2} \}$, so the intermediate value theorem guarantees that
-  % $s(t)$ actually exists in both cases, because there is some
-  % $a_{1} \leq \xi < t_{c}$ such that $\gamma_{2}(t) = \gamma_{1}[\xi](t)$ and thus
-  % $s(t) = g(t, \gamma_{2}(t)) = \dot{\gamma}_{1}[\xi](t)$ exists.
-  % %
-  % We have $\dot{\gamma}_{2}(t_{c}) < \dot{\gamma}_{1}(t_{c}) = s(t_{c})$ and
-  % $\dot{\gamma}_{2}(b_{2}) = 1 \geq s(b_{2})$, so there must be some smallest
-  % $\tau_{1} \in \openhalf{t_{c}}{b_{2}}$ such that
-  % $\dot{\gamma}_{1}(\tau_{1}) = s(\tau_{1})$, as a consequence of the
-  % intermediate value theorem.
-
-  % \2 Suppose $\gamma_{2}(t_{f}) \leq \gamma_{1}[t_{c}](t_{f})$, then it follows from the fact
-  % that $g$ is non-decreasing in $x$ that
-  % $g(t_{f}, \gamma_{2}(t_{f})) \leq g(t_{f}, \gamma_{1}[t_{c}](t_{f})) = \dot{\gamma}_{1}(t_{c}) - \omega(t_{f} - t_{c}) = 0$,
-  % so $s(t_{f}) = 0$.
-
-  % \2 Otherwise $\gamma_{2}(t_{f}) > \gamma_{1}[t_{c}](t_{f})$, then it follows
-  % (from Lemma \dots) that $\gamma_{2}$ crosses $\gamma_{1}[t_{c}]$ at some time
-  % $t_{d} \in (t_{c}, t_{f})$ with
-  % $\dot{\gamma}_{2}(t_{d}) > \gamma_{1}[t_{c}](t_{d}) = s(t_{d})$.
-
-  % \2 We have $\gamma_{1}[a_{1}](t) \leq \gamma_{2}(t) \leq \gamma_{1}[t_{c}](t)$ for
-  % $t \in \{ t_{f}, t_{d} \}$, so the intermediate value theorem guarantees that
-  % $s(t)$ actually exists in both cases, because there is some
-  % $a_{1} \leq \xi < t_{c}$ such that $\gamma_{2}(t) = \gamma_{1}[\xi](t)$ and thus
-  % $s(t) = g(t, \gamma_{2}(t)) = \dot{\gamma}_{1}[\xi](t)$ exists.
-
-  % \2 In both cases above, we have
-  % $\dot{\gamma}_{2}(t_{c}) < \dot{\gamma}_{1}(t_{c}) = s(t_{c})$ and
-  % $\dot{\gamma}_{2}(t_{d}) \geq s(t_{d})$ for some $t_{d} \in \openhalf{t_{c}}{t_{f}}$.
-  % Hence, there must be some smallest $\tau_{1} \in \openhalf{t_{c}}{t_{d}}$ such that
-  % $\dot{\gamma_{2}}(\tau_{1}) = s(\tau_{1})$, which is a consequence of the intermediate
-  % value theorem.
-
-  \1 If $i \geq 2$, then $\varphi_{i} > \gamma_{2}$ somewhere.
-
-  \2 Let $i \geq 1$, we show that $\varphi_{i+1}(t) > \gamma_{2}(t)$ for some $t$.
-  %
-  Recall the lower bound property, so $\gamma_{2}(t) \geq \varphi_{i}(t)$ and
-  $\dot{\gamma}_{2}(t) \geq \dot{\varphi}_{i}(t)$ for $t \geq \tau_{i}$.
-  %
-  Define $\hat{\tau}_{i} := \max \, T_{i}$, such that
-  $T_{i} = [\tau_{i}, \hat{\tau}_{i}]$, then by definition of $T_{i}$, there
-  must be some $\delta > 0$ such that
-  \begin{align}
-    \gamma_{2}(\hat{\tau}_{i} + \delta) > \varphi_{i}(\hat{\tau}_{i} + \delta) ,
-  \end{align}
-  since otherwise $\gamma_{2} = \varphi_{i}$ on some open neighborhood of
-  $\hat{\tau}_{i}$ and then also
-  \begin{align}
-    \dot{\gamma}_{2}(t) = \dot{\varphi}_{i}(t) \overset{\text{\eqref{eq:phi-tangent}}}{=} g(t, \varphi_{i}(t)) = g(t, \gamma_{2}(t)),
-  \end{align}
-  which contradicts the definition of $\hat{\tau}_{i}$.
-  %
-  Therefore, we have $\gamma_{2}(t) > \varphi_{i}(t)$ for all $t \geq \hat{\tau}_{i} + \delta$. For
-  $t = \tau_{i+1}$, in particular, it follows that
-  $\varphi_{i+1}(\tau_{i+1}) = \gamma_{2}(\tau_{i+1}) > \varphi_{i}(\tau_{i+1})$, which shows that
-  $\varphi_{i+1} > \varphi_{i}$ on $(\xi_{i}, \infty)$, due to Property~\ref{prop:xi-unique}, but this means that
-  $\varphi_{i+1}(\tau_{i}) > \varphi_{i}(\tau_{i}) = \gamma_{2}(\tau_{i})$.
-
-  \1 If $\varphi_{i} > \gamma_{2}$ somewhere, then $i \geq 2$.
-
-  \2 Suppose $\varphi_{i}(t_{x}) > \gamma_{2}(t_{x})$ for some
-  $t_{x} \in (t_{c}, \tau_{i})$, then there must be some
-  $\tau_{0} \in (t_{c}, t_{x})$ such that
-  $\gamma_{2}(\tau_{0}) = \varphi_{i}(\tau_{0})$ and
-  $\dot{\gamma}_{2}(\tau_{0}) < \dot{\varphi}(\tau_{0})$. Note that this
-  crossing must happen because we require $\xi_{i} < t_{c}$.
-
-  \2 Since $g(t, x)$ is non-decreasing in $x$, we have
-  \begin{align}
-    s(t) = g(t, \gamma_{2}(t)) \leq g(t, \varphi_{i}(t)) = \dot{\varphi}_{i}(t) ,
-  \end{align}
-  for every $t \in [\tau_{0}, \tau_{i}]$ and at the endpoints, we have
-  \begin{align}
-    s(\tau_{0}) = \varphi_{i}(\tau_{0}), \quad s(\tau_{i}) = \varphi_{i}(\tau_{i}) .
-  \end{align}
-  %
-  Furthermore, observe that $\gamma_{2}(\tau_{0}) = \varphi_{i}(\tau_{0})$ and
-  $\gamma_{2}(\tau_{i}) = \varphi_{i}(\tau_{i})$ require that
-  \begin{align}\label{eq:distance-traveled}
-    \int_{\tau_{0}}^{\tau_{i}} \dot{\gamma}_{2}(t) \diff t  = \int_{\tau_{0}}^{\tau_{i}} \dot{\varphi}_{i}(t) \diff t .
-  \end{align}
-
-  \2 Since $\dot{\gamma}_{2}(\tau_{0}) < \dot{\varphi}_{i}(\tau_{0})$, it follows
-  from~\eqref{eq:distance-traveled} that there must be some $t \in (\tau_{0}, \tau_{i})$
-  such that $\dot{\gamma}_{2}(t) > \dot{\varphi}_{i}(t)$.
-  %
-  Together with $s(\tau_{0}) = \dot{\varphi}_{i}(\tau_{0}) > \dot{\gamma}_{2}(\tau_{0})$
-  and $s(t) \leq \dot{\varphi}_{i}(t)$ for $t \in [\tau_{0}, \tau_{i}]$, this means there is some $\tau^{*}$ such
-  that $\dot{\gamma}_{2}(\tau^{*}) = s(\tau^{*})$, again as a consequence of the
-  intermediate value theorem. Therefore, $\tau^{*} \in T_{j}$ for some $j < i$, which
-  shows that $i \geq 2$.
-
-
-  \1 The above two points establish that $\varphi_{i} \leq \gamma_{2}$ if and only if $i=1$.
-  To conclude, we have shown that if $\varphi := \varphi_{1}$ exists, it is the unique
-  trajectory satisfying the stated requirements with $\tau = \tau_{i}$ and
-  $\xi = \xi(\tau_{i}, \gamma_{2}(\tau_{i}))$. \qedhere
-\end{outline}
-\end{proof}
-
-
-% \begin{remark}\label{rem:conditions}
-%   It is easy to see that condition (C1) in Lemma~\ref{lemma:curvejoining} is necessary. Suppose there
-%   is some $t_{x} \in (t_{c}, \infty)$ such that
-%   $\gamma_{1}[a_{1}](t_{x}) > \gamma_{2}(t_{x})$, then for any other
-%   $\xi \in (a_{1}, t_{c})$, we have $\gamma_{1}[\xi](t_{x}) > \gamma_{2}(t_{x})$
-%   as well, due to the lower bound property of stopping trajectories, so
-%   requirement \textit{(iii)} is violated.
-%   %
-%   Condition (C2) is not necessary, which can be seen from stopping trajectory
-%   $\varphi_{1}$ in Figure~\ref{fig:proof}, which satisfies the conditions, but
-%   would also have been valid if $\gamma_{2}$ ended somewhat earlier than
-%   $t_{f}$, for example until the open dot.
-% \end{remark}
-
-The uniqueness result justifies the following definition of joined trajectories.
-
-\begin{define}
-  Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and
-  $\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$ and suppose they intersect at
-  exactly a single time $t_{c}$. We write $\gamma_{1} * \gamma_{2}$ to denote
-  the unique \emph{joined trajectory}
-  \begin{align}
-    (\gamma_{1} * \gamma_{2})(t) =
-    \begin{cases}
-      \gamma_{1}(t) & \text{ for } t < \xi , \\
-      \gamma_{1}[\xi](t) & \text{ for } t \in [\xi, \tau] , \\
-      \gamma_{2}(t) & \text{ for } t > \tau ,
-    \end{cases}
-  \end{align}
-  satisfying $\gamma_{1} * \gamma_{2} \in \mathcal{D}[a_{1}, b_{2}]$, when it exists.
-  %
-  If $\dot{\gamma}_{1}(t_{c}) = \dot{\gamma}_{2}(t_{c})$, then we define $\tau=\xi=t_{c}$.
-\end{define}
-
-Next, we discuss existence of joined trajectories.
-
-\begin{lemma}
-  Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{1}]$ and
-  $\gamma_{2} \in \mathcal{D}[a_{2},b_{2}]$. If there is some trajectory
-  $\mu \in \mathcal{D}[a_{1}, b_{2}]$ such that
-  $\mu \leq \min\{\gamma_{1}, \gamma_{2}\}$ and
-  \begin{align*}
-    \mu(a_{1}) = \gamma_{1}(a_{1}), \quad \mu(b_{2}) = \gamma_{2}(b_{2}), \\
-    \dot{\mu}(a_{1}) = \dot{\gamma}_{1}(a_{1}), \quad \dot{\mu}(b_{2}) = \dot{\gamma_{2}}(b_{2}).
-  \end{align*}
-  then $\gamma_{1} * \gamma_{2}$ exists.
-\end{lemma}
-\begin{proof} {\color{Navy} Still todo, but I can adapt an earlier version of
-    this argument, which was previously part of Lemma 1.}
-\end{proof}
-
-
-Our main interest in $\gamma_{1} * \gamma_{2}$ is due to the following upper bounding
-property.
-
-\begin{lemma}\label{lemma:upperbound}
-  Let $\gamma_{1} \in \mathcal{D}[a_{1}, b_{2}]$ and
-  $\gamma_{2} \in \mathcal{D}[a_{2}, b_{2}]$ be such that $\gamma_{1} * \gamma_{2}$ exists. All
-  trajectories $\mu \in \mathcal{D}[a, b]$ that are such that
-  $\mu \leq \min\{\gamma_{1}, \gamma_{2}\}$, must satisfy $\mu \leq \gamma_{1} * \gamma_{2}$.
-\end{lemma}
-\begin{proof}
-  Write $\gamma := \gamma_{1} * \gamma_{2}$ as a shorthand. We obviously have
-  $\mu \leq \gamma$ on $[a_{1}, \xi] \cup [\tau, b_{2}]$, so consider the interval $(\xi, \tau)$ of the joining
-  deceleration part. Suppose there exists some $t_{d} \in (\xi, \tau)$ such that
-  $\mu(t_{d}) > \gamma(t_{d})$. Because $\mu(\xi) \leq \gamma(\xi)$, this means that $\mu$ must
-  intersect $\gamma$ at least once in $\halfopen{\xi}{t_{d}}$, so let
-  $t_{c} := \sup \, \{ t \in \halfopen{\xi}{t_{d}} : \mu(t) = \gamma(t) \}$ be the latest
-  time of intersection such that $\mu \geq \gamma$ on $[t_{c}, t_{d}]$. There must be
-  some $t_{c} \in [t_{c}, t_{d}]$ such that $\dot{\mu}(t_{v}) > \dot{\gamma}(t_{v})$, otherwise
-  \begin{align*}
-    \mu(t_{d}) = \mu(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{\mu}(t) \diff t \leq \gamma(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{\gamma}(t) \diff t = \gamma(d_{t}) ,
-  \end{align*}
-  which contradicts our choice of $t_{d}$. Hence, for every
-  $t \in [t_{v}, \tau]$, we have
-  \begin{align*}
-    \dot{\mu}(t) \geq \dot{\mu}(t_{v}) - \omega (t - t_{v}) > \dot{\gamma}(t_{v}) - \omega(t - t_{v}) = \dot{\gamma}(t) .
-  \end{align*}
-  It follows that $\mu(\tau) > \gamma(\tau)$, which contradicts
-  $\mu \leq \gamma_{2}$.
-\end{proof}
-
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{figures/motion/example1}
+  \caption{{\color{Navy} We include this old sketch here temporarily, which is
+      related to derive entry space constraint in terms of schedule times.}}%
+\end{figure}
 
 
 \newpage
@@ -1194,25 +816,6 @@ property.
   $N^{c} = \{ x : f(x) \neq y \} = \cup_{y' \neq y} f^{-1}(\{y'\}) = \cup_{y' \neq y} f^{-1}(M(y'))$
   is open.
 \end{proof}
-
-\begin{lemma}\label{lemma:picard}
-  Let $D \subseteq \mathbb{R} \times \mathbb{R}^{n}$ be some closed rectangle such that
-  $(t_{0}, x_{0}) \in \interior D$.
-  Let $f : D \rightarrow \mathbb{R}^{n}$ be a function that is continuous in $t$
-  and globally Lipschitz continuous in $x$, then there exists some $\varepsilon > 0$
-  such that the initial value problem
-  \begin{align}
-    \label{eq:1}
-    \dot{x}(t) = f(t, x(t)), \quad x(t_{0}) = x_{0}
-  \end{align}
-  has a unique solution $x(t)$ on the interval
-  $[t_{0} - \varepsilon, t_{0} + \varepsilon]$.
-\end{lemma}
-
-{\color{Navy} The above existence and uniqueness theorem is also known as the
-  Picard-Lindel{\"o}f or Cauchy-Lipschitz theorem. The above statement is based
-  on the Wikipedia page on this theorem, so we still need a slightly better
-  reference.}
 
 \begin{lemma}\label{lemma:inf-continuous}
   Let $f : X \times Y \rightarrow \mathbb{R}$ be some continuous function. If
