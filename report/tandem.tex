@@ -552,30 +552,25 @@ In the third case, so $t \geq \delta_{0}$, we have
 \end{align}
 This concludes the argument for $X$ being a closed interval.
 
-Next, let $\xi \in X$ such that $d(\xi) = 0$.
-
 For the above two cases, observe that we have equality in~\eqref{eq:case2} if
 and only if there is equality in~\eqref{eq:case3}, which happens when
 $\ddot{\mu}(\xi) = -\omega$.
 %
-This observation is key to the remaining argument.
-
-Let $t^{*} \in [t_{1}, b]$ denote a minimizer of the expression of
-$d(\xi_{1}) = 0$, so
+This observation is the key for the remaining argument.
+%
+Next, let $\xi \in X$ such that $d(\xi) = 0$.
+%
+Let $t_{1}^{*} \in [t_{1}, b]$ be such that
 \begin{align}
-  t^{*} = \argmin_{t \in [t_{1},b]} \mu(t)  \mu[\xi_{1}](t)
+  \mu(t) - \mu[\xi_{1}](t_{1}^{*}) = 0
 \end{align}
-
-Suppose
+%
 
 
 \paragraph{Matching derivatives.}
 It remains to show that $\mu[\xi_{1}]$ touches $\mu$ tangentially.
 
-\paragraph{Repeat for remaining discontinuities.}
-
 \begin{outline}
-
   \1 Let $t^{*} \in [t_{1}, b]$ be a minimizer of the minimum $d(\xi_{1}) = 0$,
   such that $\mu(t^{*}) = \mu[\xi_{1}](t^{*})$.
   %
@@ -586,14 +581,22 @@ It remains to show that $\mu[\xi_{1}]$ touches $\mu$ tangentially.
   \1 When $\tau_{1} = b$, the derivatives must match as a consequence of
   assumption $\mu \geq \mu[b]$.
 
+\end{outline}
+
+
+\paragraph{Repeat for remaining discontinuities.}
+
+\begin{outline}
   \1 Conclude that we have found a $\xi, \tau$ such that the boundary
   $\mu[\xi]_{[\xi,\tau]}$ can be added to $\mu$ to obtain
   $\mu' \in \mathcal{P}[a,b]$ with one less discontinuity. For $\mu'$, we can
   repeat the exact same process as above. Eventually, we end up with a
   trajectory $\mu^{*} \in \mathcal{D}[a,b]$.
 
-  \1 Argue that the smoothing procedure leaves $\dot{\mu}^{*}(a) = \dot{\mu}(a)$
-  and $\dot{\mu}^{*}(b) = \dot{\mu}(b)$ untouched.
+  \1 Stress again that the smoothing procedure leaves
+  $\dot{\mu}^{*}(a) = \dot{\mu}(a)$ and $\dot{\mu}^{*}(b) = \dot{\mu}(b)$
+  untouched.
+
 \end{outline}
 
 
