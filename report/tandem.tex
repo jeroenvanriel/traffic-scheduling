@@ -1,5 +1,5 @@
 \documentclass[a4paper]{article}
-\usepackage[margin=3.5cm]{geometry}
+\usepackage[margin=3.5cm, marginparsep=5pt, marginparwidth=80pt]{geometry}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage[svgnames]{xcolor}
@@ -28,7 +28,12 @@
 \usepackage{mathtools}
 \usepackage{nicematrix}
 \usepackage{nccmath}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
 \usepackage{lipsum}
+\usepackage{pdfcomment}
 \usepackage[activate={true,nocompatibility},final,tracking=true,kerning=true,spacing=true,factor=500,stretch=15,shrink=15]{microtype}
 
 \usepackage{apptools}
@@ -36,7 +41,7 @@
 
 \addtolength{\skip\footins}{2mm}
 
-\input{data/knitr_init.tex}
+\newcommand{\comment}[1]{\pdfmargincomment[author=Jeroen van Riel]{#1}}
 
 % code highlighting
 \usepackage{minted}
@@ -95,8 +100,8 @@
 \author{Jeroen van Riel}
 \date{\monthyeardate\today}
 
-\title{Trajectory optimization for vehicles in a lane model with minimum
-  following distance and boundary conditions}
+\title{Vehicle trajectory planning in a single lane with minimum following
+  distance and boundary conditions}
 
 \begin{document}
 
@@ -115,12 +120,12 @@
   must drive at full speed.
   %
   For an optimization objective that, roughly speaking, minimizes the distance
-  to the end of the lane at all times, we present an algorithm to compute an
-  optimal set of trajectories.
+  to the end of the lane at all times, we present an algorithm to compute
+  optimal trajectories.
   %
-  Assuming some minimum lane length, we characterize feasibility of this
-  trajectory optimization problem in terms of a system of linear inequalities
-  involving the schedule times.
+  Assuming a fixed minimum lane length, we characterize feasibility of this
+  trajectory planning problem in terms of a system of linear inequalities
+  involving only the schedule times.
   %
 \end{abstract}
 
@@ -132,7 +137,7 @@
 \renewcommand{\labelitemii}{\textbullet}
 \renewcommand{\labelitemiii}{\textbullet}
 
-\section{Lane model}
+\section{Trajectory planning problem}
 
 Vehicles are modeled as double integrators with bounded speed and acceleration,
 which means that we only consider their longitudinal position on the road. Let
@@ -198,10 +203,10 @@ In particular, we will show that optimal trajectories can be understood as the
 concatenation of at most four different types of trajectory parts. Based on this
 observation, we present an algorithm to compute optimal trajectories.
 %
-Assuming $(\omega, \bar{\omega},A,B,L)$ to be fixed, with lane length $B-A$
-sufficiently large, we will show that feasibility of the trajectory optimization
-problem is completely characterized by a system of linear inequalities in
-$a_{i}$ and $b_{i}$.
+Assuming the system parameters $(\omega, \bar{\omega},A,B,L)$ to be fixed, with lane
+length $B-A$ sufficiently large, we will show that feasibility of the trajectory
+optimization problem is completely characterized by a system of linear
+inequalities in terms of all schedule times $a_{i}$ and $b_{i}$.
 
 Note that objective~\eqref{eq:objective} does not capture energy efficiency in
 any way. Although this is not desirable in practice, it is precisely this
@@ -209,14 +214,25 @@ assumption that enables the analysis in this section. Deriving a similar
 characterization of feasibility and optimal trajectories under an objective that
 does model energy concumption is an interesting topic for further research.
 
+% \subsection{Direct transcription}
+
+% A straightforward way of solving
+% problem~\eqref{eq:feasibility}--\eqref{eq:objective} is through direct
+% transcription to a mixed-integer linear program by only considering the vehicle
+% trajectories $x_{i}(t)$ at discrete time steps $t_{1}, t_{2}, \dots, t_{n}$.
+% %
+% We can use the forward Euler scheme to discretize the constraints.
+% %
+% The downside of this technique is that its computational complexity scales very
+% poorly with the number of time steps.
+
 \section{Single vehicle problem}
 
-We will first consider a somewhat generalized version of the
-constraints~\eqref{eq:feasibility} for a single vehicle $i$. Therefore, we
-lighten the notation slightly by dropping the vehicle index $i$ and instead of
-$x_{i-1} - L$, we assume we are given some arbitrary \emph{lead vehicle
-  boundary} $\bar{x} \in \bar{D}[\bar{a}, \bar{b}]$, then we consider the
-optimization problem
+We will first consider a somewhat generalized version of the constraints~\eqref{eq:feasibility} for
+a single vehicle $i$. Therefore, we lighten the notation slightly by dropping
+the vehicle index $i$ and instead of $x_{i-1} - L$, we assume we are given some
+arbitrary \emph{lead vehicle boundary} $\bar{x} \in \bar{D}[\bar{a}, \bar{b}]$, then we
+consider the optimization problem
 \begin{align}
   \max_{x \in D[a, b]} \int_{a}^{b} x(t) \diff t \quad \text{ such that } \quad x \leq \bar{x} .
 \end{align}
@@ -272,7 +288,6 @@ We refer to $\check{x}$ and $\hat{x}$ as the \emph{entry boundary} and
   \label{fig:necessary-conditions}
 \end{figure}
 
-\pagebreak
 
 \begin{lemma}\label{lemma:necessary-conditions}
   Let $\bar{x} \in \bar{D}[\bar{a}, \bar{b}]$ and assume there exists a
@@ -295,23 +310,23 @@ We refer to $\check{x}$ and $\hat{x}$ as the \emph{entry boundary} and
   %
   % When (i) is violated, $x$ must cross $x^{1}$ somewhere, which means that the
   % maximum speed constraint must be violated.
-  When either (ii) or (iii) is violated, the constraint $x \leq \bar{x}$
-  conflicts with one of the boundary conditions $x(a) = A$ or $x(b) = B$. To see
-  that (iv) must hold, suppose that $\bar{x}(\tau) < \check{x}(\tau)$ for some
-  time $\tau$. Since $\bar{a} \leq a$, this means that $\bar{a}$ must intersect
-  $\check{a}$ from above. Therefore, any trajectory that satisfies
-  $x \leq \bar{x}$ must also intersect $\check{a}$ from above, which contradicts
-  the assumption that $x$ was a feasible solution.
+  When either (ii) or (iii) is violated, the constraint $x \leq \bar{x}$ conflicts
+  with one of the boundary conditions $x(a) = A$ or $x(b) = B$. To see that (iv)
+  must hold, suppose that $\bar{x}(\tau) < \check{x}(\tau)$ for some time $\tau$. Since
+  $\bar{a} \leq a$, this means that $\bar{a}$ must intersect $\check{a}$ from
+  above. Therefore, any trajectory that satisfies $x \leq \bar{x}$ must also
+  intersect $\check{a}$ from above, which contradicts the assumption that $x$
+  was a feasible solution.
 \end{proof}
 
 We show that the boundaries $\hat{x}$ and $\check{x}$ together could yield yet
 another necessary condition. It is straightforward to verify
 from~\cref{eq:hat-x,eq:check-x} that $\hat{x}(t) \geq B - 1/(2\bar{\omega})$ and
 $\check{x}(t) \leq A + 1/(2\omega)$. Therefore, whenever
-$B - A < 1/(2\bar{\omega}) + 1/(2\omega)$, these boundaries intersect for
-certain values of $a$ and $b$. Because the exact condition is somewhat
-cumbersome to characterize, we avoid this case by simply assuming that the lane
-length is sufficiently large.
+$B - A < 1/(2\bar{\omega}) + 1/(2\omega)$, these boundaries intersect for certain values
+of $a$ and $b$. Because the exact condition is somewhat cumbersome to
+characterize, we avoid this case by simply assuming that the lane length is
+sufficiently large.
 
 \begin{assump}\label{eq:AB-assumption}
   The length of the lane satisfies $B - A \geq 1/(2\omega) + 1/(2\bar{\omega})$.
@@ -339,7 +354,7 @@ which shows that it is optimal.
     $\bar{x}$, $\hat{x}$ and $x^{1}$, is smoothened around time $t_{1}$ and
     $t_{2}$, where the derivative is discontinuous, to obtain the smooth optimal
     trajectory $x^{*}$, drawn in green. The times $\xi_{i}$ and $\tau_{i}$
-    correspond to the start and end of the connecting deceleration boundary as
+    correspond to the start and end of the connecting deceleration as
     defined in Section~\ref{sec:smoothing}.}%
   \label{fig:optimal-construction}
 \end{figure}
@@ -393,7 +408,7 @@ Combining this with the constraint $\dot{x}(t) \in [0, 1]$, this yields
 where use $\{ \cdot \}_{[0,1]}$ as a shorthand for this clipping operation.
 %
 Hence, for any $t \in [a,b]$, we obtain the following lower bound
-\begin{align}\label{eq:stopping-trajectory}
+\begin{align}\label{eq:deceleration-boundary}
   x(t) = x(\xi) + \int_{\xi}^{t} \dot{x}(\tau) \diff \tau \geq x(\xi) + \int_{\xi}^{t} \{\dot{x}(\xi) - \omega(\tau - \xi)\}_{[0,1]} \diff \tau =: x[\xi] (t) ,
 \end{align}
 where we will refer to the right-hand side as the \emph{deceleration boundary} of $x$
@@ -405,17 +420,17 @@ interval $[a,b]$.
 
 Note that $x[\xi]$ depends on $x$ only through the two real numbers $x(\xi)$ and
 $\dot{x}(\xi)$. It will be convenient later to rewrite the right-hand side
-of~\eqref{eq:stopping-trajectory} as
+of~\eqref{eq:deceleration-boundary} as
 \begin{align}
   x^{-}[p, v, \xi](t) = p + \int_{\xi}^{t} \{ v - \omega(\tau - \xi) \}_{[0,1]} \diff \tau ,
 \end{align}
 such that $x[\xi](t) = x^{-}[x(\xi), \dot{x}(\xi), \xi](t)$.
 %
-We can expand the integral in this expression further by carefully handling
-the clipping operation. Observe that the expression within the clipping
-operation reaches the bounds $1$ and $0$ for $\delta_{1} := \xi - (1-v)/\omega$ and
-$\delta_{0} := \xi + v/\omega$, respectively. Using this notation, a simple calculation
-shows that
+We can expand the integral in this expression further by carefully handling the
+clipping operation. Observe that the expression within the clipping operation
+reaches the bounds $1$ and $0$ for $\delta_{1} := \xi - (1-v)/\omega$ and
+$\delta_{0} := \xi + v/\omega$, respectively. Using this notation, a straightforward
+calculation shows that
 \begin{align}\label{eq:x-}
   x^{-}[p,v,\xi](t) = p +
   \begin{cases}
@@ -424,6 +439,14 @@ shows that
     v^{2}/(2\omega) & \text{ for } t \geq \delta_{0} .
   \end{cases}
 \end{align}
+%
+It is easily verified that these three cases coincide at
+$t \in \{\delta_{1}, \delta_{0}\}$, which justifies the overlap there.
+Furthermore, since $x$ and $\dot{x}$ are continuous by assumption, this shows
+that $x[\xi](t) = x^{-}[x(\xi), \dot{x}(\xi), \xi](t)$ is continuous as a
+function of either of its arguments\footnote{Even more, it can be shown that
+  $x[\xi](t)$ is continuous as a function of $(\xi, t)$.}.
+%
 Assuming $0 \leq v \leq 1$, it can be verified that for every $t \in \mathbb{R}$, we
 have $\ddot{x}^{-}[p,v,\xi](t) \in \{-\omega, 0\}$ and
 $\dot{x}^{-}[p,v,\xi](t) \in [0,1]$ due to the clipping operation, so that
@@ -431,18 +454,20 @@ $x^{-}[p,v,\xi] \in \mathcal{D}(-\infty,\infty)$.
 
 \begin{figure}
   \centering
-  \includegraphics[scale=1]{figures/motion/rough/stopping-trajectory}
-  \caption{Illustration of a deceleration boundary $\mu[\xi]$ of some piecewise
-    trajectory $\mu \in \mathcal{P}[a,b]$ at time $\xi$. We truncated $\mu[\xi]$
-    for a more compact figure. This particular trajectory $\mu$ has a
-    discontinuous derivative at times $t_{1}$ and $t_{2}$. The careful reader
-    may notice that this $\mu$ cannot occur as the minimum boundary defined
-    in~\eqref{eq:min-boundary}. This only means that the class of piecewise
-    trajectories $\mathcal{P}[a,b]$ is just slightly more general than necessary
-    for our current purposes.}%
-  \label{fig:stopping-trajectory}
+  \includegraphics[scale=1.1]{figures/motion/rough/deceleration-boundary}
+  \caption{Illustration of some piecewise trajectory $\mu \in \mathcal{P}[a,b]$ with
+    some deceleration boundary $\mu[\xi]$ at time $\xi$ in blue and the unique
+    connecting deceleration $\mu[\xi_{1}]$ in green. We truncated both
+    deceleration boundaries for a more compact figure. This particular $\mu$ has a
+    discontinuous derivative at times $t_{1}$ and $t_{2}$. The careful observer
+    may notice that $\mu$ cannot occur as the minimum boundary defined in~\eqref{eq:min-boundary}, but
+    please note that the class of piecewise trajectories $\mathcal{P}[a,b]$ is
+    just slightly more general than necessary for our current purposes.}%
+  \label{fig:deceleration-boundary}
 \end{figure}
 
+
+\paragraph{Piecewise trajectories.}
 Let $\mu \in \mathcal{P}[a, b]$ be some piecewise trajectory and let
 $a = t_{0} < \cdots < t_{n+1} = b$ denote the corresponding subdivision as in
 Definition~\ref{def:piecewise-trajectory}, then we generalize the definition of
@@ -455,55 +480,68 @@ However, when $\xi \in \{ t_{1}, \dots, t_{n}\}$, the derivative
 $\dot{\mu}(\xi)$ is not defined, so we to use the left-sided limit instead, by
 defining $\mu[\xi] := x^{-}[\mu(\xi), \dot{\mu}(\xi^{-}), \xi]$.
 
-Finally, please note that we cannot just replace $x$ with $\mu$ in
-inequality~\eqref{eq:stopping-trajectory} to obtain a similar bound for the
-whole interval $[a,b]$.
-%
-Instead, consider some interval
-$I \in \{ [a, t_{1}], \openhalf{t_{1}}{t_{2}}, \dots, \openhalf{t_{n}}{b} \}$,
-then what remains true is that $\xi \in I$ implies $\mu(t) \geq \mu[\xi](t)$ for
-every $t \in I$.
+\begin{remark}\label{rem:lower-bound-piecewise}
+  Please note that we cannot just replace $x$ with $\mu$ in inequality~\eqref{eq:deceleration-boundary} to
+  obtain a similar bound for $\mu$ on the its full interval $[a,b]$.
+  Instead, we get the following \emph{piecewise lower bounding} property.
+  %
+  Consider some interval
+  $I \in \{ [a, t_{1}], \openhalf{t_{1}}{t_{2}}, \dots, \openhalf{t_{n}}{b} \}$, then what
+  remains true is that $\xi \in I$ implies $\mu(t) \geq \mu[\xi](t)$ for every $t \in I$.
+\end{remark}
 
 
 \subsubsection{Smoothing procedure}\label{sec:smoothing}
 Let $\mu \in \mathcal{P}[a,b]$ be some piecewise trajectory and let
-$a = t_{0} < \cdots < t_{n+1} = b$ again denote the subdivision as in Definition~\ref{def:piecewise-trajectory}.
+$a = t_{0} < \cdots < t_{n+1} = b$ denote the subdivision as in Definition~\ref{def:piecewise-trajectory}.
 %
 We first show how to smoothen the discontinuity at $t_{1}$ and then argue how to
 repeat this process for the remaining times $t_{i}$.
 
-\begin{assump}
+\begin{assump}\label{assump2}
   Throughout the following discussion, we assume $\mu \geq \mu[a]$ and $\mu \geq \mu[b]$.
 \end{assump}
 
-We want to pick some $\xi \in \halfopen{a}{t_{1}}$, such that $\mu[\xi] \leq \mu$
-and such that $\mu[\xi]$ touches $\mu$ at some time $\tau \in [t_{1}, b]$
-tangentially. Therefore, we measure the relative position of $\mu[\xi]$ with
-respect to $\mu$ on this interval, by considering
+Our aim is to choose some time $\xi \in [a,t_{1}]$ from which the vehicle starts
+fully decelerating, such that $\mu[\xi] \leq \mu$ and such that $\mu[\xi]$ touches $\mu$ at some time
+$\tau \in [t_{1}, b]$ tangentially.
+%
+We will show there is a unique trajectory $\mu[\xi]$ that satisfies these requirements
+and refer to it as the \emph{connecting deceleration}, see
+Figure~\ref{fig:deceleration-boundary} for an example.
+
+
+\paragraph{Touching.}
+Recall Remark~\ref{rem:lower-bound-piecewise}, which asserts that we have
+$\mu[\xi] \leq \mu$ on $[a,t_{1}]$ for any $\xi \in [a, t_{1}]$.
+%
+After the discontinuity, so on the interval $[t_{1}, b]$, we want
+$\mu[\xi] \leq \mu$ and equality at least somewhere, so we measure the relative
+position of $\mu[\xi]$ with respect to $\mu$ here, by considering
 \begin{align}
   d(\xi) := \min_{t \in [t_{1}, b]} \mu(t) - \mu[\xi](t) .
 \end{align}
-Since $\mu(t)$ and $\mu[\xi](t)$ are both continuous in $t$, this minimum actually exists
-due to the extreme value theorem (Weierstrass).
+Since $\mu(t)$ and $\mu[\xi](t)$ are both continuous as a function of $t$ on the interval
+$[t_{1}, b]$, this minimum actually exists (extreme value theorem).
 %
-Furthermore, since the minimum is taken of a continuous function over a closed
-interval, $d$ is a continuous function as well (see Lemma~\ref{lemma:inf-continuous}).
-
-\paragraph{Existence.}
+Furthermore, since $d$ is the minimum of a continuous function over a closed
+interval, it is continuous as well (see Lemma~\ref{lemma:inf-continuous}).
+%
 Observe that $d(a) \geq 0$, because $\mu \geq \mu[a]$ by assumption.
 %
 By definition of $t_{1}$, we have $\dot{\mu}(t_{1}^{-}) > \dot{\mu}(t_{1}^{+})$,
-from which it follows that $\mu < \mu[t_{1}]$ on $(t_{1}, t_{1} + \epsilon)$ for some small
-$\epsilon > 0$, which shows that $d(t_{1}) < 0$.
+from which it follows that $\mu(t) < \mu[t_{1}](t)$ for $ t\in (t_{1}, t_{1} + \epsilon)$ for some
+small $\epsilon > 0$, which shows that $d(t_{1}) < 0$.
 %
-Therefore, the intermediate value theorem ensures that there is some
-$\xi_{1} \in \halfopen{a}{t_{1}}$ such that $d(\xi_{1}) = 0$.
+By the intermediate value theorem, there is $\xi_{1} \in \halfopen{a}{t_{1}}$ such
+that $d(\xi_{1}) = 0$.
+
 
 \paragraph{Uniqueness.}
-We will see that $\xi_{1}$ itself is not necessarily unique. Instead, we are
-going to show that the connecting deceleration boundary $\mu[\xi_{1}]$ is unique. More
-precisely, for any $\xi \in \halfopen{a}{t_{1}}$ such that $d(\xi) = 0$, we will show
-that $\mu[\xi] = \mu[\xi_{1}]$.
+It turns out that $\xi_{1}$ itself is not necessarily unique, which we explain
+below. Instead, we are going to show that the connecting deceleration
+$\mu[\xi_{1}]$ is unique. More precisely, given any other $\xi \in \halfopen{a}{t_{1}}$ such
+that $d(\xi) = 0$, we will show that $\mu[\xi] = \mu[\xi_{1}]$.
 
 The first step is to establish that the level set
 \begin{align}
@@ -521,109 +559,207 @@ and verifying it is non-negativity.
 %
 Recall the definition of $\mu[\xi]$, based on $x^{-}$ in equation~\eqref{eq:x-}.
 %
-Using the same notation, we write
-$\delta_{1} = \xi - (1 - \dot{\mu}(\xi))/\omega$ and
-$\delta_{0} = \xi + \dot{\mu}(\xi)/\omega$ and compute
+Using similar notation, we write
+$\delta_{1}(\xi) = \xi - (1 - \dot{\mu}(\xi))/\omega$ and
+$\delta_{0}(\xi) = \xi + \dot{\mu}(\xi)/\omega$ and compute
 %
 \begin{align}
   \frac{\partial}{\partial \xi} \mu[\xi](t) =
   \dot{\mu}(\xi) +
   \begin{cases}
-    \ddot{\mu}(\xi)(\dot{\mu}(\xi)-1)/\omega - 1 &\text{ for } t \leq \delta_{1} , \\
-    \ddot{\mu}(\xi)(t-\xi) - \dot{\mu}(\xi) + \omega(t-\xi) &\text{ for } t \in [\delta_{1},\delta_{0}] , \\
-    \ddot{\mu}(\xi)\dot{\mu}(\xi)/ \omega &\text{ for } t \geq \delta_{0} .
+    \ddot{\mu}(\xi)(\dot{\mu}(\xi)-1)/\omega - 1 &\text{ for } t \leq \delta_{1}(\xi) , \\
+    \ddot{\mu}(\xi)(t-\xi) - \dot{\mu}(\xi) + \omega(t-\xi) &\text{ for } t \in [\delta_{1}(\xi),\delta_{0}(\xi)] , \\
+    \ddot{\mu}(\xi)\dot{\mu}(\xi)/ \omega &\text{ for } t \geq \delta_{0}(\xi) .
   \end{cases}
 \end{align}
 %
-It is easily verified that these three cases match at $\delta_{1}$ and $\delta_{0}$, which
-justifies the overlapping cases for $t$.
+It is easily verified that the cases match at
+$t \in \{\delta_{1}(\xi), \delta_{0}(\xi)\}$, which justifies the overlaps there.
 %
-Consider any $\xi \in \halfopen{a}{t_{1}}$ and $t \in [t_{1}, b]$, then we have $\delta_{1} \leq \xi \leq t$,
-so we verify the second and third case.
+Consider any $\xi \in \halfopen{a}{t_{1}}$ and $t \in [t_{1}, b]$, then we always have
+$\delta_{1}(\xi) \leq \xi \leq t$, so we only have to verify the second and third case:
 %
-In the second case, so $t \in [\delta_{1},\delta_{0}]$, we have
-\begin{align}\label{eq:case2}
-  \frac{\partial}{\partial \xi} \mu[\xi](t) = (\ddot{\mu}(\xi) + \omega)(t-\xi) \geq 0 .
-\end{align}
+\begin{subequations}
+\begin{alignat}{2}
+  \frac{\partial}{\partial \xi} \mu[\xi](t) &= (\ddot{\mu}(\xi) + \omega)(t-\xi) \geq 0 \quad\quad\quad &&\text{ for } t \in [\delta_{1}(\xi) ,\delta_{0}(\xi)], \label{eq:case2} \\
+  \frac{\partial}{\partial \xi} \mu[\xi](t) &\geq \dot{\mu}(\xi) + (-\omega)\dot{\mu}(\xi)/\omega = 0 &&\text{ for } t \geq \delta_{0}(\xi) . \label{eq:case3}
+\end{alignat}
+\end{subequations}
 %
-In the third case, so $t \geq \delta_{0}$, we have
-\begin{align}\label{eq:case3}
-  \frac{\partial}{\partial \xi} \mu[\xi](t) \geq \dot{\mu}(\xi) + (-\omega)\dot{\mu}(\xi)/\omega = 0 .
-\end{align}
 This concludes the argument for $X$ being a closed interval.
 
-For the above two cases, observe that we have equality in~\eqref{eq:case2} if
-and only if there is equality in~\eqref{eq:case3}, which happens when
+Assuming $\xi$ to be fixed, observe that there is equality in~\eqref{eq:case2} for some
+$t \in [\delta_{1}(\xi), \delta_{0}(\xi)]$ if and only if there is equality in~\eqref{eq:case3}
+for some other $t' \geq \delta_{0}(\xi)$. Note that this happens precisely when
 $\ddot{\mu}(\xi) = -\omega$.
 %
-This observation is the key for the remaining argument.
+Therefore, whenever $\mu$ is fully deceleration, so $\dot{\mu}(t)=-\omega$ on
+some open interval $U \subset (a, t_{1})$, we have
+$(\partial/\partial \xi) \mu[\xi](t) = 0$ for all $t \geq \delta_{1}(\xi)$.
 %
-Next, let $\xi \in X$ such that $d(\xi) = 0$.
+This essentially means that any choice of $\xi \in U$ produces the same
+trajectory $\mu[\xi]$. Please see Figure~\ref{fig:deceleration-boundary-unique}
+for an example of this case.
 %
-Let $t_{1}^{*} \in [t_{1}, b]$ be such that
-\begin{align}
-  \mu(t) - \mu[\xi_{1}](t_{1}^{*}) = 0
+This observation is key to the remaining uniqueness argument.
+
+\begin{figure}[h]
+  \centering
+  \vspace*{0.5em}
+  \includegraphics[scale=1.1]{figures/motion/rough/deceleration-boundary-unique}
+  \caption{Example of a piecewise trajectory $\mu$ with a part of full
+    deceleration over some interval $U$ such that any choice of $\xi \in U$
+    produces the same deceleration boundary $\mu[\xi]$, which naturally
+    coincides with $\mu$ on $U$.}
+  \label{fig:deceleration-boundary-unique}
+\end{figure}
+
+Since $X$ is a closed interval, we may define $\xi_{0} = \min X$.
+%
+Consider any $\xi' \in X$ with $\xi' > \xi_{0}$, then we show $\mu[\xi'](t) = \mu[\xi_{0}](t)$ for all
+$t \in [\xi_{0}, b]$. For sake of contradiction, suppose there is some $t' \in [\xi_{0}, b]$ such that
+$\mu[\xi'](t') > \mu[\xi_{0}](t')$, then there must be some open interval $U \subset (\xi_{0}, \xi')$ such that
+\begin{align}\label{eq:positive-partial-derivative}
+  \frac{\partial}{\partial \xi}\mu[\xi](t') > 0 \text{ for all } \xi \in U .
 \end{align}
+However, we argued in the previous paragraph that this actually holds for any
+$t' \geq \delta_{1}(\xi)$.
 %
+In particular, let $t^{*} \in [t_{1}, b]$ be such that
+$\mu(t^{*}) = \mu[\xi_{0}](t^{*})$, then
+$t^{*} \geq t_{1} \geq \xi \geq \delta_{1}(\xi)$,
+so~\eqref{eq:positive-partial-derivative} yields $\mu[\xi'](t^{*}) > \mu[\xi_{0}](t^{*})$, but then
+$d(\xi') > d(\xi_{0}) = 0$, so $\xi' \notin X$, a contradiction.
 
 
-\paragraph{Matching derivatives.}
-It remains to show that $\mu[\xi_{1}]$ touches $\mu$ tangentially.
+\paragraph{Touching tangentially.}
+\comment{I might add a figure for this whole part. Especially for the case tau1
+  = b, because feasibility of the resulting trajectory relies on this.}
+%
+It remains to show that $\mu$ and $\mu[\xi_{0}]$ touch tangentially somewhere on
+$[t_{1}, b]$. Let $\tau_{1} \in [t_{1}, b]$ be the smallest time such that
+$\mu(\tau_{1}) - \mu[\xi_{0}](\tau_{1}) = d(\xi_{0}) = 0$ and consider the
+following three cases.
 
-\begin{outline}
-  \1 Let $t^{*} \in [t_{1}, b]$ be a minimizer of the minimum $d(\xi_{1}) = 0$,
-  such that $\mu(t^{*}) = \mu[\xi_{1}](t^{*})$.
-  %
-  If $\tau_{1} \in (t_{1}, b)$, then obviously
-  $\dot{\mu}(\tau_{1}) = \dot{\mu}[\xi_{1}](\tau_{1})$ is a necessary condition
-  of a local minimum. Note that $\tau_{1}=t_{1}$ cannot happen.
+First of all, note that $\tau_{1} = t_{1}$ is not possible, because this
+would require
+\begin{align}
+  \dot{\mu}(t_{1}^{+}) > \dot{\mu}[\xi_{0}](t_{1}^{+}) = \dot{\mu}[\xi_{0}](t_{1}) ,
+\end{align}
+but since $\mu$ is a piecewise trajectory, we must have
+$\dot{\mu}(t_{1}^{-}) > \dot{\mu}(t_{1}^{+}) > \dot{\mu}[\xi_{0}](t_{1})$. This
+shows that $\mu(t_{1} - \epsilon) < \mu[\xi_{0}](t_{1} - \epsilon)$, for
+some small $\epsilon > 0$, which contradicts $\mu[\xi_{0}] \leq \mu$.
 
-  \1 When $\tau_{1} = b$, the derivatives must match as a consequence of
-  assumption $\mu \geq \mu[b]$.
+Suppose $\tau_{1} \in (t_{1}, b)$, then recall the definition of $d(\xi_{0})$
+and observe that the usual first-order necessary condition (derivative zero) for
+local minima requires $\dot{\mu}(\tau_{1}) = \dot{\mu}[\xi_{0}](\tau_{1})$.
+\comment{I find this argument clear enough, but I am not sure if
+  ''first-order necessary condition'', needs some further elaboration. It is
+  just when you are minimizing some differentiable function f(x), then a local
+  minimum a should have f'(a) = 0.}
 
-\end{outline}
+Finally, consider $\tau_{1} = b$.
+%
+Observe that $\dot{\mu}(b) > \dot{\mu}[\xi_{0}](b)$, would contradict
+minimality of $\tau_{1} = b$. Therefore, suppose
+$\dot{\mu}(b) < \dot{\mu}[\xi_{0}](b)$, then
+$\dot{\mu}[b](b) = \dot{\mu}(b) < \dot{\mu}[\xi_{0}](b)$, so
+\begin{align}
+  \dot{\mu}[b](t) \leq \dot{\mu}[\xi_{0}](t) \text{ for } t \leq b ,
+\end{align}
+but then $\mu[b](t) > \mu[\xi_{0}](t)$ for $t < b$. In particular, for
+$t=\xi_{0}$, this shows
+$\mu[b](\xi_{0}) > \mu[\xi_{0}](\xi_{0}) = \mu(\xi_{0})$, which contradicts
+the assumption $\mu[b] \leq \mu$ of Assumption~\ref{assump2}.
 
 
 \paragraph{Repeat for remaining discontinuities.}
+Before we proceed, let us summarize what we have established so far.
+%
+The times $\xi_{0} \in \halfopen{a}{t_{1}}$ and
+$\tau_{1} \in \openhalf{t_{1}}{b}$ have been chosen such that
+\begin{subequations}\label{eq:smoothing-requirements}
+\begin{gather}
+  \mu[\xi_{0}] \leq \mu \; \text{ for } \; t \in [\xi_{0}, \tau_{1}] , \\
+  \dot{\mu}[\xi_{0}](\xi_{0}) = \dot{\mu}(\xi_{0}) \; \text{ and } \; \dot{\mu}[\xi_{0}](\tau_{1}) = \dot{\mu}(\tau_{1}) .
+\end{gather}
+\end{subequations}
+Instead of $\xi_{0}$, it will be convenient later to choose $\xi_{1} := \max X$
+as the representative of the unique connecting deceleration.
+%
+We can now use $\mu[\xi_{1}]_{[\xi_{1},\tau_{1}]}$ to replace $\mu$ at $[\xi_{1}, \tau_{1}]$ to
+obtain a trajectory without the discontinuity at $t_{1}$. More precisely, we
+define
+\begin{align}
+  \mu_{1}(t) =
+  \begin{cases}
+    \mu(t) &\text{ for } t \in [a, \xi_{1}] \cup [\tau_{1}, b] , \\
+    \mu[\xi_{1}](t) &\text{ for } t \in [\xi_{1}, \tau_{1}] .
+  \end{cases}
+\end{align}
+From the way we constructed $\mu[\xi_{1}]$, it follows
+from~\eqref{eq:smoothing-requirements} that we have
+$\mu_{1} \in \mathcal{P}[a,b]$, but without the discontinuity at $t_{1}$.
+%
+Observe that a single connecting deceleration may cover more than one
+discontinuity, as illustrated in Figure~\ref{fig:multiple-discontinuities}.
+%
+Note that we must have $\dot{\mu}_{1}(a) = \dot{\mu}_{1}(b) = 1$.
+%
+Moreover, it is not difficult to see that $\mu_{1}$ must still satisfy
+Assumption~\ref{assump2}, so that we can keep repeating the exact same process,
+obtaining connecting decelerations
+$(\xi_{2}, \tau_2), (\xi_{3}, \tau_{3}), \dots $ and the corresponding piecewise
+trajectories $\mu_{2}, \mu_{3} \dots$ to remove any remaining discontinuities
+until we end up with a smooth trajectory $\mu^{*} \in \mathcal{D}[a,b]$.
+%
+We emphasize again that $\dot{\mu}^{*}(a) = \dot{\mu}(a)$ and
+$\dot{\mu}^{*}(b) = \dot{\mu}(b)$.
 
-\begin{outline}
-  \1 Conclude that we have found a $\xi, \tau$ such that the boundary
-  $\mu[\xi]_{[\xi,\tau]}$ can be added to $\mu$ to obtain
-  $\mu' \in \mathcal{P}[a,b]$ with one less discontinuity. For $\mu'$, we can
-  repeat the exact same process as above. Eventually, we end up with a
-  trajectory $\mu^{*} \in \mathcal{D}[a,b]$.
-
-  \1 Stress again that the smoothing procedure leaves
-  $\dot{\mu}^{*}(a) = \dot{\mu}(a)$ and $\dot{\mu}^{*}(b) = \dot{\mu}(b)$
-  untouched.
-
-\end{outline}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=1.1]{figures/motion/rough/multiple-discontinuities}
+  \caption{Part of a piecewise trajectory $\mu$ on which a single connecting
+    deceleration covers the two discontinuities at $t_{1}$ and $t_{2}$ at
+    once.}%
+  \label{fig:multiple-discontinuities}
+\end{figure}
 
 
 \subsubsection{Optimality after smoothing}
 
-
-{\color{Navy} Observe that the necessary conditions require $\gamma(a) = A$,
-  $\gamma(b) = B$ and $\dot{\gamma}(a) = \dot{\gamma}(b) = 1$, so whenever we
-  have $\gamma \in \mathcal{D}[a, b]$, we automatically have $\gamma \in D[a,b]$
-  so that $\gamma$ is already an optimal solution. }
+Let us return to the minimum boundary $\gamma$ defined
+in~\eqref{eq:min-boundary}.
+%
+From Figure~\ref{fig:necessary-conditions} and the necessary conditions, it is
+clear that $\gamma$ must satisfy $\gamma(a) = A$, $\gamma(b) = B$ and
+\comment{I think this could be made more rigorous, but I think this is clear enough from the figure.}
+$\dot{\gamma}(a) = \dot{\gamma}(b) = 1$, so whenever we have $\gamma \in \mathcal{D}[a, b]$, we
+automatically have $\gamma \in D[a,b]$ so that $\gamma$ is already an optimal solution.
+%
+Otherwise, we perform the smoothing procedure presented above to obtain the
+smoothed trajectory $\gamma^{*} \in \mathcal{D}[a,b]$.
+%
+The next lemma shows that it is still an upper boundary for any feasible
+trajectory, which proves that $x^{*} := \gamma^{*}$ is an optimal solution to
+the single vehicle problem.
 
 \begin{lemma}\label{lemma:upperbound}
   Let $\mu \in \mathcal{P}[a,b]$ be a piecewise trajectory and let
   $\mu^{*} \in \mathcal{D}[a,b]$ denote the result after smoothing. All
   trajectories $x \in \mathcal{D}[a, b]$ that are such that
   $x \leq \mu$, must satisfy $x \leq \mu^{*}$.
+  \comment{Is this argument clear enough?}
 \end{lemma}
 \begin{proof}
-  Consider the interval $(\xi, \tau)$ of a joining deceleration part. Suppose
-  there exists some $t_{d} \in (\xi, \tau)$ such that
-  $x(t_{d}) > \mu(t_{d})$. Because $x(\xi) \leq \mu(\xi)$, this means
-  that $x$ must intersect $\mu$ at least once in $\halfopen{\xi}{t_{d}}$,
-  so let
-  $t_{c} := \sup \, \{ t \in \halfopen{\xi}{t_{d}} : x(t) = \mu(t) \}$ be
-  the latest time of intersection such that $x \geq \mu$ on
-  $[t_{c}, t_{d}]$. There must be some $t_{c} \in [t_{c}, t_{d}]$ such that
-  $\dot{x}(t_{v}) > \dot{\mu}(t_{v})$, otherwise
+  Consider some interval $(\xi, \tau)$ where we introduced some connecting
+  deceleration boundary. Suppose there exists some $t_{d} \in (\xi, \tau)$ such that
+  $x(t_{d}) > \mu(t_{d})$. Because $x(\xi) \leq \mu(\xi)$, this means that $x$ must
+  intersect $\mu$ at least once in $\halfopen{\xi}{t_{d}}$, so let
+  $t_{c} := \sup \, \{ t \in \halfopen{\xi}{t_{d}} : x(t) = \mu(t) \}$ be the latest
+  time of intersection such that $x \geq \mu$ on $[t_{c}, t_{d}]$. There must be some
+  $t_{c} \in [t_{c}, t_{d}]$ such that $\dot{x}(t_{v}) > \dot{\mu}(t_{v})$, otherwise
   \begin{align*}
     x(t_{d}) = x(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{x}(t) \diff t \leq \mu(t_{c}) + \int_{t_{c}}^{t_{d}} \dot{\mu}(t) \diff t = \mu(d_{t}) ,
   \end{align*}
@@ -635,7 +771,7 @@ It remains to show that $\mu[\xi_{1}]$ touches $\mu$ tangentially.
   It follows that $x(\tau) > \mu(\tau)$, which contradicts the assumption.
 \end{proof}
 
-\newpage
+
 \section{Computing optimal trajectories}
 
 Recall the original trajectory optimization problem
@@ -644,34 +780,77 @@ Recall the original trajectory optimization problem
   &G(a,b) := \; &\max        \quad  & \sum_{i=1}^{N} \int_{a_{i}}^{b_{i}} x_{i}(t) \diff t , \\
   &             &\text{s.t.} \quad
   & x_{i} \in D[a_{i},b_{i}] & \text{ for each } i \in \{1, \dots, N\} , \\
-  &&& x_{i} \leq x_{i-1} - L & \text{ for each } i \in \{2, \dots, N\} ,
+  &&& x_{i} \leq x_{i-1} - L & \text{ for each } i \in \{2, \dots, N\} , \label{eq:follow-constraint}
 \end{alignat}
 \end{subequations}
 where we use $a$ and $b$ to denote the vectors of arrival and departure times.
-It is straightforward to decompose this problem into a sequence of instances of
-the single vehicle problems as follows. Let the optimal solution of the single
-vehicle problem be denoted as
+%
+We now show how this problem decomposes into a sequence of instances of the
+single vehicle problems.
+%
+Let the optimal solution of the single vehicle problem be denoted as
 \begin{align}
   x^{*}(\alpha, \beta, \bar{x}) := \argmax_{x \in D[\alpha,\beta]} \int_{\alpha}^{\beta} x(t) \quad \text{ such that  } x \leq \bar{x}
 \end{align}
-and let $F(\alpha, \beta, \bar{x})$ denote the corresponding objective value. It
-is clear that the optimal trajectories $x^{*}_{i}$ can be recursively computed
-as
+and let $F(\alpha, \beta, \bar{x})$ denote the corresponding objective value.
+%
+Consider the safe following constraint~\eqref{eq:follow-constraint}. We show how
+to model this as a boundary $\bar{x}_{i} \in \bar{D}[\bar{a}_{i}, \bar{b}_{i}]$
+such that we can apply the single vehicle problem.
+%
+It is clear from Figure~\ref{fig:solution} that
+inequality~\eqref{eq:follow-constraint} only applies on some subinterval
+$I_{i} \subset [a_{i-1}, b_{i-1}]$.
+%
+More specifically, by defining
+\begin{align}
+  x_{i}^{-1}(p) := \inf \{ t: x_{i}(t) = p \} ,
+\end{align}
+it is easily seen that $I_{i} = [x_{i-1}^{-1}(L), b_{i}]$.
+%
+However, since $\dot{x}_{i-1}(b_{i-1}) = 1$, we can, roughly speaking, extend
+\comment{Let's leave it like this for now. I think that it is not too difficult
+  to see that this works by looking at the figure, so no need to introduce more
+  notational burden.} the boundary until $b_{i-1} + L$, by defining
+\begin{align}\label{eq:follow-boundary}
+  \bar{x}_{i} :=
+  \begin{cases}
+    x_{i-1}(t) - L &\text{ for } t \in [x_{i-1}^{-1}(L), b_{i-1}] , \\
+    t - b_{i-1} - L  &\text{ for } t \in [b_{i-1}, b_{i-1} + L] .
+  \end{cases}
+\end{align}
+
+Now, it is then clear that the optimal trajectories $x_{i}$ can be
+recursively computed as
 \begin{subequations}
 \begin{align}
-  x^{*}_{1} &= x^{*}(a_{1}, b_{1}, \varnothing) , \\
-  x^{*}_{i} &= x^{*}(a_{i}, b_{i}, x^{*}_{i-1})  ,  \quad \text{ for } i \geq 2 .
+  x_{1} &= x^{*}(a_{1}, b_{1}, \varnothing) , \\
+  x_{i} &= x^{*}(a_{i}, b_{i}, \bar{x}_{i})  ,  \quad \text{ for } i \geq 2 ,
 \end{align}
 \end{subequations}
-We use the notation $\bar{x} = \varnothing$ to denote the single vehicle problem
+%
+where we use the notation $\bar{x} = \varnothing$ to denote the single vehicle problem
 without the boundary constraint. Alternatively, we could think about this as
-having some $\bar{x} \in \bar{D}[\bar{a},\bar{b}]$ with very small
-$\bar{a} \ll a$ and $\bar{b} \ll b$.
+having some $\bar{x} \in \bar{D}[\bar{a},\bar{b}]$ with very small $\bar{a} \ll a$
+and $\bar{b} \ll b$.
 %
 The corresponding objective value is simply given by
 \begin{align}
-  G(a, b) = F(a_{1}, b_{1}, \varnothing) + \sum_{i=2}^{N} F(a_{i}, b_{i}, x^{*}_{i-1}) .
+  G(a, b) = F(a_{1}, b_{1}, \varnothing) + \sum_{i=2}^{N} F(a_{i}, b_{i}, \bar{x}_{i}) .
 \end{align}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1.0]{figures/motion/rough/solution}
+  \caption{Optimal trajectories $x_{i}$ for three vehicles. The dotted blue
+    trajectories between the little open circles illustrates the safe following
+    constraints~\eqref{eq:follow-constraint}. The dotted blue trajectories between
+    the solid dots are the following boundaries
+    $\bar{x}_{2} \in \bar{D}[\bar{a}_{2}, \bar{b}_{2}]$ and
+    $\bar{x}_{3} \in \bar{D}[\bar{a}_{3}, \bar{b}_{3}]$.}%
+  \label{fig:solution}
+\end{figure}
+
 
 \subsection{Alternating trajectories}
 
@@ -688,28 +867,28 @@ simple computation.
   \end{align}
 \end{define}
 
-We now argue that each vehicle's optimal trajectory $x^{*}_{i}$ is alternating.
-First, consider $x^{*}_{1} = x^{*}(a_{1}, b_{1}, \varnothing)$, which is
-constructed by joining $x^{1}$ and $\hat{x}$ together by smoothing. Observe that
-$x^{1}$ and $\hat{x}$ are both alternating. Let
-$\gamma_{1}(t) = \min\{x^{1}_{1}(t), \hat{x}_{1}(t) \}$ be the minimum boundary,
-then it is clear that the smoothened $x^{*}_{1} = \gamma_{1}^{*}$ must also be
+We now argue that each vehicle's optimal trajectory $x_{i}$ is alternating.
+First, consider $x_{1} = x^{*}(a_{1}, b_{1}, \varnothing)$, which is
+constructed by joining $x^{1}[x_{1}]$ and $\hat{x}[x_{1}]$ together by smoothing. Observe that both boundaries are alternating by definition. Let
+$\gamma_{1}(t) = \min\{x^{1}[x_{1}](t), \hat{x}[x_{1}](t) \}$ be the minimum boundary,
+then it is clear that the smoothened $x_{1} = \gamma_{1}^{*}$ must also be
 alternating, because we only added a part of deceleration at some interval
 $[\xi, \tau]$, which clearly satisfies $\ddot{\gamma}_{1}^{*}(t) = -\omega$ for
 $t \in [\xi,\tau]$.
 %
-Assume that $x^{*}_{i-1}$ is alternating, we can similarly argue that
-$x^{*}_{i}$ is alternating. Again, let
-$\gamma_{i}(t) = \min\{\bar{x}^{*}_{i-1}, \hat{x}_{i}(t), x^{1}_{i}(t)\}$ be the
+Assume that $x_{i-1}$ is alternating, we can similarly argue that $x_{i}$ is
+alternating. Again, let
+$\gamma_{i}(t) = \min\{\bar{x}[x_{i-1}], \hat{x}[x_{i}](t), x^{1}[x_{i}](t)\}$ be the
 minimum boundary. After adding the required decelerations for smoothing, it is
-clear that $x^{*}_{i} = \gamma^{*}_{i}$ must also be alternating.
+clear that $x_{i} = \gamma^{*}_{i}$ must also be alternating.
 
 \begin{figure}
   \centering
   \includegraphics[scale=0.9]{figures/motion/tandem_trajectory}
-  \caption{Some example of an alternating vehicle trajectory. The particular
-    shape of this trajectory is due to two preceding vehicles, which causes the
-    two \emph{bumps} at the times where these vehicles depart from the lane.}
+  \caption{Example of an alternating vehicle trajectory with its defining time
+    intervals. The particular shape of this trajectory is due to two leading
+    vehicles, which causes the two start-stop \emph{bumps} around the times where these
+    leading vehicles depart from the lane.}
   \label{fig:tandem_trajectory}
 \end{figure}
 
@@ -731,7 +910,7 @@ such that we have the consecutive intervals
 %
 such that on these intervals, $\gamma$ satisfies
 %
-\begin{alignat*}{3}
+\begin{alignat*}{4}
   &\dot{\gamma}(t) = 1 && \text{ for } t \in F_{i} , \quad \quad
   &&\dot{\gamma}(t) = 0 && \text{ for } t \in S_{i} ,\\
   &\ddot{\gamma}(t) = -\omega \quad && \text{ for } t \in D_{i} , \quad \quad
@@ -758,6 +937,15 @@ between the four pairs of partial trajectories
     x^{1} \rightarrow x^{0} .
 \end{align*}
 %
+
+\begin{algorithm}
+  \caption{Computing connecting deceleration for alternating trajectories.}
+    \label{alg:connecting}
+    \begin{algorithmic}
+      \State Let $i$ such that $I_{i}$ is the latest such that $t_{1} < I_{i}$.
+      \State Let $j$ such that $I_{j}$ is the earliest such that $t_{1} > I_{j}$.
+    \end{algorithmic}
+\end{algorithm}
 
 \section{Feasibility as system of linear inequalities}
 
@@ -795,17 +983,23 @@ inequalities
   \label{fig:bufferconstraint}
 \end{figure}
 
-\begin{figure}
-  \centering
-  \includegraphics[scale=1]{figures/motion/example1}
-  \caption{{\color{Navy} We include this old sketch here temporarily, which is
-      related to derive entry space constraint in terms of schedule times.}}%
-\end{figure}
+% \begin{figure}
+%   \centering
+%   \includegraphics[scale=1]{figures/motion/example1}
+%   \caption{{\color{Navy} We include this old sketch here temporarily, which is
+%       related to derive entry space constraint in terms of schedule times.}}%
+% \end{figure}
 
 
 \newpage
 \appendix
 \section{Miscellaneous}
+
+\begin{lemma}\label{lemma:inf-continuous}
+  Let $f : X \times Y \rightarrow \mathbb{R}$ be some continuous function. If
+  $Y$ is compact, then the function $g : X \rightarrow \mathbb{R}$, defined as
+  $g(x) = \inf \{ f(x,y) : y\in Y\}$, is also continuous.
+\end{lemma}
 
 \begin{lemma}\label{lemma:levelset}
   Let $f :\mathbb{R}^{n} \rightarrow \mathbb{R}^{m}$ be continuous and
@@ -819,12 +1013,6 @@ inequalities
   $N^{c} = \{ x : f(x) \neq y \} = \cup_{y' \neq y} f^{-1}(\{y'\}) = \cup_{y' \neq y} f^{-1}(M(y'))$
   is open.
 \end{proof}
-
-\begin{lemma}\label{lemma:inf-continuous}
-  Let $f : X \times Y \rightarrow \mathbb{R}$ be some continuous function. If
-  $Y$ is compact, then the function $g : X \rightarrow \mathbb{R}$, defined as
-  $g(x) = \inf \{ f(x,y) : y\in Y\}$, is also continuous.
-\end{lemma}
 
 \end{document}
 
