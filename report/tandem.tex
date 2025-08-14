@@ -137,7 +137,7 @@
 \renewcommand{\labelitemii}{\textbullet}
 \renewcommand{\labelitemiii}{\textbullet}
 
-\section{Trajectory planning problem}
+\section{Lane planning problem}
 
 Vehicles are modeled as double integrators with bounded speed and acceleration,
 which means that we only consider their longitudinal position on the road. Let
@@ -170,6 +170,18 @@ Even further, let $D[a,b] \subset \bar{D}[a, b]$ induce the boundary conditions
 In words, these boundary conditions require that a vehicle arrives to and
 departs from the lane at predetermined times $a$ and $b$ and do so at full
 speed.
+%
+See Figure~\ref{fig:trajectories} for an example of each of the above trajectory
+classes.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{figures/motion/rough/trajectories}
+  \caption{Example trajectories $x_{1} \in \mathcal{D}[a_{1},b_{1}]$,
+    $x_{2} \in \bar{D}[a_{2},b_{2}]$ and $x_{3} \in D[a_{3},b_{3}]$ for each the
+    three classes of trajectories that are used throughout this section.}%
+  \label{fig:trajectories}
+\end{figure}
 
 Let $L > 0$ denote the required \textit{following distance} between consecutive
 vehicles.
@@ -213,6 +225,11 @@ any way. Although this is not desirable in practice, it is precisely this
 assumption that enables the analysis in this section. Deriving a similar
 characterization of feasibility and optimal trajectories under an objective that
 does model energy concumption is an interesting topic for further research.
+
+\begin{define}
+  We will refer to problem~\eqref{eq:feasibility}--\eqref{eq:objective} as the
+  \emph{lane planning problem}.
+\end{define}
 
 % \subsection{Direct transcription}
 
@@ -278,7 +295,7 @@ We refer to $\check{x}$ and $\hat{x}$ as the \emph{entry boundary} and
 
 \begin{figure}
   \centering
-  \includegraphics[scale=1]{figures/motion/rough/necessary-conditions}
+  \includegraphics[scale=1.0]{figures/motion/rough/necessary-conditions}
   \caption{Illustration of the four bounding trajectories
     $\bar{x}, x^{1}, \hat{x}, \check{x}$ that bound feasible trajectories from
     above and below. We also drew an example of a feasible trajectory $x$ in
@@ -300,6 +317,7 @@ We refer to $\check{x}$ and $\hat{x}$ as the \emph{entry boundary} and
     \item $\bar{x} \geq \check{x}$. \tab (entry space constraint)
   \end{enumerate}
 \end{lemma}
+\pagebreak
 \begin{proof}
   Each of the conditions corresponds somehow to one of the four bounding
   trajectories defined above.
@@ -332,7 +350,6 @@ sufficiently large.
   The length of the lane satisfies $B - A \geq 1/(2\omega) + 1/(2\bar{\omega})$.
 \end{assump}
 
-\pagebreak
 
 \subsection{Constructing the optimal trajectory}
 
@@ -393,7 +410,7 @@ by decelerating from the original trajectory somewhat before some $t_{i}$, as
 illustrated in Figure~\ref{fig:optimal-construction}. We show that this procedure can be repeated at every
 point of discontinuity.
 
-\subsubsection{Deceleration boundary}
+\subsubsection{Deceleration boundary}\label{sec:deceleration-boundary}
 In order to formalize the smoothing procedure, we will first define some
 parameterized family of functions to model the deceleration part.
 %
@@ -444,8 +461,8 @@ It is easily verified that these three cases coincide at
 $t \in \{\delta_{1}, \delta_{0}\}$, which justifies the overlap there.
 Furthermore, since $x$ and $\dot{x}$ are continuous by assumption, this shows
 that $x[\xi](t) = x^{-}[x(\xi), \dot{x}(\xi), \xi](t)$ is continuous as a
-function of either of its arguments\footnote{Even more, it can be shown that
-  $x[\xi](t)$ is continuous as a function of $(\xi, t)$.}.
+function of either of its arguments.\footnote{Even more, it can be shown that
+  $x[\xi](t)$ is continuous as a function of $(\xi, t)$.}
 %
 Assuming $0 \leq v \leq 1$, it can be verified that for every $t \in \mathbb{R}$, we
 have $\ddot{x}^{-}[p,v,\xi](t) \in \{-\omega, 0\}$ and
@@ -774,16 +791,17 @@ the single vehicle problem.
 
 \section{Computing optimal trajectories}
 
-Recall the original trajectory optimization problem
+We now return to the lane planning problem. Given some vector of starting
+times $a = (a_{1}, \dots, a_{N})$ and departure times
+$b = (b_{1}, \dots, b_{N})$, we want to find
 \begin{subequations}
 \begin{alignat}{3}
-  &G(a,b) := \; &\max        \quad  & \sum_{i=1}^{N} \int_{a_{i}}^{b_{i}} x_{i}(t) \diff t , \\
+  &F(a,b) := \; &\max        \quad  & \sum_{i=1}^{N} \int_{a_{i}}^{b_{i}} x_{i}(t) \diff t , \\
   &             &\text{s.t.} \quad
   & x_{i} \in D[a_{i},b_{i}] & \text{ for each } i \in \{1, \dots, N\} , \\
-  &&& x_{i} \leq x_{i-1} - L & \text{ for each } i \in \{2, \dots, N\} , \label{eq:follow-constraint}
+  &&& x_{i} \leq x_{i-1} - L & \text{ for each } i \in \{2, \dots, N\} . \label{eq:follow-constraint}
 \end{alignat}
 \end{subequations}
-where we use $a$ and $b$ to denote the vectors of arrival and departure times.
 %
 We now show how this problem decomposes into a sequence of instances of the
 single vehicle problems.
@@ -792,7 +810,7 @@ Let the optimal solution of the single vehicle problem be denoted as
 \begin{align}
   x^{*}(\alpha, \beta, \bar{x}) := \argmax_{x \in D[\alpha,\beta]} \int_{\alpha}^{\beta} x(t) \quad \text{ such that  } x \leq \bar{x}
 \end{align}
-and let $F(\alpha, \beta, \bar{x})$ denote the corresponding objective value.
+and let $F_{1}(\alpha, \beta, \bar{x})$ denote the corresponding objective value.
 %
 Consider the safe following constraint~\eqref{eq:follow-constraint}. We show how
 to model this as a boundary $\bar{x}_{i} \in \bar{D}[\bar{a}_{i}, \bar{b}_{i}]$
@@ -808,10 +826,10 @@ More specifically, by defining
 \end{align}
 it is easily seen that $I_{i} = [x_{i-1}^{-1}(L), b_{i}]$.
 %
-However, since $\dot{x}_{i-1}(b_{i-1}) = 1$, we can, roughly speaking, extend
-\comment{Let's leave it like this for now. I think that it is not too difficult
-  to see that this works by looking at the figure, so no need to introduce more
-  notational burden.} the boundary until $b_{i-1} + L$, by defining
+However, since $\dot{x}_{i-1}(b_{i-1}) = 1$, we can extend \comment{Let's leave
+  it like this for now. I think that it is not too difficult to see that this
+  works by looking at the figure, so no need to introduce more notational
+  burden.} the boundary until $b_{i-1} + L$ by defining
 \begin{align}\label{eq:follow-boundary}
   \bar{x}_{i} :=
   \begin{cases}
@@ -819,7 +837,7 @@ However, since $\dot{x}_{i-1}(b_{i-1}) = 1$, we can, roughly speaking, extend
     t - b_{i-1} - L  &\text{ for } t \in [b_{i-1}, b_{i-1} + L] .
   \end{cases}
 \end{align}
-
+%
 Now, it is then clear that the optimal trajectories $x_{i}$ can be
 recursively computed as
 \begin{subequations}
@@ -830,13 +848,13 @@ recursively computed as
 \end{subequations}
 %
 where we use the notation $\bar{x} = \varnothing$ to denote the single vehicle problem
-without the boundary constraint. Alternatively, we could think about this as
-having some $\bar{x} \in \bar{D}[\bar{a},\bar{b}]$ with very small $\bar{a} \ll a$
-and $\bar{b} \ll b$.
+without boundary constraint.\footnote{Alternatively, we could think about this as having
+some $\bar{x} \in \bar{D}[\bar{a},\bar{b}]$ with very small $\bar{a} \ll a$ and
+$\bar{b} \ll b$.}
 %
 The corresponding objective value is simply given by
 \begin{align}
-  G(a, b) = F(a_{1}, b_{1}, \varnothing) + \sum_{i=2}^{N} F(a_{i}, b_{i}, \bar{x}_{i}) .
+  F(a, b) = F_{1}(a_{1}, b_{1}, \varnothing) + \sum_{i=2}^{N} F_{1}(a_{i}, b_{i}, \bar{x}_{i}) .
 \end{align}
 
 \begin{figure}
@@ -855,8 +873,8 @@ The corresponding objective value is simply given by
 \subsection{Alternating trajectories}
 
 Due to the recursive nature of the problem, we will see that optimal
-trajectories possess a particularly simple structure, which enables a very
-simple computation.
+trajectories possess a particularly simple structure, which enables a simple
+computation.
 
 \begin{define}
   Let a trajectory $\gamma \in \mathcal{D}[a, b]$ be called \emph{alternating} if for all
@@ -900,7 +918,7 @@ In general, there exists a partition of $[a,b]$, denoted by
 \begin{align*}
   a = t_{f1} \leq t_{d1} \leq t_{s1} \leq t_{a1} \leq t_{f2} \leq t_{d2} \leq t_{s2} \leq t_{a2} \leq \dots \leq t_{f,n+1} = b,
 \end{align*}
-such that we have the consecutive intervals
+such that we have the consecutive \emph{alternating intervals}
 \begin{alignat*}{3}
   F_{i} &:= [t_{f,i}, t_{d,i}] \quad &\text{ (full speed), } \quad
   S_{i} &:= [t_{s,i}, t_{a,i}] \quad &\text{ (stopped), } \\
@@ -916,27 +934,240 @@ such that on these intervals, $\gamma$ satisfies
   &\ddot{\gamma}(t) = -\omega \quad && \text{ for } t \in D_{i} , \quad \quad
   &&\ddot{\gamma}(t) = \bar{\omega} \quad && \text{ for } t \in A_{i} .
 \end{alignat*}
+
+\paragraph{Partial trajectories.}
+Next, we will define parameterized functions $x^{f}$, $x^{d}$, $x^{s}$, $x^{a}$
+to describe alternating trajectory $\gamma$ on each of these alternating intervals.
 %
-We will define parameterized functions $x^{1}$, $x^{-}$, $x^{0}$, $x^{+}$ to
-describe $\gamma$ on each of these four types of intervals.
+Given some initial position $p \in [A,B]$, velocity $v \in [0, 1]$, start and end times $a$ and
+$b$ such that $a \leq b$ and $v + \bar{\omega}(b - a) \leq 1$, we define the acceleration
+trajectory $x^{a}[p, v, a, b] : [a, b] \rightarrow \mathbb{R}$ by setting
+\begin{align}
+  x^{a}[p,v,a,b](\tau) &:= p + v(\tau - a) + \bar{\omega} (\tau-a)^{2} / 2 , \\
+  \dot{x}^{a}[p,v,a,b](\tau) &:= v + \bar{\omega} (\tau - a) .
+\end{align}
 %
-In the next section, we will show that this makes the smoothing procedure
-particularly simple.
+Similarly, for $p, v, a, b$ satisfying $a \leq b$ and $v - \omega(b-a) \geq 0$,
+let the deceleration trajectory
+$x^{d}[p, v, a, b] : [a, b] \rightarrow \mathbb{R}$ be defined as
+\begin{align}
+  x^{d}[p,v,a,b](\tau) &:= p + v (\tau - a) - \omega (\tau - a)^{2} / 2 , \\
+  \dot{x}^{d}[p,v,a,b](\tau) &:= v - \omega (\tau - a) .
+\end{align}
+%
+One may notice that $x^{d}$ is essentially the same as the deceleration boundary
+$x^{-}$, which we defined in Section~\ref{sec:deceleration-boundary}. However, note that the condition $v - \omega(b-a) \geq 0$ restricts the domain such that we do not need the clipping operation. Furthermore, the parameterization of $x^{d}$ will be more convenient in the next section.
+
+We use the following notation for trajectories with constant minimum or maximum
+speed. We write $x^{s}[p, a, b](\tau) \equiv p$, with domain $[a,b]$, to model a stopped
+vehicle and let $x^{f}[p, a, b](\tau) = (p + \tau - a, 1)$ model a vehicle that drives
+at full speed, also with domain $[a,b]$.
+
 
 \subsection{Calculating smoothing times}
 
-{\color{Navy}Derive $x^{+}$ similarly to how we derived $x^{-}$ when we
-  introduced the deceleration boundary.}
+{\color{Navy} Explain what we mean with ``smoothing times''.}
 
 It can be shown that smoothing introduces a part of deceleration $x^{-}$ only
 between the four pairs of partial trajectories
 \begin{align*}
-    x^{+} \rightarrow x^{+} , \quad \quad
-    x^{+} \rightarrow x^{0} , \quad \quad
-    x^{1} \rightarrow x^{+} , \quad \quad
-    x^{1} \rightarrow x^{0} .
+    x^{a} \rightarrow x^{a} , \quad \quad
+    x^{a} \rightarrow x^{s} , \quad \quad
+    x^{f} \rightarrow x^{a} , \quad \quad
+    x^{f} \rightarrow x^{s} .
 \end{align*}
 %
+{\color{Navy} Argue why the other combinations are not possible.}
+
+We will now examine the remaining four cases in which two of these partial
+trajectories can actually be joined by a deceleration part. We will later use these
+results to characterize optimal trajectories for our optimal control problem.
+
+\comment{The upcoming derivations are very tedious, so will be moved to appendix
+  eventually.}
+
+\begin{lemma}[$x^{f} \rightarrow x^{s}$]
+  Let $x^{f}[p, a, b]$ and $x^{s}[q, c, d]$ be two trajectories. Considering
+  $\tau_{1}$ and $\tau_{2}$ as variables in the equation
+  \begin{align*}
+    x^{d}[x^{f}[p, a, b](\tau_{1}), \tau_{1}, \tau_{2}](\tau_{2}) = x^{s}[q, c, d](\tau_{2}) ,
+  \end{align*}
+  it has solution
+  $\tau_{2} = q - p + a + 1/2\omega$ and $\tau_{1} = \tau_{2} - 1/\omega$, whenever
+  $\tau_{1} \in [a, b]$ and $\tau_{2} \in [c, d]$.
+\end{lemma}
+\begin{proof}
+  The expanded system of state equations is given by
+  \begin{align*}
+    \begin{cases}
+      p + \tau_{1} - a + (\tau_{2} - \tau_{1}) - \omega(\tau_{2} - \tau_{1})^{2} / 2 = q , \\
+      1 - \omega(\tau_{2} - \tau_{1}) = 0 .
+    \end{cases}
+  \end{align*}
+  The second equation yields $\tau_{2} - \tau_{1} = 1/\omega$, which after
+  substituting back in the first equation yields
+  $p - a + \tau_{2} - 1/2\omega - q = 0$, from which the stated solution
+  follows.
+\end{proof}
+
+
+\begin{figure}
+\centering
+\begin{minipage}{.45\textwidth}
+  \centering
+  \includegraphics[width=0.9\linewidth]{figures/motion/lemma_full_still}
+  \captionof{figure}{$x^{f} \rightarrow x^{s}$}
+  \label{fig:full_still}
+\end{minipage}%
+\hspace{1.0em}
+\begin{minipage}{.45\textwidth}
+  \centering
+  \includegraphics[width=0.9\linewidth]{figures/motion/lemma_full_acc}
+  \captionof{figure}{$x^{f} \rightarrow x^{a}$}
+  \label{fig:full_acc}
+\end{minipage}
+\end{figure}
+
+To keep the expressions for the case of joining $x^{f} \rightarrow x^{a}$ a
+little bit simpler, we first consider a full line joining to a acceleration
+trajectory of full length $1/\omega$.
+
+\begin{lemma}
+  \label{lemma:line_acc}
+  Consider some full acceleration trajectory $x^{a}[(p, 0), a, a+1/\omega]$ and the
+  line through $(\lambda, 0)$ with slope 1. Whenever $\lambda$, which can be
+  interpreted as a time epoch, satisfies $\lambda \in [a-p-1/2\omega, a-p+1/2\omega]$, then the equation
+  \begin{align*}
+    x^{+}[(p, 0), a, a+1/\omega](\tau) = x^{d}[(q, 1), q + \lambda, q + \lambda + 1/\omega](\tau) ,
+  \end{align*}
+  with $\tau$ and $q$ considered as variables, has a unique solution
+  \begin{align*}
+    \tau &= a + 1/\omega - \sqrt{\frac{a - p + 1/2\omega - \lambda}{\omega}} , \\
+    q &= 2\tau - a - 1/\omega - \lambda ,
+  \end{align*}
+  so the joining deceleration is given by $x^{d}[(q,1), q + \lambda, \tau]$
+\end{lemma}
+\begin{proof}
+  First of all, the expanded system of state equations is given by
+  \begin{align*}
+    \begin{cases}
+    p + \omega (\tau - a)^{2}/2 = q + (\tau - q - \lambda) - \omega (\tau - q - \lambda)^{2}/2 , \\
+    \omega(\tau - a) = 1 - \omega(\tau - q - \lambda) .
+      \end{cases}
+  \end{align*}
+  We use the second equation to express $q$ in terms of $\tau$, which yields
+  \begin{align*}
+    q = 2\tau - 1/\omega -a - \lambda ,
+  \end{align*}
+  which we substitute in the first equation to derive the equation
+  \begin{align*}
+    \omega \tau^{2}  - 2 (1 + \omega a) \tau + \omega a^{2} + a + p + \lambda + 1/2\omega = 0 .
+  \end{align*}
+  This is a quadratic equation in $\tau$, with solutions
+  \begin{align*}
+    \tau = a + 1/\omega \pm \sqrt{\frac{a - p + 1/2\omega - \lambda}{\omega}} ,
+  \end{align*}
+  of which only the smallest one is valid, because $\tau \leq a + 1/\omega$.
+  Furthermore, we see that $\tau$ is defined as a real number when
+  \begin{align*}
+    a - p + 1/2\omega - \lambda \geq 0 \iff \lambda \leq a - p + 1/2\omega .
+  \end{align*}
+  The other requirement is that $\tau \geq a$, which is equivalent to
+  \begin{align*}
+    1/\omega \geq \sqrt{\frac{a - p + 1/2\omega - \lambda}{\omega}} \iff
+    % 1/\omega \geq a - p - \lambda + 1/2\omega \iff
+    \lambda \geq a - p - 1/2\omega .
+  \end{align*}
+\end{proof}
+
+\begin{lemma}[$x^{f} \rightarrow x^{a}$]
+Consider partial trajectories $x^{f}[p, c, d]$ and $x^{a}[x, e, f]$.
+\end{lemma}
+\begin{proof}
+  First of all, observe that $x^{f}[p, c, d]$ lies on the line with slope 1
+  through $(\lambda, 0) := (c - p, 0)$ and $x^{a}[x, e, f]$ lies on the full
+  acceleration curve
+  $x^{a}[(x_{1} - x_{2}^{2}/(2\omega) , 0), e - x_{2}/\omega, e - x_{2}/\omega + 1/\omega]$, see
+  Figure~\ref{fig:full_acc}.
+  %
+  Now apply Lemma~\ref{lemma:line_acc} to $p = x_{1} - x_{2}^{2}/(2\omega)$,
+  $a = e - x_{2}/\omega$ and $\lambda = c - p$ yields some solutions $\tau$ and $q$.
+  %
+  Let $\tau_{2} := \tau$ and let $\tau_{1}$ denote the time where the line and
+  $x^{a}$ join, given by $\tau_{1} = \lambda + q$. Now we simply check whether this
+  solution is also feasible for the smaller trajectories. We must have
+  $\tau_{1} \in [c, d]$ and $\tau_{2} \in [e, f]$.
+\end{proof}
+
+
+\begin{lemma}
+  \label{lemma:acc_hline}
+  Consider the acceleration trajectory $x^{a}[(p, 0), a, b]$ and the horizontal
+  line through $(0, q)$. Let $\tau_{1} = a + \sqrt{(q-p)/\omega}$ and
+  $\tau_{2} = a + 2\sqrt{(q-p)/\omega}$. If $\tau_{1}$ satisfies
+  $\tau_{1} \in [a, b]$, then both trajectories are joined by deceleration
+  trajectory $x^{d}[x^{a}[(p, 0), a, b](\tau_{1}), \tau_{1}, \tau_{2}]$
+\end{lemma}
+\begin{proof}
+  Consider the following equation
+  \begin{align*}
+    x^{d}[x^{a}[(p, 0),a,b](\tau_{1}), \tau_{1}, \tau_{2}](\tau_{2}) = (q, 0) .
+  \end{align*}
+  %
+  The expanded system of state equations is given by
+  \begin{align*}
+    \begin{cases}
+      p + \omega (\tau_{1} - a)^{2}/2 + (\omega(\tau_{1} - a)) (\tau_{2} - \tau_{1}) - \omega(\tau_{2} - \tau_{1})^{2}/2 = q , \\
+      \omega(\tau_{1} - a) - \omega(\tau_{2} - \tau_{1}) = 0 .
+    \end{cases}
+  \end{align*}
+  From the second equation, we derive $\tau_{1} - a = \tau_{2} - \tau_{1}$.
+  Plugging this back in the first equation yields the quadratic equation
+  $p + \omega(\tau_{1} - a)^{2} = q$ with solutions
+  $\tau_{1} = a \pm \sqrt{(q-p)/\omega}$, of which only the larger one is valid.
+  Finally, the second equation gives $\tau_{2} = 2\tau_{1} - a$.
+\end{proof}
+
+\begin{lemma}[$x^{a} \rightarrow x^{s}$]
+  Consider partial trajectories $x^{a}[x, c, d]$ and $x^{s}[q, e, f]$.
+\end{lemma}
+\begin{proof}
+  Observe that $x^{a}[x, c, d]$ lies on the full acceleration curve
+  $x^{a}[(x_{1} - x_{2}^{2}/(2\omega), 0), c - x_{2}/\omega, c - x_{2}/\omega + 1/\omega]$.
+  Hence, we can apply Lemma~\ref{lemma:acc_hline} with
+  $p=x_{1} - x_{2}^{2}/(2 \omega)$, $a = c - x_{2}/\omega$, which yields some
+  solutions $\tau_{1}$ and $\tau_{2}$, which are feasible solutions if
+  $\tau_{1} \in [c, d]$ and $\tau_{2} \in [e, f]$.
+\end{proof}
+
+\begin{lemma}
+  Consider full acceleration trajectories $x^{a}[(p, 0), a, b]$ and
+  $x^{a}[(q, 0), c, d]$.
+\end{lemma}
+\begin{proof}
+  Consider the equation
+  \begin{align*}
+    x^{d}[x^{a}[(p, 0), a, b](\tau_{1}), \tau_{1}, \tau_{2}](\tau_{2}) = x^{a}[(q, 0), c, d](\tau_{2}) ,
+  \end{align*}
+  expanded to the system of equations
+  \begin{align*}
+    \begin{cases}
+      p + \omega(\tau_{1} - a)^{2}/2 + \omega(\tau_{1} - a)(\tau_{2} - \tau_{1}) - \omega(\tau_{2} - \tau_{1})^{2}/2 = q + \omega(\tau_{2} - c)^{2}/2 , \\
+      \omega(\tau_{1} - a) + \omega(\tau_{2} - \tau_{1}) = \omega(\tau_{2} - c) .
+    \end{cases}
+  \end{align*}
+\end{proof}
+
+\begin{lemma}[$x^{a} \rightarrow x^{a}$]
+  Consider partial trajectories $x^{a}[x, a, b]$ and $x^{a}[y, c, d]$.
+\end{lemma}
+\begin{proof}
+
+\end{proof}
+
+\subsection{Algorithm}
+
+Put everything together into pseudocode.
 
 \begin{algorithm}
   \caption{Computing connecting deceleration for alternating trajectories.}
