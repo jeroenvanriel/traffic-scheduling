@@ -58,35 +58,13 @@
 
 \author{Jeroen van Riel}
 \date{\monthyeardate\today}
-\title{Trajectory Optimization of Autonomous Vehicles in a Single Intersection}
+\title{Autonomous vehicle scheduling in a single intersection}
 
 \begin{document}
 
 \maketitle
 
 \tableofcontents
-
-
-\section{Background}
-
-
-\subsection{Job-shop scheduling}
-
-\paragraph{Constructive heuristics}
-A common approach for developing such heuristics found in the scheduling
-literature is to try and construct a good schedule in a step-by-step fashion, to
-which may be called \textit{constructive heuristics}. For the crossing time
-scheduling problem, we may consider methods that incrementally construct a
-vehicle ordering.
-
-\subsection{Reinforcement learning}
-
-Generally speaking, RL methods that use the current learned policy for data
-collection are referred to as \textit{on-policy} methods, methods that use a
-fixed separate policy for data collection are referred to as
-\textit{off-policy}.
-
-
 \section{Problem definition and decomposition}
 
 \begin{figure}
@@ -140,7 +118,10 @@ model
 \begin{aligned}
   \dot{x}_{i}(t) = v_{i}(t) , \\
   \dot{v}_{i}(t) = u_{i}(t)  , \\
-  0 \leq v_{\max} \leq v_{\max} , \\
+\end{aligned}
+\quad
+\begin{aligned}
+  0 \leq v_{i}(t) \leq v_{\max} , \\
   |u_{i}(t) | \leq a_{\max} ,
 \end{aligned}
 \end{gather}
@@ -163,7 +144,7 @@ For each $i \in \mathcal{N}$, let $\mathcal{E}_{i} = (B_{i}, E_{i})$ denote the
 open interval such that vehicle $i$ occupies the intersection's conflict area if
 and only if $x_{i}(t) \in \mathcal{E}_{i}$. Using this notation\footnote{Note
   that it would make sense to let $B_{i}$ be equal for all vehicles $i$ that
-  follow the same route, which we do not emphasize with the notation to keep it
+  follow the same route, but our notation does not emphasize this to keep it
   simple.}, collision avoidance at the intersection is achieved by requiring
 \begin{align}
   \label{eq:conflict_constraints}
@@ -332,14 +313,14 @@ the intersection, so $v_{i}(0) = v_{i}(y_i) = v_{\max}$, and we assume that all
 vehicles are identical, so $L_{i} = L$ and $W_{i} = W$ for all
 $i \in \mathcal{N}$, such that we have
 \begin{align*}
-\sigma(i) \equiv \sigma = (L + W) / v_{\max}, \; \text{ for all } i \in \mathcal{N} .
+\sigma_{i} \equiv \sigma = (L + W) / v_{\max}, \; \text{ for all } i \in \mathcal{N} .
 \end{align*}
 %
 Therefore, we ignore the part related to $\sigma$ in the set of feasible parameters
 $\mathcal{S}_{r}$, which can be shown that to have a particularly simple
 structure under these assumptions.
 % processing time
-Let $\rho := L / v_{\max}$ be such that $y_i + \rho$ is the time at which the rear
+Let $\rho_{i} \equiv \rho = L / v_{\max}$ be such that $y_i + \rho$ is the time at which the rear
 bumper of a crossing vehicle reaches the start line of the intersection, to
 which we will refer as the \textit{processing time}. It can now be shown that
 $y_{r} \in \mathcal{S}_{r}$ holds whenever
@@ -392,13 +373,14 @@ the trajectory of the vehicle preceding the current vehicle.
   \centering
   \includegraphics[width=0.8\textwidth]{figures/single/trajectories_delay.pdf}
   \caption{Example trajectories of vehicles from a single route, for some random
-    arrival times and scheduled crossing times, computed by solving the linear
-    program obtained from direct transcription of problem \texttt{MotionSynthesize}. We
-    used the parameters $v_{\max} = 1, a_{\max} = 0.5, L = 5$. The ``queueing
-    behavior'' that we also see in traffic jams is visible for the trajectories
-    in the upper part. This is due to the particular choice of optimization
-    objective, which essentially tries to keep all vehicles as close to the
-    intersection as possible at all times.}
+    arrival times and scheduled crossing times. These trajectories are computed
+    by solving the linear program obtained from direct transcription of problem
+    \texttt{MotionSynthesize}. We used the parameters
+    $v_{\max} = 1, a_{\max} = 0.5, L = 5$. The ``queueing behavior'' that we
+    also see in traffic jams is visible for the trajectories in the upper part.
+    This is due to the particular choice of optimization objective, which
+    essentially tries to keep all vehicles as close to the intersection as
+    possible at all times.}
 \end{figure}
 
 
@@ -408,19 +390,19 @@ the trajectory of the vehicle preceding the current vehicle.
 The previous section showed that, given a crossing time schedule $y$,
 trajectories can be efficiently computed using a direct transcription method.
 Hence, we will show how to leverage the branch-and-cut framework to solve the
-crossing time scheduling problem~\eqref{eq:crossing_time_scheduling} by
-formulating it as a Mixed-Integer Linear Program (MILP) and defining three types
-of cutting planes. We investigate the computational complexity of this approach
-for different classes of problems in Section~\ref{sec:runtime} To illustrate an
-alternative solution approach, Section~\ref{sec:local_search} briefly discusses
-a local search heuristic.
+crossing time scheduling problem~\eqref{eq:crossing_time_scheduling} by formulating it as a Mixed-Integer Linear
+Program (MILP) and defining three types of cutting planes. We investigate the
+computational complexity of this approach for different classes of problems in
+Section~\ref{sec:runtime}. To illustrate an alternative solution approach, Section~\ref{sec:local_search} briefly
+discusses a local search heuristic.
+
 
 \subsection{Branch-and-cut}
-To obtain a MILP, we rewrite the disjunctive constraints using the well-known
-big-M method.
-%
-We introduce a binary decision variable $\gamma_{ij}$ for every
-disjunctive pair $\{i, j\} \in \mathcal{D}$.
+
+To formulate the crossing time scheduling problem as a MILP, we rewrite the
+disjunctive constraints using the well-known big-M method by introducing a
+binary decision variable $\gamma_{ij}$ for every disjunctive pair
+$\{i, j\} \in \mathcal{D}$.
 %
 To avoid redundant variables, we first impose some arbitrary ordering of the
 disjunctive pairs by defining
@@ -428,9 +410,8 @@ disjunctive pairs by defining
   \bar{\mathcal{D}} = \{ (i,j) : \{i,j\} \in \mathcal{D}, \; r(i) < r(j) \} ,
 \end{align*}
 such that for every $(i,j) \in \bar{\mathcal{D}}$, setting $\gamma_{ij} = 0$
-corresponds to choosing disjunctive arc $i \rightarrow j$ and
-$\gamma_{ij} = 1$ corresponds to $j \rightarrow i$. This yields the following
-MILP formulation
+corresponds to choosing disjunction $i \rightarrow j$ and $\gamma_{ij} = 1$ corresponds to
+$j \rightarrow i$. This yields the following MILP formulation
 %
 \begin{align*}
   \min_{y} \quad & \sum_{i \in \mathcal{N}} y_{i} - a_{i} & \\
@@ -440,9 +421,10 @@ MILP formulation
   & y_{j} + \sigma \leq y_{i} + (1 - \gamma_{ij})M , & \text{ for all } (i,j) \in \bar{\mathcal{D}} , \\
   & \gamma_{ij} \in \{0, 1\} , & \text{ for all } (i,j) \in \bar{\mathcal{D}} ,
 \end{align*}
-where $M > 0$ is some sufficiently large number. Next, we will discuss three
-types of cutting planes that can be added to this formulation, which we hope
-improve the solving time.
+where $M > 0$ is some sufficiently large number. This problem can be solved by
+any off-the-shelf MILP solving software. Next, we will discuss three types of
+cutting planes that can be added to this formulation, which we hope improves the
+solving time.
 
 Consider some disjunctive arc $(i,j) \in \bar{\mathcal{D}}$. Let
 $\mathit{pred}(i)$ denote the set of indices of vehicles that arrive no later
@@ -466,11 +448,127 @@ the \textit{transitive cutting planes}.
 
 % Under the condition that $\rho_{i} = \rho$ and $\sigma_{i} = \sigma > \rho$ for all $i \in \mathcal{N}$,
 
-Apart from the redundancy that stems from the way the conflicts are encoded, the
-next proposition shows that there is some less obvious structure in the problem.
-Roughly speaking, whenever a vehicle can be scheduled immediately after its
-predecessor, this should happen in any optimal
-schedule~\cite{limpensOnlinePlatoonForming2023}, as stated by the following
+Apart from the redundancy that stems from the way the conflicts are encoded, we
+will now study some less obvious structure in the problem.
+%
+Let us briefly consider some trivial examples to establish some better intuition
+of the problem.
+
+\begin{eg}
+  Consider the trivial problem with two routes and a single vehicle per route.
+  When both vehicles have the same earliest arrival time $a_{i} = a$, the order
+  in which they cross the intersection does not matter for the final objective,
+  which is $\sigma$. When either of the vehicles has a strictly earlier release
+  date, then it is obvious that this vehicle must go first in the optimal
+  schedule.
+\end{eg}
+%
+\begin{eg}
+  \label{example2}
+  Consider two routes having one and two vehicles, respectively. Instead of
+  $(1,1), (2,1), (2,2)$, we will use the labels $1, 2, 3$ to keep notation
+  clear. We are interested in how the earliest crossing times influence the
+  order of the vehicles in an optimal schedule. We set $a_{1} = 0$, without loss
+  of generality, and assume that $a_{3} = a_{2} + \rho$. Suppose
+  $a_{1} = a_{2}$, then we see that the order $2, 3, 1$ is optimal, which
+  resembles some sort of ``longest chain first'' rule. Now suppose that
+  $a_{1} < a_{2}$. For $a_{2} \geq a_{1} + \rho + \sigma$, the sequence
+  $1, 2, 3$ is simply optimal. For $a_{2} < a_{1} + \rho + \sigma$, we compare
+  the sequence $1, 2, 3$ with $2, 3, 1$, which are illustrated in
+  Figure~\ref{fig:example2}. The first has
+  $\sum_{i} y_{i} = (\rho+\sigma) + (\rho+\sigma+\rho) = 3\rho + 2\sigma$,
+  while the second sequence has
+  $\sum_{i} y_{i} = a_{2} + (a_{2} + \rho) + (a_{2} + \rho + \rho + \sigma) = 3 a_{2} + 3\rho + \sigma$.
+  Therefore, we conclude that the second sequence is optimal if and only if
+  \begin{align}
+    \label{eq:before-condition}
+    a_{2} \leq \sigma/3 ,
+  \end{align}
+  which roughly means that the ``longest chain first'' rule becomes optimal
+  whenever the release dates are ``close enough''.
+\end{eg}
+%
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.55\textwidth]{figures/single/123.pdf}
+  \caption{Illustration of the two possible sequences of vehicles in
+    Example~\ref{example2}.}
+  \label{fig:example2}
+\end{figure}
+
+In the previous example, we see that it does not make sense to schedule vehicle
+1 between vehicles 2 and 3, because that would add unnecessary $\sigma$ time.
+This raises the question whether splitting such \textit{platoons} of vehicles is
+ever necessary to achieve an optimal schedule. Let us first give a precise
+definition of this important notion, before slightly generalizing the example
+above.
+%
+\begin{define}
+  A sequence of consecutive vehicles $(r, l+1), (r, l+2), \dots, (r, l+n)$ from
+  some route $r$ is called a \textit{platoon} of size $n$ if and only if
+  \begin{align*}
+  a_{(r,k)} + \rho = r_{(r, k+1)}  \quad \quad \text{ for all } l < k < l + n.
+  \end{align*}
+ We say that the platoon is \textit{split}
+  in some schedule $y$, if
+  \begin{align*}
+  y_{(r, k)} + \rho < y_{(r, k + 1)} \quad \quad \text{ for some } l < k < l + n.
+  \end{align*}
+\end{define}
+%
+\begin{eg}
+  \label{example3}
+  Suppose we have two routes $\mathcal{R} = \{ A, B \}$, each having exactly one
+  platoon, denoted as $P_{A} = ((A,1), \dots, (A,n_{A}))$,
+  $P_{B} = ((B,1), \dots, (B,n_{B}))$. To simplify notation, we write
+  $a_{A} = a_{(A,1)}$ and $a_{B} = a_{(B,1)}$. We assume $a_{A} = 0$, without
+  loss of generality, and suppose that $n_{A} < n_{B}$ and
+  $a_{A} \leq a_{B} < n_{A}\rho + \sigma$. Consider the ways the two platoons
+  can merge by splitting A. Let $k$ denote the number of vehicles of platoon A
+  that go before platoon B and let $\sum y_{i}(k)$ denote the corresponding
+  sum of crossing times. See Figure~\ref{fig:example3} for an illustration of the
+  situation in case of $a_{A} = a_{B}$. For $0 < k \leq n_{A}$, we have
+  \begin{align*}
+    \sum_{i \in \mathcal{N}} y_{i} (k) = \max\{ \sigma, a_{B} - k\rho\} (n_{B} + n_{A} - k) + \sigma (n_{A} - k) + \sum_{j=1}^{n_{A}+n_{B}} (j-1) \rho ,
+  \end{align*}
+  so when platoon A goes completely before platoon B, we get
+  \begin{align}
+    \sum_{i \in \mathcal{N}} y_{i} (n_{A}) = \sigma n_{B} + \sum_{j=1}^{n_{A}+n_{B}} (j-1) \rho ,
+    \label{eq:A-before-B}
+  \end{align}
+  since $\max\{ \sigma, a_{B} - n_{A} \rho \} = \sigma$ by the assumption on
+  $a_{B}$. It is easily seen that we have $\sum y_{i}(k) > \sum y_{i} (n_{A})$
+  for $0 < k < n_{A}$, so in other words, if we decide to put at least one
+  vehicle of platoon A before platoon B, it is always better to put all of them
+  in front. As we will see next, this principle holds more generally.
+
+  For $k=0$, so when we schedule platoon A completly after platoon B, the total
+  completion time becomes
+  \begin{align*}
+    \sum_{i \in \mathcal{N}} y_{i} (0) = a_{B} (n_{A} + n_{B}) + \sigma n_{A} + \sum_{j=1}^{n_{A}+n_{B}} (j-1) .
+  \end{align*}
+  Comparing this to~\eqref{eq:A-before-B}, we conclude that placing B in front
+  is optimal whenever
+  \begin{align*}
+    a_{B} \leq (n_{B} - n_{A}) \sigma / (n_{A} + n_{B}) ,
+  \end{align*}
+  which directly generalizes the condition~\eqref{eq:before-condition} that we
+  derived for the case with $n_{A} = 1$ and $n_{B} = 2$.
+\end{eg}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.95\textwidth]{figures/single/platoons.pdf}
+  \caption{Illustration of different ways to split platoon A, regarding
+    Example~\ref{example3}, assuming that $a_{A} = a_{B}$ with $n_{A} = 3$ and
+    some arbitrary $n_{B}$.}
+  \label{fig:example3}
+\end{figure}
+
+The example shows that, when we decide to put one vehicle of a platoon before
+another platoon, it is always better to put the whole platoon in front. In other
+words, whenever a vehicle can be scheduled immediately after its predecessor,
+this should happen in any optimal schedule~\cite{limpensOnlinePlatoonForming2023}, as stated by the following
 result, whose proof can be found in Appendix~\ref{app:proof}.
 
 \begin{restatable}[Platoon Preservation Theorem]{proposition}{Exhaustive}\label{prop:exhaustive}
@@ -612,18 +710,19 @@ planes seem to lower the running time the most.
 \begin{figure}
   \centering
   \includegraphics[width=0.7\textwidth]{data-single/running_times.pdf}
-  \caption{The average (censored) running time of the branch-and-cut procedure
-    is plotted as a function of the number of arriving vehicles per route, for
-    each of the three indicated cutting planes. Each average is computed over
-    $20$ problem instances. All instances use $\rho = 4$ and $\sigma = 1$. The arrivals
-    of each of the two routes are generated using the bimodal exponential
-    interarrival times with $p=0.5, \mu_{s} = 0.1, \mu_{l} = 10$. This figure
-    clearly shows that the conjunctive cutting planes provide the most runtime
-    improvement.}
+  \caption{The average (\textit{censored} due to fixed time limit) running time
+    of the branch-and-cut procedure is plotted as a function of the number of
+    arriving vehicles per route, for each of the three indicated cutting planes.
+    Each average is computed over $20$ problem instances. All instances use
+    $\rho = 4$ and $\sigma = 1$. The arrivals of each of the two routes are generated
+    using the bimodal exponential interarrival times with
+    $p=0.5, \mu_{s} = 0.1, \mu_{l} = 10$. This figure clearly shows that the
+    conjunctive cutting planes provide the most runtime improvement.}
   \label{fig:running_time}
 \end{figure}
 
 \subsection{Local search}
+\label{sec:local_search}
 
 Without relying on systematic search methods like branch-and-bound, we can try
 to use some kind of local search. Specifically, compute a solution using one of
@@ -631,10 +730,10 @@ the methods from the previous section and then explore some \textit{neighboring
   solutions}, that we define next.
 
 As seen in the previous sections, vehicles of the same route occur mostly in
-groups, to which we will refer as \textit{platoons}. For example, consider for example
-the route order $\eta = (0, 1, 1, 0, 0, 1, 1, 1, 0, 0)$. This example has 5
-platoons of consecutive vehicles from the same route. The second platoon
-consists of two vehicles from route 1.
+platoons. For example, consider for example the route order
+$\eta = (0, 1, 1, 0, 0, 1, 1, 1, 0, 0)$. This example has 5 platoons of consecutive
+vehicles from the same route. The second platoon consists of two vehicles from
+route 1.
 %In general, let $P(\eta)$ denote the total number of platoons in $\eta$.
 The basic idea is to make little changes in these platoons by moving vehicles at
 the start and end of a platoon to the previous and next platoon of the same
@@ -684,52 +783,71 @@ The latter variant is sometimes referred to as \textit{beam search}.
 \section{Learning to schedule}
 
 % autoregressive modeling
-Methods that rely on the branch-and-cut framework are guaranteed to find an
-optimal solution, but as we showed in Section~\ref{sec:runtime}, the running
-time scales very poorly when increasing instance sizes. For this reason, we are
-interested in developing heuristics to obtain good approximations in limited
+Methods that are based on the branch-and-cut framework are guaranteed to find an
+optimal solution, but as we illustrated in Section~\ref{sec:runtime}, their running time
+generally scales very poorly with increased instance sizes. For this reason, we
+are interested in developing heuristics to obtain good approximations in limited
 time.
 %
-Specifically, we will consider heuristics in terms of autoregressive
-models~\cite{tomczakDeepGenerativeModeling2024}.
+Specifically, we will be considering heuristics that can be formulated as
+autoregressive models~\cite{tomczakDeepGenerativeModeling2024} and show how these can be tuned by using example
+problem instances.
 
 % choose disjunctive constraints -> linear program
-\paragraph{Equivalent representations of schedules}
-Observe that the space of feasible solutions
-of~\eqref{eq:crossing_time_scheduling} can be reduced to finitely many decisions
-regarding the disjunctive constraints~\eqref{eq:disjunctive}. Specifically, each
-feasible schedule $y$ can be written as the solution to some linear program
-\begin{align*}
+\paragraph{Equivalent representations of schedules.}
+Observe that the space of feasible solutions of~\eqref{eq:crossing_time_scheduling} can be reduced to finitely
+many decisions regarding the disjunctive constraints~\eqref{eq:disjunctive}. Specifically, for each
+feasible choice of the disjunctions $\mathcal{O}$, we consider the so-called
+\textit{active schedule} $y$ as the unique solution to the linear program
+\begin{subequations}
+  \label{eq:active_schedule}
+\begin{align}
   \min_{y} \quad & \sum_{i \in \mathcal{N}} y_{i} \\
   \text{s.t.} \quad & a_{i} \leq y_{i} & \text{ for all } i \in \mathcal{N}, \\
-           & y_{i} + \rho \leq y_{j}, & \text{ for all } (i,j) \in \mathcal{C}, \\
-           & y_{i} + \sigma \leq y_{j}, & \text{ for all } (i,j) \in \mathcal{O} ,
-\end{align*}
-for some selection $\mathcal{O}$ of the disjunctive constraints. To see when
-such a selection is allowed, we can think of this linear program as a weighted
-directed graph on nodes $\mathcal{N}$ with conjunctive arcs
-$(i,j) \in \mathcal{C}$ with weights $w(i,j) = \rho$ and disjunctive arcs
-$(i,j) \in \mathcal{O}$ with weights $w(i,j) = \sigma$. Now observe that the
-definition of $y$ through the linear program is equivalent to defining $y$
-through
+           & y_{i} + \rho_{i} \leq y_{j}, & \text{ for all } (i,j) \in \mathcal{C}, \\
+           & y_{i} + \sigma_{i} \leq y_{j}, & \text{ for all } (i,j) \in \mathcal{O} .
+\end{align}
+\end{subequations}
+To see when such a selection $\mathcal{O}$ is feasible, we can think of this
+linear program as a weighted directed graph on nodes $\mathcal{N}$ with
+conjunctive arcs $(i,j) \in \mathcal{C}$ with weights $w(i,j) = \rho_{i}$ and
+disjunctive arcs $(i,j) \in \mathcal{O}$ with weights $w(i,j) = \sigma_{i}$. Now
+observe that the definition of $y$ through the linear program is equivalent to
+defining $y$ through
 \begin{align}
   \label{eq:y_max}
   y_{j} = \max\{ a_{j}, \max_{i \in \mathcal{N}^{-}(j)} y_i + w(i,j) \} ,
 \end{align}
 where $\mathcal{N}^{-}(j)$ denotes the set of in-neighbors of node $j$. It is
-now easy to see that $y$ is well-defined if and only if the so-called
-\textit{complete disjunctive graph}
+now easy to see that $y$ is well-defined if and only if the so-called \textit{complete disjunctive graph}
 $G=(\mathcal{N}, \mathcal{C} \cup \mathcal{O})$ is acyclic.
 %
 When $G$ is acyclic, there is a unique topological ordering of its nodes. Hence,
 any valid selection $\mathcal{O}$ of disjunctive constraints is equivalent to a
-sequence $\pi$ of vehicles. It is also equivalent to a sequence $\eta$ of
-routes, because the ordering of vehicles on the same route is already fixed.
-From now on, we will mainly be working with $\eta$, because it is in some sense
-the simplest representation of a schedule and we write $y^{\eta}$ to denote the
-induced crossing times.
+sequence $\pi$ of vehicles. It is also equivalent to a sequence $\eta$ of routes,
+because the ordering of vehicles on the same route is already fixed. See
+Figure~\ref{fig:disjunctive_graphs} for an example of a complete disjunctive
+graph with corresponding vehicle order $\pi$ and route order $\eta$.
+%
+From now on, we will mainly be working with $\eta$, because it is in some sense the
+simplest representation of a schedule and we write $y^{\eta}$ to denote the
+corresponding induced crossing times.
 
-\paragraph{Autoregressive modeling of schedules}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.98\textwidth]{figures/single/disjunctive_graph.pdf}
+  \caption{Illustration of disjunctive graphs for some instance with two routes
+    with $n_{1} = 3$ and $n_{2} = 4$ vehicles. Horizontal arrows are the
+    conjunctive arcs, the rest are disjunctive arcs. The left graph is and
+    \textit{empty} disjunctive graph, because $\mathcal{O} = \varnothing$. The
+    selection of disjunctions shown in the \textit{complete} graph on the right
+    encodes the vehicle order
+    $\pi = ((1,1), (2,1), (1,2), (1,3), (2,2), (2,3), (2,4))$ and route order
+    $\eta = (1, 2, 1, 1, 2, 2, 2)$.}
+  \label{fig:disjunctive_graphs}
+\end{figure}
+
+\paragraph{Autoregressive modeling of schedules.}
 Given some problem instance $s$, we now want to model the sequence $\eta$ such
 that $y^{\eta}$ is an optimal schedule. To this end, we model the conditional
 probability of $\eta$ given $s$ by considering autoregressive models of the form
@@ -883,7 +1001,7 @@ selecting the next route at step $t$ as
 where $\texttt{next}(\eta_{t})$ denotes some arbitrary route other than $\eta_{t}$ with
 unscheduled vehicles left.
 %
-This definition is illustrated in Figure~\ref{fig:threshold_heuristic}.
+The threshold heuristic is illustrated in Figure~\ref{fig:threshold_heuristic}.
 
 \begin{figure}
   \centering
@@ -1092,12 +1210,12 @@ Let $N(s)$ denotes the total number of vehicles in instance $s$. To enable a
 fair comparison across instances of various sizes, we report the quality of a
 solution in terms of the average delay per vehicle $L(\eta, s) / N(s)$.
 %
-Given some problem instance $s$, let $\eta^{*}$ denote the schedule computed
-using branch-and-bound. We use a fixed time limit of 60 seconds per instance for
-the branch-and-bound procedure, in order to bound the total analysis time.
-Therefore, it might be that $\eta^{*}$ is not really optimal for some of the
-larger instances. Given some possibly suboptimal schedule $\eta$, we define its
-\textit{optimality gap} as
+Given some problem instance $s$, let $\eta^{*}$ denote the schedule computed using
+branch-and-bound. We use a fixed time limit of 60 seconds per instance for the
+branch-and-bound procedure, in order to bound the total analysis time.
+Therefore, it might be that $\eta^{*}$ is not really optimal for some of the larger
+instances. Given some, possibly suboptimal, schedule $\eta$, we define its \textit{optimality gap}
+as
 \begin{align*}
   L(s, \eta) / L(s, \eta^{*}) - 1 .
 \end{align*}
@@ -1117,10 +1235,17 @@ regular intervals, we compute the average validation loss and store the current
 model parameters. At the end of the training, we pick the model parameters with
 the smallest validation loss. The results are listed in Table~\ref{tab:results2}.
 %
-For the neural heuristic, we plot the training and validation loss, see
-Figure~\ref{fig:neural_fit}. It can be seen that the model converges very steadily in all cases.
+For the neural heuristic with supervised (imitation) learning, we plot the
+training and validation loss, see Figure~\ref{fig:neural_fit}. It can be seen that the model
+converges very steadily in all cases.
+%
+For the policy gradient method using REINFORCE with baseline, the training loss
+with episodic baseline is shown in Figure~\ref{fig:rl_neural_episodic_fit} and
+for the stepwise baseline in Figure~\ref{fig:rl_neural_stepwise_fit}.
 
 \input{data-single/threshold-woven.tex}
+
+\input{data-single/neural-woven.tex}
 
 
 % \subsection{Regeneration theorem}
@@ -1144,62 +1269,67 @@ Figure~\ref{fig:neural_fit}. It can be seen that the model converges very steadi
 
 \section{Proof of Proposition~\ref{prop:exhaustive}}\label{app:proof}
 
-First, we prove the following lemma that provides an easier expression for
-calculating the lower bounds.
+Recall the definition of an \textit{active schedule} as the unique solutions of
+linear program~\eqref{eq:active_schedule}, given some selection of the
+disjunctions $\mathcal{O}$. We first prove the following lemma that provides a
+convenient way to compute active schedules. Although we do not currently need
+it, we allow $\rho_{i}$ to vary across vehicles, which becomes useful once we
+allow vehicles to have different lengths $L_{i}$.
 
 \begin{lemma}\label{lb_lemma}
-  Let $\pi$ be some permutation of $\mathcal{N}$. Assume that
-  $\sigma_{i} = \rho_{i} + s$, for every $i \in \mathcal{N}$, with $s > 0$.
-  Consider a pair $i,j \in \mathcal{N}$ such that $i$ is the immediate predecessor
-  of $j$ in $\pi$, so $\pi^{-1}(i) + 1 = \pi^{-1}(j)$, then
+  Let $\mathcal{O}$ be some feasible selection of disjunction, inducing some
+  vehicle order $\pi$. Assume that $\sigma_{i} = \rho_{i} + s$, for every
+  $i \in \mathcal{N}$, with some $s > 0$, then active schedule $y$ satisfies
 \begin{align}
   \label{eq:lb_lemma}
-  \beta_\pi(j) = \max \{ r_{j}, \beta_\pi(i) + w(i, j) \} .
+  y_{j} = \max \{ r_{j}, y_i + w(i, j) \} ,
 \end{align}
+for every pair $i,j \in \mathcal{N}$ such that $i$ is the immediate predecessor
+of $j$ in $\pi$.
 \end{lemma}
 \begin{proof}
-  Suppose $(i,j) \in \mathcal{C}$, see Figure~\ref{fig:lb_lemma},
-  then the incoming disjunctive arcs of $j$ are
-  $N^{-}_{\pi}(j) \setminus \{ i \} \subset N^{-}_{\pi}(i)$. Therefore, we have
+  Suppose $(i,j) \in \mathcal{C}$, see Figure~\ref{fig:lb_lemma}, then the incoming disjunctive
+  arcs of $j$ come from nodes $(\mathcal{N}^{-}(j) \setminus \{ i \}) \subset \mathcal{N}^{-}(i)$.
+  Therefore, we have
   \begin{align*}
-    \max_{v \in N^{-}_{\pi}(j) \setminus \{i\}} \beta_\pi(v) + \sigma_{v} \leq \beta_\pi(i) ,
+    \max_{v \in \mathcal{N}^{-}(j) \setminus \{i\}} y_v + \sigma_{v} \leq \max_{v \in \mathcal{N}^{-}(i)} y_{v} + \sigma_{v} \leq y_{i} ,
   \end{align*}
   so that
-      $\beta_\pi(v) + w(v,j) \leq \beta_\pi(i) + w(i,j)$
-  for all $v \in N_{\pi}^{-}(j)$.
+      $y_{v} + w(v,j) \leq y_{i} + w(i,j)$
+  for all $v \in \mathcal{N}^{-}(j)$.
 
-  Otherwise, we have $(i, j) \in \mathcal{O}(\pi)$.
+  Otherwise, we have $(i, j) \in \mathcal{O}$.
   %
   Let $v \in \mathcal{N}$ such that $(v, j)$ is an arc.
   If $(v,j) \in \mathcal{C}$, then we have
   \begin{align*}
-    \beta_\pi(v) + w(v,j) =
-    \beta_\pi(v) + \rho_{v} \leq \beta_\pi(v) + \sigma_{v} + \sigma_{i} \leq \beta_\pi(i) + w(i,j) ,
+    y_{v} + w(v,j) =
+    y_{v} + \rho_{v} \leq y_{v} + \sigma_{v} + \sigma_{i} \leq y_{i} + w(i,j) ,
   \end{align*}
-  where the second inequality follows from $(v,i) \in \mathcal{O}(\pi)$.
+  where the second inequality follows from $(v,i) \in \mathcal{O}$.
   %
-  If $(v, j) \in \mathcal{O}(\pi)$ with $r(v) \neq r(i)$, then $(v,i) \in \mathcal{O}(\pi)$, so
+  If $(v, j) \in \mathcal{O}$ with $r(v) \neq r(i)$, then $(v,i) \in \mathcal{O}$, so
   \begin{align*}
-    \beta_\pi(v) + w(v, j) = \beta_\pi(v) + w(v, i) \leq \beta_\pi(i) \leq \beta_\pi(i) + w(i,j) .
+    y_{v} + w(v, j) = y_{v} + w(v, i) \leq y_{i} \leq y_{i} + w(i,j) .
   \end{align*}
-  If $(v, j) \in \mathcal{O}(\pi)$ with $r(v) = r(i)$, then there is a path of conjunctive arcs between $v$ and
-  $i$, so we must have $\beta_\pi(v) + \rho_{v} \leq \beta_\pi(i)$.
+  If $(v, j) \in \mathcal{O}$ with $r(v) = r(i)$, then there is a path of conjunctive arcs between $v$ and
+  $i$, so we must have $y_{v} + \rho_{v} \leq y_{i}$.
   Furthermore, from $w(v,j) = \sigma_{v} = \rho_{v} + s$ follows that
   \begin{align*}
-    \beta_\pi(v) + w(v,j) = \beta_\pi(v) + \rho_{v} + s \leq \beta_\pi(i) + s \leq \beta_\pi(i) + w(i, j) .
+    y_{v} + w(v,j) = y_{v} + \rho_{v} + s \leq y_{i} + s \leq y_{i} + w(i, j) .
   \end{align*}
 
   To conclude, we have shown that
-  $\beta_\pi(v) + w(v,j) \leq \beta_\pi(i) + w(i,j)$ for any
-  $v \in N^{-}_{\pi}(j)$, from which statement~\eqref{eq:lb_lemma} follows.
+  $y_{v} + w(v,j) \leq y_{i} + w(i,j)$ for any
+  $v \in \mathcal{N}^{-}(j)$, from which statement~\eqref{eq:lb_lemma} follows.
 \end{proof}
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.9\textwidth]{figures/single/lower-bound-lemma.pdf}
+  \includegraphics[width=0.8\textwidth]{figures/single/lower-bound-lemma.pdf}
   \caption{Sketch of the four cases distinguished in the proof of
     Lemma~\ref{lb_lemma}. Arc weights are given and disjunctive arcs
-    $\mathcal{O}(\pi)$ are drawn with a dashed line.}\label{fig:lb_lemma}
+    $\mathcal{O}$ are drawn with a dashed line.}\label{fig:lb_lemma}
 \end{figure}
 
 
@@ -1228,7 +1358,7 @@ calculating the lower bounds.
   We have $y_{i} = y'_{i}$ for all $i \in \mathcal{I}(f, i^{*})$, so these do not
   contribute to any difference in the objective.
   %
-  Using Proposition~\ref{prop:active-schedule} and Lemma~\ref{lb_lemma}, we compute
+  Using Lemma~\ref{lb_lemma}, we compute
   \begin{align*}
     y'_{j^{*}} &= \max \{ r_{j^{*}}, y_{i^{*}} + \rho \} = y_{i^{*}} + \rho , \\
     y_{u} &= \max \{ r_{u}, y_{i^{*}} + \sigma \} , \\
@@ -1288,8 +1418,7 @@ calculating the lower bounds.
   \end{align*}
   which contradicts the assumption that $y$ and $\pi$ were optimal.
   %
-  Finally, from Proposition~\ref{prop:active-schedule} and Lemma~\ref{lb_lemma}
-  follows that $y_{i^{*}} + \rho = y_{j^{*}}$.
+  Finally, from Lemma~\ref{lb_lemma} follows that $y_{i^{*}} + \rho = y_{j^{*}}$.
 \end{proof}
 
 \begin{figure}
@@ -1302,7 +1431,7 @@ calculating the lower bounds.
 \end{figure}
 
 
-\section{Implementation details}
+\section{Implementation notes}
 
 We have an \texttt{ActionTransform} base class with implementations
 \texttt{PaddedEmbeddingModel} and \texttt{RecurrentEmbeddingModel}. The
@@ -1347,15 +1476,14 @@ horizon as the first entry of the tensor. Maybe we should use the
   \centering
   \includegraphics[width=0.9\textwidth]{figures/single/tau_fit.pdf}
   \caption{Charts to verify threshold heuristic model fit. For each indicated
-    instance training set, the average delay
-    $\sum_{s \in \mathcal{X}} \textrm{obj}(y_{\tau}(s)) \, / \, {|\mathcal{X}|}$
-    is plotted as a function of the threshold $\tau$. We use these plots to
-    verify that the range of possible candidates for $\tau$ has been chosen wide
-    enough, which is probably the case when the graphs are somewhat smooth and
-    convex. Observe that larger instances show smoother curves. Furthermore,
-    observe that the class of instances with high arrival intensity shows an
-    apparent optimal value of $\tau$ around $1$, which might be related somehow
-    to our choice of $\sigma = 1$.}
+    instance training set $X$, the average delay
+    $\sum_{s \in X} \textrm{obj}(y_{\tau}(s)) \, / \, {|X|}$ is plotted as a function of the
+    threshold $\tau$. We use these plots to verify that the range of possible
+    candidates for $\tau$ has been chosen wide enough, which is probably the case
+    when the graphs are somewhat smooth and convex. Observe that larger
+    instances show smoother curves. Furthermore, observe that the class of
+    instances with high arrival intensity shows an apparent optimal value of $\tau$
+    around $1$, which might be related somehow to our choice of $\sigma = 1$.}
   \label{fig:tau_fit}
 \end{figure}
 
@@ -1369,6 +1497,22 @@ horizon as the first entry of the tensor. Maybe we should use the
     number of training steps. The training loss is plotted for each individual
     step without smooting.}
   \label{fig:neural_fit}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/single/rl_neural_episodic_fit.pdf}
+  \caption{Loss plots for REINFORCE with episodic baseline. For each indicated
+    instance training set, the training loss is plotted for each training step.}
+  \label{fig:rl_neural_episodic_fit}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=1.0\textwidth]{figures/single/rl_neural_stepwise_fit.pdf}
+  \caption{ Loss plots for REINFORCE with stepwise baseline. For each indicated
+    instance training set, the training loss is plotted for each training step.}
+  \label{fig:rl_neural_stepwise_fit}
 \end{figure}
 
 \end{document}
