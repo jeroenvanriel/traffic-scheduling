@@ -1,0 +1,19 @@
+% silent package loading
+<<include=F>>=
+library(dplyr)
+library(kableExtra)
+library(qwraps2)
+@
+
+<<echo=F>>=
+data <- read.csv("results.csv", check.names=FALSE)
+
+data <- data %>% select(n_arrivals, set_name, opt_obj, opt_time, exhaustive, threshold, threshold_tau, threshold_train_time);
+
+kbl(data, escape=F, booktabs=T, linesep = "", align="cc|rr|r|rr",
+    col.names=c("n", "type", "MILP", "time", "exhaustive (gap)", "threshold (gap)", "$\\tau_\\text{opt}$", "time"),
+    caption="Performance evaluation of the branch-and-cut (MILP) approach and the threshold heuristic for different classes of instances with two routes. The first two columns specify the instance class based on the number of vehicles $n$ per route and the type of arrival distribution for each route. These arrival distributions are chosen such that the arrival intensity is the same, only the degree of platooning varies. Performance is measured in terms of $L(s, \\eta) / N(s)$, averaged over 100 test instances. The optimality gap is shown in parentheses for the heuristics.
+The threshold heuristic is fitted based on 100 training instances and the optimal threshold and training time is indicated. For branch-and-cut the average inference time is indicated. Note that we used a time limit of 60 seconds for all the branch-and-cut computations.",
+label="results1") %>%
+  kable_styling(latex_options="scale_down")
+@

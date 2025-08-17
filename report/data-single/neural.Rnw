@@ -1,0 +1,18 @@
+% silent package loading
+<<include=F>>=
+library(dplyr)
+library(kableExtra)
+library(qwraps2)
+@
+
+<<echo=F>>=
+data <- read.csv("results.csv", check.names=FALSE)
+
+data <- data %>% select(n_arrivals, set_name, neural, neural_train_time, rl_neural_episodic, rl_neural_episodic_time, rl_neural_stepwise, rl_neural_stepwise_time);
+
+kbl(data,
+    escape=F, booktabs=T, linesep = "", align="cc|rr|rr|rr",
+    col.names=c("n", "type", "supervised (gap)", "time", "episodic (gap)", "time", "stepwise (gap)", "time"),
+    caption="Comparison of neural heuristics with supervised learning and reinforcement learning, based on average delay per vehicle for different classes of instances with two routes. The first two columns specify the instance class based on the number of vehicles $n$ per route and the type of arrival distribution for each route. These arrival distributions are chosen such that the arrival intensity is the same, only the degree of platooning varies. The supervised heuristic is fitted based on 100 train instances and results averaged over 100 test instances. We use two different ways to compute the baseline: single baseline per episode, or baseline for every step during the episode.", label="results2") %>%
+  kable_styling(latex_options="scale_down")
+@

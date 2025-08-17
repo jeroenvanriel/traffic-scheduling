@@ -27,14 +27,14 @@ class Automaton:
         if self.k[lane] == self.K[lane]:
             raise Exception("All vehicles in this lane have already been scheduled.")
 
+        prev_obj = self.get_objective()
+
         # set y_i = LB(i)
         y = self.LB[lane][self.k[lane]]
         self.y[lane].append(y)
 
         # update number of scheduled vehicles
         self.k[lane] += 1
-
-        prev_obj = sum(sum(self.LB[lane]) for lane in range(self.N))
 
         # update LB according to new partial schedule
         self.LB = LB(self.instance, {'y': self.y})
@@ -45,7 +45,7 @@ class Automaton:
         self.last_lane = lane
 
         # reward is change in partial objective (negative)
-        return prev_obj - sum(sum(self.LB[lane]) for lane in range(self.N))
+        return prev_obj - self.get_objective()
 
 
     def exhaustive(self, lane):
@@ -63,12 +63,15 @@ class Automaton:
 
 
     def get_objective(self):
-        return sum(sum(ys) for ys in self.y)
+        return sum(sum(self.LB[lane]) for lane in range(self.N))
 
 
-def evaluate(instance, model):
-    automaton = Automaton(instance)
-    while not automaton.done:
-        lane = model(automaton)
-        automaton.step(lane)
-    return automaton.get_objective()
+def evaluate(s, model):
+    """Schedule according to lanes given by model on `s`, which can be either an
+    instance (dictionary) or Automaton."""
+    if not isinstance(s, Automaton):
+        s = Automaton(s)
+    while not s.done:
+        lane = model(s)
+        s.step(lane)
+    return s.get_objective()
