@@ -5,13 +5,13 @@ from amplpy import AMPL
 from network.util import vehicle_indices, order_indices
 
 
-def motion_synthesize(T, D=10, dt=0.1, vmax=1, amax=0.5, l=1, prev=None, **kwargs):
+def motion_synthesize(T, p0=-10, v0=1, dt=0.1, vmax=1, amax=0.5, l=1, prev=None, **kwargs):
     """Solve the MotionSynthesize problem with direct transcription to a linear program.
     A part of the predecessor's trajectory can be specified by `prev`, which is a list
     of positions, starting from the first time epoch of this problem.
 
     T = time between arrival and departure from edge
-    D = length of edge
+    p0 = initial position
     vmax, amax = maximum speed and acceleration
     l = follow distance
     prev = previous trajectory, as list of positions at discrete time epochs from start
@@ -23,7 +23,8 @@ def motion_synthesize(T, D=10, dt=0.1, vmax=1, amax=0.5, l=1, prev=None, **kwarg
 
     param vmax; # maximum velocity
     param umax; # maximum control
-    param p0; # start position, must be < 0
+    param p0; # initial position, must be < 0
+    param v0; # initial velocity, must be 0 <= v0 <= 1
     param l; # minimum follow distance
 
     # state and control variables
@@ -34,7 +35,7 @@ def motion_synthesize(T, D=10, dt=0.1, vmax=1, amax=0.5, l=1, prev=None, **kwarg
     maximize objective: sum {t in Ts} x[t];
 
     subject to x_start: x[1] = p0;
-    subject to v_start: v[1] = vmax;
+    subject to v_start: v[1] = v0;
     #subject to x_end: x[T] = 0; # this is too restrictive numerically
     subject to x_end {t in Ts}: x[t] <= 0; # alternative
     subject to v_end: v[T] >= vmax - 0.01; # with a little tolerance
@@ -60,7 +61,8 @@ def motion_synthesize(T, D=10, dt=0.1, vmax=1, amax=0.5, l=1, prev=None, **kwarg
 
     ampl.param["dt"] = dt
     ampl.param["T"] = T
-    ampl.param["p0"] = -D
+    ampl.param["p0"] = p0
+    ampl.param["v0"] = v0
     ampl.param["vmax"] = vmax
     ampl.param["umax"] = amax
     ampl.param["l"] = l
@@ -86,9 +88,11 @@ def generate_edge_trajectories(instance, y, dt, r, v):
     w = route[route.index(v) + 1]
     # get distance of edge (v, w)
     D = instance['G'].edges[v, w]['dist']
+    W = instance['W']
 
     # parameters for MotionSynthesize
-    params = { 'dt': dt, 'l': instance['length'], 'vmax': instance['vmax'], 'amax': instance['amax'] }
+    params = { 'dt': dt, 'l': instance['length'], 'v0': instance['vmax'],
+               'vmax': instance['vmax'], 'amax': instance['amax'] }
 
     # now generate trajectories for edge (v, w)
     trajectories = {}
@@ -103,7 +107,7 @@ def generate_edge_trajectories(instance, y, dt, r, v):
             prev = prev[prev['t'] >= yv * dt]['x'].to_numpy()
 
         # generate trajectory using direct transcription
-        x = motion_synthesize(yw - yv + 1, D=D, prev=prev, **params)
+        x = motion_synthesize(yw - yv + 1, p0=-D+W, prev=prev, **params)
         xd = pd.DataFrame(x, columns=['x'])
         # add corresponding time epochs
         xd['t'] = dt * np.array(range(yv, yw + 1))
@@ -123,5 +127,5 @@ def generate_route_trajectories(instance, y, dt, r):
 
 def generate_trajectories(instance, y, dt):
     """Generate trajectories for all routes. Returns a map from vehicle index to
- trajectory as a pandas DataFrame with columns 't' and 'x'."""
+    trajectory as a pandas DataFrame with columns 't' and 'x'."""
     pass
