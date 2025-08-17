@@ -1,0 +1,27 @@
+% silent package loading
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
+\centering
+\caption{\label{tab:results2}Comparison of neural heuristics with supervised learning and reinforcement learning, based on average delay per vehicle for different classes of instances with two routes. The first two columns specify the instance class based on the number of vehicles $n$ per route and the type of arrival distribution for each route. These arrival distributions are chosen such that the arrival intensity is the same, only the degree of platooning varies. The supervised heuristic is fitted based on 100 train instances and results averaged over 100 test instances. We use two different ways to compute the baseline: single baseline per episode, or baseline for every step during the episode.}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{cc|rr|rr|rrcc|rr|rr|rrcc|rr|rr|rrcc|rr|rr|rrcc|rr|rr|rrcc|rr|rr|rrcc|rr|rr|rrcc|rr|rr|rr}
+\toprule
+n & type & supervised (gap) & time & episodic (gap) & time & stepwise (gap) & time\\
+\midrule
+10 & low & 5.34 (0.92\%) & 6.13 & 5.73 (8.27\%) & 92.42 & 5.54 (4.81\%) & 125.94\\
+30 & low & 8.70 (1.15\%) & 9.90 & 9.81 (14.05\%) & 290.47 & 9.17 (6.67\%) & 782.60\\
+50 & low & 11.15 (1.15\%) & 13.99 & 12.38 (12.32\%) & 517.16 & 12.13 (9.99\%) & 2423.15\\
+10 & med & 4.53 (1.44\%) & 5.66 & 4.85 (8.65\%) & 94.26 & 4.66 (4.42\%) & 128.56\\
+30 & med & 7.10 (1.62\%) & 9.75 & 8.34 (19.42\%) & 296.29 & 7.77 (11.22\%) & 789.75\\
+50 & med & 8.66 (1.26\%) & 13.99 & 10.33 (20.80\%) & 518.25 & 10.10 (18.09\%) & 2434.19\\
+10 & high & 4.54 (1.50\%) & 5.97 & 4.81 (7.49\%) & 94.93 & 4.56 (2.01\%) & 129.00\\
+30 & high & 7.05 (2.13\%) & 9.85 & 7.88 (14.15\%) & 295.97 & 8.01 (16.07\%) & 791.48\\
+50 & high & 7.52 (1.98\%) & 14.01 & 8.91 (20.86\%) & 518.51 & 8.41 (14.13\%) & 2437.07\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\end{knitrout}

@@ -1,0 +1,28 @@
+% silent package loading
+
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
+\centering
+\caption{\label{tab:results1}Performance evaluation of the branch-and-cut (MILP) approach and the threshold heuristic for different classes of instances with two routes. The first two columns specify the instance class based on the number of vehicles $n$ per route and the type of arrival distribution for each route. These arrival distributions are chosen such that the arrival intensity is the same, only the degree of platooning varies. Performance is measured in terms of $L(s, \eta) / N(s)$, averaged over 100 test instances. The optimality gap is shown in parentheses for the heuristics.
+The threshold heuristic is fitted based on 100 training instances and the optimal threshold and training time is indicated. For branch-and-cut the average inference time is indicated. Note that we used a time limit of 60 seconds for all the branch-and-cut computations.}
+\centering
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{cc|rr|r|rrcc|rr|r|rrcc|rr|r|rrcc|rr|r|rrcc|rr|r|rrcc|rr|r|rrcc|rr|r|rrcc|rr|r|rr}
+\toprule
+n & type & MILP & time & exhaustive (gap) & threshold (gap) & $\tau_\text{opt}$ & time\\
+\midrule
+10 & low & 5.29 & 0.05 & 9.49 (79.45\%) & 7.78 (47.08\%) & 0.95 & 3.79\\
+30 & low & 8.60 & 2.01 & 12.72 (47.88\%) & 11.31 (31.49\%) & 2.65 & 21.04\\
+50 & low & 11.03 & 13.78 & 16.56 (50.20\%) & 14.60 (32.41\%) & 1.95 & 51.09\\
+10 & med & 4.46 & 0.06 & 7.20 (61.32\%) & 6.39 (43.15\%) & 2.50 & 3.79\\
+30 & med & 6.99 & 1.88 & 9.43 (34.97\%) & 8.96 (28.29\%) & 1.10 & 21.14\\
+50 & med & 8.55 & 15.11 & 11.50 (34.40\%) & 10.77 (25.93\%) & 1.70 & 51.23\\
+10 & high & 4.47 & 0.06 & 6.35 (42.04\%) & 5.70 (27.51\%) & 1.35 & 3.81\\
+30 & high & 6.90 & 1.90 & 8.92 (29.19\%) & 8.58 (24.25\%) & 1.00 & 21.16\\
+50 & high & 7.37 & 14.99 & 9.36 (26.94\%) & 8.88 (20.42\%) & 0.80 & 51.45\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\end{knitrout}
