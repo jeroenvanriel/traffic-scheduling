@@ -3,33 +3,19 @@
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{table}
-
-\caption{\label{tab:unnamed-chunk-2}Comparison of threshold heuristics.}
 \centering
-\begin{tabular}[t]{cc|c|ccc|c|ccc|c|ccc|c|c}
-\toprule
-n & size & MILP & $\tau = 0$  (gap)\\
-\midrule
-5 & 2x1 & 57.27 & 65.27 (11.45\%)\\
-5 & 3x1 & 57.67 & 68.34 (15.44\%)\\
-5 & 3x2 & 57.35 & 69.17 (18.32\%)\\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{table}
-
-\caption{\label{tab:unnamed-chunk-2}Comparison of neural heuristics.}
+\caption{\label{tab:results}Average scaled optimal objective value computed using MILP and using the threshold heuristic with threshold $\tau = 0$. Each class of problem instances is identified by the number $n$ of vehicle arrivals per route and the grid network size as cols x rows.}
 \centering
-\begin{tabular}[t]{cc|c|c|ccc|c|c|ccc|c|c|ccc|c|c|ccc|c|c|c}
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{
+\begin{tabular}[t]{cc|cc|c|c|c|ccc|cc|c|c|c|ccc|cc|c|c|c|ccc|cc|c|c|c|ccc|cc|c|c|c|ccc|cc|c|c|c|ccc|cc|c|c|c|ccc|cc|c|c|c|c}
 \toprule
-n & size & random (gap) & exhaustive (gap) & alternate (gap)\\
+n & size & MILP & time & $\tau = 0$  (gap) & random (gap) & boundary (gap) & alternate (gap)\\
 \midrule
-5 & 2x1 & 58.98 (2.98\%) & 58.90 (2.84\%) & 58.15 (1.53\%)\\
-5 & 3x1 & 60.03 (4.11\%) & 59.42 (3.04\%) & 58.74 (1.86\%)\\
-5 & 3x2 & 61.28 (6.86\%) & 60.49 (5.47\%) & 58.62 (2.22\%)\\
+5 & 2x1 & 57.27 & 0.06 & 65.27 (11.45\%) & 58.96 (2.95\%) & 58.72 (2.52\%) & 58.23 (1.66\%)\\
+5 & 3x1 & 57.67 & 0.12 & 68.34 (15.44\%) & 59.77 (3.65\%) & 59.82 (3.74\%) & 58.72 (1.83\%)\\
+5 & 3x2 & 57.35 & 1.38 & 69.17 (18.32\%) & 60.88 (6.16\%) & 60.36 (5.25\%) & 58.82 (2.56\%)\\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \end{knitrout}

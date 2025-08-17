@@ -1,4 +1,4 @@
-n_arrivals,grid_m,grid_n,opt_obj,opt_time,exhaustive_obj,exhaustive_gap,rnn_random_obj,rnn_boundary_obj,rnn_alternate_obj,N,opt_obj_scaled,exhaustive_obj_scaled,rnn_random_obj_scaled,rnn_boundary_obj_scaled,rnn_alternate_obj_scaled,rnn_random_gap,rnn_boundary_gap,rnn_alternate_gap,grid,exhaustive,rnn_random,rnn_boundary,rnn_alternate
-5,2,1,1396.52,0.06,1556.36,1.11,1430.62,1429.09,1414.09,20,57.27,65.27,58.98,58.9,58.15,1.03,1.03,1.02,2x1,65.27 (11.45\%),58.98 (2.98\%),58.90 (2.84\%),58.15 (1.53\%)
-5,3,1,2073.63,0.12,2393.75,1.15,2144.69,2126.3,2105.89,30,57.67,68.34,60.03,59.42,58.74,1.04,1.03,1.02,3x1,68.34 (15.44\%),60.03 (4.11\%),59.42 (3.04\%),58.74 (1.86\%)
-5,3,2,3869.88,1.38,4578.79,1.18,4105.98,4058.01,3946.34,60,57.35,69.17,61.28,60.49,58.62,1.07,1.05,1.02,3x2,69.17 (18.32\%),61.28 (6.86\%),60.49 (5.47\%),58.62 (2.22\%)
+n_arrivals,grid_m,grid_n,rnn_obj,opt_obj,opt_time,exhaustive_obj,exhaustive_gap,rnn_random_obj,rnn_boundary_obj,grid,N,opt_obj_scaled,exhaustive_obj_scaled,rnn_alternate_obj,rnn_random_obj_scaled,rnn_boundary_obj_scaled,rnn_alternate_obj_scaled,rnn_random_gap,rnn_boundary_gap,rnn_alternate_gap,exhaustive,rnn_random,rnn_boundary,rnn_alternate
+5,2,1,1412.71,1396.52,0.06,1556.36,1.11,1430.3,1425.41,2x1,20,57.27,65.27,1415.56,58.96,58.72,58.23,1.03,1.03,1.02,65.27 (11.45\%),58.96 (2.95\%),58.72 (2.52\%),58.23 (1.66\%)
+5,3,1,2108.98,2073.63,0.12,2393.75,1.15,2136.74,2138.31,3x1,30,57.67,68.34,2105.34,59.77,59.82,58.72,1.04,1.04,1.02,68.34 (15.44\%),59.77 (3.65\%),59.82 (3.74\%),58.72 (1.83\%)
+5,3,2,3956.9,3869.88,1.38,4578.79,1.18,4081.68,4050.47,3x2,60,57.35,69.17,3957.86,60.88,60.36,58.82,1.06,1.05,1.03,69.17 (18.32\%),60.88 (6.16\%),60.36 (5.25\%),58.82 (2.56\%)

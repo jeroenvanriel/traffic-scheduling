@@ -74,6 +74,10 @@ class Automaton:
         # local order for every intersection
         self.order = { v: [] for v in self.G.intersections }
 
+        # number of vehicle-intersection pairs, or length of crossing sequence
+        self.size = sum( len(route[1:-1]) * len(release)
+                    for route, release in zip(self.route, self.instance['release']) )
+
         ### compute disjunctive graph for empty ordering ###
 
         self.D = DisjunctiveGraph()
@@ -117,6 +121,12 @@ class Automaton:
         # compute lower bounds in remaining nodes
         self.update_LB()
 
+        # store the sum of lower bounds at intersections (for computation of objective)
+        self.beta0 = sum(self.D.nodes[r, k, v]['LB']
+                          for r in self.route_indices
+                          for v in self.route[r][1:-1]
+                          for k in self.order_indices[r])
+
         # set initial action space mask
         for r in self.route_indices:
             for v in self.route[r][1:-1]:
@@ -135,6 +145,8 @@ class Automaton:
 
         if (r, v) not in self.pending_crossings:
             raise Exception(f"Crossing {(r, v)} is already done.")
+
+        prev_obj = self.get_objective()
 
         # order index for current action
         k = self.unscheduled[r, v].pop(0)
@@ -171,12 +183,18 @@ class Automaton:
         # compute LB for new partial schedule by updating in topological order
         self.update_LB()
 
+        # reward is change in partial objective (negative)
+        return prev_obj - self.get_objective()
 
-    def get_obj(self):
-        """Compute the total objective, which is the sum of crossing times at
-        all nodes that are not entry nodes."""
+
+    def get_objective(self):
+        """Compute the total objective, which is the sum of delays at all
+        intersections, divided by the total number of vehicle-intersection
+        pairs."""
         obj = 0
         for r, k in self.indices:
-            for v in self.route[r][1:]: # all but entry nodes
+            for v in self.route[r][1:-1]: # at all intersections
                 obj += self.D.nodes[r, k, v]['LB']
-        return obj
+
+        # subtract the initial sum of lower bounds beta0
+        return (obj - self.beta0) / self.size

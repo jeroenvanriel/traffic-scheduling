@@ -39,9 +39,11 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
         for k in range(n[l]):
             for r in range(len(route[l])):
                 v = route[l][r]
-                if r == 0:
+                if r == 0: # entrypoint
                     y[l, k, v] = release[l][k]
-                else:
+                elif r == len(route[l]) - 1: # exitpoint
+                    y[l, k, v] = g.addVar(obj=0, vtype=gp.GRB.CONTINUOUS, name=f"y_{l}_{k}_{v}")
+                else: # intersections
                     y[l, k, v] = g.addVar(obj=1, vtype=gp.GRB.CONTINUOUS, name=f"y_{l}_{k}_{v}")
 
     # conjunctions...
@@ -90,10 +92,11 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
     g.optimize()
 
     y = { k : (v.X if hasattr(v, 'X') else v) for k, v in y.items() }
-    res = { 'y': y, 'obj': g.getObjective().getValue() }
 
-    res['done'] = int(g.status == gp.GRB.OPTIMAL)
-    res['gap'] = g.MIPGap
-    res['time'] = g.Runtime
+    # unnormalized objective
+    obj = g.getObjective().getValue()
 
-    return res
+    return { 'y': y, 'obj': obj,
+             'done': int(g.status == gp.GRB.OPTIMAL),
+             'gap': g.MIPGap,
+             'time': g.Runtime }

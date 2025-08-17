@@ -1,23 +1,21 @@
 % silent package loading
 <<include=F>>=
 library(dplyr)
+library(tidyr)
 library(kableExtra)
+library(data.table)
 library(qwraps2)
 @
 
 <<echo=F>>=
 data <- read.csv("results.csv", check.names=FALSE)
 
-data1 <- data %>% select(n_arrivals, grid, opt_obj_scaled, exhaustive)
-data2 <- data %>% select(n_arrivals, grid, rnn_random, rnn_boundary, rnn_alternate)
+data <- data %>% select(n_arrivals, grid, opt_obj_scaled, opt_time, exhaustive, rnn_random, rnn_boundary, rnn_alternate, )
 
-kbl(data1,
-    escape=F, booktabs=T, linesep = "", align="cc|c|c",
-    col.names=c("n", "size", "MILP", "$\\tau = 0$  (gap)"),
-    caption="Comparison of threshold heuristics.")
+kbl(data,
+    escape=F, booktabs=T, linesep = "", align="cc|cc|c|c|c|c",
+    col.names=c("n", "size", "MILP", "time", "$\\tau = 0$  (gap)", "random (gap)", "boundary (gap)", "alternate (gap)"),
+    caption="Average scaled optimal objective value computed using MILP and using the threshold heuristic with threshold $\\tau = 0$. Each class of problem instances is identified by the number $n$ of vehicle arrivals per route and the grid network size as cols x rows.", label="results") %>%
+  kable_styling(latex_options="scale_down")
 
-kbl(data2,
-    escape=F, booktabs=T, linesep = "", align="cc|c|c|c",
-    col.names=c("n", "size", "random (gap)", "exhaustive (gap)", "alternate (gap)"),
-    caption="Comparison of neural heuristics.")
 @
