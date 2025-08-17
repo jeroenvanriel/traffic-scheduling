@@ -15,7 +15,7 @@
 *.upb
 
 .auctex-auto
-references.bib
+/report/references.bib
 
 ## python binary files
 **/__pycache__/
