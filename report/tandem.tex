@@ -1,19 +1,9 @@
 \documentclass[a4paper]{article}
-\usepackage[margin=3.5cm, marginparsep=5pt, marginparwidth=80pt]{geometry}
+\usepackage[margin=3.5cm]{geometry}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage[svgnames,rgb]{xcolor}
 \usepackage{amsthm}
-% \makeatletter
-% \def\th@plain{%
-%   \thm@notefont{}% same as heading font
-%   \itshape % body font
-% }
-% \def\th@definition{%
-%   \thm@notefont{}% same as heading font
-%   \normalfont % body font
-% }
-% \makeatother
 \usepackage{dsfont}
 \usepackage{graphicx}
 \usepackage{caption}
@@ -81,8 +71,8 @@
 \newtheorem{observation}{Observation}
 \newtheorem{proposition}{Proposition}
 \newtheorem{lemma}{Lemma\hspace{0.25em}\ignorespaces}
-\newtheorem{corollary}{Corollary}
 \newtheorem{theorem}{Theorem\hspace{0.25em}\ignorespaces}
+\newtheorem{corollary}{Corollary}
 \newtheorem{assump}{Assumption\hspace{0.25em}\ignorespaces}
 
 \DeclareMathOperator{\interior}{int}
@@ -197,8 +187,8 @@ that speed and acceleration are bounded. Therefore, let $\mathcal{D}[a,b]$
 denote the set of valid \emph{trajectories}, which we define to be all continuously
 differentiable functions $x : [a,b] \rightarrow \mathbb{R}$ satisfying the constraints
 \begin{align}
-  0 \leq \dot{x}(t) \leq 1 \quad \text{ and } \quad
-  {-\omega} \leq \ddot{x}(t) \leq \bar{\omega} , \quad \text{ for all } t \in [a,b] ,
+  \dot{x}(t) \in [0, 1] \quad \text{ and } \quad
+  \ddot{x}(t) \in [{-\omega} ,\bar{\omega}] , \quad \text{ for all } t \in [a,b] ,
 \end{align}
 for some fixed acceleration bounds $\omega, \bar{\omega} > 0$ and with $\dot{x}$ and
 $\ddot{x}$ denoting the first and second derivative with respect to time $t$.
@@ -211,10 +201,14 @@ We use $A$ and $B$ to denote the start\footnote{Note that assuming $A\neq 0$ is 
 Let $D_{1}[a, b] \subset \mathcal{D}[a, b]$ denote all trajectories $x$ that satisfy
 the first-order boundary conditions
 \begin{align}
-  x(a) = A \; \text{ and } \; x(b) = B .
+  x(a) = A \; \text{ and } \; x(b) = B
 \end{align}
-Additionally, let $D_{2}[a,b] \subset D_{1}[a, b]$ further induce the second-order
-boundary conditions
+and additionally satisfy $\dot{x}(a) > 0$ and $\dot{x}(b) > 0$, to avoid the
+technical difficulties of dealing with vehicles that are waiting at the start or
+end of the lane.
+%
+On top of these conditions, let $D_{2}[a,b] \subset D_{1}[a, b]$ further induce the
+second-order boundary conditions
 \begin{align}
   \dot{x}(a) = \dot{x}(b) = 1 .
 \end{align}
@@ -224,13 +218,13 @@ speed.
 %
 Figure~\ref{fig:trajectories} shows an example for each of these three classes of trajectories.
 
-
 \begin{figure}
   \centering
   \includegraphics[scale=0.9]{figures/motion/trajectories}
   \caption{Example trajectories $x_{1} \in \mathcal{D}[a_{1},b_{1}]$,
-    $x_{2} \in D_{1}[a_{2},b_{2}]$ and $x_{3} \in D_{2}[a_{3},b_{3}]$ for each the
-    three classes of trajectories that are used throughout this chapter.}%
+    $x_{2} \in D_{1}[a_{2},b_{2}]$ and $x_{3} \in D_{2}[a_{3},b_{3}]$ for each
+    the three classes of trajectories that are used throughout this chapter
+    (horizontal axis is time, vertical axis is position).}%
   \label{fig:trajectories}
 \end{figure}
 
@@ -303,6 +297,8 @@ a system of linear inequalities in terms of the schedule times $a_{i}$ and
 $b_{i}$.
 
 \paragraph{Choice of objective.}
+\note{Probably better to introduce these examples earlier on, i.e., in single intersection chapter.}
+%
 We obtain what we call the \emph{haste objective} by choosing
 \begin{align}\label{eq:haste-objective}
   J(x_{i}) = \int_{a_{i}}^{b_{i}} x_{i}(t) \diff t .
@@ -333,7 +329,7 @@ interesting topic for further research.
 % The downside of this technique is that its computational complexity scales very
 % poorly with the number of time steps.
 
-\section{Single vehicle with arbitary lead vehicle constraint}
+\section{Single vehicle with arbitary lead vehicle constraint}\label{sec:single-vehicle-problem}
 
 Before we analyze the feasibility of the lane planning problem as a whole, we
 focus on the lead vehicle constraint~\eqref{eq:lead-constraint} for a single
@@ -345,16 +341,14 @@ $u$ and consider the following problem.
 
 \begin{define}
   Let $u \in D_{1}[c, d]$ and assume we are given two schedule times
-  $a,b \in \mathbb{R}$ such that $a \geq c$ and $b \geq d$, then the
-  \emph{single vehicle (feasibility) problem} is to find a trajectory
-  \begin{align}
-    x \in D_{2}[a,b] \; \text{ such that } \; x \preceq u .
-  \end{align}
+  $a,b \in \mathbb{R}$, then the \emph{single vehicle (feasibility) problem} is to find
+  a trajectory $x \in D_{2}[a,b]$ such that $x \preceq u$.
 \end{define}
 
 \subsection{Necessary conditions}
 
-Suppose we are given some feasible trajectory $x \in D_{2}[a,b]$.
+Suppose we are given some feasible trajectory $x$ for the single vehicle
+problem.
 %
 In addition to the given upper bounding trajectory $u$, we will derive two
 upper bounding trajectories $x^{1}$ and $\hat{x}$ and one lower bounding
@@ -367,8 +361,15 @@ Let the \emph{full speed boundary}, denoted $x^{1}$, be defined as
 \begin{align}
   x^{1}(t) = A + t - a,
 \end{align}
-for all $t \in [a, b]$, then we clearly have $x \preceq x^{1}$.
+for all $t \in [a, b]$, then we clearly have $x \preceq x^{1}$. Observe that
+$x^{1}(s) = B$ for $s = a + (B-A)$, which can be interpreted as the earliest
+time of departure from the lane, so we must have $b \geq a + (B-A)$. This is our
+first necessary condition.
 %
+\begin{lemma}\label{lemma:travel-constraint}
+  If there exists $x\in D_{2}[a,b]$, then $b-a \geq B-A$.
+\end{lemma}
+
 Next, since deceleration is at most $\omega$, we have
 $\dot{x}(t) \geq \dot{x}(a) - \omega(t - a) = 1 - \omega(t - a)$, which we
 combine with the speed constraint $\dot{x} \geq 0$ to derive
@@ -406,34 +407,38 @@ We refer to $\check{x}$ and $\hat{x}$ as the \emph{entry boundary} and
 \end{figure}
 
 \begin{lemma}\label{lemma:necessary-conditions}
-  Consider some lead vehicle constraint $u \in D_{1}[c,d]$ and assume there
-  exists a trajectory $x \in D_{2}[a, b]$ such that $x \preceq u$, then the following
-  conditions must hold \TabPositions{3cm}
-  \begin{enumerate}[label=(\roman*)\quad,leftmargin=5em,midpenalty=5]
-    \item $b-a \geq B-A$, \tab (full speed constraint)
-    \item $d \leq b$, \tab (exit order constraint)
-    \item $c \leq a$, \tab (entry order constraint)
-    \item $u \succeq \check{x}$. \tab (entry space constraint)
-  \end{enumerate}
+  Consider some lead boundary $u \in D_{1}[c,d]$ and assume
+  $[a,b] \cap [c,d] \neq \varnothing$. If there exists a trajectory
+  $x \in D_{2}[a, b]$ such that $x \preceq u$, then $a \geq c$ and $b \geq d$ and $u \succeq \check{x}$.
+  % \begin{itemize}[leftmargin=3em,midpenalty=5]
+  %   \item $a \geq c$,
+  %   \item $b \geq d$,
+  %   \item $u \succeq \check{x}$.
+  % \end{itemize}
 \end{lemma}
 \pagebreak[1]
 \begin{proof}
-  Each of these conditions corresponds somehow to one of the four bounding
+  Each of these conditions corresponds somehow to one of the bounding
   trajectories defined above.
   %
-  Observe that $x^{1}(s) = B$ for $s = a + (B-A)$, which can be interpreted as
-  the earliest time of departure from the lane. This shows that
-  $b \geq a + (B-A)$, which is equivalent with (i).
+  Suppose $a < c$, then because the domains intersect, we must have $b > c$, but
+  then clearly no $x$ can satisfy $x \preceq u$.
   %
-  % When (i) is violated, $x$ must cross $x^{1}$ somewhere, which means that the
-  % maximum speed constraint must be violated.
-  When either (ii) or (iii) is violated, the constraint $x \preceq u$ conflicts
-  with one of the boundary conditions $x(a) = A$ or $x(b) = B$. To see that (iv)
-  must hold, suppose that $u(\tau) < \check{x}(\tau)$ for some time $\tau$. Since
-  $c \leq a$, this means that $u$ must intersect $\check{a}$ from above. Therefore,
-  any trajectory that satisfies $x \preceq u$ must also intersect $\check{a}$
-  from above, which contradicts the assumption $x \in D_{2}[a,b]$.
+  When $b < d$, then it is a consequence of $\dot{u}(b) > 0$ that any $x$ will
+  violate $x \preceq u$.
+  %
+  To see that the third condition must hold, suppose that $u(\tau) < \check{x}(\tau)$
+  for some time $\tau$. Since $c \leq a$, this means that $u$ must intersect
+  $\check{a}$ from above. Therefore, any trajectory that satisfies $x \preceq u$
+  must also intersect $\check{a}$ from above, which contradicts the assumption
+  $x \in D_{2}[a,b]$.
 \end{proof}
+
+\begin{remark}
+  The assumption of non-empty domains is required in the previous lemma, because
+  otherwise we include the situation in which $x$ lies completely to the left of
+  $u$, in which case the stated conditions are obviously not necessary anymore.
+\end{remark}
 
 We note that the boundaries $\hat{x}$ and $\check{x}$ can be combined to
 yield yet another necessary condition.
@@ -452,7 +457,6 @@ the analysis simpler.
   The length of the lane satisfies $B - A \geq 1/(2\omega) + 1/(2\bar{\omega})$.
 \end{assump}
 
-\noindent
 Observe that $1/(2\omega)$ is precisely the distance required to decelerate from
 full speed to a standstill. Similarly, $1/(2\bar{\omega})$ is the distance
 required for a full acceleration. Therefore, we may interpret
@@ -464,7 +468,7 @@ Section~\ref{sec:feasibility-inequalities}.
 \note{(check that we do this)}
 
 
-\subsection{Constructing smooth upper boundary}\label{sec:optimal-trajectory}
+\subsection{Sufficient conditions}\label{sec:optimal-trajectory}
 
 \begin{figure}
   \centering
@@ -478,15 +482,36 @@ Section~\ref{sec:feasibility-inequalities}.
   \label{fig:optimal-construction}
 \end{figure}
 
-Assuming the four conditions of Lemma~\ref{lemma:necessary-conditions} hold, we will show that we can always
-construct a solution $\gamma^{*}$ for the single vehicle problem, thereby
-showing that the four conditions are also sufficient.
+The goal of the remainder of this section is to prove the following feasibility
+characterization.
+
+\begin{theorem}[Feasibility characterization of single vehicle
+  problem]\label{thm:single-vehicle}
+  Given some lead vehicle boundary $u \in D_{1}[c,d]$ and some schedule times
+  $a, b \in \mathbb{R}$ such that $[a,b]\cap [c,d] \neq \varnothing$ and assuming
+  Assumption~\ref{assump:lane-length}, there exists a solution
+  $x \in D_{2}[a,b]$ satisfying $x \preceq u$ if and only if \TabPositions{3cm}
+  \begin{enumerate}[label=(\roman*)\quad,leftmargin=5em,midpenalty=5]
+    \item $b-a \geq B-A$, \tab (travel constraint)
+    \item $a \geq c$, \tab (entry order constraint)
+    \item $b \geq d$, \tab (exit order constraint)
+    \item $u \succeq \check{x}$. \tab (entry space constraint)
+  \end{enumerate}
+\end{theorem}
+
+Note that Lemma~\ref{lemma:travel-constraint} and Lemma~\ref{lemma:necessary-conditions} already showed
+necessity of these conditions.
 %
-The particular solution that we will construct is a smooth upper boundary for all
-other solutions, in the sense that, for any other feasible solution $x$ we have
-$x \preceq \gamma^{*}$.
+Therefore, we will show that, under these conditions, we can always construct a
+solution $\gamma^{*}$ for the single vehicle problem, thereby showing that the
+four conditions are also sufficient.
 %
-The starting point is the \emph{minimum boundary} $\gamma : [a,b] \rightarrow \mathbb{R}$, defined as
+The particular solution that we will construct also happens to be a smooth upper
+boundary for all other solutions, in the sense that, for any other feasible
+solution $x$ we have $x \preceq \gamma^{*}$.
+%
+The starting point of the construction is the \emph{minimum boundary}
+$\gamma : [a,b] \rightarrow \mathbb{R}$, defined as
 \begin{align}\label{eq:min-boundary}
   \gamma(t) := \min \{ u(t), \hat{x}(t), x^{1}(t) \} .
 \end{align}
@@ -508,11 +533,11 @@ points in time, in which case $\gamma \notin \mathcal{D}[a,b]$.
     trajectory (with downward bends)}.
 \end{define}
 
-It is not difficult to see from Figure~\ref{fig:necessary-conditions} that,
-under the necessary conditions, $\gamma$ satisfies the above definition, so
-$\gamma \in \mathcal{P}[a,b]$. In other words, $\gamma$ consists of a number of
-pieces that are smooth and satisfy the vehicle dynamics, with possibly some
-sharp bend downwards where these pieces come together.
+Under the conditions of Theorem~\ref{thm:single-vehicle}, it is not difficult to
+see from Figure~\ref{fig:necessary-conditions} that $\gamma$ satisfies the above definition, so
+$\gamma \in \mathcal{P}[a,b]$. In other words, $\gamma$ consists of a number of pieces that
+are smooth and satisfy the vehicle dynamics, with possibly some sharp bend
+downwards where these pieces come together.
 %
 Next, we present a simple procedure to smoothen out this kind of discontinuity
 by decelerating from the original trajectory somewhat before some $t_{i}$, as
@@ -527,10 +552,10 @@ smoothing procedure, which is described in Section~\ref{sec:smoothing}.
 We apply this procedure to $\gamma$ to obtain $\gamma^{*}$, after which it is
 relatively straightforward to show that $\gamma^{*}$ is an upper bound for all
 other feasible solutions, which is done in
-Section~\ref{sec:upper-bound-property}
+Section~\ref{sec:upper-bound-property}.
 
 
-\subsubsection{Deceleration boundary}\label{sec:deceleration-boundary}
+\subsection{Deceleration boundary}\label{sec:deceleration-boundary}
 % In order to formalize the smoothing procedure, we will first define some
 % parameterized family of functions to model the deceleration part that we
 % introduce to smooth the original trajectory.
@@ -627,7 +652,7 @@ instead, by defining $\mu[\xi] := x^{-}[\mu(\xi), \dot{\mu}(\xi^{-}), \xi]$.
 \end{remark}
 
 
-\subsubsection{Smoothing procedure}\label{sec:smoothing}
+\subsection{Smoothing procedure}\label{sec:smoothing}
 Let $\mu \in \mathcal{P}[a,b]$ be some piecewise trajectory and let
 $a = t_{0} < \cdots < t_{n+1} = b$ denote the subdivision as in Definition~\ref{def:piecewise-trajectory}.
 %
@@ -867,24 +892,30 @@ $\dot{\mu}^{*}(b) = \dot{\mu}(b)$.
   \label{fig:multiple-discontinuities}
 \end{figure}
 
-
-\subsubsection{Smooth upper boundary}\label{sec:upper-bound-property}
-
+\paragraph{Proof of Theorem~\ref{thm:single-vehicle}.}
 Let us now return to the minimum boundary $\gamma$ defined
 in~\eqref{eq:min-boundary}.
 %
-From Figure~\ref{fig:necessary-conditions} and the necessary conditions, it is clear that $\gamma$ must satisfy
-$\gamma(a) = A$, $\gamma(b) = B$ and \comment{I think this could be made more rigorous,
-  but I think this is clear enough from the figure.}
-$\dot{\gamma}(a) = \dot{\gamma}(b) = 1$, so whenever we have $\gamma \in \mathcal{D}[a, b]$,
-i.e., $\gamma$ does not contain discontinuities, we automatically have
-$\gamma \in D_{2}[a,b]$ so that $\gamma$ itself is already a feasible solution.
+From Figure~\ref{fig:necessary-conditions} and the conditions of
+Theorem~\ref{thm:single-vehicle}, it is clear that $\gamma$ must satisfy
+$\gamma(a) = A$, $\gamma(b) = B$ and \comment{I think this could be made more
+  rigorous, but I think this is clear enough from the figure.}
+$\dot{\gamma}(a) = \dot{\gamma}(b) = 1$, so whenever we have
+$\gamma \in \mathcal{D}[a, b]$, i.e., $\gamma$ does not contain discontinuities,
+we automatically have $\gamma \in D_{2}[a,b]$ so that $\gamma$ itself is already
+a feasible solution.
+%
+\note{Explain why Assumption~\ref{assump:smoothing} holds.}
 %
 Otherwise, we perform the smoothing procedure presented above to obtain the
 smoothed trajectory $\gamma^{*} \in \mathcal{D}[a,b]$.
 %
-The next lemma shows that $\gamma^{*}$ is an upper boundary for any feasible
-trajectory.
+This completes the proof of Theorem~\ref{thm:single-vehicle}.
+
+\subsection{Upper boundary solution}\label{sec:upper-bound-property}
+
+As a byproduct of the above analysis, the next lemma shows that the solution
+$\gamma^{*}$ is also an upper boundary for any other feasible trajectory.
 
 \begin{lemma}\label{lemma:upperbound}
   Let $\mu \in \mathcal{P}[a,b]$ be a piecewise trajectory and let
@@ -915,14 +946,18 @@ trajectory.
 \end{proof}
 
 \begin{remark}
-  Observe that it follows from the above lemma that
+  The above upper boundary property has the following interesting consequence if
+  we extend the single vehicle problem to an optimal control problem by
+  considering maximizing the haste criterion $J(x)$ defined
+  in~\eqref{eq:haste-objective} as optimization objective.
+  %
+  In particular, observe that it follows from the above lemma that any other
+  $x \in D_{2}[a,b]$ satisfying $x \preceq u$ must also satisfy
   \begin{align}
     \int_{a}^{b} x(t) \diff t \leq \int_{a}^{b} \gamma^{*}(t) \diff t
   \end{align}
-  for any other $x \in D_{2}[a,b]$ satisfying $x \preceq u$. Recall the haste
-  criterion $J(x)$ defined in~\eqref{eq:haste-objective}, then we see that
-  $\gamma^{*}$ is the optimal solution to the single vehicle optimal control
-  problem
+  Consequently, $\gamma^{*}$ is an optimal solution to the single vehicle
+  optimal control problem
   \begin{align}
     \max_{x \in D_{2}[a,b]} J(x) \; \text{ such that } \; x \preceq u .
   \end{align}
@@ -930,7 +965,7 @@ trajectory.
 \end{remark}
 
 \newpage
-\note{We will need this later\dots}
+\note{We might need this later\dots}
 
 \paragraph{Acceleration boundary.}
 Before we present the decomposition, we first define an auxiliary upper
@@ -977,32 +1012,16 @@ with $\bar{\delta}_{0} := $ and $\bar{\delta}_{1} := $.
 We will now return to the feasibility of the lane planning problem and show how
 it decomposes in terms of a sequence of single vehicle feasibility problems.
 %
-\note{rewrite: We will see how the $x_{i}$ to each subproblem determines the
-boundary $\bar{x}_{i+1}$ for the next subproblem.}
+The general idea is to repeat the construction of the previous section for each
+vehicle to obtain a solution $x_{i}$, while using each constructed trajectory as
+the boudary $u = x_{i}$ for the next problem of finding $x_{i+1} \preceq u$.
 %
-Moreover, we will state the feasibility of the lane planning problem in terms of
-feasibility of the individual single vehicle problems, which will result in a
-system of inequalities in terms of the schedule time vectors
-$a = (a_{1}, \dots, a_{N})$ and $b = (b_{1}, \dots, b_{N})$.
+We will show that feasibility is equivalent to $a_{i}$ and $b_{i}$ satisfying a
+certain system of inequalities.
 
-\begin{assump}\label{assump:L-bound}
+\begin{assump}[Waiting position]\label{assump:L-bound}
   Assume that $L < B - A$.
 \end{assump}
-
-\begin{lemma}\label{lemma:boundary-extension}
-  Consider some trajectory $u \in \mathcal{D}[c,d]$ such that $u(d) \geq A$. If
-  $x \in \mathcal{D}[a,b]$ is such that $x(a) = A$ and $x \preceq u$, then it
-  satisfies $x \preceq (u(d) + t - d)|_{\halfopen{d}{\infty}}$, which may be
-  interpreted as extending the upper boundary $u$ to the right at full speed.
-\end{lemma}
-\begin{proof}
-  If $b < d$, then $x \preceq (\cdot)|_{\halfopen{d}{\infty}}$ is always void and
-  the statement is trivially true. Assume $b \geq d$ and consider an arbitrary
-  $t \geq d$.
-  %
-  Suppose $a \leq d$, then we have $x(t) \leq x(d) + t - d \leq u(d) + t - d$.
-  Suppose $a > d$, then we have $x(t) \leq x(a) + t - a = A + t - a \leq u(d) + t - d$.
-\end{proof}
 
 For some $y \in \mathcal{D}[\alpha, \beta]$, we define the inverse at some position $p$ in
 its range to be
@@ -1022,7 +1041,26 @@ Given some feasible trajectory $u \in D[c,d]$, we define its \emph{downshift}
 For ease of reference, we denote the endpoints of its domain as
 $\bar{a} := u^{-1}(A+L)$ and $\bar{b} := d + L$.
 
-\begin{lemma}\label{lemma:downshift}
+\begin{lemma}[Boundary extension]\label{lemma:boundary-extension}
+  Consider some trajectory $u \in \mathcal{D}[c,d]$ such that $u(d) \geq A$. If
+  $x \in \mathcal{D}[a,b]$ is such that $x(a) = A$ and $x \preceq u$, then it
+  satisfies $x \preceq (u(d) + t - d)|_{\halfopen{d}{\infty}}$, which may be
+  interpreted as extending the upper boundary $u$ to the right at full speed.
+\end{lemma}
+\begin{proof}
+  If $b < d$, then $x \preceq (\cdot)|_{\halfopen{d}{\infty}}$ is always void and
+  the statement is trivially true. Assume $b \geq d$ and consider an arbitrary
+  $t \geq d$.
+  %
+  Suppose $a \leq d$, then we have $x(t) \leq x(d) + t - d \leq u(d) + t - d$.
+  Suppose $a > d$, then we have $x(t) \leq x(a) + t - a = A + t - a \leq u(d) + t - d$.
+\end{proof}
+
+
+\note{Why do we assume $a \geq c$ and $b \geq d$ in the next lemma? Because we
+  assume $a_{1} \leq a_{2} \leq \dots \leq a_{N}$ and similarly for $b_{i}$.}
+
+\begin{lemma}[Downshift boundary equivalence]\label{lemma:downshift}
   For each $u \in D_{2}[c,d]$, the downshift trajectory satisfies
   $\bar{u} \in D_{1}[\bar{a},\bar{b}]$.
   %
@@ -1053,7 +1091,7 @@ $\bar{a} := u^{-1}(A+L)$ and $\bar{b} := d + L$.
   assumption.
   %
   Hence, $a \geq \bar{a}$, so any $t \in [a,b] \cap [c,d]$ satisfies
-  $t \in [u^{-1}(A+L), d]$, but then $x(t) \leq \bar{u}(t) = u(t) - L$ by
+  $t \in [\bar{a}, d]$, but then $x(t) \leq \bar{u}(t) = u(t) - L$ by
   definition.
 \end{proof}
 
@@ -1061,7 +1099,7 @@ $\bar{a} := u^{-1}(A+L)$ and $\bar{b} := d + L$.
 For brevity, we will write $x \in D_{2}^{N}[a, b]$ to denote the vector $x = (x_{1}, \dots, x_{N})$
 of $N$ trajectories $x_{i} \in D_{2}[a_{i},b_{i}]$, while assuming that the
 schedule times $a = (a_{1}, a_{2}, \dots, a_{N})$ and
-$b = (b_{1}, b_{2}, \dots, b_{N})$ are ordered
+$b = (b_{1}, b_{2}, \dots, b_{N})$ are ordered as
 $a_{1} \leq a_{2} \leq \dots \leq a_{N}$ and
 $b_{1} \leq b_{2} \leq \dots \leq b_{N}$.
 
@@ -1095,16 +1133,16 @@ $b_{1} \leq b_{2} \leq \dots \leq b_{N}$.
   \end{enumerate}
 \end{lemma}
 \begin{proof}
-  Of course, (C0) and (C1) are equivalent by definition. Note that ``(C1) $\iff$
-  (C2)'' is handled by Lemma~\ref{lemma:downshift}.
+  Of course, (C0) and (C1) are equivalent by definition. Note that equivalence
+  of (C1) and (C2) is handled by Lemma~\ref{lemma:downshift}.
 
-  We show ``(C2) $\implies$ (C3)''.
+  We show ``(C2) $\implies$ (C3)''. (simple)
 
-  We show ``(C3) $\implies$ (C2)''.
+  We show ``(C3) $\implies$ (C2)''. (induction)
 
-  We show ``(C?) $\implies$ (C4)''.
+  We show ``(C?) $\implies$ (C4)''. (necessity)
 
-  We show ``(C4) $\implies$ (C?)''.
+  We show ``(C4) $\implies$ (C?)''. (sufficiency)
 \end{proof}
 
 \note{Special treatment of first vehicle.}
