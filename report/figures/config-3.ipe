@@ -1,0 +1,202 @@
+<?xml version="1.0"?>
+<!DOCTYPE ipe SYSTEM "ipe.dtd">
+<ipe version="70218" creator="Ipe 7.2.24">
+<info created="D:20250818225743" modified="D:20250818225743"/>
+<ipestyle>
+<symbol name="bullet">
+<path matrix="0.04 0 0 0.04 0 0" fill="black">
+18 0 0 18 0 0 e
+</path>
+</symbol>
+<layout paper="460.8 345.6" origin="0 0" frame="460.8 345.6"/>
+</ipestyle>
+<page>
+<layer name="alpha"/>
+<view layers="alpha" active="alpha"/>
+<path layer="alpha" fill="0" fillrule="wind">
+103.104 38.016 m
+103.104 34.516 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+103.104 38.016 m
+103.104 34.516 l
+</path>
+<text matrix="1 0 0 1 104.116 23.4222" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">1</text>
+<path fill="0" fillrule="wind">
+96.7968 26.9722 m
+103.057 26.9722 l
+103.057 26.1422 l
+96.7968 26.1422 l
+96.7968 26.9722 l
+h
+</path>
+<path fill="0" fillrule="wind">
+141.12 38.016 m
+141.12 34.516 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+141.12 38.016 m
+141.12 34.516 l
+</path>
+<text matrix="1 0 0 1 137.94 23.4222" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">0</text>
+<path fill="0" fillrule="wind">
+179.136 38.016 m
+179.136 34.516 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+179.136 38.016 m
+179.136 34.516 l
+</path>
+<text matrix="1 0 0 1 175.956 23.4222" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">1</text>
+<path fill="0" fillrule="wind">
+217.152 38.016 m
+217.152 34.516 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+217.152 38.016 m
+217.152 34.516 l
+</path>
+<text matrix="1 0 0 1 213.972 23.4222" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">2</text>
+<path fill="0" fillrule="wind">
+255.168 38.016 m
+255.168 34.516 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+255.168 38.016 m
+255.168 34.516 l
+</path>
+<text matrix="1 0 0 1 251.988 23.4222" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">3</text>
+<path fill="0" fillrule="wind">
+293.184 38.016 m
+293.184 34.516 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+293.184 38.016 m
+293.184 34.516 l
+</path>
+<text matrix="1 0 0 1 290.004 23.4222" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">4</text>
+<path fill="0" fillrule="wind">
+331.2 38.016 m
+331.2 34.516 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+331.2 38.016 m
+331.2 34.516 l
+</path>
+<text matrix="1 0 0 1 328.02 23.4222" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">5</text>
+<path fill="0" fillrule="wind">
+369.216 38.016 m
+369.216 34.516 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+369.216 38.016 m
+369.216 34.516 l
+</path>
+<text matrix="1 0 0 1 366.036 23.4222" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">6</text>
+<text matrix="1 0 0 1 230.019 9.75037" pos="0 0" stroke="0" type="label" width="10.239" height="6.42" depth="0" valign="baseline" size="10">x1</text>
+<path fill="0" fillrule="wind">
+103.104 38.016 m
+99.604 38.016 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+103.104 38.016 m
+99.604 38.016 l
+</path>
+<text matrix="1 0 0 1 89.7485 34.2191" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">1</text>
+<path fill="0" fillrule="wind">
+82.4296 37.7691 m
+88.6896 37.7691 l
+88.6896 36.9391 l
+82.4296 36.9391 l
+82.4296 37.7691 l
+h
+</path>
+<path fill="0" fillrule="wind">
+103.104 76.032 m
+99.604 76.032 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+103.104 76.032 m
+99.604 76.032 l
+</path>
+<text matrix="1 0 0 1 89.7446 72.2351" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">0</text>
+<path fill="0" fillrule="wind">
+103.104 114.048 m
+99.604 114.048 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+103.104 114.048 m
+99.604 114.048 l
+</path>
+<text matrix="1 0 0 1 89.7446 110.251" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">1</text>
+<path fill="0" fillrule="wind">
+103.104 152.064 m
+99.604 152.064 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+103.104 152.064 m
+99.604 152.064 l
+</path>
+<text matrix="1 0 0 1 89.7446 148.267" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">2</text>
+<path fill="0" fillrule="wind">
+103.104 190.08 m
+99.604 190.08 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+103.104 190.08 m
+99.604 190.08 l
+</path>
+<text matrix="1 0 0 1 89.7446 186.283" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">3</text>
+<path fill="0" fillrule="wind">
+103.104 228.096 m
+99.604 228.096 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+103.104 228.096 m
+99.604 228.096 l
+</path>
+<text matrix="1 0 0 1 89.7446 224.299" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">4</text>
+<path fill="0" fillrule="wind">
+103.104 266.112 m
+99.604 266.112 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+103.104 266.112 m
+99.604 266.112 l
+</path>
+<text matrix="1 0 0 1 89.7446 262.315" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">5</text>
+<path fill="0" fillrule="wind">
+103.104 304.128 m
+99.604 304.128 l
+</path>
+<path stroke="0" pen="0.8" join="1">
+103.104 304.128 m
+99.604 304.128 l
+</path>
+<text matrix="1 0 0 1 89.7446 300.331" pos="0 0" stroke="0" type="label" width="4.981" height="6.42" depth="0" valign="baseline" size="10">6</text>
+<text matrix="0 1 -1 0 75.2915 164.931" pos="0 0" stroke="0" type="label" width="10.239" height="6.42" depth="0" valign="baseline" size="10">x2</text>
+<path stroke="0" pen="0.8" cap="2">
+103.104 38.016 m
+103.104 304.128 l
+</path>
+<path stroke="0" pen="0.8" cap="2">
+369.216 38.016 m
+369.216 304.128 l
+</path>
+<path stroke="0" pen="0.8" cap="2">
+103.104 38.016 m
+369.216 38.016 l
+</path>
+<path stroke="0" pen="0.8" cap="2">
+103.104 304.128 m
+369.216 304.128 l
+</path>
+<path stroke="black">
+142.667 188.533 m
+142.667 77.5792 l
+253.621 77.5792 l
+253.621 188.533 l
+h
+</path>
+</page>
+</ipe>
