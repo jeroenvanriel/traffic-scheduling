@@ -1,8 +1,8 @@
 \documentclass[a4paper]{report}
-\usepackage[margin=3.5cm]{geometry}
+\usepackage[margin=3.5cm,top=2.8cm,bottom=2.8cm]{geometry} %,top=0.5cm,bottom=1.8cm]{geometry}
 \usepackage[pdftex]{hyperref}
 \usepackage[svgnames]{xcolor}
-\usepackage{amsmath,amsfonts,amssymb,amsthm,thmtools,thm-restate,cleveref}
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools,thmtools,thm-restate,cleveref}
 \usepackage{bookmark,graphicx,dsfont,datetime,float,booktabs,enumitem,outlines,nicematrix}
 \usepackage{tabto,caption}
 \usepackage{algorithm,algpseudocode}
@@ -71,8 +71,21 @@
     \textbf{Abstract}
     \end{center}
     \note{
-    Coordination of automated vehicles in a network of intersections is modeled
-    as a trajectory optimization problem. Under certain model assumptions, this
+    Coordination of automated vehicles in a network of intersections has many aspects, but fundamental computational issues are still not well-understood.
+    Therefore, we will only consider the two most essential elements in this thesis,
+    being vehicle dynamics and the constraints that are required to model the
+    allowed paths vehicles may take in order to avoid collisions with the
+    infrastructure and other vehicles.
+    %
+    To enable concrete analysis, we assume that all vehicles are automated and share the
+    same dynamics. Each vehicle follows a fixed route through the network and is
+    centrally controlled through acceleration inputs under the assumption of perfect
+    communication.
+    %
+    With these assumptions, the traffic coordination task can be modeled a
+    trajectory optimization problem.
+
+    Under certain model assumptions, this
     problem can be decomposed into (i) an upper-level scheduling problem of
     determining the crossing times at intersections and (ii) a set of
     lower-level trajectory optimization problems. We show that the feasibility
@@ -127,13 +140,14 @@
 % drawing editor\footnote{\url{https://ipe.otfried.org}}.
 
 
-\chapter{Introduction and background}
+\chapter{Introduction}
 
-\section{Introduction}
+\section{Motivation and challenges}
 
-% motivation
-% automated vehicles
+%%% motivation:
 
+% natural to study aut. coord.
+%
 Given the ongoing advances in self-driving vehicles and wireless communication,
 it is very natural to study how these new technologies can be applied to enable
 network-wide traffic coordination.
@@ -142,49 +156,462 @@ Some of the potential benefits of coordinating the motion of groups of automated
 vehicles are increased network throughput, reduced energy consumption and better
 guarantees on safety in terms of avoiding dangerous situations.
 
-Coordination of automated vehicles with communication has been studied at
-various levels of organization~\cite{marianiCoordinationAutonomousVehicles2022}.
-A good example of a local coordination methods is platooning of vehicles, where
-the aim is to lower energy consumption by reducing aerodynamic resistance. It
-has been shown that platooning can also result in a more efficient use of
-intersections. On a larger scale, methods like dynamic route optimization have
-been proposed to reduce travel delay for all vehicles in the network.
+% studied from wide range of perspectives, methods
 %
-The coordination problem has very many aspects that could be modeled and
-analyzed. For example, one may think of heterogenous vehicles---in terms of
+Hence, it is not surprising that coordination of automated vehicles with
+communication has been studied from a wide range of perspectives.
+%
+To give some example, a typical distinguishing feature is the level of
+organization at which coordination is considered~\cite{marianiCoordinationAutonomousVehicles2022}. A probably well-known
+example of \emph{local coordination} is platooning of vehicles, where the aim is to
+lower energy consumption by reducing aerodynamic resistance. It has been shown
+that platooning can also result in a more efficient use of intersections. On a
+larger scale, \emph{global coordination} methods like dynamic route optimization have
+been proposed to reduce travel delay for all vehicles in the network.
+
+% many modeling aspects
+%
+Apart from the organization, the coordination problem has many more modeling
+aspects. For example, one may think of heterogenous vehicles---in terms of
 dynamics or priority---different models of centralized/decentralized
 communication between vehicles or with the infrastructure, under different
-guarantees on reliability; complex road topology, curved lanes, merging lanes.
-
-However, as we will see, even the most basic models already present fundamental
-challenges in ensuring safety and efficiency.
+guarantees on reliability; complex road topology, curved lanes, merging lanes;
+implications of mixing human traffic with fully automated traffic.
 %
-Therefore, we will only consider the two most essential elements in this thesis,
-being vehicle dynamics and the constraints that are required to model the
-allowed paths vehicles may take in order to avoid collisions with the
-infrastructure and other vehicles.
-%
-To keep things simple, we assume that all vehicles are automated and share the
-same dynamics.
-%
-Each vehicle follows a fixed route through the network and is centrally
-controlled through acceleration inputs under the assumption of perfect
-communication.
-%
-With these assumptions, the traffic coordination task can be modeled a
-trajectory optimization problem.
+We will discuss some of the most common modeling aspects in the literature
+review.
 
-\begin{figure}
-  \centering
-  \includegraphics[scale=1]{figures/intersection-nice}
-  \caption{Stylized model of a single intersection with two conflicting flows
-    that do not merge, so we assume vehicles must cross the intersection in a
-    straight line, without turning.}
-\end{figure}
+% even simple models provide fundamental computational challenges
+%
+However, it has been recognized that there are fundamental challenges in
+ensuring safety and efficiency that are still not well-understood, even in
+stylized models.
+%
+This brings us at the scope of this project.
+%
+% define project scope
+%
+In order to better understand these inherent difficulties and to enable us to
+obtain concrete interpretable results, we focus on \emph{fully automated
+  mobility systems}, in which all vehicles are assume to have autonomous driving
+and communication capabilities.
+%
+Since we are specifically interested in coordination accross multiple vehicles,
+we assume that the lower-level steering control of individual vehicles is taken
+care of; we assume that vehicles can follow planned trajectories perfectly.
+%
+% further motivation: such systems actually exist
+%
+Even though this model does not capture many of the intricacies of our current
+road network, there are many examples in which such a model is appropriate. For
+example, think of autonomous vehicles being deployed in so-called confined
+sites, like ports, mines or quarries; but also warehouses and manufacturing
+sites, or even indoor farming installations.
+%
+% further motivation: upper bounds
+%
+Moreover, even in the context of urban road traffic, stylized models are
+relevant, because they provide upper bounds on what we can expect to gain in
+more realistic situations with, e.g., decentralized control, random failures and
+problems like communication latency and noisy information.
+
+% focus on optimization of motion
+%
+We will take an \emph{optimization-based perspective} on the coordination problem, in
+which the joint trajectories of the vehicles in the system are our main
+decisions.
+%
+% challenge: defining the constraints and optimization objective
+%
+In this context, there are some natural requirements and objectives, which are
+often conflicting with each other.
+%
+First of all, guarantees on safety and collisions is a fundamental issue.
+%
+From the perspective of promoting traffic throughput of the system, minimizing
+travel delay is a very natural objective. However, there is a tension with the
+goal of limiting fuel and energy consumption.
+%
+In multi-users systems like traffic networks, attention to fairness is also
+of central importantance.
+%
+Other objectives like passenger comfort, e.g., with smooth
+acceleration/deceleration, have also been considered in this context.
+%
+Apart from the difficulty of formulating the optimization problem and its
+objective function, the following challenges have been identified with respect
+to the algorithmic aspects of solving such optimization problems.
+
+% \begin{figure}
+%   \centering
+%   \includegraphics[scale=1]{figures/intersection-nice}
+%   \caption{Stylized model of a single intersection with two conflicting flows
+%     that do not merge, so we assume vehicles must cross the intersection in a
+%     straight line, without turning.}
+% \end{figure}
+
+%%% general challenges (within the context of optimization-based coordination):
+
+\paragraph{Complex combinatorial decisions.}
+
+In traffic coordination, combinatorial problems arise naturally from ordering
+constraints---deciding which vehicle should move first across shared resources
+such as intersections, merges, or lanes, while taking into account trade-offs
+between throughput, fairness, and safety.
+%
+Traditionally, such problems are resolved by implementing traffic lights or
+static rules for yielding.
+%
+Autonomous connected vehicles provide us with better ways of handling these
+conflicts dynamically.
+
+For example, we will focus specifically on the order in which vehicles cross
+intersections, which can also be thought of as grouping vehicles into platoons
+and then deciding in which order these platoons are allowed to cross the
+intersection.
+%
+Instead of relying on fixed traffic signal phases, we can optimize this decision
+for the current traffic situation.
+%
+Other examples include determining the optimal order of vehicles in a
+platoon that is approaching an intersection with dedicated lanes for turning.
+%
+On a higher level, determining the routes that vehicles take is a classical
+combinatorial optimization problem, think for example of the traveling salesman
+problem.
+
+Even when vehicle routes are fixed, such ordering decisions at one intersection
+directly influence the arrival process at nearby intersections, hence these
+decisions are coupled accross the network.
+%
+Due to this coupling, finding the optimal crossing plan becomes harder when
+larger networks are considered, because of the exponential growth of the space
+of feasible solutions.
+%
+This issue is further complicated by the real-time requirement that real traffic
+systems impose on the computation time.
+
+\paragraph{Continuous-time trajectories under constraints.}
+
+We are dealing with the optimization of vehicle trajectories, which is in
+general an infinite-dimensional problem.
+%
+Such problems can be approached in an end-to-end fashion by
+\textit{direct transcription} to an equivalent mixed-integer optimization
+problem, which can be solved using off-the-shelf solvers. This method can be
+used to compute optimal trajectories up to any precision, by choosing a fine
+enough time discretization. However, it is exactly this time discretization that
+causes prohibitive growth of the number of variables with respect to the size of
+the network and the number of vehicles, so this method is only useful for
+relatively small problem instances.
+%
+Moreover, in the context of traffic systems, there are complex constraints and
+safety requirements that need to be handled with care.
+%
+Furthermore, optimization methods would benefit a lot from closed-form
+expressions of trajectories, which is in principle possible in some situations,
+but the appearance of constraints makes this notoriously difficult in practice.
 
 
-\paragraph{Discrete decisions in traffic coordination.} We need to take a
-discrete decision regarding the crossing order of vehicles at intersections.
+\paragraph{Joint optimization is hard.}
+
+There are lots of well-understood solution techniques for purely combinatorial
+problems.
+%
+However, in the current context, the combinatorial part of the problem cannot be
+considered in isolation. The feasibility and cost of each solution to the
+combinatorial part depends in a non-trivial way on the lower-level
+continuous-time dynamics and interactions between vehicles.
+%
+In other words, simultaneously optimizing the combinatorial part and the
+continuous-time part, to which we refer as \emph{joint optimization}, poses
+major algorithmic challenges.
+%
+In the literature, heuristics have been studied, often based on the presumption
+of decentralized control and communication.
+%
+However, works in which the combinatorial aspects and the lower-level
+continous-time trajectories are optimized in a unified fashion, in which the
+trade-offs that are made can be clearly identified, are scarce in the current
+literature.
+
+\section{Literature review}
+This section presents a general overview of the relevant literature on
+\emph{optimization-based methods for traffic coordination in fully automated
+  mobility systems}. Background and literature on the specific
+\emph{methodologies} that we will use in this thesis are provided at the
+beginning of each chapter or section where we first need it.
+
+In presenting the literature, we group works according to their most salient
+feature---be it a specific modeling choice, an algorithmic technique, or a focus
+on particular issue.
+%
+Other features that we are identify are reservation-based policies, use of MILP
+solving, fixed ordering policy instead of optimization, fixed signal phases,
+platoon-based heuristics.
+%
+Before we discuss examplary works, we mention some existing surveys that we have
+consulted when conducting this literature review.
+%
+The survey \cite{marianiCoordinationAutonomousVehicles2022} classifies works
+mainly on the level of organization. Moreover, apart from vehicle motion around
+intersections and other conflict spaces, they also review are other interesting
+coordination challenges in autonomous traffic management, like smart parking and
+ride sharing, with equally important societal impact.
+%
+More specifically focused on autonomous intersection management
+are~\cite{khayatianSurveyIntersectionManagement2020}, where works are
+classified, first on level of organization, but they also consider vehicle
+dynamics, conflict detection and scheduling policy.
+
+
+\paragraph{Reservation-based systems.}
+% adjacent: auction, bidding, fairness
+
+Instead of our optimization-based perspective, a lot of studies assume that
+vehicles communicate with a central intersection controller to reserve time and
+space in the conflict area.
+%
+The major downside of this line of work is that there is generally no precise
+control over the trajectories that vehicles take.
+
+The seminal ``Autonomous Intersection Management'' (AIM) framework
+~\cite{dresnerMultiagentTrafficManagement2004,dresnerMultiagentApproachAutonomous2008}
+is a good example of the reservation-based approach. There, the conflict zone is
+modeled as a grid of cells. Vehicles that want to cross the intersection send a
+request to the central controller to occupy the cells containing its trajectory
+for a certain amount of time. The central controller then decides to grant or
+deny these requests based on previous granted requests, in order to facilitate
+collision-free trajectories. If a request is denied, the vehicle slows down and
+attempts to obtain a new reservation after some timeout.
+%
+Note that in the original setting, the central controller does not have complete
+control over the precise trajectories that vehicles take; each vehicle agent is
+more or less able to decide their own optimal speed profile.
+%
+However, the central controller does impose some constraints on the acceleration
+profile inside the intersection to promote throughput.
+
+Various improvements have been made to the original AIM model to improve the
+efficiency of the reservation protocol, for example by having vehicles make
+better estimations of their expected time of arrivals to make more accurate
+reservations~\cite{auMotionPlanningAlgorithms2010}.
+%
+On top of this, later works consider speed profile recommendations and more
+fine-grained prioritization of requests by the central
+coordinator~\cite{huangAssessingMobilityEnvironmental2012}.
+%
+The model has been extended to networks of intersections in which dynamic route
+optimization has been considered as well~\cite{hausknechtAutonomousIntersectionManagement2011}.
+%
+More precise methods for conflict detection, compared to the original grid-based
+method, have later been considered
+~\cite{levinConflictpointFormulationIntersection2017,liTemporalspatialDimensionExtensionbased2019}
+
+
+\paragraph{Combinatorial-optimization perspective.}
+
+Instead of determining the crossing order in a decentralized fashion, as the
+result of granting reservation requests, other works approach the problem from
+an optimization angle, by assuming that the intersection manager optimizes the
+crossing order.
+
+A good example is~\cite{levinConflictpointFormulationIntersection2017}, where a
+
+In~\cite{liTemporalspatialDimensionExtensionbased2019}, a non-linear
+optimization is solved in a rolling-horizion scheme to optimize the crossing
+order in an online fashion.
+
+Decisions like these become particularly interesting when vehicles with
+heterogeneous dimensions and dynamics are
+considered~\cite{joshiTrajectoriesPlatoonformingAlgorithm2025}. For example, it
+makes intuitively sense to assign heavy trucks with slow
+acceleration/deceleration characteristics to a dedicated lane to avoid
+interfering with passenger vehicles that are more agile.
+
+
+\paragraph{Policy-based perspective.}
+
+We now discuss works which are centered around applying heuristics to determine
+the crossing order of vehicles. Most works also consider the online setting, in
+which further random arrivals of vehicles to the system are considered, which
+means that the ordering is determined by a heuristic policy instead of an
+optimization procedure.
+
+% bubbles paper
+The scheme
+in~\cite{tallapragadaHierarchicaldistributedOptimizedCoordination2017} deals
+explicitly with the complexity of the crossing order decisions by defining
+groups of consecutive vehicles on the same lane. The first step is to group
+vehicles into these so-called ``bubbles''. All vehicles in a bubble are required
+to cross the intersection together, while maintaining feasibility with respect
+to safe trajectories. Next, crossing times are assigned to bubbles while
+avoiding collisions. Based on this schedule, a local vehicular control
+method~\cite{tallapragadaDistributedControlVehicle2017} is used that guarantees
+safety to reach the assigned crossing times.
+
+% miculescu
+The work in~\cite{miculescuPollingsystemsbasedAutonomousVehicle2016} explicitly
+models the problem of determining the crossing order in an online fashion as a
+polling model, in which the intersection is modeled as the server and
+approaching lanes are modeled as queues.
+%
+Roughly speaking, each time a new vehicle arrives to the system, the crossing
+order may be adapted, which is done by simulating a polling policy.
+%
+They show that if the polling policy satisfies some regularity condition and if
+the lanes are long enough, then every updated crossing order is feasible, in the
+sense that vehicles in the system that have been assigned a later crossing time
+than before are able to decelerate in time to avoid collisions.
+%
+The generation of continuous-time vehicle trajectories satisfying these crossing
+times is handled by numerically solving an optimal control problem.
+% timmerman
+Building on this work, it has been shown that these trajectories can also be
+computed directly using closed-form
+expressions~\cite{timmermanPlatoonFormingAlgorithms2021}.
+
+\paragraph{Joint optimization and decomposition methods.}
+
+Finally, we mention some of the few works that have considered the joint
+optimization perspective, which has also been called ``signal-vehicle coupled
+control (SVCC)''. The prominent theme here is trying to come up with good
+approximation algorithms. A common feature is that these methods rely on trying
+to exploit somehow the fact that the problem can be formulated in terms of a
+decomposition of the upper-level crossing time scheduling problem and
+lower-level problems for generating continuous-time trajectories.
+
+% Hult et al. (offline single intersection with energy objective)
+% "An approximate solution to the optimal coordination problem for autonomous
+% vehicles at intersections"
+The approximation method in~\cite{hultApproximateSolutionOptimal2015} is based
+on a bilevel decomposition and considers a quadratic objective involving
+velocity as a proxy for energy. The first stage optimizes a schedule of vehicle
+crossing times. It uses approximations of each vehicle's contribution to the
+total objective as a function of its crossing time. Next, for each vehicle, the
+second stage computes an optimal trajectory satisfying the crossing time
+schedule, by solving a quadratic program. This approach has been shown to reduce
+running times significantly. Unfortunately, the study is limited to a single
+intersection and it is assumed that each lane approaching the intersection
+contains exactly one vehicle.
+
+% Zhao et al. (bilevel programming model)
+The paper~\cite{zhaoBilevelProgrammingModel2021} proposes a trajectory
+optimization scheme for a single intersection, also based on the bilevel
+decomposition. The lower-level problem is employed to maximize the speed at
+which vehicles enter the intersection. Both parts of the problem are solved in an alternating
+fashion, each time updating the constraints of the other part based on the
+current solution.
+
+
+% \newcolumntype{L}[1]{>{\RaggedRight\hsize=#1\hsize\hspace{0pt}}X}
+% \begin{table}[t]
+% \centering
+% \renewcommand{\arraystretch}{1.2}
+
+% \begin{adjustbox}{center}
+% \scalebox{0.7}{
+% \begin{tabularx}{2.0\textwidth}{@{} l L{0.6} L{0.55} L{0.55} L{0.55} L{0.55} L{0.55} L{1.0} @{}}
+% \toprule
+% \textbf{Ref.} &
+% \textbf{Paradigm} &
+% \textbf{Dynamics} &
+% \textbf{Safety} &
+% \textbf{Objective} &
+% \textbf{Decision set} &
+% \textbf{Communication} &
+% \textbf{Notes / Limitations} \\
+% \midrule
+% \cite{dresnerMultiagentApproachAutonomous2008} &
+% Reservation-based &
+% Planar vehicle kinematics &
+% Conflict exclusion (grid cells) &
+% Delay minimization &
+% Entry times/reservation slots &
+% Multiagent with central intersection manager &
+% Simplified vehicle model; global heuristic \\
+% \bottomrule
+% \end{tabularx}}
+% \end{adjustbox}
+% \caption{Comparison of approaches to signal-free intersection management.}
+% \label{tab:litreview}
+% \end{table}
+
+\section{Project goals and outline}
+
+% \paragraph{Research goals and questions.}
+
+From the start of this project, the overarching goal has been to develop
+tractable optimization models and algorithms for the coordination of automated
+vehicles at intersections.
+%
+% is some history appropriate here?
+%
+In the initial phase, we considered dynamic and stochastic aspects like random
+vehicle arrivals. However, after reviewin the current state of the literature,
+we realized that there are still many unresolved issues in the deterministic
+settings.
+%
+In the end, this project has been centered around the following two general
+goals related to coordination of autonomous vehicles:
+
+% problem-directed goals
+\begin{enumerate}[label=\textbullet, leftmargin=3em, rightmargin=4em]
+  \item \emph{Develop a simplified yet representative mathematical optimization model
+        for coordination of autonomous vehicles in networks of intersections.}
+
+  \item \emph{Understand the inherent algorithmic challenges that complicate joint
+        optimization of crossing order and generation of continuous-time
+        trajectories.}
+\end{enumerate}
+
+Complementary to these problem-driven goals, the work presented in this thesis
+has also been inspired by some developments in applying machine learning methods
+to combinatorial optimizations.
+%
+% [insert brief discussion of those methods and results]
+% refer to appendix for further background
+%
+Motivated by these recent successes, we also aim to \emph{illustrate the use of
+  such machine learning algorithms to obtain heuristics for combinatorial problems arising in the context of coordinating autonomous
+  vehicles}.
+
+% research questions: concrete, addressable
+To make the above broad goals concrete and addressable, our work has been guided
+by the following research questions:
+
+\begin{enumerate}[label=RQ\arabic*:, leftmargin=3em, rightmargin=4em]
+  \item How can the autonomous traffic coordination problem with
+        collision-avoidance constraints at a single isolated intersection be
+        formulated in an optimization framework for multiple autonomous
+        vehicles? (modeling)
+
+  \item Under which assumptions can the combinatorial aspect of determining the
+        crossing order be considered in isolation? (decomposition)
+
+  \item What is the relative computational complexity of solving the
+        combinatorial problem compared to solving the continuous-time trajectory
+        optimization, given the crossing order? (complexity)
+
+  \item How to leverage the recent successes in applying machine learning for
+        combinatorial optimization to solve the combinatorial problems arising
+        in the context of autonomous traffic management? (heuristics)
+
+  \item How to extend the previous questions to a network of multiple connected
+        intersections? (scalability)
+\end{enumerate}
+
+% concrete goals/research questions:
+% - scalable coordination algorithm
+% - real-time computational requirements
+% - not completely model-free, but partly model-based to exploit apparant structure
+
+
+The contributions of this work can be summarized into three main categories:
+\note{More appropriate in the conclusion chapter?}
+
+\paragraph{(i). Decomposition method.}
+Deciding the crossing order of vehicles at intersections is central challenge.
 This remains true for any generalization of the model to multiple lanes and
 intersections.
 %
@@ -197,45 +624,7 @@ intersections on their routes, to which we will refer as \emph{crossing times}.
 %
 Once these are fixed, we solve a set of lower-level problems to find the
 corresponding vehicle trajectories satisfying the crossing times.
-
-Without additional assumptions, the upper-level problem is still as difficult as
-before, because the feasibility of a crossing time schedule may depend on the
-feasibility of the lower-level trajectory optimization problems in a non-trivial
-way.
 %
-We will provide assumptions under which this coupling becomes particularly
-simple.
-%
-Specifically, we show that feasibility of the lower-level problems can be states
-as a system of linear inequalities in terms of the crossing times and we will
-see that they also have simple interpretations.
-%
-This allows us to formulate the upper-level problem as a mixed-integer linear
-problem that looks very similar to the classical job shop scheduling problem.
-
-\paragraph{Learning to schedule.}
-
-Because the lower-level problems can in general be solved efficiently, the
-original trajectory optimization problem is essentially reduced to a scheduling
-problem.
-%
-This enables us to explore some applictions of recent machine learning
-techniques for such problems.
-%
-Specifically, the solution of a scheduling problem can be interpreted as a
-sequence of decisions.
-%
-Instead of manually trying to develop good heuristics and algorithms, we try to
-learn what optimal solutions are, by treating it as a learning task on
-sequences.
-
-
-
-\subsection{Contributions and outline}
-
-This thesis is centered around the following two main contributions:
-
-\paragraph{(i). Decomposition.}
 Our first contribution is to show that, under certain conditions, our joint
 trajectory optimization problem for vehicles in a network of intersections
 decomposes into an upper-level crossing time scheduling problem and a set of
@@ -257,18 +646,26 @@ We aim to automated this manual endeavor by formulating parameteric sequence
 models to capture the conditional probability of optimal solutions, given a
 problem instance.
 %
+Specifically, the solution of a scheduling problem can be interpreted as a
+sequence of decisions.
+%
+Instead of manually trying to develop good heuristics and algorithms, we try to
+learn what optimal solutions are, by treating it as a learning task on
+sequences.
+%
 As has been noted before, we confirm that the order of evaluation during
 inference matters a lot for the final solution quality.
 
+\paragraph{(iii). Coordination accross multiple intersections.}
+We show a way to extend isolated intersection coordination to multi-intersection
+networks. We show under which assumptions this problem can still be formulated
+as a scheduling problem, which turns out to be an extension of the classical job
+shop scheduling problem.
+%
+In this setting, feasibility of trajectories deserves special attention.
+
 \paragraph{Outline.}
 
-\note{[probably going to change] The rest of this chapter discusses some preliminaries: we briefly discuss the
-job shop scheduling problem in, because our crossing time scheduling problem may
-be seen as an extension; we provide a brief overview of how machine learning
-methods can be applied to solve combinatorial optimization problems, with a
-focus on job shop scheduling.
-}
-%
 In Chapter~\ref{chap:single}, we consider a simple model of a single
 intersection, like the example above. After discussing the decomposition method,
 we present some classical solutions methods to solve the crossing time
@@ -287,313 +684,11 @@ Chapter~\ref{chap:network-learning}.
 We provide some general discussion and pointers for further research in
 Chapter~\ref{chap:conclusion}.
 
-\newpage
-\section{Literature review}
-
-\newcolumntype{L}[1]{>{\RaggedRight\hsize=#1\hsize\hspace{0pt}}X}
-\begin{table}[t]
-\centering
-\renewcommand{\arraystretch}{1.2}
-
-\begin{adjustbox}{center}
-\scalebox{0.7}{
-\begin{tabularx}{2.0\textwidth}{@{} l L{0.6} L{0.55} L{0.55} L{0.55} L{0.55} L{0.55} L{1.0} @{}}
-\toprule
-\textbf{Ref.} &
-\textbf{Paradigm} &
-\textbf{Dynamics} &
-\textbf{Safety} &
-\textbf{Objective} &
-\textbf{Decision set} &
-\textbf{Communication} &
-\textbf{Notes / Limitations} \\
-\midrule
-\cite{dresnerMultiagentApproachAutonomous2008} &
-Reservation-based &
-Planar vehicle kinematics &
-Conflict exclusion (grid cells) &
-Delay minimization &
-Entry times/reservation slots &
-Multiagent with central intersection manager &
-Simplified vehicle model; global heuristic \\
-\bottomrule
-\end{tabularx}}
-\end{adjustbox}
-\caption{Comparison of approaches to signal-free intersection management.}
-\label{tab:litreview}
-\end{table}
-
-We briefly survey some releated work that addressed coordination of autonomous
-vehicles in a similar setting.
-%
-A good example of an early centralized approach
-is the ``Autonomous Intersection Management'' (AIM)
-paper~\cite{dresnerMultiagentApproachAutonomous2008}, which is based on a
-reservation scheme. The conflict zone is modeled as a grid of cells. Vehicles
-that want to cross the intersection send a request to the central controller to
-occupy the cells containing its trajectory for a certain amount of time. The
-central controller then decides to grant or deny these requests based on
-previous granted requests, in order to facilitate collision-free trajectories.
-If a request is denied, the vehicle slows down and attempts to obtain a new
-reservation after some timeout.
-
-% direct transcription
-\paragraph{Direct transcription.}
-Optimal control problems can be approached in an end-to-end fashion by
-\textit{direct transcription} to an equivalent mixed-integer optimization
-problem, which can be solved using off-the-shelf solvers (e.g.,
-SCIP~\cite{BolusaniEtal2024OO} or Gurobi~\cite{gurobi}). Such methods can be
-used to compute optimal trajectories up to any precision, by choosing a fine
-enough time discretization. However, it is exactly this time discretization that
-causes prohibitive growth of the number of variables with respect to the size of
-the network and the number of vehicles, so this method is only useful for
-relatively small problem instances.
-%
-Therefore, approximation schemes have been studied in previous
-works~\cite{hultApproximateSolutionOptimal2015,zhaoBilevelProgrammingModel2021,tallapragadaHierarchicaldistributedOptimizedCoordination2017},
-which we will review next.
-
-\paragraph{Decomposition methods.}
-% Hult et al. (offline single intersection with energy objective)
-% "An approximate solution to the optimal coordination problem for autonomous
-% vehicles at intersections"
-The approximation method in~\cite{hultApproximateSolutionOptimal2015} is based
-on a bilevel decomposition and considers a quadratic objective involving
-velocity as a proxy for energy. The first stage optimizes a schedule of vehicle
-crossing times. It uses approximations of each vehicle's contribution to the
-total objective as a function of its crossing time. Next, for each vehicle, the
-second stage computes an optimal trajectory satisfying the crossing time
-schedule, by solving a quadratic program. This approach has been shown to reduce
-running times significantly. Unfortunately, the study is limited to a single
-intersection and it is assumed that each lane approaching the intersection
-contains exactly one vehicle.
-% Zhao et al. (bilevel programming model)
-The paper~\cite{zhaoBilevelProgrammingModel2021} proposes a trajectory
-optimization scheme for a single intersection, also based on the bilevel
-decomposition. The lower-level problem is employed to maximize the speed at
-which vehicles enter the intersection. Both parts of the problem are solved in an alternating
-fashion, each time updating the constraints of the other part based on the
-current solution.
-% bubbles paper
-The optimization scheme
-in~\cite{tallapragadaHierarchicaldistributedOptimizedCoordination2017} deals
-explicitly with the complexity of the crossing order decisions by defining
-groups of consecutive vehicles on the same lane. The first step is to group
-vehicles into these so-called ``bubbles''. All vehicles in a bubble are required
-to cross the intersection together, while maintaining feasibility with respect
-to safe trajectories. Next, crossing times are assigned to bubbles while
-avoiding collisions. Based on this schedule, a local vehicular control
-method~\cite{tallapragadaDistributedControlVehicle2017} is used that guarantees
-safety to reach the assigned crossing times.
-
-
-
-\subsection{Structure}
-  \paragraph{Project scope.}
-
-\begin{outline}
-\1 fully automated systems
-  \2 We will use the term (connected) Automated Vehicles, shorthand AVs, because
-    we "take communication for granted"
-  \2 already applicable in "confined sites" like
-    \3 ports, mines, quarries
-    \3 warehouses
-    \3 manufacturing sites (e.g. Prodrive)
-    \3 indoor vertical farming sites (e.g. Helmond)
-\1 focus on the optimization-based coordination of vehicle motion (joint="decisions+control")
-  \2 lower-level steering control of vehicles is ignored: it is assumed that
-    vehicles can follow planned trajectories perfectly
-\1 why such stylized models? /(chatGPT suggestion: this also touches on challenges)/
-  \2 better understand inherent difficulties
-  \2 obtain results that are better interpreted:
-
-    "Simple models are relevant, because they provide upper bounds on what we
-    can expect to gain in more realistic situations with decentralized control,
-    communcation latency and noisy information."
-\end{outline}
-
-\paragraph{Goals.}
-
-Understand how to \emph{integrate} model-free (RL) with model-based (opt. control, scheduling) algorithms.
-
-(optimization setting allows us to focus on goals that can be defined mathematically)
-
-\begin{outline}
-\1 conflicting optimization goals:
-  \2 min. delay (max. throughput), like in studied in queueing theory
-  \2 min. energy consumption / reduce emission
-  \2 fairness of usage (think reservation / bidding systems)
-  \2 guarantee safety (need to define what this means)
-\end{outline}
-
-\paragraph{Challenges: [REVIEW]}
-\emph{(ChatGPT says: "It’s long and risks overwhelming the reader before they even get to the fun methods.")}
-
-\emph{Emphasize the combinatorial problems that occur naturally.}
-
-\begin{outline}
-\1 broad modeling landscape
-  \2 mention some aspects (preview):
-    \3 network topology
-    \3 vehicle dynamics: degree of realism vs. computational tractability
-    \3 random events, e.g., arrivals, failure models
-    \3 topic on its own: communication systems (protocols, delay, robustness to failure)
-  \2 no standard benchmarks yet like Taillard (they said this in the poorly
-    written survey, but is this really so?)
-
-\1 inherent algorithmic challenges (even in stylized deterministic models)
-  \2 mix of discrete decisions and continuous-time control of vehicles (almost
-    always non-convexity involved)
-  \2 even when routes are fixed, there is still a lot of freedom in determining the
-    speed profile over the course of routes. (infinite-dimensional optimization =
-    optimal control)
-
-\1 random network effects
-  \2 inherent nonstationarity of mobility demand, with fluctuations
-    throughout the day, makes requires adaptive control.
-  \2 decisions at one intersection directly influence the arrival process at
-    nearby intersections
-  \2 in dense urban networks, these interactions are highly complex: a lot of
-    effort has gone into developing methods for predicting traffic
-
-\1 practical constraints /(for transfer to applications)/
-  \2 real-time computation requirements (fast)
-    (similar setting in which MPC is often employed)
-  \2 real-time communication requirements (robust)
-\end{outline}
-
-\paragraph{Main methodologies (overview).}
-\emph{(...and introduce our contributions at this point?)}
-
-\begin{outline}
-\1 bilevel decomposition -> scheduling -> MILP
-  \2 observation: the combinatorial part of offline trajectory coordination shows similarities
-    to job-shop scheduling
-
-  \2 motivation: bilevel decomposition can provide a conceptual tool for further
-    development of algorithmic ideas
-
-  \2 goal: (systematic/interpretable) dimensionality reduction of the problem
-    \3 for example, optimal control problem: discretization, splines
-    \3 integer programming: benders' decomposition
-    \3 why "systematic/interpretable": because e.g. model-free RL is not
-      interpretable, so does provide less insight for further algorithm design
-
-  \2 question: when is such a dimensionality reduction sound?
-
-    i.e., when can the combinatorial part be completely separated from the
-    continuous-time control problem
-
-  \2 subquestion: given this decomposition, can the feasibility of lower-level be
-    easily characterized or approximated?
-
-\1 "ML for algo learning" -> sequential solution encoding/synthesis -> sequence
-  modeling -> RL for param. fitting
-  \2 observation: new perspective, recent advances
-  \2 "automated heuristic search" inspiration: exploiting specific structure in the problem
-    \3 key concept: algorithm as MDP
-  \2 motivation: recent successes in neural combinatorial optimization (e.g. TSP)
-  \2 question: how to apply this methodology in traffic coordination setting
-    \3 subquestion: How do parametric sequence models perform on this task?
-    \3 subquestion: How to parameterize the model?
-\end{outline}
-
-\paragraph{Scope of literature review.}
-"We do a general literature review on
-\emph{optimization-based methods for traffic coordination in fully automated mobility
-systems}. Brief introduction of \emph{methodologies} in the chapter where we first need
-it. We can also put an overview of literature there, or in the appendix."
-
-\paragraph{Adjacent topics.}
-\emph{(so don't spend too much time here)}
-\emph{(present in order: least relevant/history to slightly adjacent)}
-
-\begin{outline}
-\1 dynamic path/route planning
-\1 focus on decentralized nature -> communication becomes inherent issue
-  \2 reservation systems
-  \2 auction/bidding systems
-  \2 fairness: average vehicle delay vs. all vehicles experience similar delay
-    (e.g., in proportion to the length of their trip)
-\1 traffic signal optimization (/"brief for historical context"/)
-  \2 static (Fleuren)
-  \2 adaptive (baroque RL studies)
-\1 platooning in single lane, CACC
-\1 platooning and CACC more generally: trajectory optimization, given fixed signal phases
-\end{outline}
-
-special remark: why not model-free RL?
-\begin{outline}
-\1 model-free RL ("brute-force" control synthesis)
-  \2 recognize that this is a powerful framework
-\1 in essence, we advocate to use model-free RL, but at a more local level (to,
-  hopefully, exploit structure)
-\end{outline}
-
-\paragraph{topics / distinguishing features:}
-
-\begin{outline}
-
-\1 modeling aspects
-
-\2 modeling of conflict zones "mutex zones" (see Kojchev)
-\2 single int. vs network
-\2 single lane vs multilane
-\2 vehicle dynamics model
-\2 use of simulator like SUMO and VISSIM
-
-\2 central vs decentralized control
-\2 mixed traffic (legacy vehicles, human drivers)
-
-\1 /specific focus on model/challenges/algorithmic approach/
-
-\2 focus on continuous control:
-  \3 trajectory optimization, given fixed signal phases
-    \4 different objectives:
-      \4 minimizing fuel consumption
-      \4 maximizing passenger comfort
-
-  \3 platooning
-    \4 is widely used as the basis for heuristic approaches
-    \4 arises as a result of the assymetry of the combinatorial problem, namely the
-       difference in processing time and switch-over time
-    \4 cooperative adaptive cruise control (CACC), string stability
-
-  \3 important in all these: real-time control, which causes the following common issues
-    \4 how to actually implement this in electronic/software controller?
-    \4 discretization
-    \4 stability
-    \4 decentralization causes problems: communication / synchronization (string stab.)
-
-\2 focus on stochasticity: random arrivals and failure
-  \3 -> offline vs online optimization
-  \3 "rolling horizon" schemes
-    \4 Model Predictive Control (MPC)
-  \3 robustness to failures, safety guarantees even without explicit "fatal
-    crash"-type failures happening (e.g., Miculescu & Karaman: Theorem IV.5)
-
-\2 focus on combinatorics:
-  \3 of course: service order at intersections
-  \3 "MUTEX" zones, in general, see Kojchev
-  \3 even: in which order to organize vehicles in a platoon approaching
-    intersection (efficiently "voorsorteren")
-  \3 larger scale: path planning in network
-  \3 common methods:
-    \4 dealing with binary choices: Mixed-Integer (Linear) Programming
-    \4 heuristics and local search
-    \4 classical search algorithms like A*
-\end{outline}
-
-\paragraph{main topics/features for literature comparison table:}
-\begin{outline}
-\1 model/challenge focus: "combinatorics", "cont-time control", "decentralized control"
-\1 main algorithmic paradigm: e.g. "reservation", "decomposition", "MILP", "model-free RL"
-\end{outline}
 
 
 
 \microtypesetup{deactivate}
-\part*{\hspace*{-0.8em}\textsc{Part I}\\[0.6em] Single Isolated Intersection\\[3em]
+\part*{\hspace*{-0.8em}\textsc{Part I}\\[0.6em] Isolated Intersection\\[3em]
        \centering\includegraphics[scale=1]{figures/intersection-non-axis-aligned}}
 \microtypesetup{activate}
 \addcontentsline{toc}{part}{Part I \;--\; Isolated Intersection}
@@ -634,97 +729,94 @@ special remark: why not model-free RL?
 % - optionally, mention local search
 
 % broad problem
-Efficient coordination of vehicle motion at intersections is one of the central
-challenges in traffic management, since intersections are natural bottlenecks
-where safety requirements and efficiency objectives are directly in conflict.
+Efficient coordination of vehicle motion at intersections has been and still is
+a central challenge in traffic management, because intersections are natural
+bottlenecks where safety requirements and efficiency objectives are directly in
+conflict.
 %
 With the advent of automated vehicles and reliable wireless communication
 technologies, there is increasing potential to replace traditional traffic
 signal-based approaches with coordinated trajectory planning methods.
 %
-As a first step toward analyzing such methods, this chapter focuses on a
-simplified single-intersection setting in which vehicles follow fixed routes and
-are centrally controlled to optimize traffic flow while guaranteeing safety.
-
-% model assumption to make analysis tractable
-To make the analysis tractable, we restrict attention to an intersection formed
-by two perpendicular lanes, with vehicles traveling straight through, without allowing
-turning maneuvers or overtaking.
+Our literature review clearly shows that previous works have approached
+coordination of automated vehicles from a wide range of perspectives and with
+varying degrees of model complexity.
 %
-All vehicles are assumed to be homogeneous, sharing identical dimensions and
-dynamics, so that their motion can be modeled uniformly.
+Furthermore, we highlighted some fundamental computational challenges that are
+still unresolved in the literature.
 %
-A central controller determines the acceleration, and thus the speed, of each
-vehicle, under the assumption of perfect communication.
+Specifically, the joint optimization of crossing order and continuous-time
+vehicle trajectories has received relatively little attention.
 %
-Moreover, we do not consider randomness in arrivals or dynamics, so we assume
-that each vehicle's initial state is known precisely such that the system
-evolves deterministically as a function of the acceleration control inputs.
-
-% optimization objectives
-Within this setting, two performance objectives are of primary interest.
-%
-Minimizing energy consumption is highly desirable in practice, as it directly
-contributes to the sustainability benefits of automated traffic systems.
-%
-However, incorporating energy makes analysis significantly more complex.
-%
-By contrast, minimizing travel delay is essential for capturing the efficiency
-of traffic flow and, importantly, we will see that it enables a very useful
-problem decomposition.
-%
-For these reasons, the focus of this chapter is primarily on minimizing delay,
-while recognizing energy consumption as a complementary objective.
+In order to better understand this issue and to enable precise analytical
+results, we propose to study a stylized single intersection model.
 
 % mathematical punchline
-Formulated mathematically, the coordination problem at the intersection can be
-expressed as a problem of \emph{trajectory optimization}, or optimal control.
+Formulated mathematically, coordination of automated vehicles at a single
+intersection can be expressed as a problem of \emph{trajectory optimization},
+which we will make precise in Section~\ref{sec:intersection-model}.
 %
 In this formulation, the accelerations of all vehicles are chosen to satisfy
-their dynamic constraints and collision-avoidance requirements while minimizing
-the chosen performance objective.
+their dynamics and collision-avoidance requirements while minimizing some
+cost function.
 %
-Such problems can in principle be solved directly using standard numerical
-optimization techniques.
+% optimization objectives
+The following two conflicting cost components are of primary interest:
 %
-However, by exploiting the structure of the intersection model, we show that the
-problem can be reduced to a much simpler form: a \emph{scheduling problem}, in which
-only the sequencing of vehicles and their entry times into the intersection need
-to be determined.
+minimizing travel delay, which is essential for capturing the efficiency of
+traffic flow; and minimizing energy consumption, which is highly desirable in
+practice because it supports sustainability.
 
+% direct transcription to bilevel decomposition (general) to proper decomposition (assumptions+delay)
+Trajectory optimization problems of this type can be solved directly using
+general-purpose optimization schemes based on time discretization.
+%
+As we will illustrate in Section~\ref{sec:direct-transcription}, such methods
+are straightforward to implement and guarantee to find an optimal solution to
+the joint optimization problem. However, their running time scales very poorly
+when considering finer discretization grids or when increasing the number of
+vehicles in the system, motivating the development of tailored algorithms that
+exploit the structure of the problem.
 
-% preview of results
-% \paragraph{Outline.}
-The results presented in this chapter illustrate both perspectives.
+Given the observation that each feasible set of trajectories implicitly fixes
+some order in which vehicles cross the intersection, it is natural to ask
+whether this ordering decision can be considered separately.
 %
-After precisely formulating our model, we first apply a direct transcription
-approach to the trajectory optimization problem, demonstrating how it can be
-solved numerically in its original form.
+In general, the answer is negative; in other words, we cannot first optimize the
+crossing order, then compute the corresponding continuous-time vehicle
+trajectories.
 %
-The main contribution, however, is stating assumptions for which the trajectory
-problem allows a bilevel decomposition in which the scheduling problem provides
-\pagebreak
-high-level sequencing and timing decisions, while a continuous trajectory
-planning routine resolves the underlying vehicle dynamics.
+Still, this decomposition idea is a helpful way to think about the problem, so
+it is discussed extensively in Section~\ref{sec:bilevel}.
+
+\emph{It turns out that a proper decomposition is possible}, if we use a cost
+function that only involves delay and if we are willing to impose the additional
+constraint that vehicles need to cross the intersection at full speed. For this
+case, we show in Section~\ref{sec:delay-minimization} that the original
+infinite-dimensional trajectory optimization problem essentially reduces to a
+finite-dimensional \emph{scheduling problem}, in which only the sequencing of
+vehicles and their entry times into the intersection need to be determined.
 %
-To solve the scheduling component, we apply the branch-and-cut framework and
-leverage the problem structure to generate effective cutting planes, leading to
-significant performance improvements.
+Scheduling problems like this have been studied extensively and can be solved
+using off-the-shelf methods like mixed-integer linear programming, which we
+illustrate in Section~\ref{sec:crossing-time-scheduling}.
 %
-Finally, we briefly suggest a local search heuristic.
+By leveraging insight into the structure of optimal solutions, we are able to
+formulate three problem-specific cutting planes, yielding an efficient
+algorithm for coordination at a single intersection.
 
 \begin{remark}
-  We will consider a continuous-time trajectory optimization problem, which is
-  typically studied in the framework of optimal control theory. However, as the
-  author does not have a strong background in this field, the aim is not to
-  provide a rigorous treatment from this perspective. Nevertheless, at some
-  points remarks are included regarding the difficulties of such analysis, most
-  notably, regarding the occurence of so-called state constraints.
+  The main starting point of this chapter will be a continuous-time trajectory
+  optimization problem, which is typically studied in the framework of optimal
+  control theory. Since the author does not have a strong background in this
+  field, the aim is not to provide a rigorous treatment from this perspective.
   %
-  \note{Although the theory for dealing with state constraints (\`a la
-    Pontryagin) is far from complete, in practice, they can be successfully
-    dealt with in numerical approaches, often using some sort of penalty-based
-    encoding.}
+  Nevertheless, we want to be as precise and complete as possible, because this
+  trajectory optimization problem is the basis for our further development.
+  %
+  Therefore, at some points in this chapter, remarks are included regarding the
+  subleties of our formulation, most notably, regarding the occurence of
+  so-called state constraints.
 \end{remark}
 
 \begin{figure}
@@ -740,8 +832,32 @@ Finally, we briefly suggest a local search heuristic.
 \end{figure}
 
 
-\section{Intersection model}
+\section{Intersection model}\label{sec:intersection-model}
 
+% model assumption to make analysis tractable
+To make the analysis tractable, we restrict our attention to intersections of
+single-lane roads on which vehicles are traveling without turning maneuvers or
+overtaking.
+%
+All vehicles are assumed to be homogeneous, sharing identical dimensions and
+dynamics, so that their motion can be modeled uniformly.
+%
+A central controller determines the acceleration, and thus the speed, of each
+vehicle, under the assumption of perfect communication.
+%
+Moreover, we do not consider randomness in arrivals or dynamics, so we assume
+that each vehicle's initial state is known precisely such that the system
+evolves deterministically as a function of the acceleration control inputs.
+
+We start by defining the geometry of the intersection and the vehicles and
+analyze the resulting conflict-free joint positions of all the vehicles in the
+system.
+%
+After that, we introduce the dynamics of the system and define several objective
+functions to arrive at the trajectory optimization problem.
+
+\paragraph{Valid configurations.}
+%
 We model each vehicle $i$ in the plane as some rigid body $\mathcal{B}_{i}$
 traveling along some straight line $r(i)$, to which we will refer as the
 vehicle's \emph{route}.
@@ -753,10 +869,11 @@ Therefore, the longitudinal position of a vehicle along its route can be
 represented by some scalar $x_{i} \in \mathbb{R}$.
 %
 For simplicity, we use a rectangular vehicle geometry, so each $\mathcal{B}_{i}$
-is a translated rectangle of width $W_{i}$ and length $L_{i}$. Therefore, we
-will write $\mathcal{B}_{i}(x_{i})$ to denote the corresponding translated rigid
-body in the plane, where $x_{i}$ corresponds to the location of the front
-bumper; the rear bumper position is then $x_{i} - L_{i}$.
+is a translated rectangle of width $W_{i}$ and length $L_{i}$. For technical
+convenience, we assume this rectangle is an \emph{open} set. We write
+$\mathcal{B}_{i}(x_{i})$ to denote the corresponding translated rigid body in
+the plane, where $x_{i}$ corresponds to the location of the front bumper; the
+rear bumper position is then $x_{i} - L_{i}$.
 %
 We allow multiple routes to cross in a single point. Of course, this causes some
 joint vehicle positions to be invalid, because they would correspond to
@@ -765,8 +882,6 @@ collisions.
 Before we allow arbitrary numbers of vehicles to have the same route, we briefly
 investigate the valid configurations of two vehicles, each on its own route.
 
-% motivates the perpendicular assumption
-\paragraph{Valid configurations.}
 
 Consider two routes intersecting at some angle $\alpha$, as illustrated in
 Figure~\ref{fig:intersection-non-axis-aligned}, each with a single vehicle on
@@ -783,8 +898,9 @@ In general, this set can thus simply be defined as
   \mathcal{X}_{ij} := \{ (x_{i}, x_{j}) \in \mathbb{R}^{2} : \mathcal{B}_{i}(x_{i}) \cap \mathcal{B}_{j}(x_{j}) = \varnothing \} .
 \end{align}
 %
-However, it is often easier to take the opposite perspective, by characterizing the set of conflicting configurations $\mathcal{X}_{ij}^{C}$.
-\comment{Nice, ``C'' for conflict and for complement!}
+However, it is often easier to take the opposite perspective, by characterizing
+the set of conflicting configurations $\mathcal{X}_{ij}^{C}$. \comment{Nice, ``C''
+  for conflict and for complement!}
 
 % discuss rectangular subset of configuration space
 %
@@ -800,19 +916,19 @@ $x_{j} \in \mathbb{R}$.
 Thus, we obtain the following conservative approximation of the set of conflicting
 configurations:
 \begin{align}\label{eq:conf-space-approx}
-  [B,E + L_{i}] \times [B, E + L_{j}] \supseteq \mathcal{X}_{ij}^{C} .
+  (B,E + L_{i}) \times (B, E + L_{j}) \supseteq \mathcal{X}_{ij}^{C} .
 \end{align}
 Of course, the set of feasible configurations is generally a little larger and
 depends on the angle $\alpha$ of intersection, as illustrated by the three examples
 in Figure~\ref{fig:intersection-config-spaces}.
 %
 In case of the third example, where the intersections make a right angle
-$\alpha = \pi/2$, it can be shown that there is actually equality in~\eqref{eq:conf-space-approx}.
+$\alpha = \pi/2$, it it not difficult to see that there is actually equality in~\eqref{eq:conf-space-approx}.
 
 To keep the presentation simple, we will make the following assumption: all
 vehicles share the same vehicle geometry, i.e, $L_{i} \equiv L$ and
 $W_{i} \equiv W$. As a shorthand of the vehicle positions that correspond to
-occupying the intersection area, we will write $\mathcal{E} := [B, E + L]$.
+occupying the intersection area, we will write $\mathcal{E} := (B, E + L)$.
 %
 This enables us to model any number of intersecting routes, as long as we can
 assume that $\mathcal{E}$ provides a conservative approximation of all
@@ -849,7 +965,7 @@ notation $r(i) = r$ and $k(i) = k$.
 
 % conjunctions (vehicle following)
 In order to maintain a safe distance between successive vehicle on the same
-route, vehicles need to satisfy the \textit{safe headway constraints}
+route, it is clear that vehicles need to satisfy the \textit{safe headway constraints}
 \begin{align}
   \label{eq:follow_constraints}
   x_{i} - x_{j} \geq L ,
@@ -868,7 +984,7 @@ $r(i) \neq r(j)$.
 %
 Recall that we introduced $\mathcal{E}$ to denote the interval of positions for
 which some vehicle is said to \emph{occupy} the intersection. Then, for each conflict
-$\{i,j\}$, we impose at all times the \emph{safe crossing constraints}
+$\{i,j\} \in \mathcal{D}$, we impose at all times the \emph{safe crossing constraints}
 \begin{align}
   \label{eq:2}
   (x_{i}, x_{j}) \notin \mathcal{E}^{2} .
@@ -1033,37 +1149,67 @@ state $s$ of vehicles in some non-trivial manner.%
 To give a rough idea, we derive some simple sufficient conditions.
 % feasibility assumption
 We exclude initial collisions at time $t=0$ by requiring
-\begin{align}\label{eq:room-assumption}
+\begin{align}\label{eq:initially-safe-assumption}
  x_{i}^{0} - x_{j}^{0} > L \quad \text{ for all } \quad  (i,j) \in \mathcal{C} .
 \end{align}
 %
 % full acc/dec times and distances
 %
 Next, observe that the bounds on speed and acceleration imply that it takes at
-least $1/\omega$ time to fully decelerate from full speed, during which the vehicle
-has traveled a distance of $1/(2\omega)$. For a full acceleration from a stop, we
-obtain the same expressions, but with $\omega$ replaced by $\bar{\omega}$.
+least $\bar{v}/\omega$ time to fully decelerate from full speed, during which the
+vehicle has traveled a distance of $\bar{v}^2/(2\omega)$. Similarly, a full
+acceleration from a stop takes $\bar{v}/\bar{\omega}$ time and
+$\bar{v}^2/(2\bar{\omega})$ distance.
 %
-Therefore, by assuming that each vehicle starts at full speed $v_{i}^{0} = 1$
-and by imposing a minimum distance to the start of the intersection
-\begin{align}
-  x_{(r,1)}^{0} < B - 1/(2\omega) - 1/(2\bar{\omega}),
+Therefore, by assuming that each vehicle starts at full speed
+$v_{i}^{0} = \bar{v}$ and by imposing a minimum distance to the start of the
+intersection
+\begin{align}\label{eq:initial-safe-stopping-assumption}
+  x_{(r,1)}^{0} < B - \bar{v}^2/(2\omega) - \bar{v}^2/(2\bar{\omega}),
 \end{align}
 for each first vehicle on every route
 $r \in \mathcal{R}$, we ensure that there is enough room for all vehicles to
 come to a full stop. Even further, there is still enough distance for a full
 acceleration to reach full speed while crossing the intersection.
+%
+
+\begin{assump}\label{assump:feasible}
+  The initial states $s=\{s_i = (x_i^0,v_i^0) : i \in \mathcal{N} \}$
+  satisfy~\eqref{eq:initially-safe-assumption}
+  and~\eqref{eq:initial-safe-stopping-assumption}.
+\end{assump}
 
 
+\pagebreak
 \section{From joint optimization to bilevel decomposition}
 
-To tackle the trajectory optimization
-problem~\eqref{eq:single-trajectory-optimization}, we first employ a numerical
-method known as \emph{direct transcription}.
+The main goal of this section is to explain how the trajectory optimization
+problem~\eqref{eq:single-trajectory-optimization} can be reduced to a scheduling
+problem.
 %
-The key idea is to reformulate the continuous-time optimal control
-problem---which is infinite-dimensional---as a finite-dimensional nonlinear
-optimization problem by discretizing the time horizon into a grid.
+To motivate this reduction, we first show that the problem can be solved by
+employing a numerical method known as \emph{direct transcription}, but we note
+that the associated running time is prohibitive in practise.
+%
+We then show how~\eqref{eq:single-trajectory-optimization} can in general be
+rewritten in terms of coupled optimization problems: an upper-level scheduling
+problem, dictating the crossing times for all vehicles in the system, and a
+lower-level trajectory optimization problem for the vehicles of each route. We
+explain how this reformulation has been used as the basis for an approximation
+algorithm.
+%
+Finally, we show which assumptions we have to make in order for the
+decomposition to be \emph{proper}, by which we mean that we can first solve the
+upper-level problem to find an optimal crossing time schedule, after which the
+lower-level problems can be resolved.
+
+
+\subsection{Joint optimization using direct transcription}\label{sec:direct-transcription}
+
+The key idea of direct transcription is to reformulate the continuous-time
+optimal control problem---which is infinite-dimensional---into a
+finite-dimensional nonlinear optimization problem by discretizing time into a
+grid.
 %
 At each grid point, the state and control inputs of every vehicle become
 decision variables. The vehicle dynamics and the safety requirements, i.e., the
@@ -1077,7 +1223,6 @@ In what follows, we describe in detail how this general approach can be applied
 to problem~\eqref{eq:single-trajectory-optimization} and illustrate its use by
 solving some examples for two different cost functionals.
 
-\paragraph{Joint optimization.}
 We start by defining a uniform discretization grid. Let $K$ denote the number of
 discrete time steps and let $\Delta t$ denote the time step size, then we define
 \begin{align}
@@ -1152,11 +1297,10 @@ shown in Figure~\ref{fig:direct_transcription_example}. \comment{Optionally incl
   We used the forward Euler integration scheme for sake of a simple
   presentation. However, note that in practice we most likely want to use a more
   numerically stable method like a higher-order Runge-Kutta scheme or by means
-  of some spline interpolation technique (collocation). We refer
-  to~\cite{Ch10Trajectory} for a light introduction of trajectory optimization
-  and~\cite{kellyIntroductionTrajectoryOptimization2017} for a tutorial on the
-  direct collocation method, which also contains a concise overview of different
-  numerical methods in (ibid., Section 9).
+  of some spline interpolation technique. We refer to~\cite{Ch10Trajectory} for a light
+  introduction to trajectory optimization in general and~\cite{kellyIntroductionTrajectoryOptimization2017} for a tutorial
+  on the direct collocation method, which also contains a concise overview of
+  different numerical methods (ibid., Section 9).
 \end{remark}
 
 
@@ -1198,7 +1342,7 @@ shown in Figure~\ref{fig:direct_transcription_example}. \comment{Optionally incl
   \label{fig:direct_transcription_example}
 \end{figure}
 
-\paragraph{Bilevel decomposition.}
+\subsection{Bilevel decomposition}\label{sec:bilevel}
 
 After applying the transcription method above, the safe crossing constraints of
 each conflict are imposed at every time step, requiring a total of $2T$ binary
@@ -1239,7 +1383,7 @@ by assumption, but they may be empty. Therefore, we use the convention that
 ``$\min \varnothing = \infty$'', such that $\tau(x_{i}) = \infty$ whenever $x_{i}$ does not reach the
 intersection at all and, analogously, we have $\xi(x_{i}) = \infty$ whenever the end of
 the intersection is never reached. Furthermore, using the convention that
-$[\infty, \infty] = \varnothing$, observe that $\tau(x_{i})$ and $\xi(x_{i})$ determine the times $t \in [\tau(x_{i}), \xi(x_{i})]$
+``$(\infty, \infty) = \varnothing$'', observe that $\tau(x_{i})$ and $\xi(x_{i})$ determine the times $t \in (\tau(x_{i}), \xi(x_{i}))$
 during which vehicle $i$ occupies the intersection.
 %
 Recall the encoding of the collision constraints using binary variables
@@ -1252,7 +1396,7 @@ collision-avoidance constraints
 \end{align}
 are completely equivalent to the constraints
 \begin{align}\label{eq:disjoint-occupancy}
-  [\tau(x_{i}), \xi(x_{i})] \cap [\tau(x_{j}), \xi(x_{j})] = \varnothing \quad \text{ for all } \{i,j\} \in \mathcal{D} .
+  \big(\tau(x_{i}), \xi(x_{i}) \big) \cap \big(\tau(x_{j}), \xi(x_{j})\big) = \varnothing \quad \text{ for all } \{i,j\} \in \mathcal{D} .
 \end{align}
 %
 The main idea of the decomposition is to make these entry and exit times
@@ -1261,7 +1405,7 @@ concrete decision variables of the upper-level problem.
 Hence, for each vehicle $i$, we introduce a decision variable $y_{i}$ for the
 time of entry and a variable $z_{i}$ for the time of exit.
 %
-When the occupancy time slots $\{[y_{i}, z_{i}] : i \in \mathcal{N}\}$ are fixed
+When the occupancy time slots $\{(y_{i}, z_{i}) : i \in \mathcal{N}\}$ are fixed
 and satisfy~\eqref{eq:disjoint-occupancy}, the trajectory optimization problem
 essentially reduces to solving a separate lower-level problem for each route.
 
@@ -1306,11 +1450,11 @@ then we define the upper-level \emph{scheduling problem}
 \comment{U for ``upper''.}
 \begin{alignat}{2}\label{eq:upper-level}
   U(s) := \min_{y, z} \quad & \sum_{r \in \mathcal{R}} F({y}_{r}, {z}_{r}, s_{r}) \tag{U} \\
-  \text{ s.t. } \quad & [y_{i},z_{i}] \cap [y_{j},z_{j}] = \varnothing & \quad \text{ for all } \{i, j\} \in \mathcal{D} , \tag{U.1} \label{eq:U1} \\
+  \text{ s.t. } \quad & (y_{i},z_{i}) \cap (y_{j},z_{j}) = \varnothing & \quad \text{ for all } \{i, j\} \in \mathcal{D} , \tag{U.1} \label{eq:U1} \\
                             & ({y}_{r}, {z}_{r}) \in \mathcal{T}(s_{r}) & \text{ for all } r \in \mathcal{R} . \tag{U.2}
 \end{alignat}
 
-\paragraph{Explicit intersection crossing.}
+\paragraph{Explicit crossing.}
 Without further assumptions, problem~\eqref{eq:upper-level} is not necessarily
 equivalent to the original problem~\eqref{eq:single-trajectory-optimization}.
 %
@@ -1322,9 +1466,9 @@ To illustrate this situation, consider the following (pathological) example.
 \begin{eg}
   Suppose we have two routes, with a single vehicle on each. Each vehicle has
   initial speed $v_{i}^{0} = \bar{v}$ and some initial distance $x_{i}^{0}$
-  satisfying the assumption~\eqref{eq:room-assumption}, such that it can perform a full deceleration
+  satisfying the assumption~\eqref{eq:initially-safe-assumption}, such that it can perform a full deceleration
   ($\ddot{x}_{i} = \omega$) and come to a stop somewhere before the start of the
-  intersection at some point $x_{i}(1/\omega) < B$. Consider the cost functional
+  intersection at some point $x_{i}(\bar{v}/\omega) < B$. Consider the cost functional
   $J_{\alpha,\beta}$ with $\alpha = 1$ and $\beta = 0$, then it is easily seen
   that the optimal solution is to have both vehicles decelerate immediately as
   just described.
@@ -1450,91 +1594,115 @@ To circumvent the need for such approximations, we will make some additional
 assumptions, which allows us to focus purely on the combinatorial aspect of the
 problem in the next section.
 
-\paragraph{More assumptions.}
+\subsection{Delay minimization}\label{sec:delay-minimization}
 
-We will introduce a trajectory cost criterion that acts as a proxy of the amount
-of delay experienced by vehicles, by defining $J(x_{i}) = \tau(x_{i})$.
+We introduce a trajectory cost criterion that acts as a proxy of the amount of
+\emph{delay} experienced by vehicles, by defining $J_d(x_{i}) := \tau(x_{i})$.
 %
 This choice makes the problem significantly simpler and avoids the need to
 approximate $F$, because we have
 \begin{alignat}{2}
   U(s) = \min_{y, z} \quad & \sum_{i \in \mathcal{N}} y_{i} \nonumber \\
-  \text{ s.t. } \quad & [y_{i},z_{i}] \cap [y_{j},z_{j}] = \varnothing && \quad \text{ for all } \{i, j\} \in \mathcal{D} , \nonumber \\
+  \text{ s.t. } \quad & (y_{i},z_{i}) \cap (y_{j},z_{j}) = \varnothing && \quad \text{ for all } \{i, j\} \in \mathcal{D} , \nonumber \\
                            & ({y}_{r}, {z}_{r}) \in \mathcal{T}(s_{r}) && \quad \text{ for all } r \in \mathcal{R} , \nonumber
 \end{alignat}
 which means that the only remaining difficulty is how to deal with feasibility
 of the lower-level problem.
 %
-To make this simpler, we additionally assumptions that all vehicles start at
-full speed $v_{i}^{0} = \bar{v}$ and that vehicles must enter the intersection
-at full speed, i.e., we add the constraint $\dot{x}_{i}(\tau(x_{i})) = \bar{v}$
-to~\eqref{eq:single-trajectory-optimization-variant} and $\dot{x}_{i}(y_{i}) = \bar{v}$ to~\eqref{eq:lower-level}. \note{[do we need this?]} Let
-the resulting problems variants be denoted (T**) and (L**), respectively
-\comment{I know, this is not the prettiest; I will think about a different way
-  of writing this.}
+To also make this much simpler, we additionally assume that all vehicles start
+at full speed $v_{i}^{0} = \bar{v}$ and that vehicles must enter the
+intersection at full speed, i.e., we add the constraint
+$\dot{x}_{i}(\tau(x_{i})) = \bar{v}$ to trajectory optimization problem~\eqref{eq:single-trajectory-optimization-variant} and,
+equivalently, we add $\dot{x}_{i}(y_{i}) = \bar{v}$ to the lower-level
+problem~\eqref{eq:lower-level}.
+%
+These assumptions enable us to exclude the ends of occupancy time slots from
+consideration, as we will argue next.
 
-Under these assumptions, the set of feasible parameters $\mathcal{T}(s_{r})$ is
-now easier to characterize.
+Given some occupancy time slot schedule $(y,z)$, every trajectory $x_{i}$ in a
+solution $x$ of the lower-level problems satisfies
+$\dot{x}_{i}(y_{i}) = \bar{v}$.
 %
-Given some $(y,z)$, every $x_{i}$ in a a solution $x_{r}$ for~(L**) satisfies
-$x_{i}(y_{i}) = \bar{v}$. Therefore, we can let each vehicle continue at full
-speed across the intersection, without inducing extra cost. This takes exactly
-$\sigma := (B-E)/\bar{v}$ time, so we can always set
+Because the end times $z_{i}$ are not involved in $J_d(\cdot)$, we can let each
+vehicle continue at full speed across the intersection, without inducing extra
+cost. This full-speed-crossing takes exactly $\sigma := (B-E)/\bar{v}$ time, so we
+can fix the end of the occupancy timeslot to be
 \begin{align*}
-  z_{i} = y_{i} + \sigma, \; \text{ for all } i \in \mathcal{N} .
+  z_{i} = y_{i} + \sigma, \; \text{ for all } i \in \mathcal{N} ,
 \end{align*}
+without changing the cost of solutions.
 %
-With this choice, observe that $\rho := L / \bar{v}$ is such that
-$x_{i}(y_i + \rho) = x(y_{i}) + L = B + L$, which is the time after which the
-next vehicle from the same route can enter the intersection, so we will refer to
-$\rho$ as the \textit{processing time}.
+When vehicles cross the intersection at full speed, observe that
+$\rho := L / \bar{v}$ is such that $x_{i}(y_i + \rho) = x(y_{i}) + L = B + L$, so it
+is the time after which the next vehicle from the same route can enter the
+intersection. Because we might think of the intersection as some ``machine''
+processing each vehicle one by one, we will refer to $\rho$ as the \textit{processing time}.
 %
-Since $z_{i}$ is not involved in $J(\cdot)$, this means we only have to care about finding
+In a similar vein, we will call $\sigma$ the \emph{switch-over time}, because it
+can be interpreted as the minimal time the machine needs between serving
+vehicles from distinct routes.
+%
+We will return to this machine scheduling analogy in Chapter~\ref{chap:network},
+where we will connect the network scheduling problem with the classical job-shop
+scheduling problem.
+
+Since the end times $z_{i}$ are now a trivial function of the start times $y_i$,
+to which we will refer as the \emph{crossing times}.
+%
+Consequently, we can limit ourselves to characterizing the set of feasible
+crossing times
 \begin{align}
   \label{eq:1}
   \mathcal{T}_{y}(s_{r}) := \{ y_{r} : (y_{r}, y_{r} + \sigma) \in \mathcal{T}(s_{r}) \} ,
 \end{align}
-where $y_{r} + \sigma$ is to be understood as
-$\{y_{i} + \sigma : i \in \mathcal{N}_{r}\}$.
+where $y_{r} + \sigma$ is to be understood as $\{y_{i} + \sigma : i \in \mathcal{N}_{r}\}$.
 %
-It can be shown that $y_{r} \in \mathcal{T}_{y}(s_{r})$ holds if and only if
-\begin{align*}
+Assuming that the initial vehicle states allow all vehicles to safely stop
+before the intersection, for example using the sufficient conditions of
+Assumption~\ref{assump:feasible}, these feasible crossing times permit a
+polyhedral characterization, which means that it can be shown that
+$y_{r} \in \mathcal{T}_{y}(s_{r})$ holds if and only if
+\begin{subequations}
+\begin{align}
   a_{i} \leq y_i & \quad \text{ for all } i \in \mathcal{N}_{r} , \\
   y_i + \rho \leq y_j & \quad \text{ for all } (i,j) \in \mathcal{C} \cap \mathcal{N}_{r} ,
-\end{align*}
+\end{align}
+\end{subequations}
 where $a_{i} := (B - x_{i}^{0}) / \bar{v}$ is the earliest time at which vehicle
 $i$ can enter the intersection.
 %
-A rigorous proof of this fact is outside the scope of the current chapter, but
-we note that the analysis is very similar to that of
-Chapter~\ref{chap:network}. \comment{It would be nice to include a
-  retrospective proof in that later chapter, but note that there is a subtle
-  difference: whereas we provide initial *positions* here, we will later
-  consider initial *entry times*.}
-
-To conclude this section, the stated assumptions mean that problem (U**) reduces
-to the following \textit{crossing time scheduling} problem
+A rigorous proof of this fact is outside the scope of the current
+chapter.\footnote{The analysis would be very similar to that of
+  Chapter~\ref{chap:network}. There is, however, a subtle difference in how the
+  problem is stated there: whereas we provide initial \emph{positions} here, the
+  problem considered in Chapter~\ref{chap:network} is based on initial
+  \emph{times} at which the vehicles enter the system.}
+\comment{It would be nice to include a retrospective proof in that later
+  chapter, but note that there is a subtle difference: whereas we provide
+  initial *positions* here, we will later consider initial *entry times*.}
+%
+This polyhedral characterization cause the trajectory optimization problem to
+reduce to the \textit{crossing time scheduling} problem
 \begin{subequations}
 \begin{alignat}{2}\label{eq:crossing_time_scheduling}
   \min_{y} \quad & \sum_{i \in \mathcal{N}} y_i \tag{C} \\
   \text{ s.t. } \quad & a_{i} \leq y_i  && \quad \text{ for all } i \in \mathcal{N} , \tag{C.1} \\
                     & y_i + \rho \leq y_{j}  && \quad \text{ for all } (i,j) \in \mathcal{C} \label{eq:conjunctive} , \tag{C.2} \\
-                    & [y_{i}, y_i + \sigma] \cap [y_{j}, y_j + \sigma] = \varnothing && \quad \text{ for all } \{i,j\} \in \mathcal{D} \label{eq:disjunctive} \tag{C.3}.
+                    & (y_{i}, y_i + \sigma) \cap (y_{j}, y_j + \sigma) = \varnothing && \quad \text{ for all } \{i,j\} \in \mathcal{D} \label{eq:disjunctive} \tag{C.3}.
 \end{alignat}
 \end{subequations}
 This is a typical scheduling problem, which can for example be solved within the
 mixed-integer linear programming framework after encoding the
-\textit{disjunctive constraints}~\eqref{eq:disjunctive} using the big-M
+\textit{disjunctive constraints}~\eqref{eq:disjunctive} using the big-$M$
 technique. This methodology will be applied in the next section.
 
 
-\section{Crossing time scheduling}
-\label{sec:branch-and-cut}
+\section{Crossing time scheduling}\label{sec:crossing-time-scheduling}
 
-The conclusion of the previous section is that, after making certain assumptions
-and adding some constraints, the trajectory optimization problem~\eqref{eq:single-trajectory-optimization} reduces to
-a scheduling problem~\eqref{eq:crossing_time_scheduling} of finding a crossing time schedule $y$ that determines
-the time of crossing the intersection for each vehicle in the sytem.
+The conclusion of the previous section is that, after making certain
+assumptions, the trajectory optimization problem~\eqref{eq:single-trajectory-optimization} reduces to a scheduling
+problem~\eqref{eq:crossing_time_scheduling} of finding a schedule of crossing times $y$, determining the time at
+which each vehicle in the system crosses the intersection.
 %
 Given such a schedule, correponding trajectories can be computed relatively
 efficiently for each route separately using a direct transcription method.
@@ -1563,26 +1731,24 @@ time.
 This is the main motivation for the development of so-called heurstics, which
 discard the optimality guarantee in favor of speed.
 
-We will illustrate both types of methods in the rest of this section.
+This thesis will illustrate both types of approaches.
 %
-First, we show how to leverage the general branch-and-cut framework by
-formulating~\eqref{eq:crossing_time_scheduling} as a mixed-integer linear program and defining three types of
-cutting planes.
+In this section, we show how to leverage the general branch-and-cut framework by
+formulating~\eqref{eq:crossing_time_scheduling} as a mixed-integer linear
+program and defining three types of cutting planes.
 %
-We evaluate the computational performance of this method in Section~\ref{sec:runtime}.
-\comment{Clearly motivate why we want fast heuristics.} As an illustration of a
-classical approach to heuristic design, Section~\ref{sec:local_search} provides a brief description
-of a local search procedure.
+We conclude this section by an evaluation of the running time improvement of
+these cutting planes. \comment{Clearly motivate why we want fast heuristics.}
 %
-The next chapter will discuss methods to automate the search for heuristics
-using a machine learning methodology.
+The next chapter focuses mainly on heuristics and machine learning techniques to
+tune heuristics to exploit specific structures often found in practical problem
+instances.
 
-\subsection{Branch-and-cut}
+\subsection{Branch-and-bound for MILP}\label{sec:branch-and-bound}
 
 % - first explain the general algorithmic branch-and-bound paradigm
 % - then provide a brief general intro of MILP, pointing out its strengths and weaknesses
 
-%
 A very common algorithmic idea in combinatorial optimization is the
 branch-and-bound strategy, in which the space of feasible solutions is
 systematically explored using a search tree by iteratively subdividing the
@@ -1591,12 +1757,6 @@ best possible objective value within each subproblem (bounding), and discarding
 those parts of the tree that contain subproblems whose bound proves them
 incapable of containing an optimal solution (pruning).
 
-\note{ \emph{strenghts:} optimality guarantee, flexibility: fairly broad
-  modeling capacity, maturity: take advantage of modern solvers;
-%
-  \emph{weaknesses:} no guarantees on computation time, reformulation can be
-  involved; }
-
 A typical application of this scheme is found in algorithms for solving
 mixed-integer programming problems.
 %
@@ -1604,7 +1764,7 @@ In such problems, we optimize over $n$ real-valued decision variables $y_{i}$
 for which possibly a subset $\mathcal{I} \subseteq \{1, \dots, n\}$ is
 restricted to be integer-valued.
 %
-A typical example of such problems is a mixed-integer linear program, where the
+A canonical example of such problems is a mixed-integer linear program, where the
 goal is to minimize
 \begin{align}\label{eq:MILP}\tag{MILP}
   \min_{y} c^{T} y \text{ such that } Ay \leq b, \; y \in \mathbb{R}^{n}, \; y_{j} \in \mathbb{Z} \text{ for } j \in \mathcal{I},
@@ -1613,55 +1773,51 @@ given some matrix $A \in \mathbb{R}^{m\times n}$ and vectors
 $b \in \mathbb{R}^{m}$ and $c \in \mathbb{R}^{n}$.
 %
 This surprisingly simple setup provides a powerful modeling toolkit to approach
-many types of scheduling problems, because it allows discrete choices to be
-modeled using integers.
+many combinatorial optimization problems, because it allows discrete choices to
+be modeled using integers.
 %
 We already saw an example of this when we applied the big-$M$ method in our
 direct transcription of the trajectory optimization problem.
+
+The branch-and-bound algorithm for~\eqref{eq:MILP} is based on progressively
+constraining the integer decision variables as we move further from the root
+node in the search tree.
 %
-Moreover, reformulating a problem as~\eqref{eq:MILP} opens up the possibility to leverage
-the collective effort that has gone into developing fast general solvers: many
-modern solvers, e.g., Gurobi~\cite{gurobi} (commercial) or SCIP~\cite{BolusaniEtal2024OO} (academic), employ
-specialized interal heuristics and techniques like cutting planes to derive
-better bounds and thus achieve more pruning of the search tree to speed up the
-solving process.
-
-% The basis of solving~\eqref{eq:MILP} relies on a so-called branch-and-bound
-% procedure. The main idea is to explore a search tree whose nodes correspond to
-% progressively more constrained relaxations of the problem. Each time the tree
-% branches at some node, the value of some integer variable is constrained as
-% either $y_{j} \geq v$ or $y_{j} \leq v$ for some integer $v \in \mathbb{Z}$ and
-% this constraint will propagate further into all subtrees of this node. The
-% integer constraints for the remaining variables are relaxed, producing a linear
-% program that can be solved efficiently. The solutions of these relaxations are
-% used to guide the search: whenever the objective of the relaxation at some node
-% is higher than that of the the currently best known feasible solution, the
-% subtree at this node is pruned.
-
+At each node, the integer constraints are relaxed, producing a linear program
+that can be solved efficiently.
+%
+The solutions of these relaxations provide the basis of the bounding step:
+whenever the objective of the relaxation at some node is higher than that of the
+currently best known feasible solution, the subtree at that node is pruned.
 
 \paragraph{Reformulation.}
-To formulate the crossing time scheduling
-problem~\eqref{eq:crossing_time_scheduling} into~\eqref{eq:MILP}, we rewrite the
-disjunctive constraints using the big-$M$ method by introducing a binary
-decision variable $\gamma_{ij}$ for every conflict $\{i, j\} \in \mathcal{D}$, such that
-for every $(i,j) \in \bar{\mathcal{D}}$, setting $\gamma_{ij} = 0$ corresponds
-to choosing the crossing order $i \rightarrow j$ and $\gamma_{ij} = 1$
-corresponds to $j \rightarrow i$.
+
+We show how to reformulate the crossing time scheduling
+problem~\eqref{eq:crossing_time_scheduling} into~\eqref{eq:MILP}. Note that we
+only have to rewrite the disjunctive constraints~\eqref{eq:disjunctive}. For
+each conflict $\{i,j\} \in \mathcal{D}$, this constraints essentially encodes
+the crossing order of $i$ and $j$, i.e., whether $i$ crosses the intersection
+before $j$, or vice versa.
 %
-To avoid redundant variables in a software implementation, it might be necessary
-to impose some arbitrary ordering of the conflicting vehicles by defining the
+We can rewrite these constraints using the big-$M$ method by introducing a
+binary decision variable $\gamma_{ij}$ for every conflict $\{i, j\} \in \mathcal{D}$,
+such that setting $\gamma_{ij} = 0$ corresponds to choosing the crossing order
+$i \rightarrow j$ and $\gamma_{ij} = 1$ corresponds to $j \rightarrow i$.
+%
+To avoid redundant variables in a software implementation, it might be desirable
+to induce some arbitrary ordering of the conflicting vehicles by defining the
 index set
-\begin{align*}
+\begin{align}
   \bar{\mathcal{D}} = \{ (i,j) : \{i,j\} \in \mathcal{D}, \; r(i) < r(j) \} .
-\end{align*}
-We now have the following reformulation of~\eqref{eq:crossing_time_scheduling}:
+\end{align}
+With this definition, we obtain the reformulation
 %
 \begin{equation}\tag{C'}\label{eq:C'}
 \renewcommand{\arraystretch}{1.2}
 \begin{NiceArray}{ r l @{} >{{}}c<{{}} @{} l @{} }
-  \displaystyle \min_{y} & \displaystyle \sum_{i \in \mathcal{N}} y_{i} - a_{i} \\
+  \displaystyle \min_{y,\gamma} & \displaystyle \sum_{i \in \mathcal{N}} y_{i} \\
   \text{s.t. } \; & a_{i} \leq y_{i} && \quad \text{ for all } i \in \mathcal{N} , \\
-  & y_{i} + \sigma \leq y_{j} && \quad \text{ for all } (i,j) \in \mathcal{C} , \\
+  & y_{i} + \rho \leq y_{j} && \quad \text{ for all } (i,j) \in \mathcal{C} , \\
   & y_{i} + \sigma \leq y_{j} + \gamma_{ij}M  &&  \\
   & y_{j} + \sigma \leq y_{i} + (1 - \gamma_{ij})M \hspace*{1.8em} && \quad \text{ for all } (i,j) \in \bar{\mathcal{D}} , \\
   & \gamma_{ij} \in \{0, 1\}
@@ -1669,30 +1825,57 @@ We now have the following reformulation of~\eqref{eq:crossing_time_scheduling}:
 \end{NiceArray}
 \end{equation}
 %
-where $M > 0$ is some sufficiently large number. In this form, the problem can
-be solved by any off-the-shelf MILP solver, for which a wide variety of tooling
-is available. For example, we used the AMPL modeling language to write the above
-formulation in a solver-agnostic specification and use the
+where $M > 0$ is some sufficiently large number.
+
+Note that this reformulating opens up the possibility to leverage the collective
+effort that has gone into developing fast general solvers for this problem
+class: many modern solvers, e.g., SCIP~\cite{BolusaniEtal2024OO} (academic) or
+Gurobi~\cite{gurobi} (commercial), employ specialized interal heuristics and
+techniques to derive better bounds and thus achieve more pruning of the search
+tree to speed up the solving process.
+%
+Furthermore, a wide variety of software tooling is available. For example, we
+used the AMPL modeling language to write the above formulation in a
+solver-agnostic specification and use the
 amplpy\footnote{\url{https://amplpy.ampl.com/}} package to call the solver from
 the comfort of Python.
 
-\paragraph{Disjunctive graph.}
-Before we evaluate whether~\eqref{eq:C'} can be solved in reasonable amounts of time
+\subsection{Problem-specific cutting planes}
+Although the branch-and-bound approach guarantees to find an optimal solution, it
+does not provide any guarantees on the required running time.
 %
-\comment{We could also take the opportunity to introduce the disjunctive graph
-  at this point. However, I find this ``single machine'' situation not as
-  eluminating as the general job shop setting, so I think I actually prefer to
-  have this in the first chapter.}
+Roughly speaking, the running time depends heavily on the efficiency of the
+bounding step in pruning the search tree, which might vary wildly among
+equivalent formulations.
 %
-we present some insights into the structure of optimal solutions, which also
-serves as the basis for defining three types of cutting planes that can be added
-to~\eqref{eq:C'}, which might improve the solving time.
+A technique that is often used to make bounding more efficient is to add
+so-called \emph{cutting planes}.
+%
+The basic idea is that we can almost always introduce additional inequalities
+without changing the set of feasible solutions
+\begin{align}
+  \{ y : Ay \leq b, A'y \leq b', y_j \in \mathbb{Z}, j \in \mathcal{I} \} = \{ y : Ay \leq b, y_j \in \mathbb{Z}, j \in \mathcal{I} \} ,
+\end{align}
+while achieving more efficient bounding.
+%
+There are general-purpose schemes for adding such cutting planes $A' y \leq b$,
+but it often makes sense to also use insights into the specific problem at hand
+to derive problem-specific cutting planes.
+%
+The branch-and-bound framework with cutting planes is colloqially refered to as
+\emph{branch-and-cut}.
 
-\note{[some lack of continuity and motivation here]}
-Recall the intial ordering of vehicles due to the safe headway constraints
-  and the definition of earliest arrival time $a_{i}$. Let $\mathit{pred}(i)$
-denote the set of vehicles that arrive no later than $i$ on route $r(i)$ and let
-$\mathit{succ}(i)$ denote those that arrive no earlier,
+We will now illustrate the branch-and-cut methodology by deriving three types of
+cutting planes for~\eqref{eq:C'}.
+%
+The first type is related to some kind of redundancy in the encoding of feasible
+crossing orders.
+%
+Observe that the constraints $y_i + \rho \leq y_j$ cause a fixed order of
+crossing for all vehicles on the same routes. Hence, let $\mathit{pred}(i)$
+denote the set of all vehicles on route $r(i)$ that cross the intersection
+strictly before vehicle $i$ and let $\mathit{succ}(i)$ denote those that cross
+strictly later,
 %
 \comment{Alternatively, we could say these are all the vehicles from which there is a path of conjunctive arcs to $i$, but then we would have to introduce the disjunctive graph.}
 %
@@ -1704,41 +1887,41 @@ so we have
 \end{align}
 \end{subequations}
 %
-Consider some conflict pair $(i,j) \in \bar{\mathcal{D}}$ and suppose
-$\gamma_{ij} = 0$, so $i$ crosses before $j$, then any feasible solution must satisfy
+Suppose we have some solution $(y,\gamma)$ that satisfies $\gamma_{ij} = 0$ for
+some conflict pair $(i,j) \in \bar{\mathcal{D}}$, so $i \rightarrow j$, then it is
+clear that $\gamma$ must also satisfy
 \begin{align*}
-  \text{``} p \rightarrow q \text{''} \, \equiv \, \gamma_{pq} = 0 \quad \text{ for all } \, p \in \mathit{pred}(i), \, q \in \mathit{succ}(j) .
+  \gamma_{pq} = 0 \quad (\text{so } p \rightarrow q) \quad \text{ for all } \, p \in \mathit{pred}(i), \, q \in \mathit{succ}(j) .
 \end{align*}
-\note{[include graphical illustration, motivating our later introduction of the
-  disjunctive graph]} Using the big-$M$ method, we can equivalently encode this
-condition as
-\begin{align*}
-  \sum_{\substack{p \in \mathit{pred}(i)\\ q \in \mathit{succ}(j)}} \gamma_{pq} \leq \gamma_{ij} M ,
-\end{align*}
-for every conflict $(i,j) \in \bar{\mathcal{D}}$, to which we refer as the \textit{transitive cutting
-  planes}.
+Using the big-$M$ method, we can equivalently encode this as
+\begin{align}
+  \sum_{\substack{p \in \mathit{pred}(i)\\ q \in \mathit{succ}(j)}} \gamma_{pq} \leq \gamma_{ij} M .
+\end{align}
+Every feasible $(y,\gamma)$ must satisfy the above inequality for every
+$(i,j) \in \bar{\mathcal{D}}$, so we can safely add them to~\eqref{eq:C'}
+without changing the problem. We refer to these inequalities as the
+\emph{transitive cutting planes}.
 
 % Under the condition that $\rho_{i} = \rho$ and $\sigma_{i} = \sigma > \rho$ for all $i \in \mathcal{N}$,
 
-Apart from the just described redundancy, which is inherent to the way conflicts
-are encoded, we will now study some less obvious structure in the problem.
+Next, we present some insights into the structure of optimal solutions, which
+serves as the basis for two additional types of cutting planes.
 %
 Let us first consider some basic examples to sharpen our intuition.
 
-\begin{eg}
-  Consider the trivial problem with two routes and a single vehicle per route.
-  When both vehicles have the same earliest arrival time $a_{i} = a$, the order
-  in which they cross the intersection does not matter for the final objective,
-  which is $\sigma$. When either of the vehicles has a strictly earlier release
-  date, then it is obvious that this vehicle must go first in the optimal
-  schedule.
-\end{eg}
-%
+\begin{figure}
+  \centering
+  \includegraphics[width=0.55\textwidth]{figures/single/123.pdf}
+  \caption{Illustration of the two possible sequences of vehicles in
+    Example~\ref{example2}.}
+  \label{fig:example2}
+\end{figure}
+
 \begin{eg}
   \label{example2}
   Consider two routes having one and two vehicles, respectively. Instead of
   $(1,1), (2,1), (2,2)$, we will use the labels $1, 2, 3$ to keep notation
-  clear. We are interested in how the earliest crossing times influence the
+  clear. We are interested in how the earliest crossing times $a_i$ influence the
   order of the vehicles in an optimal schedule. We set $a_{1} = 0$, without loss
   of generality, and assume that $a_{3} = a_{2} + \rho$. Suppose
   $a_{1} = a_{2}$, then we see that the order $2, 3, 1$ is optimal, which
@@ -1756,34 +1939,27 @@ Let us first consider some basic examples to sharpen our intuition.
     a_{2} \leq \sigma/3 ,
   \end{align}
   which roughly means that the ``longest chain first'' rule becomes optimal
-  whenever the release dates are ``close enough''.
+  whenever the earliest arrival times are ``close enough''.
 \end{eg}
-%
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.55\textwidth]{figures/single/123.pdf}
-  \caption{Illustration of the two possible sequences of vehicles in
-    Example~\ref{example2}.}
-  \label{fig:example2}
-\end{figure}
 
 In the previous example, we see that it does not make sense to schedule vehicle
-1 between vehicles 2 and 3, because that would add unnecessary $\sigma$ time. This
-raises the question whether splitting such \textit{platoons} of vehicles is ever
-necessary to achieve an optimal schedule. Let us first give a precise definition
-of this notion, before slightly generalizing the example above.
+1 between vehicles 2 and 3, because that would add unnecessary switch-over time
+$\sigma$. This raises the natural question whether splitting such
+\textit{platoons} of vehicles is ever necessary to achieve an optimal schedule.
+To answer this question, let us first give a precise definition of platoons,
+before slightly generalizing the example.
 %
 \begin{define}
   A sequence of consecutive vehicles $(r, l+1), (r, l+2), \dots, (r, l+n)$ from
   some route $r$ is called a \textit{platoon} of size $n$ if and only if
-  \begin{align*}
+  \begin{align}
   a_{(r,k)} + \rho = r_{(r, k+1)}  \quad \quad \text{ for all } l < k < l + n.
-  \end{align*}
+  \end{align}
  We say that the platoon is \textit{split}
   in some schedule $y$, if
-  \begin{align*}
+  \begin{align}
   y_{(r, k)} + \rho < y_{(r, k + 1)} \quad \quad \text{ for some } l < k < l + n.
-  \end{align*}
+  \end{align}
 \end{define}
 %
 \begin{eg}
@@ -1802,15 +1978,15 @@ of this notion, before slightly generalizing the example above.
     \sum_{i \in \mathcal{N}} y_{i} (k) = \max\{ \sigma, a_{B} - k\rho\} (n_{B} + n_{A} - k) + \sigma (n_{A} - k) + \sum_{j=1}^{n_{A}+n_{B}} (j-1) \rho ,
   \end{align*}
   so when platoon A goes completely before platoon B, we get
-  \begin{align}
+  \begin{align*}
     \sum_{i \in \mathcal{N}} y_{i} (n_{A}) = \sigma n_{B} + \sum_{j=1}^{n_{A}+n_{B}} (j-1) \rho ,
     \label{eq:A-before-B}
-  \end{align}
-  since $\max\{ \sigma, a_{B} - n_{A} \rho \} = \sigma$ by the assumption on
-  $a_{B}$. It is easily seen that we have $\sum y_{i}(k) > \sum y_{i} (n_{A})$
-  for $0 < k < n_{A}$, so in other words, if we decide to put at least one
-  vehicle of platoon A before platoon B, it is always better to put all of them
-  in front. As we will see next, this principle holds more generally.
+  \end{align*}
+  since $\max\{ \sigma, a_{B} - n_{A} \rho \} = \sigma$ by the assumption on $a_{B}$. It is
+  easily seen that we have $\sum y_{i}(k) > \sum y_{i} (n_{A})$ for $0 < k < n_{A}$,
+  so in other words, if we decide to put at least one vehicle of platoon A
+  before platoon B, it is always better to put all of them in front. As we will
+  see after this example, this principle holds more generally.
 
   For $k=0$, so when we schedule platoon A completly after platoon B, the total
   completion time becomes
@@ -1836,174 +2012,388 @@ of this notion, before slightly generalizing the example above.
 \end{figure}
 
 The example shows that, when we decide to put one vehicle of a platoon before
-another platoon, it is always better to put the whole platoon in front. In other
-words, whenever a vehicle can be scheduled immediately after its predecessor,
-this should happen in any optimal schedule, as stated by the following result,
-for which we provide a proof in Appendix~\ref{app:proof}.
+another platoon, it is always better to put all vehicles of the platoon in
+front. In other words, whenever a vehicle can be scheduled immediately after its
+predecessor, this should happen in any optimal schedule. It turns out that this
+property holds more generally, as stated by the following result. \comment{[add
+  proof in Appendix]}
 
-\begin{restatable}[Platoon Preservation~\cite{limpensOnlinePlatoonForming2023}]{theorem}{Exhaustive}\label{prop:exhaustive}
+\begin{restatable}[Platoon Preservation~\cite{limpensOnlinePlatoonForming2023}]{theorem}{Exhaustive}\label{thm:exhaustive}
   If $y$ is an optimal schedule for~\eqref{eq:crossing_time_scheduling},
   satisfying $y_{i^{*}} + \rho \geq a_{j^{*}}$ for some $(i^{*},j^{*}) \in \mathcal{C}$, then $j^{*}$
   follows immediately after $i^{*}$, so $y_{i^{*}} + \rho = y_{j^{*}}$.
 \end{restatable}
 
-We will now use this result to define two types of additional cutting planes. In
-order to model this necessary condition, we introduce for every conjunctive pair
-$(i,j) \in \mathcal{C}$ a binary variable $\delta_{ij} \in \{0, 1\}$ that satisfies
-\begin{align*}
+We will now use this result to formulate two more types of cutting planes.
+First, we try to directly model this necessary condition for optimality.
+Therefore, we introduce a binary variable $\delta_{ij} \in \{0, 1\}$, for every
+conjunctive pair $(i,j) \in \mathcal{C}$, which we want to satisfy
+\begin{subequations}
+\begin{align}
   \delta_{ij} = 0 &\iff y_{i} + \rho < a_{j} , \\
-  \delta_{ij} = 1 &\iff y_{i} + \rho \geq a_{j} ,
-\end{align*}
-which can be enforced by adding to the constraints
-\begin{align*}
+  \delta_{ij} = 1 &\iff y_{i} + \rho = a_{j} .
+\end{align}
+\end{subequations}
+Again, this can be enforced using the big-$M$ method, by adding the constraints
+\begin{subequations}
+\begin{align}
   y_{i} + \rho &< a_{j} + \delta_{ij}M , \\
   y_{i} + \rho &\geq a_{j} - (1 - \delta_{ij}) M .
-\end{align*}
-Now observe that Theorem~\ref{prop:exhaustive} applied to $(i,j)$ is modeled by the
-cutting plane
-\begin{align*}
+\end{align}
+\end{subequations}
+Now observe that the statement of Theorem~\ref{thm:exhaustive} applied to $(i,j)$ is equivalent
+to the inequality
+\begin{align}
   y_{i} + \rho &\geq y_{j} - (1 - \delta_{ij}) M .
-\end{align*}
+\end{align}
 We refer to these cutting planes as \textit{necessary conjunctive cutting planes}.
-%
-Using the definition of $\delta_{ij}$, we can add more cutting planes on the
-disjunctive decision variables, because whenever $\delta_{ij} = 1$, \note{[remove
-  disjunctive-graph-speak here]} the directions of the disjunctive arcs $i \rightarrow k$
-and $j \rightarrow k$ must be the same for every other vertex $k \in \mathcal{N}$.
-Therefore, consider the following constraints
-\begin{align*}
+
+Using the definition of $\delta_{ij}$, we can derive one more type of cutting planes
+on the disjunctive decision variables $\gamma$. Whenever $\delta_{ij} = 1$,
+Theorem~\ref{thm:exhaustive} implies that we have $i \rightarrow k$ and $j \rightarrow k$ for every
+other vehicle $k \in \mathcal{N}$ on a different route $r(k) \neq r(i) = r(j)$,
+which can be enforced by adding the constraints
+\begin{subequations}
+\begin{align}
   \delta_{ij} + (1 - \gamma_{ik}) + \gamma_{jk} \leq 2 , \\
-  \delta_{ij} + \gamma_{ik} + (1 - \gamma_{jk}) \leq 2 ,
-\end{align*}
-for every $(i,j) \in \mathcal{C}$ and for every $k \in \mathcal{N}$ with $r(k) \neq r(i) = r(j)$.
-We will refer to these types of cuts as the \textit{necessary disjunctive cutting planes}.
+  \delta_{ij} + \gamma_{ik} + (1 - \gamma_{jk}) \leq 2 .
+\end{align}
+\end{subequations}
+We will refer to these as the \textit{necessary disjunctive cutting planes}.
 
-\subsection{Runtime benchmark}
-\label{sec:runtime}
+\paragraph{Runtime benchmark.}
 
-\note{[either keep it simple here, we only want to illustrate that MILP is no silver bullet; or already setup our problem instance classes, which we will use in the results of the next chapter]}
-\note{[I think the first option is best, because then this dicussion is then closer to the actual tables in which these classes 'low', 'med', 'high' are actually used]}
+We conclude this section with an evaluation of the running time of the
+branch-and-bound approach. To illustrate the benefit of each proposed cutting
+plane, we also include results for the case without any cutting planes.
+%
+Since the running time is primarily determined by the total number of vehicles
+in the system, we consider problem instances with two routes and report
+running times as a function of the number of vehicles per route.
+%
+Problem instances are generated with fixed processing time $\rho=4$, switch-over
+time $\sigma=1$, and randomly generated earliest arrivals times $a_i$.
+%
+A detailed discussion of the distribution of $a_i$ that we used is deferred to
+the end of the next chapter, where a more extensive comparison will be provided.
+%
+To keep the total computational effort within reasonable limits, we impose a
+time limit of 60 seconds per instance.
+%
+Consequently, some care must be taken when interpreting the average running
+time, because some observations correspond to cases in which the algorithm
+reaches the time limit.\footnote{In statistics, such observations are called \emph{censored}
+  and there are generally better ways of handling these. However, we do not need
+  such rigorous analysis for the argument here.} For this experiment, we used
+the Gurobi solver version 11.0.2 on a system with a 13th Gen Intel i5-13600K CPU
+and 32GiB of RAM.
+%
+Figure~\ref{fig:running_time} shows the average running time for the three types of cutting planes.
+Observe that the necessary conjunctive cutting planes seem to lower the running
+time the most.
 
-\comment{This part needs some rework: lots of technical details and missing clear conclusions.}
-In order to make a comparison of the relative performance of the different
-cutting planes, we first define the distribution over problem instances from
-which we will take samples to use as a benchmark.
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\textwidth]{data-single/running_times.pdf}
+  \caption{\note{[current figure is placeholder]} The average running time of
+    the branch-and-cut procedure is plotted as a function of the number of
+    arriving vehicles per route, for each of the three indicated cutting planes.
+    Each average is computed over $20$ problem instances. All instances use
+    $\rho = 4$ and $\sigma = 1$. The earliest arrival times for vehicles are generated
+    using the bimodal exponential interarrival time model from
+    Section~\ref{sec:results} with parameters $p=0.5, \mu_{s} = 0.1, \mu_{l} = 10$.
+    This figure clearly shows that the conjunctive cutting planes provide the
+    most runtime improvement. \comment{Why not show the case without any cutting
+      planes? Because this takes sooo much time. What we could do is give some
+      idea of this for up to 10 arrivals per route.}}
+  \label{fig:running_time}
+\end{figure}
 
-For each route $r \in \mathcal{R}$, we model the sequence of earliest crossing times
-$a_{r} = (a_{r1}, a_{r2}, \dots)$ as a stochastic process, to which we refer as
-the \textit{arrival process}. Recall that constraints~\eqref{eq:conjunctive}
-ensure a safe following distance between successive vehicles on the same route.
-Therefore, we want the process to satisfy
+
+\section{Notes and references}
+
+The single intersection model is mostly based on the model described in the PhD
+thesis of Hult~\cite[Chapter 3]{hultOptimizationBasedCoordination2019}.
+%
+Due to the simple rectangular geometry of the vehicles and the fact that routes
+are straight, it is easy to compute the conflict area in configuration space,
+for which we provide details in Appendix~\ref{app:configuration-space}. For
+general curved trajectories, the computation is more involved, see for
+example~\cite[Appendix A]{levinConflictpointFormulationIntersection2017}
+and~\cite[Section 2.2]{liTemporalspatialDimensionExtensionbased2019}.
+
+The bilevel decomposition and approximation scheme of Section~\ref{sec:bilevel}
+are further detailed in~\cite{hultApproximateSolutionOptimal2015,hultTechnicalReportApproximate}.
+%
+In proving that the decomposed problem is equivalent to the original trajectory
+optimization problem, they state that the lower-level problem has a unique
+solution. We emphasize that this depends on \emph{strict} convexity of the objective function.
+%
+For the problem without state constraints, this has been rigorously proven in~\cite[Theorem 5.1, part
+(V)]{hanUnifiedNumericalScheme2012}, where uniqueness indeed depends on the positive
+definiteness of the matrix $R$ defining the quadratic component $u^T R u$ of the
+running cost function with respect to the control variable.
+
+At various points in this chapter, we included some comments from the optimal
+control perspective. For a textbook introduction of optimal control theory, we
+recommend the book of Liberzon~\cite{liberzonCalculusVariationsOptimal}. The focal point in their presentation is the
+Pontryagin maximum principle, which provides neccessary conditions for
+optimality for optimal control problems.
+%
+When dealing with state-constrained problems, the most relevant overview of
+results we could find is the survey of Hartl et al.~\cite{hartlSurveyMaximumPrinciples1995}.
+%
+We note that, although the theory for dealing with state constraints (\`a la
+Pontryagin) is far from complete, in practice, they can be successfully dealt
+with in numerical approaches, often involving some sort of penalty function.
+
+A solid introduction to the algorithmic foundations for integer programming is
+provided by the book~\cite{confortiIntegerProgramming2014}, whose introductory
+chapter also contains a clear description of the branch-and-cut methodology.
+%
+Note that decomposition techniques similar in nature to the decomposition of
+Section~\ref{sec:bilevel} have a relatively long history in mathematical programming.
+Well-known examples in the context of mixed-integer linear programming include
+Dantzig-Wolfe decomposition and Benders' decomposition.\footnote{Fun fact: this
+  famous method is named after Jacques
+  Benders~\cite{aardalJacquesBendersHis2025}, who was a professor here at TU/e.}
+%
+Such techniques have been applied in air traffic
+scheduling~\cite{manninoPathCycleFormulation2018} and job-shop problems arising
+in general traffic scheduling
+problems~\cite{lamorgeseNoncompactFormulationJobShop2019}.
+%
+Interestingly, these works also propose an alternative (``noncompact'') MILP
+formulation that does not depend on the big-$M$ trick.
+
+
+\chapter{Scheduling as sequence modeling problem}\label{chap:single-learning}
+
+% sequence modeling
+Most methods that are based on some kind of branch-and-bound tree search are
+guaranteed to find an optimal solution, but as we illustrated in Section~\ref{sec:crossing-time-scheduling},
+without further modifications, the running time generally scales very poorly
+with increased instance sizes. For this reason, we are interested in developing
+heuristics to obtain good approximations in limited time.
+
+Specifically, we will show how~\eqref{eq:crossing_time_scheduling} can be viewed
+as a sequence modeling problem.
+%
+First of all, we show that optimal schedules can be conveniently represented as sequences of route indices.
+%
+We briefly use this representation as the basis for a local search heuristic.
+%
+Next, we will discuss our goal of obtaining a model that gives a probability distribution over schedules, conditioned on the instance specification.
+%
+After precisely stating two different model parameterizations, we will show how
+to use randomly generated problem instances for model fitting in a supervised
+learning setting.
+%
+There are two general approaches: the most natural way is to use an existing
+solution method to solve these instances, then use the optimal or near-optimal
+solutions as training data points in a supervised learning setting.
+%
+However, this assumes our ability to solve problems in the first place.
+%
+An alternative approach is to collect data points in an online fashion by
+applying the current model and then updating, which is best understood in the
+framework of reinforcement learning.
+
+% choose disjunctive constraints -> linear program
+\section{Sequence representation of schedules}
+
+% introduce sequence representation
+Observe that the crossing time scheduling
+problem~\eqref{eq:crossing_time_scheduling} has in principle infinitely many
+feasible solutions, because the decision variables $y_i$ are real-valued.
+However, we now show that there is a more efficient representation of candidate
+solutions.
+%
+Recall that we encoded the decisions in~\eqref{eq:disjunctive}, regarding the
+crossing order of each pair $\{i,j\} \in \mathcal{D}$ of conflicting vehicles,
+by introducing a binary variable $\gamma_{ij}$ in the MILP
+reformulation~\eqref{eq:C'}.
+%
+Roughly speaking, these binary decisions contain all the necessary information
+to encode candidate solutions.
+
+% introduce disjunctive graph
+To make this more precise, it will be convenient to introduce the
+\emph{disjunctive graph} representation of solutions.
+%
+The basic idea is to encode each constraint
+of~\eqref{eq:crossing_time_scheduling} as a weighted arc in a directed graph.
+%
+The vehicle indices $\mathcal{N}$ form the main nodes of the graph.
+%
+Furthermore, for each vehicle $i \in \mathcal{N}$, there is a dummy node $i'$
+and a directed arc $i' \rightarrow i$ with weight $w(i', i) := a_i$ to model the
+earliest arrival time constraint $y_i \geq a_i$.
+%
+Each constraint $y_i + \rho \leq y_j$ for a pair $(i,j) \in \mathcal{C}$ is
+encoded as a so-called \emph{conjunctive} arc $i \rightarrow j$ with weight
+$w(i,j) := \rho$.
+%
+For each pair of conflicting vehicles $\{i,j\} \in \mathcal{D}$, we have the
+constraint $(y_i, y_i + \sigma) \cap (y_j, y_j + \sigma) = \varnothing$, for
+which we have to choose whether we include the arc $i \rightarrow j$ or the arc
+in the opposite direction $j \rightarrow i$; both of these \emph{disjunctive}
+arcs have weight $w(i,j) := \sigma$.
+
+% choosing disjunctive arcs
+Instead of setting binary variables $\gamma_{ij}$ we can now equivalently think
+about choosing which of the disjunctive arcs to pick. We use $\mathcal{O}$
+to denote such a selection of disjunctive arcs and let $G(\mathcal{O})$ the
+corresponding disjunctive graph.
+%
+Whenever $\mathcal{O}$ contains precisely one of the disjunctive arcs for each
+conflict $\{i,j\} \in \mathcal{D}$, we say that $G(\mathcal{O})$ is a
+\emph{complete} disjunctive graph.
+%
+It will be convenient later to also allow partial selections $\mathcal{O}$, in
+the sense that there may be conflicts $\{i,j\} \in \mathcal{D}$ for which none
+of both arcs is chosen.
+%
+In the extreme case of $\mathcal{O} = \varnothing$, we obtain the \emph{empty}
+disjunctive graph $G_0 := G(\varnothing)$.
+
+Given some choice of disjunctive arcs $\mathcal{O}$, we consider the so-called
+\textit{active} schedule $y(\mathcal{O})$, which is defined as the solution to
+the linear program
+
+\begin{subequations}\label{eq:active_schedule}
+\begin{alignat}{3}
+  y(\mathcal{O}) :=
+  \min_{y} \quad & \sum_{i \in \mathcal{N}} y_{i} \\
+  \text{s.t.} \quad & a_{i} \leq y_{i} && \quad \text{ for all } i \in \mathcal{N}, \\
+           & y_{i} + \rho \leq y_{j} && \quad \text{ for all } (i,j) \in \mathcal{C}, \\
+           & y_{i} + \sigma \leq y_{j} && \quad \text{ for all } (i,j) \in \mathcal{O} .
+\end{alignat}
+\end{subequations}
+%
+This linear program does not have a feasible solutions for every choice of
+$\mathcal{O}$, so $y(\mathcal{O})$ might not always be defined.
+%
+More concretely, if the disjunctive graph $G(\mathcal{O})$ has a cycle
 \begin{align*}
-  a_{(r, k)} + \rho_{(r,k)} \leq a_{(r, k + 1)} ,
+ k_1 \rightarrow k_2 \rightarrow \dots \rightarrow k_n \rightarrow k_1,
 \end{align*}
-for all $k = 1, 2, \dots$.
 %
-Let the interarrival times be denoted as $X_{n}$ with cumulative distribution
-function $F$ and mean $\mu$, assuming it exists. We define the arrival times
-$A_{n} = A_{n-1} + X_{n} + \rho$, for $n \geq 1$ with $A_{0} = 0$.
-
-\begin{remark}
-Note that the arrival process may be interpreted as an renewal process with interarrivals
-times $X_{n} + \rho$.
-%
-% To be precise, let $I_{t} \in \{0, 1\}$
-% denote the state of the process at time $t$ and assume the process starts in
-% state $I_{0} = 0$. Let $X_{1}, X_{2}, \dots$ denote the times spend in state $0$
-% and let $\rho$ be the time spend in state $1$.
-%
-Let $N_{t}$ denote the corresponding counting process, i.e., $N_{t}$ counts the
-cumulative number of arrivals up to time $t$, then by the \textit{renewal theorem}, we
-obtain the \textit{limiting density} of arrivals
-%
+then it is easy to see that this corresponds to a sequence of inequalities
 \begin{align*}
-  \mathbb{E}(N_{t + h}) - \mathbb{E}(N_{t}) \rightarrow \frac{h}{\mu + \rho} \quad \text{ as } t \rightarrow \infty ,
-\end{align*}
-for $h > 0$. Hence, we refer to the quantity $\lambda := {(\mu + \rho)}^{-1}$ as the
-average arrival intensity.
-\end{remark}
-
-%% Given
-% some time $t>0$, define the \textit{truncation} $a_{i}(t)$ as the finite
-% subsequence $(a_{i1}, \dots, a_{ik})$ of $a_{i}$ such that $a_{ik} \leq t$.
-% %
-% Let $f^{*}(a_{1}(t), a_{2}(t))$ denote an optimal schedule for the crossing
-% time scheduling problem with arrivals $a_{1}(t)$ and $a_{2}(t)$.
-% %
-% Given some schedule $y$, we say that it has a \textit{schedule renewal at
-%   time} $t$ whenever there are two successive vehicles
-% $(i, j) \in \mathcal{C}$ such that $t = y(i) + \sigma < y(j)$. Let $R(y)$ denote
-% the total number of such renewals in schedule $y$. Now consider the following
-% limit
-% \begin{align*}
-%   L = \lim_{t \rightarrow \infty} R(f^{*}(a_{1}(t), a_{2}(t))) .
-% \end{align*}
-% Whenever $L < \infty$, we say that the system is \textit{unstable}.
-% Whenever $L = \infty$, we say the system is \textit{stable}.
-%
-% Because there is in general no simple expression for $f^{*}$, it is not possible
-% to state a necessary and sufficient condition for stability like often done for
-% queueing systems. {\color{Navy}Argue that renewals do not change under $f^{*}$.}
-
-\paragraph{Platoons.}
-In order to model the natural occurence of platoons, we model the interarrival
-times $X_{n}$ as a mixtures of two random variables, one with a small expected
-value $\mu_{s}$ to model the gap between vehicles within the same platoon and one
-with a larger expected value $\mu_{l}$ to model the gap between vehicles of
-different platoons. For example, consider a mixture of two exponentials, such
-that
-\begin{align*}
-  F(x) &= p ( 1 - e^{-x / \mu_{s}} ) + (1 - p) (1 - e^{-x / \mu_{l}}) , \\[0.2em]
-  \mu &= p \mu_{s} + (1-p) \mu_{l} ,
+  y_{k_1} + w(k_1,k_2) &\leq y_{k_2} ,\\
+  y_{k_2} + w(k_2,k_3) &\leq y_{k_3} ,\\
+  &\vdotswithin{=} \notag \\[0.3em]
+  y_{k_n} + w(k_n,k_1) &\leq y_{k_1} .
 \end{align*}
 %
-assuming $\mu_{s} < \mu_{l}$. Observe that the parameter $p$ determines
-the average length of platoons.
-%
-Consider two intersecting routes, $\mathcal{R} = \{1, 2\}$, with arrival processes
-$a_{1} = (a_{11}, a_{12}, \dots)$ and $a_{2} = (a_{21}, a_{22}, \dots)$, with
-arrival intensities $\lambda^{(1)} = \lambda^{(2)}$.
-%
-We keep $\lambda_{s} = 0.5$ constant, and use
-\begin{align*}
-  \mu_{l}  = \frac{\mu - p \mu_{s}}{1 - p}
-\end{align*}
-to keep the arrival rate constant accross arrival distributions.
+These inequalities together imply that $y_{k_1}$ must satisfy
+\begin{align}
+  y_{k_1} + \sum_{i=1}^{n-1} w(k_i, k_i+1) + w(k_n, k_1) \leq k_1 ,
+\end{align}
+which is an obvious contradiction.
 
-\paragraph{Comparison.}
-We now assess which type of cutting planes yields the overall best performance.
-The running time of branch-and-cut is mainly determined by the total number of
-vehicles in the instance. Therefore, we consider instances with two routes and
-measure the running time of branch-and-cut as a function of the number of
-vehicles per route.
+Next, assume that $G(\mathcal{O})$ is an acyclic complete disjunctive graph.
+We show that $y(\mathcal{O})$ is uniquely defined in this case.
 %
-In order to keep the total computation time limited, we set a time limit of 60
-seconds for solving each instance. Therefore, we should be careful when
-calculating the average running time, because some observations may correspond
-to the algorithm reaching the time limit, in which case the observation is said
-to be \textit{censored}. Although there are statistical methods to rigorously
-deal censored data, we do not need this for our purpose of picking the best type
-of cutting planes.
+First of all, since the disjunctive graph is acyclic, there must be some
+topological order $\pi$ of the non-dummy nodes $\mathcal{N}$.
 %
-Figure~\ref{fig:running_time} shows the average (censored) running time for the
-three types of cutting planes. Observe that the necessary conjunctive cutting
-planes seem to lower the running time the most.
+Since there is an arc between any two pairs of non-dummy nodes $\mathcal{N}$,
+this order $\pi$ is actually unique.
+%
+Uniqueness of $y(\mathcal{O})$ now follows from the following proposition,
+because it provides a unique sequential construction.
+
+\begin{lemma}\label{lb_lemma}
+  Let $\mathcal{O}$ be a complete selection of disjunctive arcs such that
+  $G(\mathcal{O})$ is acyclic, inducing some vehicle order $\pi$. Assume that
+  $\sigma > \rho$, then active schedule $y = y(\mathcal{O})$ satisfies
+\begin{align}
+  \label{eq:lb_lemma}
+  y_{j} = \max \{ a_{j}, y_i + w(i, j) \} ,
+\end{align}
+for every pair $i,j \in \mathcal{N}$ such that $i$ is the immediate predecessor
+of $j$ in $\pi$.
+\end{lemma}
+% \begin{proof}
+%   Suppose $(i,j) \in \mathcal{C}$, see Figure~\ref{fig:lb_lemma}, then the incoming disjunctive
+%   arcs of $j$ come from nodes $(\mathcal{N}^{-}(j) \setminus \{ i \}) \subset \mathcal{N}^{-}(i)$.
+%   Therefore, we have
+%   \begin{align*}
+%     \max_{v \in \mathcal{N}^{-}(j) \setminus \{i\}} y_v + \sigma_{v} \leq \max_{v \in \mathcal{N}^{-}(i)} y_{v} + \sigma_{v} \leq y_{i} ,
+%   \end{align*}
+%   so that
+%       $y_{v} + w(v,j) \leq y_{i} + w(i,j)$
+%   for all $v \in \mathcal{N}^{-}(j)$.
+
+%   Otherwise, we have $(i, j) \in \mathcal{O}$.
+%   %
+%   Let $v \in \mathcal{N}$ such that $(v, j)$ is an arc.
+%   If $(v,j) \in \mathcal{C}$, then we have
+%   \begin{align*}
+%     y_{v} + w(v,j) =
+%     y_{v} + \rho_{v} \leq y_{v} + \sigma_{v} + \sigma_{i} \leq y_{i} + w(i,j) ,
+%   \end{align*}
+%   where the second inequality follows from $(v,i) \in \mathcal{O}$.
+%   %
+%   If $(v, j) \in \mathcal{O}$ with $r(v) \neq r(i)$, then $(v,i) \in \mathcal{O}$, so
+%   \begin{align*}
+%     y_{v} + w(v, j) = y_{v} + w(v, i) \leq y_{i} \leq y_{i} + w(i,j) .
+%   \end{align*}
+%   If $(v, j) \in \mathcal{O}$ with $r(v) = r(i)$, then there is a path of conjunctive arcs between $v$ and
+%   $i$, so we must have $y_{v} + \rho_{v} \leq y_{i}$.
+%   Furthermore, from $w(v,j) = \sigma_{v} = \rho_{v} + s$ follows that
+%   \begin{align*}
+%     y_{v} + w(v,j) = y_{v} + \rho_{v} + s \leq y_{i} + s \leq y_{i} + w(i, j) .
+%   \end{align*}
+
+%   To conclude, we have shown that
+%   $y_{v} + w(v,j) \leq y_{i} + w(i,j)$ for any
+%   $v \in \mathcal{N}^{-}(j)$, from which statement~\eqref{eq:lb_lemma} follows.
+% \end{proof}
+
+% \begin{figure}
+%   \centering
+%   \includegraphics[width=0.8\textwidth]{figures/single/lower-bound-lemma.pdf}
+%   \caption{Sketch of the four cases distinguished in the proof of
+%     Lemma~\ref{lb_lemma}. Arc weights are given and disjunctive arcs
+%     $\mathcal{O}$ are drawn with a dashed line.}\label{fig:lb_lemma}
+% \end{figure}
+
+To conclude, any valid selection $\mathcal{O}$ of disjunctive arcs is equivalent
+to a sequence $\pi$ of vehicles. It is also equivalent to a sequence $\eta$ of
+routes, because the ordering of vehicles on the same route is already fixed. See
+Figure~\ref{fig:disjunctive_graphs} for an example of a complete disjunctive
+graph with corresponding vehicle order $\pi$ and route order $\eta$. From now
+on, we will mainly be working with $\eta$, because it is in some sense the
+simplest representation of a schedule and we write $y^{\eta}$ to denote the
+corresponding induced crossing times.
+
+Now observe that the definition of $y$ through the linear program is equivalent
+to defining $y$ through
+\begin{align}
+  \label{eq:y_max}
+  y_{j} = \max\{ a_{j}, \max_{i \in \mathcal{N}^{-}(j)} y_i + w(i,j) \} ,
+\end{align}
+where $\mathcal{N}^{-}(j)$ denotes the set of in-neighbors of node $j$.
 
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.6\textwidth]{data-single/running_times.pdf}
-  \caption{The average running time of the branch-and-cut procedure is plotted
-    as a function of the number of arriving vehicles per route, for each of the
-    three indicated cutting planes. Each average is computed over $20$ problem
-    instances. All instances use $\rho = 4$ and $\sigma = 1$. The arrivals of each of
-    the two routes are generated using the bimodal exponential interarrival
-    times with $p=0.5, \mu_{s} = 0.1, \mu_{l} = 10$. This figure clearly shows that
-    the conjunctive cutting planes provide the most runtime improvement. \note{[why not show the case without any cutting planes?]}}
-  \label{fig:running_time}
+  \includegraphics[width=0.98\textwidth]{figures/single/disjunctive_graph.pdf}
+  \caption{Illustration of disjunctive graphs for some instance with two routes
+    with $n_{1} = 3$ and $n_{2} = 4$ vehicles. Horizontal arrows are the
+    conjunctive arcs, the rest are disjunctive arcs. The left graph is and
+    \textit{empty} disjunctive graph, because $\mathcal{O} = \varnothing$. The
+    selection of disjunctions shown in the \textit{complete} graph on the right
+    encodes the vehicle order
+    $\pi = ((1,1), (2,1), (1,2), (1,3), (2,2), (2,3), (2,4))$ and route order
+    $\eta = (1, 2, 1, 1, 2, 2, 2)$.}
+  \label{fig:disjunctive_graphs}
 \end{figure}
 
-\subsection{Local search}
+\section{Local search}
 \label{sec:local_search}
 
 Without relying on systematic search methods like branch-and-bound, an often
@@ -2013,14 +2403,13 @@ The main idea is that the solution space can be organized based on some measure
 of similarity. From the current solution, we only move to a neighboring solution
 if it has a better objective value.
 %
-We will now give an example of such a neighborhood.
+Next, give an example of such a neighborhood.
 
 As seen in the previous sections, vehicles of the same route occur mostly in
 platoons. For example, consider for example the route order
-\note{[this concept has not been introduced at this point!]}
-$\eta = (0, 1, 1, 0, 0, 1, 1, 1, 0, 0)$. This example has 5 platoons of consecutive
-vehicles from the same route. The second platoon consists of two vehicles from
-route 1.
+$\eta = (0, 1, 1, 0, 0, 1, 1, 1, 0, 0)$. This example has 5 platoons of
+consecutive vehicles from the same route. The second platoon consists of two
+vehicles from route 1.
 %In general, let $P(\eta)$ denote the total number of platoons in $\eta$.
 The basic idea is to make little changes in these platoons by moving vehicles at
 the start and end of a platoon to the previous and next platoon of the same
@@ -2067,111 +2456,7 @@ The latter variant is generally known as \textit{beam search}.
 \end{center}
 \end{table}
 
-\section{Notes and references}
-
-The single intersection model is mostly based on the model described in the PhD
-thesis of Hult~\cite[Chapter 3]{hultOptimizationBasedCoordination2019}.
-%
-The bilevel decomposition and approximation scheme is further detailed
-in~\cite{hultApproximateSolutionOptimal2015,hultTechnicalReportApproximate}.
-%
-For a textbook introduction of optimal control theory from the perspective of
-mathematical analysis, we recommend the book of
-Liberzon~\cite{liberzonCalculusVariationsOptimal}. The focal point in their
-presentation is the Pontryagin maximum principle, which provides neccessary
-conditions for optimality for optimal control problems.
-%
-When dealing with state-constrained problems, the most relevant overview of
-results we could find is the survey of Hartl et
-al.~\cite{hartlSurveyMaximumPrinciples1995}.
-
-A solid introduction to the algorithmic foundations for integer programming is
-provided by the book~\cite{confortiIntegerProgramming2014}, whose introductory
-chapter also contains a clear description of the branch-and-cut methodology.
-
-\chapter{Optimal schedule modeling}\label{chap:single-learning}
-
-% sequence modeling
-Most methods that are based on some kind of branch-and-bound tree search are
-guaranteed to find an optimal solution, but as we illustrated in Section~\ref{sec:runtime},
-without further modifications, the running time generally scales very poorly
-with increased instance sizes. For this reason, we are interested in developing
-heuristics to obtain good approximations in limited time.
-
-Specifically, we will show how~\eqref{eq:crossing_time_scheduling} can be viewed
-as a sequence modeling problem.
-%
-After precisely stating the model parameterization, we will show how to use
-randomly generated problem instances for model fitting.
-%
-There are two general approaches: the most natural way is to use an existing
-solution method to solve these instances, then use the optimal or near-optimal
-solutions as training data points in a supervised learning setting.
-%
-However, this assumes our ability to solve problems in the first place.
-%
-An alternative approach is to collect data points in an online fashion by
-applying the current model and then updating, which is best understood in the
-framework of reinforcement learning.
-
-
-
-% choose disjunctive constraints -> linear program
-\paragraph{Equivalent representations of schedules.}
-Observe that the space of feasible solutions of~\eqref{eq:crossing_time_scheduling} can be reduced to finitely
-many decisions regarding the disjunctive constraints~\eqref{eq:disjunctive}. Specifically, for each
-feasible choice of the disjunctions $\mathcal{O}$, we consider the so-called
-\textit{active schedule} $y$ as the unique solution to the linear program
-\note{[why unique?]}
-\begin{subequations}
-  \label{eq:active_schedule}
-\begin{align}
-  \min_{y} \quad & \sum_{i \in \mathcal{N}} y_{i} \\
-  \text{s.t.} \quad & a_{i} \leq y_{i} & \text{ for all } i \in \mathcal{N}, \\
-           & y_{i} + \rho_{i} \leq y_{j}, & \text{ for all } (i,j) \in \mathcal{C}, \\
-           & y_{i} + \sigma_{i} \leq y_{j}, & \text{ for all } (i,j) \in \mathcal{O} .
-\end{align}
-\end{subequations}
-To see when such a selection $\mathcal{O}$ is feasible, we can think of this
-linear program as a weighted directed graph on nodes $\mathcal{N}$ with
-conjunctive arcs $(i,j) \in \mathcal{C}$ with weights $w(i,j) = \rho_{i}$ and
-disjunctive arcs $(i,j) \in \mathcal{O}$ with weights $w(i,j) = \sigma_{i}$. Now
-observe that the definition of $y$ through the linear program is equivalent to
-defining $y$ through
-\begin{align}
-  \label{eq:y_max}
-  y_{j} = \max\{ a_{j}, \max_{i \in \mathcal{N}^{-}(j)} y_i + w(i,j) \} ,
-\end{align}
-where $\mathcal{N}^{-}(j)$ denotes the set of in-neighbors of node $j$. It is
-now easy to see that $y$ is well-defined if and only if the so-called \textit{complete disjunctive graph}
-$G=(\mathcal{N}, \mathcal{C} \cup \mathcal{O})$ is acyclic.
-%
-When $G$ is acyclic, there is a unique topological ordering of its nodes. Hence,
-any valid selection $\mathcal{O}$ of disjunctive constraints is equivalent to a
-sequence $\pi$ of vehicles. It is also equivalent to a sequence $\eta$ of routes,
-because the ordering of vehicles on the same route is already fixed. See
-Figure~\ref{fig:disjunctive_graphs} for an example of a complete disjunctive
-graph with corresponding vehicle order $\pi$ and route order $\eta$.
-%
-From now on, we will mainly be working with $\eta$, because it is in some sense the
-simplest representation of a schedule and we write $y^{\eta}$ to denote the
-corresponding induced crossing times.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.98\textwidth]{figures/single/disjunctive_graph.pdf}
-  \caption{Illustration of disjunctive graphs for some instance with two routes
-    with $n_{1} = 3$ and $n_{2} = 4$ vehicles. Horizontal arrows are the
-    conjunctive arcs, the rest are disjunctive arcs. The left graph is and
-    \textit{empty} disjunctive graph, because $\mathcal{O} = \varnothing$. The
-    selection of disjunctions shown in the \textit{complete} graph on the right
-    encodes the vehicle order
-    $\pi = ((1,1), (2,1), (1,2), (1,3), (2,2), (2,3), (2,4))$ and route order
-    $\eta = (1, 2, 1, 1, 2, 2, 2)$.}
-  \label{fig:disjunctive_graphs}
-\end{figure}
-
-\paragraph{Sequence modeling for schedules.}
+\section{Sequence modeling}
 Given some problem instance $s$, we now want to model the sequence $\eta$ such
 that $y^{\eta}$ is an optimal schedule. To this end, we model the conditional
 probability of $\eta$ given $s$ by considering autoregressive models of the form
@@ -2263,8 +2548,7 @@ paper~\cite{belloNeuralCombinatorialOptimization2017}.
 % and contains precisely $n_r = |\{ i \in \mathcal{N} : r(i) = r \}|$ occurrences
 % of route $r \in \mathcal{R}$.
 
-\section{Model parameterization}
-
+\paragraph{Parameterizations.}
 We can consider different ways of parameterizing $p(\eta | s)$ in terms of
 $p(\eta_{t+1} | s, \eta_{1:t})$. Here, each partial sequence $\eta_{1:t}$
 represents some partial schedule, which can equivalenty be defined in terms of
@@ -2300,7 +2584,7 @@ regardless of how the partial schedule is completed.
 
 \paragraph{Threshold heuristic.}
 
-We know from Proposition~\ref{prop:exhaustive} that whenever it is possible to schedule a vehicle
+We know from Theorem~\ref{thm:exhaustive} that whenever it is possible to schedule a vehicle
 immediately after its predecessor on the same route, then this must be done in
 any optimal schedule.
 %
@@ -2308,11 +2592,11 @@ Based on this idea, we might think that the same holds true whenever a vehicle
 can be scheduled \textit{sufficiently} soon after its predecessor. Although this is not
 true in general, we can define a simple heuristic based on this idea.
 
-In this case, the model does not specify a distribution over $\eta$, but selects
-a single candidate by selecting a single next route in each step, so with
-$\mathds{1}\{ \cdot \}$ denoting the indicator function, we have
-$p(\eta_{t+1} | G_{t}) = \mathds{1}\{ \eta_{t+1} = p_{\tau}(G_{t}) \}$,
-selecting the next route at step $t$ as
+In this case, the model does not specify a proper distribution over $\eta$, but
+selects a single candidate by selecting a single next route in each step, so
+with $\mathds{1}\{ \cdot \}$ denoting the indicator function, we have
+$p(\eta_{t+1} | G_{t}) = \mathds{1}\{ \eta_{t+1} = p_{\tau}(G_{t}) \}$, selecting the next
+route at step $t$ as
 % For every route $r \in \mathcal{R}$, let $k(r)$ denote the number of vehicles that
 % have already been scheduled. Hence, let $i = (\eta_{t}, k(\eta_{t}))$ denote the
 % vehicle that was scheduled in the last step.
@@ -2350,7 +2634,7 @@ threshold heuristic. Instead of looking at the earliest crossing time of the
 next vehicle in the current lane, we now consider the earliest crossing
 times of all unscheduled vehicles across lanes.
 %
-In the following definitions, we will drop the step index $t$ to avoid
+In the following definitions, we drop the step index $t$ to avoid
 cluttering the notation.
 %
 For every route $r$, let $\pi^{r}$ denote the sequence of unscheduled vehicles
@@ -2406,7 +2690,7 @@ the remaining probabilities.
 \end{figure}
 
 
-\section{Parameter fitting}
+\subsection{Parameter fitting using supervised learning}
 
 We will now explain how model parameters can be tuned using some sample of
 problem instances $X \sim \mathcal{X}$.
@@ -2428,7 +2712,7 @@ so we need to something different for the neural parameterization.
 
 Consider some instance $s \in X$ and let $\eta^{*}$ denote some optimal route
 sequence, which can for example be computed by solving the integer
-program~\eqref{eq:C'} from Section~\ref{sec:branch-and-cut}. For each such optimal schedule, we can
+program~\eqref{eq:C'}. For each such optimal schedule, we can
 compute the sequence $G_{0}, \eta_{1}, G_{1}, \eta_{2}, \dots, \eta_{N}, G_{N}$. The
 resulting set of pairs $\{ (G_{t}, \eta_{t+1}) : t = 1, \dots, N - 1 \}$ can be used to
 learn $p_{\theta}$ in a supervised fashion by treating it as a classification task
@@ -2449,7 +2733,7 @@ where $\mathds{1}\{\cdot\}$ denotes the indicator function. Now we can simply re
 some gradient-descent optimization procedure to minimize $L_{\theta}(Z)$ with
 respect to $\theta$.
 
-\section{Reinforcement learning}
+\subsection{Reinforcement learning}
 
 % imitation learning -> RL (on/off-policy)
 Instead of using state-action pairs as examples to fit the model in a supervised
@@ -2516,13 +2800,97 @@ state.
 In the context of combinatorial optimization, the value of the baseline may be
 interpreted as estimating the relative difficulty of an instance?
 
-\section{Results}
+\section{Results}\label{sec:results}
 
 The evalutation of model performance is roughly based on two aspects. Of course,
 the quality of the produced solutions is important. Second, we need to take into
 account the time that the algorithm requires to compute the solutions. We need
 to be careful here, because we have both training time as well as inference
 time for sequence models.
+
+
+For each route $r \in \mathcal{R}$, we model the sequence of earliest crossing times
+$a_{r} = (a_{r1}, a_{r2}, \dots)$ as a stochastic process, to which we refer as
+the \textit{arrival process}. Recall that constraints~\eqref{eq:conjunctive}
+ensure a safe following distance between successive vehicles on the same route.
+Therefore, we want the process to satisfy
+\begin{align*}
+  a_{(r, k)} + \rho_{(r,k)} \leq a_{(r, k + 1)} ,
+\end{align*}
+for all $k = 1, 2, \dots$.
+%
+Let the interarrival times be denoted as $X_{n}$ with cumulative distribution
+function $F$ and mean $\mu$, assuming it exists. We define the arrival times
+$A_{n} = A_{n-1} + X_{n} + \rho$, for $n \geq 1$ with $A_{0} = 0$.
+
+\begin{remark}
+Note that the arrival process may be interpreted as an renewal process with interarrivals
+times $X_{n} + \rho$.
+%
+% To be precise, let $I_{t} \in \{0, 1\}$
+% denote the state of the process at time $t$ and assume the process starts in
+% state $I_{0} = 0$. Let $X_{1}, X_{2}, \dots$ denote the times spend in state $0$
+% and let $\rho$ be the time spend in state $1$.
+%
+Let $N_{t}$ denote the corresponding counting process, i.e., $N_{t}$ counts the
+cumulative number of arrivals up to time $t$, then by the \textit{renewal theorem}, we
+obtain the \textit{limiting density} of arrivals
+%
+\begin{align*}
+  \mathbb{E}(N_{t + h}) - \mathbb{E}(N_{t}) \rightarrow \frac{h}{\mu + \rho} \quad \text{ as } t \rightarrow \infty ,
+\end{align*}
+for $h > 0$. Hence, we refer to the quantity $\lambda := {(\mu + \rho)}^{-1}$ as the
+average arrival intensity.
+\end{remark}
+
+%% Given
+% some time $t>0$, define the \textit{truncation} $a_{i}(t)$ as the finite
+% subsequence $(a_{i1}, \dots, a_{ik})$ of $a_{i}$ such that $a_{ik} \leq t$.
+% %
+% Let $f^{*}(a_{1}(t), a_{2}(t))$ denote an optimal schedule for the crossing
+% time scheduling problem with arrivals $a_{1}(t)$ and $a_{2}(t)$.
+% %
+% Given some schedule $y$, we say that it has a \textit{schedule renewal at
+%   time} $t$ whenever there are two successive vehicles
+% $(i, j) \in \mathcal{C}$ such that $t = y(i) + \sigma < y(j)$. Let $R(y)$ denote
+% the total number of such renewals in schedule $y$. Now consider the following
+% limit
+% \begin{align*}
+%   L = \lim_{t \rightarrow \infty} R(f^{*}(a_{1}(t), a_{2}(t))) .
+% \end{align*}
+% Whenever $L < \infty$, we say that the system is \textit{unstable}.
+% Whenever $L = \infty$, we say the system is \textit{stable}.
+%
+% Because there is in general no simple expression for $f^{*}$, it is not possible
+% to state a necessary and sufficient condition for stability like often done for
+% queueing systems. {\color{Navy}Argue that renewals do not change under $f^{*}$.}
+
+\paragraph{Platoons.}
+In order to model the natural occurence of platoons, we model the interarrival
+times $X_{n}$ as a mixtures of two random variables, one with a small expected
+value $\mu_{s}$ to model the gap between vehicles within the same platoon and one
+with a larger expected value $\mu_{l}$ to model the gap between vehicles of
+different platoons. For example, consider a mixture of two exponentials, such
+that
+\begin{align*}
+  F(x) &= p ( 1 - e^{-x / \mu_{s}} ) + (1 - p) (1 - e^{-x / \mu_{l}}) , \\[0.2em]
+  \mu &= p \mu_{s} + (1-p) \mu_{l} ,
+\end{align*}
+%
+assuming $\mu_{s} < \mu_{l}$. Observe that the parameter $p$ determines
+the average length of platoons.
+%
+Consider two intersecting routes, $\mathcal{R} = \{1, 2\}$, with arrival processes
+$a_{1} = (a_{11}, a_{12}, \dots)$ and $a_{2} = (a_{21}, a_{22}, \dots)$, with
+arrival intensities $\lambda^{(1)} = \lambda^{(2)}$.
+%
+We keep $\lambda_{s} = 0.5$ constant, and use
+\begin{align*}
+  \mu_{l}  = \frac{\mu - p \mu_{s}}{1 - p}
+\end{align*}
+to keep the arrival rate constant accross arrival distributions.
+
+
 %
 We study the effect of the problem instance distribution $\mathcal{X}$ by
 varying the number of routes and number of arrivals per route, distribution of
@@ -2578,72 +2946,81 @@ for the stepwise baseline in Figure~\ref{fig:rl_neural_stepwise_fit}.
 
 \chapter{Capacitated lanes}\label{chap:network}
 
-There is a difference in how we will state the initial conditions of the system.
+\note{
+There is a difference in how we state the initial conditions of the system.
 %
 Recall that, in Chapter~\ref{chap:single}, we defined initial position
 $x_{i}^{0}$ and velocity $v_{i}^{i}$ for each vehicle $i$.
 This is also what is usually done when presenting an optimal control problem.
 %
-Instead, we will now consider the time of entry into the system.
+Instead, we now consider the time of entry into the system.
 %
 These two notions are not necessarily equivalent.
 %
 Furthermore, we need to take special care in handling the domain of the
 resulting trajectories, since they are now different for each vehicle.
+}
 
 \section{Model formulation}
+
+In our presentation of the isolated intersection model, we relied heavily on the
+assumption that the intial distance to the intersection was large enough for
+each vehicle to allow feasible trajectories.
+%
+Once we extend our model to the multi-intersection situation, it does no longer
+make sense to ignore the finite length of roads between intersections. In other
+words, we need to start taking into account the \emph{finite capacity} for
+vehicles of each lane between intersections.
+%
+In order to formulate a model for a network of intersections, we first formulate
+and analyze a model for such a \emph{capacitated lane}.
+%
+In the next chapter, we will link such lanes together to construct a model
+representing a network of intersections.
 
 We will propose a model for a one-directional single-lane road of finite length
 where overtaking is not permitted.
 %
-We will link such lanes together to construct a model representing a
-network of intersections.
-%
-The fact that a lane between two intersections is of limited length---unlike the
-approaching lanes of the isolated intersection model---means that it can be
-occupied by a limited number of vehicles at the same time.
-%
-This property makes the characterization of set of feasible trajectories more
+The fact that such a lane can be occupied by a limited number of vehicles at the
+same time, makes the characterization of set of feasible trajectories more
 involved.
-
+%
 % feasibility analysis (of safe sets of trajectories)
 Given some lane, consider the set of vehicles that need to travel across this
 lane as part of their planned route. Suppose that the time of entry to and exit
 from this lane are fixed for each of these vehicles, then the question is
-whether there exists a set of trajectories that is safe, i.e.\ without
-collisions, and satisfies these \emph{schedule times}.
+whether there exists a set of trajectories that is safe, i.e., without
+collisions, and which satisfies these \emph{schedule times}.
 %
-Loosely speaking, we want an easy way to answer this question for any set of
-schedule times.
+Loosely speaking, we ask whether there exists an easy way to answer this
+feasibility question for any set of schedule times.
 %
-By requiring vehicles to enter and exit the lane at \emph{full speed}, we will
-show that this feasibility question is precisely answered by a system of linear
-inequalities in terms of the schedule times.
+By requiring vehicles to enter and exit the lane at \emph{full speed}, we will show
+that the answer positive, since the feasibility question is precisely answered
+by a system of linear inequalities in terms of the schedule times.
 
 % optimal control problem
 % byproduct: algorithm for bang-bang solutions
-Because there is generally not a single feasible set of trajectories, we can
-consider some performance criterion, for example by measuring some sort of
-smoothness to model passenger comfort or energy consumption.
+Of course, there is generally not a single feasible set of trajectories, so we
+can consider some different performance critera like we did for the isolated
+intersection.
 %
-The resulting optimal control problem is straightforward to solve using a direct
-transcription method.
+As we showed previously, the resulting optimal control problem is
+straightforward to solve using a direct transcription method.
 %
-However, when we seek to minimize each vehicle's distance
-to the end of the lane at all times, to which we refer as the \emph{haste
-  objective}, we will show that the optimal solution can be computed much more
-efficiently.
+Recall the \emph{haste objective}, which seeks to minimize each vehicle's distance to
+the end of the lane at all times. For this objective, we will show that the
+optimal solution can be computed much more efficiently.
 %
-We will see that the derivation of this algorithm is a direct byproduct of the
-feasibility analysis, because the latter will involve the construction of a
-certain set of upper bounding trajectories, which happen to be optimal under the
-haste objective.
+The derivation of this algorithm is a direct byproduct of the feasibility
+analysis, because the latter will involve the construction of a certain set of
+upper bounding trajectories, which happen to be optimal under the haste
+objective.
 
-In the remainder of this introducion, we will precisely establish the notion of
-a feasible set of trajectories in a lane. After precisely defining the optimal
-control problem under study, we show some examples of feasible trajectories for
-the haste objective and for the minimization of some proxy for energy
-consumption.
+In the remainder of this introductory section, we will precisely establish the
+notion of a feasible set of trajectories in a capacitated lane. To provide some
+initial intuition, we show some examples of feasible trajectories for the haste
+objective.
 
 
 \paragraph{Vehicle trajectories.}
@@ -2747,7 +3124,7 @@ For some performance criterion of trajectories, given as a functional $J(x)$ of
 trajectory $x$, the \emph{lane planning problem} is to find a feasible solution that
 maximizes
 \begin{align}\label{eq:objective}
-  \max \; \sum_{i=1}^{N} J(x_{i}) .
+  \min \; \sum_{i=1}^{N} J(x_{i}) .
 \end{align}
 \end{define}
 
@@ -2762,25 +3139,22 @@ a system of linear inequalities in terms of the schedule times $a_{i}$ and
 $b_{i}$.
 
 \paragraph{Choice of objective.}
-\note{Probably better to introduce these examples earlier on, i.e., in single intersection chapter.}
-%
-We obtain what we call the \emph{haste objective} by choosing
+Recall the \emph{haste objective}, which was defined as $J_{\alpha,\beta}$ with $\alpha=-1$ and $\beta=0$, which we will from now on denote as simply
 \begin{align}\label{eq:haste-objective}
-  J(x_{i}) = \int_{a_{i}}^{b_{i}} x_{i}(t) \diff t .
+  J(x_{i}) = \int_{a_{i}}^{b_{i}} - x_{i}(t) \diff t .
 \end{align}
 %
 Roughly speaking, this objective seeks to keep all vehicles as close to the end
 of the lane at all times, but it does not capture energy efficiency in any way.
 %
-\note{Introduce energy objective and present some examples for both for comparison.}
+In Section~\ref{sec:explicit-trajectories}, we will show that optimal
+trajectories under the haste objective can be understood as the concatenation of
+at most four different types of trajectory parts, which we might call
+\emph{bang-off-bang}. Based on this observation, we present an algorithm to compute
+optimal trajectories.
 %
-In the rest of this chapter, we will show that optimal trajectories under the
-haste objective can be understood as the concatenation of at most four different
-types of trajectory parts, which we might call \emph{bang-off-bang}. Based on
-this observation, we present an algorithm to compute optimal trajectories.
-%
-Extending this algorithm to objectives like \note{[the energy objective]}, is an
-interesting topic for further research.
+Generalizing this algorithm to other objectives like $J_{\alpha,\beta}$ with
+arbitrary parameters $\alpha$ and $\beta$, is an interesting topic for further research.
 
 % \subsection{Direct transcription}
 
@@ -3421,7 +3795,7 @@ $\gamma^{*}$ is also an upper boundary for any other feasible trajectory.
   \begin{align}
     \int_{a}^{b} x(t) \diff t \leq \int_{a}^{b} \gamma^{*}(t) \diff t
   \end{align}
-  Consequently, $\gamma^{*}$ is an optimal solution to the single vehicle
+  Consequently, $x = \gamma^{*}$ is an optimal solution to the single vehicle
   optimal control problem
   \begin{align}
     \max_{x \in D_{2}[a,b]} J(x) \; \text{ such that } \; x \preceq u .
@@ -3431,20 +3805,6 @@ $\gamma^{*}$ is also an upper boundary for any other feasible trajectory.
 
 
 \section{Lane planning feasibility}\label{sec:lane-problem-feasibility}
-
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=1.0]{figures/motion/solution}
-  \caption{Optimal trajectories $x_{i}$ for three vehicles. The dotted blue
-    trajectories between the little open circles illustrates the safe following
-    constraints~\eqref{eq:follow-constraint}. The dotted blue trajectories between
-    the solid dots are the following boundaries
-    $\bar{x}_{2} \in \bar{D}[\bar{a}_{2}, \bar{b}_{2}]$ and
-    $\bar{x}_{3} \in \bar{D}[\bar{a}_{3}, \bar{b}_{3}]$.}%
-  \label{fig:solution}
-\end{figure}
-
 
 We will now return to the feasibility of the lane planning problem and show how
 it decomposes in terms of a sequence of single vehicle feasibility problems.
@@ -3464,7 +3824,7 @@ Assume the system parameters $(\omega, \bar{\omega},A,B,L)$ to be fixed, then
 the goal is to find a sequence of trajectories $x \in D_{2}^{N}[a,b]$ such that
 \begin{subequations}
 \begin{alignat}{2}
-  &x_{i} \in D[a_{i},b_{i}] && \quad \text{ for each } i \in \{1, \dots, N\} , \\
+  &x_{i} \in D_2[a_{i},b_{i}] && \quad \text{ for each } i \in \{1, \dots, N\} , \\
   &x_{i} \preceq x_{i-1} - L && \quad \text{ for each } i \in \{2, \dots, N\} . \label{eq:follow-constraint}
 \end{alignat}
 \end{subequations}
@@ -3477,12 +3837,24 @@ the boudary $u = x_{i}$ for the next problem of finding $x_{i+1} \preceq u$.
 We will show that feasibility is equivalent to having the schedule times $a_{i}$
 and $b_{i}$ satisfy a certain system of inequalities.
 %
-We will need the following technical assumption, which is very reasonable to
-assume in practice.
+We will need the following technical assumption regarding the minimum length of
+the lane, which is very reasonable to assume in practice.
 
 \begin{assump}\label{assump:L-bound}
   Assume that vehicle lengths are limited by $L < B - A$.
 \end{assump}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1.0]{figures/motion/solution}
+  \caption{Optimal trajectories $x_{i}$ for three vehicles. The dotted blue
+    trajectories between the little open circles illustrates the safe following
+    constraints~\eqref{eq:follow-constraint}. The dotted blue trajectories between
+    the solid dots are the following boundaries
+    $\bar{x}_{2} \in \bar{D}[\bar{a}_{2}, \bar{b}_{2}]$ and
+    $\bar{x}_{3} \in \bar{D}[\bar{a}_{3}, \bar{b}_{3}]$.}%
+  \label{fig:solution}
+\end{figure}
 
 Now consider the safe following constraints~\eqref{eq:follow-constraint}.
 %
@@ -3569,15 +3941,15 @@ $\bar{a} := u^{-1}(A+L)$ and $\bar{b} := d + L$.
 \end{proof}
 
 %
-The following lemma concludes the   summarizes what we have established so far.
+The following lemma summarizes what we have established so far.
 
-\begin{lemma}
+\begin{lemma}\label{lemma:summary}
   The following four statements are equivalent:
 
   \begin{enumerate}[leftmargin=3em]
     \item[(C0)] The lane planning problem is feasible.
-    \item[(C1)] There exists $x \in D_{2}^{N}[a, b]$ such that $x_{i} \leq x_{i-1} - L$ for all $i \in \{2, \dots, N\}$.
-    \item[(C2)] There exists $x \in D_{2}^{N}[a, b]$ such that $x_{i} \leq \bar{x}_{i-1}$ for all $i \in \{2, \dots, N\}$.
+    \item[(C1)] There exists $x \in D_{2}^{N}[a, b]$ such that $x_{i} \preceq x_{i-1} - L$ for all $i \in \{2, \dots, N\}$.
+    \item[(C2)] There exists $x \in D_{2}^{N}[a, b]$ such that $x_{i} \preceq \bar{x}_{i-1}$ for all $i \in \{2, \dots, N\}$.
 
     \item[(C3)] There exists $x \in D_{2}^{N}[a, b]$ such that
           $b_{i} - a_{i} \geq B - A$ for all $i \in \{1, \dots, N\}$; and
@@ -3585,62 +3957,52 @@ The following lemma concludes the   summarizes what we have established so far.
     \begin{enumerate}[label=(\roman*)\quad,leftmargin=3em,midpenalty=10]
       \item $b_{i} \geq \bar{b}_{i-1}$, \tab (exit order constraint)
       \item $a_{i} \geq \bar{a}_{i-1}$, \tab (entry order constraint)
-      \item $\bar{x}_{i} \geq \check{x}_{i}$. \tab (entry space constraint)
+      \item $\bar{x}_{i-1} \succeq \check{x}_{i}$, \tab (entry space constraint)
     \end{enumerate}
+    for all $i \in \{2, \dots, N\}$.
 
   \end{enumerate}
 \end{lemma}
 \begin{proof}
-  Of course, (C0) and (C1) are equivalent by definition. Note that equivalence
-  of (C1) and (C2) is handled by Lemma~\ref{lemma:downshift}. \note{ We show
-    ``(C2) $\implies$ (C3)''. (simple) We show ``(C3) $\implies$ (C2)''.
-    (induction)}
+  Of course, (C0) and (C1) are equivalent by definition of the lane planning
+  problem. Note that equivalence of (C1) and (C2) is handled by Lemma~\ref{lemma:downshift}.
+  %
+  Equivalence of (C2) and (C3) follows from a straightforward application of
+  Theorem~\ref{thm:single-vehicle} by setting $x=x_i$ and $u=\bar{x}_{i-1}$ for
+  each $i \in \{2, \dots, N\}$.
 \end{proof}
 
-\paragraph{Simpler entry space constraints.}
-\note{[we will not proof this, but at least derive $a^{*}$ and maybe sketch what we would need for the proof (why we find it difficult)]}
-
+\paragraph{Simpler conditions.}
 The goal of the remainder of this section is to get rid of the entry space
-constraints and replace them with inequality constraints. More specifically, we
-will show that the above statements are further equivalent to
+constraints and replace them with an inequality constraints in terms of schedule
+times.
+%
+Moreover, we want to get rid of the dependence of $\bar{a}_{i-1}$ on
+$\bar{x}_{i-1}$, such that we obtain equivalent statements in $a_{i-1}$. Note
+that the exit order constraint is already in the desired form, because we have
+$\bar{b}_{i-1} = b_{i-1} + L$.
+%
+More specifically, we will thus show that the statements of
+Lemma~\ref{lemma:summary} above are further equivalent to:
 \begin{enumerate}[leftmargin=3em]
   \item[(C4)] We have $b_{i} - a_{i} \geq B-A$ for all $i \in \{1, \dots, N\}$; and
   \begin{enumerate}[leftmargin=4em,midpenalty=10]
     \item[(i*)\quad] $b_{i} \geq b_{i-1} + L$,
     \item[(ii*)\quad] $a_{i} \geq a_{i-1} + L$,
   \end{enumerate}
+  \TabPositions{3cm}
   for all $i \in \{2, \dots, N\}$; and
   \begin{enumerate}[leftmargin=4em,midpenalty=10]
-    \item[(c*)\quad] $a_{i} \geq a^{*}$, \tab (entry time constraint)
+    \item[(c*)\quad] $a_{i} \geq \check{a}_i(a,b)$, \tab (entry time constraint)
   \end{enumerate}
-  for all $i \in \{n, \dots, N \}$.
+  for all $i \in \{n, \dots, N \}$,
 \end{enumerate}
+for some $n \geq 2$ and where $\check{a}_{i}(a,b)$ denotes some expression in terms of
+schedule times. Consequently, $\max\{a_{i-1} + L, \check{a}_{i}(a,b)\}$ can be
+interpreted as the earliest possible time of arrival to the lane for vehicle
+$i$.
 
-
-\paragraph{Earliest arrival.}
-We show that the entry order constraint $\bar{a}_{i} \leq a_{i}$ and the entry space constraint $\bar{x}_{i} \geq \check{x}_{i}$ together are equivalent to the two constraints
-\begin{subequations}
-\begin{align}
-  a_{i} &\geq a_{i-1} + L , \\
-  a_{i} &\geq \check{a}_{i}(a, b) ,
-\end{align}
-\end{subequations}
-where $\check{a}_{i}(a,b)$ denotes some expression in terms of schedule times.
-Consequently, $\max\{a_{i-1} + L, \check{a}_{i}(a,b)\}$ can be interpreted as
-the earliest possible arrival time for vehicle $i$.
-%
-Recall that $\bar{a}_{i} = x^{-1}_{i-1}(A+L)$.
-
-Recall the definition of $\hat{x}$ in equation~\eqref{eq:hat-x}. By carefully
-handling the $\max\{\cdot\}$, we can expand this expression as
-\begin{align}
-  \hat{x}(t) =
-  \begin{cases}
-    B - b + t + \bar{\omega} (b-t)^{2} / 2 &\text{ for } t \geq b - 1/\bar{\omega} , \\
-    B - 1/(2\bar{\omega}) &\text{ for } t \leq b - 1/\bar{\omega} .
-  \end{cases}
-\end{align}
-
+\paragraph{Waiting positions.}
 Waiting capacity is given by
 \begin{align}
   C = \left\lfloor \frac{B-A-1/(2\bar{\omega}) -1/(2\omega)}{L} \right\rfloor + 1 ,
@@ -3658,7 +4020,7 @@ where the brackets indicate the floor function.
 
 \newpage
 
-\section{Optimal solution for haste objective}
+\section{Optimal solution for haste objective}\label{sec:explicit-trajectories}
 
 Due to the recursive nature of the problem, we will see that optimal
 trajectories for the haste objective (minimizing $J_{\alpha,\beta}$ with
@@ -3966,19 +4328,21 @@ Put everything together into pseudocode.
 
 \section{Notes and references}
 
-The analysis of feasibility conditions in this chapter is very much related to the work~\cite{miculescuPollingsystemsbasedAutonomousVehicle2016}.
+The analysis of feasibility conditions in this chapter is very much related to
+the work~\cite{miculescuPollingsystemsbasedAutonomousVehicle2016}.
 %
-They study an online situation, in which new vehicles arrive to the system at later times.
+They study an online situation, in which new vehicles arrive to the system at
+later times.
 %
-They also alow changing the crossing order with respect to conflicting lanes, which might require the current planned vehicle trajectories to change (slow down) to anticipate this change.
+They also allow changing the crossing order with respect to conflicting lanes,
+which might require the current planned vehicle trajectories to change (slow
+down) to anticipate this change.
 %
 We do not study such an online setting, but we take into account the fact that
-lanes are of finite length. \note{[ while revisiting the figures in their paper,
-  it seems what they do is very related to my own attempt; I couldn't get
-  through their appendix earlier ]}
+lanes are of finite length.
 
-There are different ways of relaxing the second-order constraints that could be
-studied.
+There are different ways of relaxing the state constraints on the speed that
+could be studied.
 %
 The interesting question is whether feasibility can still be easily characterized.
 %
@@ -3989,6 +4353,10 @@ require, for example, that the speed is bounded from below, i.e.,
   \eta \leq \dot{x}(a) \leq 1 \quad \text{ and } \quad \eta \leq \dot{x}(b) \leq 1 ,
 \end{align}
 for some $\eta > 0$.
+%
+The motivation for studying this relaxation is that this might lead to more
+energy efficient trajectories, whenever full speed crossing is not strictly
+necessary.
 
 \chapter{Learning to schedule in networks}\label{chap:network-learning}
 
@@ -4087,6 +4455,13 @@ times $y_{i}$.
 \addtocontents{toc}{\protect\renewcommand\cftbeforechapskip{2.5em}}
 \chapter{Conclusion and discussion}\label{chap:conclusion}
 \addtocontents{toc}{\protect\renewcommand\cftbeforechapskip{1em}}
+
+\begin{outline}
+  \1 new insights from current work
+  \1 possible impact of this work
+  \1 limitations of current work
+  \1 recommendations on further work
+\end{outline}
 
 % the code around the bibliographp itself serves as
 % a sort of anchor for adding a bookmark entry
@@ -4992,6 +5367,18 @@ similar to~\eqref{eq:x-}, we calculate
   \end{cases}
 \end{align}
 with $\bar{\delta}_{0} := $ and $\bar{\delta}_{1} := $.
+
+\note{
+Recall the definition of $\hat{x}$ in equation~\eqref{eq:hat-x}. By carefully
+handling the $\max\{\cdot\}$, we can expand this expression as
+\begin{align}
+  \hat{x}(t) =
+  \begin{cases}
+    B - b + t + \bar{\omega} (b-t)^{2} / 2 &\text{ for } t \geq b - 1/\bar{\omega} , \\
+    B - 1/(2\bar{\omega}) &\text{ for } t \leq b - 1/\bar{\omega} .
+  \end{cases}
+\end{align}
+}
 
 \end{document}
 
