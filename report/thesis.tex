@@ -58,7 +58,7 @@
 \newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
 \author{\Large Jeroen van Riel \\[6em] {\it Combined Master's Thesis} \\[0.6em] Industrial and Applied Mathematics \\ Computer Science and Engineering  \\[3em] {\it Supervisors} \\[0.6em] Marko Boon \\ Stella Kapodistria \\ Mykola Pechenizkiy \\ Danil Provodin  \\[8em] October 2025 \\[0.6em] Eindhoven University of Technology}
 \date{}
-\newcommand{\mytitle}{\huge \bf Coordination of Autonomous Traffic in Networks of Intersections using Decomposition Techniques and Machine Learning-Based Scheduling}
+\newcommand{\mytitle}{\huge \bf Coordination of Autonomous Traffic in Networks of Intersections using Machine Learning-Based Scheduling}
 
 \title{\mytitle}
 
@@ -212,43 +212,54 @@ alternative encodings. }
 %%% motivation:
 
 % natural to study aut. coord.
+% define "coordination"
 %
 Given the ongoing advances in self-driving vehicles and wireless communication,
-it is very natural to study how these new technologies can be applied to enable
-network-wide traffic coordination.
+it is very natural and relevant to study how these technologies and capabilities
+can be employed to improve road traffic.
 %
-Some of the potential benefits of coordinating the motion of groups of autonomous
-vehicles are increased network throughput, reduced energy consumption and better
-guarantees on safety in terms of avoiding dangerous situations.
+One of the promising possibilities is \emph{coordination of groups of vehicles},
+by which we mean the dynamic management of interactions among vehicles and
+between vehicles and infrastructure, to align their behaviors---such as speed,
+routing, and maneuvers---in a way that promotes safety, efficiency, and smooth
+traffic flow.
 
 % studied from wide range of perspectives, methods
 %
-Hence, it is not surprising that coordination of autonomous vehicles with
-communication has been studied from a wide range of perspectives.
+The general goal of coordination has been approached from a wide range of
+perspectives, which has given rise to diverse concrete problem formulations and
+methodologies.
 %
-To give some example, a typical distinguishing feature is the level of
-organization at which coordination is considered~\cite{marianiCoordinationAutonomousVehicles2022}. A probably well-known
-example of \emph{local coordination} is platooning of vehicles, where the aim is to
-lower energy consumption by reducing aerodynamic resistance. It has been shown
-that platooning can also result in a more efficient use of intersections. On a
-larger scale, \emph{global coordination} methods like dynamic route optimization have
-been proposed to reduce travel delay for all vehicles in the network.
+The level of organization at which coordination takes place is a very typical
+distinguishing feature among existing
+works~\cite{marianiCoordinationAutonomousVehicles2022}.
+%
+A well-known example of \emph{local coordination} is platooning of vehicles, in
+which consecutive vehicles on the same lane try to keep close together while
+maintaining similar speeds, with the aim of lowering energy consumption by
+reducing aerodynamic resistance. It has been shown that platooning can also
+result in a more efficient use of
+intersections~\cite{miculescuPollingsystemsbasedAutonomousVehicle2016,tachetRevisitingStreetIntersections2016,timmermanPlatoonFormingAlgorithms2021}.
+On a larger scale, \emph{global coordination} methods like dynamic route
+optimization have been proposed to reduce travel delay for all vehicles in the
+network~\cite{rossiRoutingAutonomousVehicles2018}.
 
 % many modeling aspects
 %
-Apart from the organization, the coordination problem has many more modeling
-aspects. For example, one may think of heterogeneous vehicles---in terms of
-dynamics or priority---different models of centralized/decentralized
-communication between vehicles or with the infrastructure, under different
-guarantees on reliability; complex road topology, curved lanes, merging lanes;
+Apart from the level of organization, coordination problems can have many more
+modeling aspects. For example, one may think of heterogeneous vehicles---in
+terms of physical differences or functionality---different models of
+centralized/decentralized communication between vehicles or with the
+infrastructure, under different guarantees on reliability; complex road
+topology, curved lanes affecting the maximum safe speed, merging lanes;
 implications of mixing human traffic with fully autonomous traffic.
 %
 We will discuss some common modeling aspects in the literature review below.
 
 % even simple models provide fundamental computational challenges
 %
-Coordination has been considered from various angles, but some fundamental
-challenges in ensuring safety and efficiency remain poorly understood, even in
+Although coordination has been considered from various angles, some fundamental
+challenges related to safety and efficiency remain poorly understood, even in
 stylized models with the bare minimal modeling elements such as vehicle dynamics
 and collision-avoidance constraints.
 %
@@ -282,9 +293,9 @@ problems like communication latency and noisy information.
 
 % focus on optimization of motion
 %
-We will take an \emph{optimization-based perspective} on the coordination problem, in
-which the joint trajectories of the vehicles in the system are our main
-decisions.
+We will take an \emph{optimization-based planning perspective} on the
+coordination problem, in which the joint trajectories of the vehicles in the
+system are our main decisions.
 %
 % challenge: defining the constraints and optimization objective
 %
@@ -321,7 +332,7 @@ to the algorithmic aspects of solving such optimization problems.
 
 In traffic coordination, combinatorial problems arise naturally from ordering
 constraints---deciding which vehicle should move first across shared resources
-such as intersections, merges, or lanes, while taking into account trade-offs
+such as intersections, merge areas, or lanes, while taking into account trade-offs
 between throughput, fairness, and safety.
 %
 Traditionally, such problems are resolved by implementing traffic lights or
@@ -419,7 +430,7 @@ consulted when conducting this literature review.
 %
 The survey \cite{marianiCoordinationAutonomousVehicles2022} classifies works
 mainly on the level of organization. Moreover, apart from vehicle motion around
-intersections and other conflict spaces, they also review are other interesting
+intersections and other conflict spaces, they also review other interesting
 coordination challenges in autonomous traffic management, like smart parking and
 ride sharing, which also have significant societal impact.
 %
@@ -2013,7 +2024,7 @@ Let us first consider some basic examples to sharpen our intuition.
     a_{2} \leq \sigma/3 ,
   \end{align}
   which roughly means that the ``longest chain first'' rule becomes optimal
-  whenever the earliest arrival times are ``close enough''.
+  whenever the earliest crossing times are ``close enough''.
 \end{eg}
 
 In the previous example, we see that it does not make sense to schedule vehicle
@@ -2027,7 +2038,7 @@ before slightly generalizing the example.
   A sequence of consecutive vehicles $(r, l+1), (r, l+2), \dots, (r, l+n)$ from
   some route $r$ is called a \textit{platoon} of size $n$ if and only if
   \begin{align}
-  a_{(r,k)} + \rho = r_{(r, k+1)}  \quad \quad \text{ for all } l < k < l + n.
+  a_{(r,k)} + \rho = a_{(r, k+1)}  \quad \quad \text{ for all } l < k < l + n.
   \end{align}
  We say that the platoon is \textit{split}
   in some schedule $y$, if
@@ -2080,7 +2091,7 @@ before slightly generalizing the example.
   \centering
   \includegraphics[scale=0.9]{figures/single/platoons.pdf}
   \caption{Different ways to split platoon A, regarding Example~\ref{example3}, assuming
-    equal earliest arrival times $a_{A} = a_{B}$ with $n_{A} = 3$ vehicles in
+    equal earliest crossing times $a_{A} = a_{B}$ with $n_{A} = 3$ vehicles in
     platoon A and some arbitrary number of vehicles $n_{B}$ in platoon B.}
   \label{fig:example3}
 \end{figure}
@@ -2145,7 +2156,7 @@ in the system, we consider problem instances with two routes and report
 running times as a function of the number of vehicles per route.
 %
 Problem instances are generated with fixed processing time $\rho=4$, switch-over
-time $\sigma=1$, and randomly generated earliest arrivals times $a_i$.
+time $\sigma=1$, and randomly generated earliest crossing times $a_i$.
 %
 A detailed discussion of the distribution of $a_i$ that we used is deferred to
 the end of the next chapter, where a more extensive comparison will be provided.
@@ -2175,7 +2186,7 @@ significant runtime improvement.
     the branch-and-cut procedure is plotted as a function of the number of
     arriving vehicles per route, for each of the three indicated cutting planes.
     Each average is computed over $20$ problem instances. All instances use
-    $\rho = 4$ and $\sigma = 1$. The earliest arrival times for vehicles are generated
+    $\rho = 4$ and $\sigma = 1$. The earliest crossing times for vehicles are generated
     using the bimodal exponential interarrival time model from
     Section~\ref{sec:results} with parameters $p=0.5, \mu_{s} = 0.1, \mu_{l} = 10$.
     This figure clearly shows that the conjunctive cutting planes provide the
@@ -2245,7 +2256,7 @@ Interestingly, these works also propose an alternative (``noncompact'') MILP
 formulation that does not depend on the big-$M$ trick.
 
 
-\chapter{Scheduling as sequence learning}\label{chap:single-learning}
+\chapter{Learning to schedule}\label{chap:single-learning}
 
 % sequence modeling
 Most methods that are based on some kind of branch-and-bound tree search are
@@ -2256,7 +2267,8 @@ very poorly with increased instance sizes.
 Once we start considering multiple intersections, this scaling issue is expected
 to become even more prominent, so we first try to obtain fast algorithms for the
 single intersection crossing time scheduling problem with large numbers of
-vehicles.
+vehicles, thereby sacrificing optimality guarantees in favor of speed and
+potential for scalability.
 %
 Specifically, in this chapter, we are interested in developing heuristics to
 obtain good schedules, with close to optimal total travel delay, in limited
@@ -2269,7 +2281,7 @@ provides some background on the general idea of leveraging machine learning
 techniques to solve combinatorial problems.
 %
 We introduce the central idea of treating problem instances and solutions as
-training data points and mention some key works to illustrate the genreal
+training data points and mention some key works to illustrate the general
 methodology.
 
 % our methodology
@@ -2382,7 +2394,7 @@ finite set, but Dantzig's simplex algorithm shows that the optimal solution must
 be one of the finitely many vertices of the convex polytope.
 \end{remark}
 
-\paragraph{Motivation.}
+\subsection{Motivation}
 
 Two main motivations for applying ML for solving CO problems have been
 identified in the current
@@ -2433,30 +2445,30 @@ it captures our intuition in this way.
 The process of designing an algorithm itself may be considered as an
 optimization problem.
 %
-Let $i = (V, f) \in \mathcal{I}$ denote an instance of a combinatorial problem
+Let $s = (V, f) \in \mathcal{I}$ denote an instance of a combinatorial problem
 from some set $\mathcal{I}$ of problem instances and let $\pi \in \Pi$ denote
 some algorithm for solving it. We use $\Pi$ to denote some class of algorithms;
 we will make this more precise later.
 %
 Let $m : \mathcal{I} \times \Pi \rightarrow \mathbb{R}$ denote some performance
-measure of the algorithm $\pi$ applied to problem instance $i$, which may
+measure of the algorithm $\pi$ applied to problem instance $s$, which may
 include aspects such as eventual objective value, bounds on optimality, running
 time, usage of resources such as memory, etc.
 %
-Given some instance $i$, the goal of the algorithm developer can be succintly
+Given some instance $s$, the goal of the algorithm developer can be succintly
 formulated as
 \begin{align}
-  \min_{\pi \in \Pi} m(i, \pi) .
+  \min_{\pi \in \Pi} m(s, \pi) .
 \end{align}
 However, this single-instance situation is not very typical. More often we have
 a class of instances $\mathcal{I}$ that we want to consider, for example, the
 class of all traveling salesman problems.
 %
-Assume that $m(i, \pi)$ measures the running time of the algorithm, then the
+Assume that $m(s, \pi)$ measures the running time of the algorithm, then the
 classical worst-case analysis leads to the optimization problem
 \begin{align}
   \label{eq:min-max-runtime}
-  \min_{\pi \in \Pi} \max_{i \in \mathcal{I}} m(i, \pi) .
+  \min_{\pi \in \Pi} \max_{s \in \mathcal{I}} m(s, \pi) .
 \end{align}
 
 \paragraph{Problem distribution.}
@@ -2481,19 +2493,18 @@ This distribution captures the problem instances the company actually cares
 about, as further illustrated by Figure~\ref{fig:problem-distribution}.
 %
 Hence, the company is actually interested in solving the following problem
-\begin{align}
-  \label{eq:max-expected-performance}
-  \min_{\pi \in \Pi} \mathbb{E}_{i \sim P} \left[ m(i, \pi) \right] .
-\end{align}
-%
 \comment{It can be argued that this ``sharper'' objective is even necessary in
   some sense due to the no free lunch theorem.}
+\begin{align}
+  \label{eq:max-expected-performance}
+  \min_{\pi \in \Pi} \mathbb{E}_{s \sim P} \left[ m(s, \pi) \right] .
+\end{align}
 %
 The distribution $P$ is generally not known explicitly, so we need to resort to
 using samples $D_\text{train}$ (e.g., obtained as historical problem instances)
 in order to estimate~\eqref{eq:max-expected-performance} and solve instead
 \begin{align}
-  \min_{\pi \in \Pi} \sum_{i \in D_\text{train}} \frac{1}{|D_\text{train}|} m(i, \pi) .
+  \min_{\pi \in \Pi} \sum_{s \in D_\text{train}} \frac{1}{|D_\text{train}|} m(s, \pi) .
 \end{align}
 
 
@@ -2509,7 +2520,7 @@ in order to estimate~\eqref{eq:max-expected-performance} and solve instead
     $P_2$).}\label{fig:problem-distribution}
 \end{figure}
 
-\paragraph{Algorithm execution as MDP.}
+\subsection{Algorithm execution as MDP}
 
 To make the optimization outlined above more concrete, we first need to choose a
 representation for the set of algorithms $\Pi$ over which we are
@@ -2526,47 +2537,44 @@ provides a particularly natural abstraction.
 
 % DFA = base model
 Our starting point is to model the execution of an algorithm as a particular
-state transition sequence in some deterministc finite-state automaton (DFA) as follows. Let
-$\mathcal{S}$ be the finite set of states, with
-$\mathcal{I} \subseteq \mathcal{S}$ denoting the initial states, corresponding
-to problem instances, and $\mathcal{O} \subseteq \mathcal{S}$ denoting the
-final, absorbing states that represent possible outputs. Once a final state is
-reached, the simulation terminates. The remaining states
-$\mathcal{S} \setminus (\mathcal{I} \cup \mathcal{O})$ capture the
-\emph{internal state} of the algorithm, abstracting the relevant data structures
-in memory.
+state transition sequence in some deterministc finite-state automaton (DFA) as
+follows. Let $\mathcal{S}$ be the finite set of states, with
+$\mathcal{S}_0 \subseteq \mathcal{S}$ denoting the initial states, encoding problem
+instances, and $\mathcal{S}_f \subseteq \mathcal{S}$ denoting the final, absorbing
+states that represent possible outputs. Once a final state is reached, the
+simulation terminates. The states capture the \emph{internal state} of the algorithm,
+abstracting the relevant data structures in memory.
 %
-Let $\mathcal{A}$ denote the finite non-empty set of
-\emph{actions}.\footnote{Note that the terminology ``input alphabet'' is
-  actually more common for DFAs, because this and similar models are interpreted
-  to ``accept'' or ``reject'' certain formal languages within the field of
-  computational complexity. Saying ``action space'' makes more sense here
-  because we will turn the DFA into an MDP.}
+Let $\mathcal{A}$ denote the finite non-empty set of \emph{actions}.\footnote{Note that
+  the terminology ``input alphabet'' is actually more common for DFAs and related
+  models, because they are said to accept a certain set of sentences in a formal
+  languages, which is a central notion within the field of computational
+  complexity. Saying ``action space'' makes more sense here because we will turn
+  the DFA into an MDP.}
 %
 Some transition function $p : \mathcal{S} \times \mathcal{A} \to \mathcal{S}$ specifies
-how the automaton evolves from one state to the next, given some input symbol.
+how the automaton evolves from one state to the next, given some action.
 %
 An algorithm is now modeled by a function
 $\pi : \mathcal{S} \rightarrow \mathcal{A}$ that provides the action to be taken
 from each state.
 %
-Given some initial state $i \in \mathcal{I}$, we let $o_\pi(i)$ denote the final
-state that is reached by repeatedly choosing the next action according to $\pi$
-and transitioning to the next state according to $p$, assuming the process
-halts rather than cycling indefinitely. In this view, $\pi$ parameterizes the
-automaton’s execution on instance $i$, just as program code determines the state
-transitions of a computer.
+Given some initial state $s \in \mathcal{S}_0$, we let $o_\pi(s)$ denote the
+unique final state that is reached by repeatedly choosing the next action
+according to $\pi$ and transitioning to the next state according to $p$, assuming
+the process halts rather than cycling indefinitely. In this view, $\pi$
+parameterizes the automaton’s execution on instance $s$, just as program code
+determines the state transitions of a computer.
 % performance measure
-In this model, the performance of running algorithm $\pi$ on instance $i$ is
-mostly determined by the final state reached, so we could write
-\begin{align}
-        m(i,\pi) = m(o_\pi(i)) .
-\end{align}
-The evaluation of $m(i,\pi)$ can thus be understood as executing algorithm $\pi$ on
-input $i$ and reading off the relevant information from the resulting state. To
-support this, states may carry auxiliary data about the execution, such as the
-total number of transitions taken or bounds on the quality of the solution
-returned.
+In this model, the performance of running algorithm $\pi$ on instance $s$ is
+determined by the final state, which we denote as some function
+$m : \mathcal{S}_f \rightarrow \mathbb{R}$.
+%
+The evaluation of $m(s,\pi)$ in the notation above can thus be understood as
+executing algorithm $\pi$ on input $s$ and reading off the relevant information
+from the resulting final state, so $m(s,\pi) = m(o_\pi(s))$. To this end, states
+may carry auxiliary data about the execution, such as the total number of
+transitions taken or bounds on the quality of the solution returned.
 
 % optimization and restriction of $\Pi$ through choice of $\mathcal{S}$
 For algorithm optimization problems such as~\eqref{eq:min-max-runtime} or~\eqref{eq:max-expected-performance}, the objective now
@@ -2613,7 +2621,6 @@ In this example, the actions $\mathcal{A}$ would correspond, roughly speaking, t
 selecting some valid cutting plane, upon which the state transition $p$
 models the whole of the execution of the branch-and-bound solver until the next
 time a cutting plane has to be selected.
-
 % conclusion
 With stochastic state transitions, the DFA can be understood as a MDP after we
 define an appropriate (deterministic\footnote{In general MDPs, the reward may
@@ -2621,9 +2628,9 @@ define an appropriate (deterministic\footnote{In general MDPs, the reward may
   make much sense in the combinatorial optimization setting.}) reward function
 $r : \mathcal{S} \rightarrow \mathbb{R}$.
 %
-The logical choice is to define a single final reward, which is the negative
-performance measure at the final state $r(o_\pi(i)) = - m(o_\pi(i)) = - m(i, \pi)$.
-%
+The natural definition of this reward function is to have zero reward for all
+non-final states and to define $r(s_f) = -m(s_f)$ for all final states $s_f \in \mathcal{S}_f$.
+
 From this perspective, function $\pi$ is a deterministic policy function, which we
 want to optimize.
 % stochastic policy
@@ -2632,11 +2639,10 @@ to generalize $\pi$ to be a probability distribution over next actions, which ca
 be written as $\pi : \mathcal{S} \rightarrow \Delta(\mathcal{A})$, which makes it a
 stochastic policy.
 %
-The reasons for doing this are mainly of a technical nature, for example to
-promote exploration or to make sure the policy gradient exists.
-%
-However, in some cases it could also make sense to consider randomized
-algorithms.
+The reasons for allowing the policy to be stochastic are mainly of a technical
+nature\footnote{For some combinatorial problems, it could also make sense to
+  consider randomized algorithms.}, for example to promote exploration or to
+make sure the policy gradient exists.
 %
 The reasons for modeling a parameterized algorithm as a MDP can be summarized as
 follows:
@@ -2654,6 +2660,7 @@ follows:
         to a problem instance $s_0 \in \mathcal{I}$.
 \end{enumerate}
 
+\note{
 We introduce yet another perspective on the algorithm model that could
 be helpful in some contexts.
 %
@@ -2670,7 +2677,7 @@ The probability of this trajectory can be decomposed as follows
   \label{eq:7}
   p(\tau) = \rho_0(s_0) \prod_{t=0}^{T-1} \pi(a_t | s_t) p(s_{t+1} | s_t, a_t) ,
 \end{align}
-where $\rho_0(\cdot)$ denotes the distribution of the initial state.
+where $\rho_0(\cdot)$ denotes the distribution of the initial state.}
 
 % \begin{figure}
 %   \centering
@@ -2718,77 +2725,6 @@ why our own model can be understood as having a stronger prior.
   obtaining more precise information.
 \end{remark}
 
-\clearpage
-\paragraph{Policy optimization.}
-
-We can identify two main learning paradigms for finding good algorithms $\pi$,
-which also have natural ties to the two main motivations discussed above.
-%
-Suppose that we have some heavy computation $f(\cdot)$ which we want to replace
-with a fast approximation $\hat{f}(\cdot)$.
-%
-A natural strategy is to collect samples of $f(x)$ for a set of inputs $x \in X$
-and then consider the supervised learning problem of minimizing some loss
-function $\ell(f(x), \hat{f}(x))$.
-%
-We could say that this method is \emph{learning from demonstration}.
-%
-Please note that this way, it could happen that policies that are not close to
-the expert perform well nevertheless, because they found some alternative good
-strategy.
-
-Alternatively, we could try to search the space of possible algorithms more
-directly, by trying to optimize the expected reward.
-
-Beam search can be understood as searching over execution trajectories of
-algorithm actions parameterized by probability distributions.
-%
-In some sense, the beam search procedure itself can also be regarded as just
-another algorithmic prior on a higher level of abstraction.
-%
-From this perspective, we could even parameterize some parts of the beam search
-procedure itself and subject this to learning.
-Think for example of beam width.
-
-\paragraph{Policy parameterization.}
-
-The strength of the ML for CO paradigm stems from the ability of high-capacity
-neural network-based models to capture patters in the problem.
-%
-Therefore, instead of directly optimizing over some class of algorithms $\Pi$, a
-common strategy is to use a differentiable paramterization of algorithms, so
-where some real vector $\theta \in \mathbb{R}^n$ is the parameter of policy
-$\pi_\theta$.
-The corresponding algorithm optimization problem with expected cost can then be written as
-\begin{align}
-  \label{eq:4}
-  \min_\theta \mathbb{E}_{i \sim P}[m(i, \pi_\theta)] .
-\end{align}
-
-These parameters can for example be the weights and biases in a
-deep neural network.
-%
-However, using neural networks this brings several difficulties with it. For
-example, CO problems often involve sets instead of ordered sequences. Therefore,
-the neural network should be invariant to the ordering of the elements in the
-input. One early attempt was the pointer
-network~\cite{vinyalsPointerNetworks2017a}, which is a sort of attention
-mechanism.
-%
-Later, more general attention mechanisms like the transformer architecture
-became mainstream.
-
-\paragraph{Generalization.}
-
-One of the main challenges is obtaining algorithms that generalize to instances not seen during training.
-%
-For this reason, it makes sense to use a set of validation samples
-$D_\text{valid}$ to gauge how well the learned policy generalizes to unseen
-instances and \emph{unseen internal states}.
-%
-There are generally two important axes of comparison: larger instances and
-instances with different structure.
-
 \newcolumntype{L}[1]{>{\RaggedRight\hsize=#1\hsize\hspace{0pt}}X}
 \begin{table}[t]
 \centering
@@ -2817,21 +2753,200 @@ instances with different structure.
 \end{table}
 
 
+\newpage
+
+\subsection{Methodology}
+
+We now present a concise discussion of the general ML for CO methodology,
+centered around the follow three aspects.
+%
+We start by explaining that generalization should be regarded as the central
+goal.
+%
+The point is to make sure that policies generalize. When they do, this also
+makes up for the longer traning of the model, which can happen offline.
+%
+After that, we discuss the two most important engineering-type aspects, which
+are the way in which the policy is parameterized and the corresponding
+optimization procedure.
+
+\note{Performance evaluation is mainly based on expected solution quality and
+  on expected running time.}
+
+\paragraph{Generalization.}
+
+One of the main challenges in ML for CO is obtaining algorithms that generalize
+to instances not seen during training.
+%
+This means that the learned policy should not only perform well on the training
+data set but also remain robust when facing new instances from the general
+problem instance distribution.
+%
+For this reason, it makes sense to use a set of validation samples
+$D_\text{valid}$ to gauge how well the learned policy generalizes to unseen
+instances.
+%
+Because we are dealing with sequential decision making models, we emphasize that
+generalization also applies to \emph{unseen internal states}.
+%
+We want policies that do not break down immediately when slightly different
+internal states are encountered---for example, when some decision early on leads
+to a novel configuration of the remaining algorithmic state that was rarely, if
+ever, observed during training.
+%
+It has been observed that policy optimization with RL techniques, compared those
+based on the imitation learning principle, which we will discuss in more detail
+below, can help improve
+generalization~\cite{belloNeuralCombinatorialOptimization2017}. This is not
+surprising, since RL methods are specifically designed to explore the state
+space actively.
+%
+Unlike imitation learning, which is constrained by the trajectories of an
+expert, RL encourages the discovery of alternative strategies and adaptation to
+unseen states, which tends to foster robustness.
+
+There are generally two important axes of comparison for generalization:
+instance \emph{size} and instance \emph{structure}.
+%
+For example, in the traveling salesman problem (TSP), the number of nodes
+naturally determines its size, and scaling from 20 nodes to 100 nodes can
+dramatically increase the complexity of the solution space. A well-generalizing
+policy should gracefully adapt to scaling up or down, even if it has only been
+trained on a narrow size range.
+%
+The \emph{structure} axis, on the other hand, refers to recurring patterns or
+distributions within the problem instances. For TSP, this might include
+differences between uniformly random point clouds, clustered distributions of
+nodes, or instances derived from real-world city layouts. Policies that
+generalize structurally should be able to transfer knowledge from synthetic or
+idealized training data to more irregular and heterogeneous real-world cases.
+%
+In practice, strong generalization requires balancing both axes: a policy that
+scales to larger sizes but fails to adapt to structural changes is just as
+limited as one that can handle different structures but collapses under size
+increases.
+
+
+\paragraph{Policy parameterization.}
+
+% why parameterize? vs. "tabular methods"
+In the context of CO problems, we can safely assume that the state and action
+space are discrete (countable).
+%
+In principle, the deterministic policy
+$\pi : \mathcal{S} \rightarrow \mathcal{A}$ or stochastic policy
+$\pi : \mathcal{S} \rightarrow \Delta(\mathcal{A})$ can thus be represented as a
+look-up table, mapping each state to an action or action distribution,
+respectively.
+%
+However, such a tabular method becomes intractable very quickly, because the
+size of the state and action space typically explodes for any practically
+relevant problem.
+% optimization tractability
+For this reason, it is common to compress the state-action mapping into some
+lower-dimensional parameter vector.
+%
+Instead of directly optimizing over some class of algorithms $\Pi$, we are
+optimizing some real vector $\theta \in \mathbb{R}^n$ that parameterizes the
+policy $\pi_\theta$. In this case, the algorithm optimization problem with
+expected cost can then be written as
+\begin{align}
+  \label{eq:4}
+  \min_\theta \mathbb{E}_{s \sim P}[m(s, \pi_\theta)] .
+\end{align}
+%
+% generalization
+An additional benefit of such parameterization, is that it enables policies to
+generalize smoothly to unseen states.
+% leverage prior knowledge: invariances/equivariances
+Furthermore, it allows the algorithm developer to incorporate further prior
+knowledge of the problem at hand, for example, by designing the parameterization
+such that it is insensitive to certain invariances among states, think for
+example of permutation invariance of the nodes when working with graph-based
+problems.
+
+% high capacity encoders like neural architectures are main strength/appeal of
+% the methodology
+The strength of the ML for CO paradigm stems from the ability of high-capacity
+neural network-based models to capture patterns in the problem.
+%
+In this case, the parameter represents the weights and biases of the neural
+network.
+% problems in the context of CO: constraints like set input/output
+Although the universal approximation abilities of neural networks are very
+appealing, their use raises some issues in the context of CO problems. For
+example, CO problems often involve unordered sets instead of ordered sequences.
+% solution: better architectures
+Therefore, the neural network should be invariant to the ordering of the
+elements in the input. One early method to deal with this issue was the pointer
+network~\cite{vinyalsPointerNetworks2017a}.
+% attention mechanisms
+Later, more general attention mechanisms like the transformer architecture have
+become more mainstream~\cite{koolAttentionLearnSolve2019}.
+
+\paragraph{Policy optimization.}
+
+We can identify two main learning paradigms for finding good algorithms $\pi$,
+which also have natural ties to the two main motivations discussed above.
+%
+% learning from demonstration
+Suppose that we have some heavy computation $f(\cdot)$ which we want to replace
+with a fast approximation $\hat{f}(\cdot)$.
+%
+A natural strategy is to collect samples of $f(x)$ for a set of inputs $x \in X$
+and then consider the supervised learning problem of minimizing some loss
+function $\ell(f(x), \hat{f}(x))$.
+%
+We could say that this method is \emph{learning from demonstration}.
+%
+Please note that this way, it could happen that policies that are not close to
+the expert perform well nevertheless, because they found some alternative good
+strategy.
+
+% reinforcement learning
+Alternatively, we could try to search the space of possible algorithms more
+directly, by trying to optimize the expected reward.
+%
+The methods typically used here come from the reinforcement learning
+community~\cite{mazyavkinaReinforcementLearningCombinatorial2020}.
+%
+Recall the motivation for a continuous parameterization of the policy $\pi$
+using some parameter vector $\theta$.
+%
+Apart from the benefits stated above, it enables us a to employ a class of
+methods known as \emph{policy gradient} methods.
+%
+These methods are based on the \emph{policy gradient theorem}, which essentially
+provide an efficient way to calculate the impact of a slight change of the
+parameter on the final reward.
+%
+This means that the policy optimization problem can be tackled using
+gradient-descent.
+
+% beam search
+Beam search can be understood as searching over execution trajectories of
+algorithm actions parameterized by probability distributions.
+%
+In some sense, the beam search procedure itself can also be regarded as just
+another algorithmic prior on a higher level of abstraction.
+%
+From this perspective, we could even parameterize some parts of the beam search
+procedure itself and subject this to learning. Think for example of beam width.
+
 \clearpage
 % choose disjunctive constraints -> linear program
 \section{Sequence representation of optimal schedules}\label{sec:sequence-representation}
 
 In the rest of this chapter, we will present a concrete methodology to apply the
-general ML for CO methodology presented in the previous section to the crossing
-time scheduling problem~\eqref{eq:crossing_time_scheduling} that we introduced
-in the previous chapter.
+general ML for CO methodology, presented in the previous section, to the crossing
+time scheduling problem~\eqref{eq:crossing_time_scheduling} of the previous chapter.
 %
 To this end, it will be beneficial to work with a compact representation of
-schedules and the goal of this section is to first show that optimal schedules
+schedules; the goal of this section is to first show that optimal schedules
 can actually be represented as a sequence of route indices.
 %
 This allows us to formulate the scheduling problem in terms of a particularly
-simple MDP, which is done in Section~\ref{sec:seq-modeling}.
+simple sequential decision making problem, which is made precise in Section~\ref{sec:seq-modeling}.
 
 For ease of reference, let us now restate the MILP reformulation of the original
 crossing time scheduling problem
@@ -2866,9 +2981,9 @@ $\gamma_{ij}$, we obtain a linear program, which can be shown to have a unique
 solution whenever it is feasible.
 %
 However, not all settings of $\gamma_{ij}$ lead to a feasible linear program,
-because some assignments correspond to cycles of inequalities.
+because some assignments correspond to chains of inequalities.
 %
-To make the argument more precise, it will be convenient to introduce the \emph{disjunctive graph}
+To make this more precise, it will be convenient to introduce the \emph{disjunctive graph}
 representation, which is a common formalism used to encode scheduling problem
 instances and candidate solutions.
 
@@ -2881,26 +2996,32 @@ encodes the inequality $y_i + w(i,j) \leq y_j$.
 %
 Therefore, the vehicle indices $\mathcal{N}$ form the main nodes of the graph.
 %
-Furthermore, each node $i$ has a dummy node $i'$ with $y_{i'} = 0$ and a
-directed arc $i' \rightarrow i$ with weight $w(i', i) := a_i$ to model the earliest
-arrival time constraint $a_i \leq y_i$. \comment{The presentation might be
-  simpler without dummy nodes, but then we must consider the earliest crossing
-  time constraint separately.}
+Furthermore, each node $i$ has a dummy node $i'$ with $y_{i'} = a_i$ and a
+directed arc $i' \rightarrow i$ with weight $w(i', i) := 0$ to model the earliest crossing
+time constraint $a_i \leq y_i$. \comment{The presentation might be simpler without
+  dummy nodes, but then we must consider the earliest crossing time constraint
+  separately.}
 %
-Next, each constraint $y_i + \rho \leq y_j$ for a pair $(i,j) \in \mathcal{C}$ is
-encoded by a so-called \emph{conjunctive} arc $i \rightarrow j$ with weight $w(i,j) := \rho$.
+Next, for each pair $(i,j) \in \mathcal{C}$, the conjunctive constraint
+\begin{align*}
+  y_i + \rho \leq y_j
+\end{align*}
+is encoded by a so-called \emph{conjunctive arc} $i \rightarrow j$ with weight
+$w(i,j) := \rho$.
 %
-The remaining constraints encode that exactly one of the constraints
-$y_i + \sigma \leq y_j$ and $y_j + \sigma \leq y_i$ must hold for each conflict
-$\{i,j\} \in \mathcal{D}$.
+The remaining disjunctive constraints encode that exactly one of the constraints
+\begin{align*}
+y_i + \sigma \leq y_j \; \text{ or } \; y_j + \sigma \leq y_i
+\end{align*}
+must hold for each conflict $\{i,j\} \in \mathcal{D}$.
 %
 In the disjunctive graph formalism, this corresponds to choosing between the arc
-$i \rightarrow j$ or the arc in the opposite direction $j \rightarrow i$; both of these \emph{disjunctive}
-arcs have weight $w(i,j) := \sigma$.
+$i \rightarrow j$ or the arc in the opposite direction $j \rightarrow i$; both of these
+\emph{disjunctive arcs} have weight $w(i,j) := \sigma$.
 %
 We use $\mathcal{O}$ to denote a \emph{selection} of disjunctive arcs,
 containing at most one arc for each pair of opposite disjunctive arcs, and we
-write $G(\mathcal{O})$ to denote the corresponding disjunctive graph.
+write $\mathcal{G}(\mathcal{O})$ to denote the corresponding disjunctive graph.
 %
 Figure~\ref{fig:disjunctive-graph-intro} shows an example of a disjunctive graph
 for some small instance of~\eqref{eq:C'}.
@@ -2916,15 +3037,15 @@ $\mathcal{O}$.
 It will be convenient later to allow partial selections $\mathcal{O}$, in the
 sense that there may be conflicts for which neither of both arcs is chosen. Such
 a partial selection essentially encodes a set of possible crossing orders, which
-may be thought of as a partial solution.
+may be thought of as a \emph{partial solution}.
 %
-In the extreme case of $\mathcal{O} = \varnothing$, we obtain the so-called
-\emph{empty} disjunctive graph $G_0 := G(\varnothing)$, which can be thought of
+In the extreme case of an empty selection $\mathcal{O} = \varnothing$, we obtain the so-called
+empty disjunctive graph $\mathcal{G}_0 := \mathcal{G}(\varnothing)$, which can be thought of
 as encoding an unsolved problem instance.
 %
 On the other extreme, whenever we choose precisely one disjunctive arcs for each
-conflict, we say that $\mathcal{O}$ is a \emph{complete selection} and
-$G(\mathcal{O})$ is the corresponding \emph{complete disjunctive graph}.
+conflict, we say that $\mathcal{O}$ is a complete selection and
+$\mathcal{G}(\mathcal{O})$ is the corresponding complete disjunctive graph.
 
 \begin{figure}
   \centering
@@ -2960,7 +3081,7 @@ Observe that the set of feasible solutions of this linear program can
 equivalently be characterized using the disjunctive graph as follows.
 %
 Let $\mathcal{N}^{-}(j)$ denote the set of all \emph{in-neighbors} of some node
-$j$ in graph $G(\mathcal{O})$, which are all nodes $v \in \mathcal{N}$ such that
+$j$ in graph $\mathcal{G}(\mathcal{O})$, which are all nodes $v \in \mathcal{N}$ such that
 there is some arc $v \rightarrow j$.
 %
 Crossing time schedule $y$ is a feasible solution to~\eqref{eq:active_schedule} if and only if it
@@ -2970,17 +3091,19 @@ satisfies
     \quad \text{ for all } j \in \mathcal{N} .
 \end{align}
 %
-When some feasible schedule $y$ satisfies~\eqref{eq:feasible-schedule} with
-equality, it is called an \emph{active schedule}.
+\begin{define}\label{def:active}
+  If schedule $y$ satisfies~\eqref{eq:feasible-schedule} with equality, it is called an
+  \emph{active schedule}.
+\end{define}
 %
-Whenever~\eqref{eq:active_schedule} is feasible, it it clear from the objective
-that the optimal solution must be an active schedule.
+% Whenever~\eqref{eq:active_schedule} is feasible, it it clear from the objective
+% that the optimal solution must be an active schedule.
 
 Next, we investigate when a selection of disjunctive arcs guarantees
 feasibility.
 %
 To see why feasibility is not guaranteed per se, consider some selection of
-disjunctive arcs $\mathcal{O}$ such that the disjunctive graph $G(\mathcal{O})$
+disjunctive arcs $\mathcal{O}$ such that the disjunctive graph $\mathcal{G}(\mathcal{O})$
 contains some cycle
 \begin{align*}
  i_1 \rightarrow i_2 \rightarrow \dots \rightarrow i_n \rightarrow i_1,
@@ -2998,18 +3121,17 @@ which together imply that $y_{i_1}$ must satisfy
 \begin{align*}
   y_{i_1} + \sum_{m=1}^{n-1} w(i_m, i_m+1) + w(i_n, i_1) \leq y_{i_1} ,
 \end{align*}
-which is an obvious contradiction when we assume that the processing and
-switching time are positive, such that all the weights in the above inequality
-are positive.
+which is an obvious contradiction when we assume that the processing time $\rho$
+and switching time $\sigma$ are positive, such that all the weights in the above
+inequality are positive.
 %
 This shows that the absence of cycles is necessary for feasibility
-of~\eqref{eq:active_schedule}. Moreover, given the simple nature of the linear
-program, it is not surprising that it is also sufficient.
+of~\eqref{eq:active_schedule}. It is not surprising that it is actually also sufficient.
 %
-Specifically, we show that when $G(\mathcal{O})$ is acyclic, there exists an
-active schedule, so~\eqref{eq:active_schedule} is feasible.
+Specifically, we show that when $\mathcal{G}(\mathcal{O})$ is acyclic, there exists an
+active schedule, so~\eqref{eq:active_schedule} is feasible in that case.
 %
-For brevity, we will say ``$\mathcal{O}$ is acyclic'' to mean ``$G(\mathcal{O})$
+For brevity, we will say ``$\mathcal{O}$ is acyclic'' to mean ``$\mathcal{G}(\mathcal{O})$
 is acyclic''.
 %
 We first recall the following elementary property of directed acyclic graphs,
@@ -3025,16 +3147,16 @@ whose proof can be found in Appendix~\ref{app:misc}.
 \end{restatable}
 
 \begin{lemma}\label{lemma:unique-active-schedule}
-  Let $\mathcal{O}$ be an acyclic selection of disjunctive arcs, so such that
-  $G(\mathcal{O})$ is acyclic, then there exists a unique active schedule
-  $y(\mathcal{O})$.
+  Let $\mathcal{O}$ be an acyclic selection, then there
+  exists a unique active schedule $y(\mathcal{O})$.
 \end{lemma}
 \begin{proof}
-  Since $G(\mathcal{O})$ is acyclic, Lemma~\ref{lemma:minimal-node} gives us
+  Since $\mathcal{G}(\mathcal{O})$ is acyclic, Lemma~\ref{lemma:minimal-node} gives us
   some topological order $v_1, v_2, \dots, v_{2N}$.
   %
-  Observe that there are exactly $N$ minimal nodes in $G(\mathcal{O})$, which
-  are precisely the $N$ dummy nodes, for which we can just set $y_{v_k} = 0$.
+  Observe that there are exactly $N$ minimal nodes in $\mathcal{G}(\mathcal{O})$, which
+  are precisely the $N$ dummy nodes, for which we have $y_{v_k} = a_{v_k}$ by
+  definition.
   %
   Next, we visit the remaining nodes according to the topological order
   $v_{N+1}, \dots, v_{2N}$ and for each visited node $v$, we set
@@ -3051,7 +3173,8 @@ whose proof can be found in Appendix~\ref{app:misc}.
 \end{proof}
 
 We emphasize that the lemma above does not require $\mathcal{O}$ to be complete,
-which we will use in the next section.
+a fact which we will be using in the next section, when we start considering
+partial schedules.
 %
 For now, suppose that $\mathcal{O}$ is complete, then the unique active schedule
 $y(\mathcal{O})$ is the unique optimal solution to linear program~\eqref{eq:active_schedule}.
@@ -3062,46 +3185,60 @@ original crossing time problem~\eqref{eq:crossing_time_scheduling}.
 In other words, instead of using $y_i : i \in \mathcal{N}$ as the main decision
 variables, we could consider the equivalent problem of finding some acyclic
 complete selection of disjunctive arcs $\mathcal{O}$, for which the
-corresponding active schedule $y(\mathcal{O})$ following from~\eqref{eq:active_schedule} is optimal.
+corresponding active schedule $y(\mathcal{O})$, following from~\eqref{eq:active_schedule}, is optimal.
 %
-Therefore, we essentially reduced the infinite number of candidate schedules to
+This way, we essentially reduce the infinite number of candidate schedules to
 a finite number of candidate active schedules.
 %
 The discussion so far can be concisely summarized as:
 
 \begin{lemma}\label{lemma:disj-graph-optimization}
-  If selection $\mathcal{O}$ is acyclic and complete, then active schedule
-  $y(\mathcal{O})$ is obviously a solution to
-  problem~\eqref{eq:crossing_time_scheduling}.
-  %
-  Conversely, if $y$ is an optimal solution
-  to~\eqref{eq:crossing_time_scheduling}, then there exists an acyclic complete
-  selection $\mathcal{O}$ such that $y = y(\mathcal{O})$.
-  Hence, problem~\eqref{eq:crossing_time_scheduling} is equivalent to
+  Problem~\eqref{eq:crossing_time_scheduling} is equivalent to
   \begin{align}
     \label{eq:C''}
     \min_{\mathcal{O}} \; \sum_{i \in \mathcal{N}} y_i(\mathcal{O}) \; \text{ s.t. } \, \mathcal{O} \text{ is acylic and complete. }
   \end{align}
 \end{lemma}
+\begin{proof}
+  Recall that $y$ is a feasible solution to~\eqref{eq:active_schedule} if and
+  only if it satisfies~\eqref{eq:feasible-schedule}. Therefore, if selection
+  $\mathcal{O}$ is acyclic and complete, then the unique active schedule
+  $y(\mathcal{O})$ given by Lemma~\ref{lemma:unique-active-schedule} is a
+  feasible solution to~\eqref{eq:active_schedule} by
+  Definition~\ref{def:active}.
+  %
+  As noted before, when restricting ourselves to complete selections
+  $\mathcal{O}$, problem~\eqref{eq:active_schedule} is equivalent
+  to~\eqref{eq:C'}, so it follows that $y$ is a feasible solution
+  to~\eqref{eq:C'}.
+
+  Conversely, if $y$ is an optimal solution to~\eqref{eq:C'}, then $y$ satisfies
+  exactly one of each pair of disjunctive constraints, which corresponds
+  uniquely to an acyclic complete selection $\mathcal{O}$.
+  %
+  Furthermore, it must be an active schedule, because otherwise some component
+  $y_i$ is not minimal, contradicting optimality. Hence, $\mathcal{O}$ is a
+  feasible solution for~\eqref{eq:C''} with $y = y(\mathcal{O})$.
+\end{proof}
 
 \paragraph{Sequence representation.}
 Although the disjunctive graph representation is a very helpful and general
-tool, it is less suitable for the sequence modeling techniques that we will
-introduce in the next section.
+tool, it is less suitable for the sequential decision making problem that we
+will introduce in the next section.
 %
 A more natural representation of the crossing order is to just consider a
-permutation $\pi = (\pi_1, \dots, \pi_N)$ of vehicle indices $\mathcal{N}$ that respects
+permutation $\nu = (\nu_1, \dots, \nu_N)$ of vehicle indices $\mathcal{N}$ that respects
 the initial ordering of vehicles on each route. By the latter, we mean that for
 any pair $(r, k), (r, k + m) \in \mathcal{N}$, for some integer $m \geq 1$, of
-vehicles on the same route, we have that $(r,k)$ appears in $\pi$ before
-$(r,k+m)$. We call such permutation $\pi$ a \emph{vehicle order}.
+vehicles on the same route, we have that $(r,k)$ appears in $\nu$ before
+$(r,k+m)$. We call such permutation $\nu$ a \emph{vehicle order}.
 %
 Because the relative order of vehicles on the same route is fixed anyway, it is
 even simpler to only consider the order of routes from which vehicles cross the
 intersection.
 %
-Given some vehicle order $\pi$, let the \emph{route order} $\eta(\pi)$ be
-uniquely defined by $\eta_t(\pi_t) = r(\pi_t)$, for every
+Given some vehicle order $\nu$, let the \emph{route order} $\eta(\nu)$ be
+uniquely defined by $\eta_t(\nu_t) = r(\nu_t)$, for every
 $t \in \{ 1, \dots, N \}$.
 
 \begin{define}
@@ -3116,7 +3253,7 @@ $t \in \{ 1, \dots, N \}$.
 \end{define}
 
 Given some route order $\eta \in E$, it is easy to see that there must be a
-unique vehicle order $\pi$ such that $\eta = \eta(\pi)$.
+unique vehicle order $\nu$ such that $\eta = \eta(\nu)$.
 %
 Note that this vehicle order can be reconstructed using the following simple
 procedure.
@@ -3126,14 +3263,21 @@ route $r$ the following vehicle counter
 \begin{align*}
   k_t(r) := \sum_{i=1}^t \mathbf{1} \{ \eta_i = r\} ,
 \end{align*}
-then $\pi_t = (\eta_t, k_t(\eta_t))$ for every $t \in \{1, \dots, N\}$.
+then $\nu_t = (\eta_t, k_t(\eta_t))$ for every $t \in \{1, \dots, N\}$.
 %
 This shows that there is a bijection between vehicle orders and route orders, so
 we can use them interchangeably.
 %
-Next, we will now show further equivalence to the set of acyclic complete
-disjunctive graphs, as illustrated by Figure~\ref{fig:disjunctive-graphs}, which
-is the main result of this section.
+Next, we will now show a further bijection to the set of acyclic complete
+disjunctive graphs, as illustrated by Figure~\ref{fig:disjunctive-graphs}.
+%
+We will use the following notation:
+
+\begin{define}
+  Let $\mathcal{O}(\eta)$ denote the unique selection belonging to a given route
+  order $\eta$ and let $y(\eta) := y(\mathcal{O}(\eta))$ denote the corresponding
+  induced active schedule.
+\end{define}
 
 \begin{figure}
   \centering
@@ -3144,109 +3288,274 @@ is the main result of this section.
     disjunctive graph; the dashed lines indicate an empty selection
     $\mathcal{O} = \varnothing$. The selection shown in the \emph{acyclic} and \emph{complete} graph on the
     right corresponds uniquely to the vehicle order
-    $\pi = ((1,1), (2,1), (1,2), (1,3), (2,2), (2,3), (2,4))$ and the route order
+    $\nu = ((1,1), (2,1), (1,2), (1,3), (2,2), (2,3), (2,4))$ and the route order
     $\eta = (1, 2, 1, 1, 2, 2, 2)$.}\label{fig:disjunctive-graphs}
 \end{figure}
 
 \begin{theorem}
-  If $\eta \in E$, then $y^\eta := y(\mathcal{O}(\eta))$ is a solution
-  to~\eqref{eq:crossing_time_scheduling}. Conversely, if $y$ is an optimal
-  solution to problem~\eqref{eq:crossing_time_scheduling}, then there exists a
-  route order $\eta$ such that $y = y^\eta$. Hence,
-  problem~\eqref{eq:crossing_time_scheduling} is equivalent to the \emph{route
-    ordering problem}
+  Problem~\eqref{eq:crossing_time_scheduling} is equivalent to the \emph{route ordering problem}
   \begin{align}\tag{RO}
     \label{eq:RO}
-    \min_{\eta \in E} \; \sum_{i \in \mathcal{N}} y^\eta_i .
+    \min_{\eta \in E} \; \sum_{i \in \mathcal{N}} y_i(\eta) .
   \end{align}
 \end{theorem}
 \begin{proof}
   Let $\Omega$ denote thet set of all acyclic complete selections $\mathcal{O}$,
-  and let $P$ denote the set of vehicle orders, then we will show that there is
-  a bijection between $\Omega$ and $P$.
+  and let $\mathcal{V}$ denote the set of vehicle orders, then we will show that there is
+  a bijection between $\Omega$ and $\mathcal{V}$.
   %
-  We already argued that there is a bijection between $P$ and $E$, so from
+  We already argued that there is a bijection between $\mathcal{V}$ and $E$, so from
   there, the desired result follows from
   Lemma~\ref{lemma:disj-graph-optimization}.
 
-  Assume that $G(\mathcal{O})$ is an acyclic complete disjunctive graph, then
+  Assume that $\mathcal{G}(\mathcal{O})$ is an acyclic complete disjunctive graph, then
   subgraph induced by the non-dummy nodes $\mathcal{N}$ is a DAG, so there must
-  be some topological order $\pi$ of $\mathcal{N}$ by
+  be some topological order $\nu$ of $\mathcal{N}$ by
   Lemma~\ref{lemma:minimal-node}.
   %
-  It is clear that $\pi$ must respect the ordering of vehicles on routes, due to
+  It is clear that $\nu$ must respect the ordering of vehicles on routes, due to
   the conjunctive arcs, so it is clearly a vehicle order.
-
-  To show that $\pi$ is unique, suppose there is another topological order
-  $\pi' \neq \pi$, then there must be at least one pair of indices
-  $i,j \in \mathcal{N}$ that appears in opposite orders in $\pi$ and $\pi'$,
-  say, $i$ appears before $j$ in $\pi$ and $j$ appears before $i$ in $\pi'$. It
+  %
+  To show that $\nu$ is unique, suppose there is another topological order
+  $\nu' \neq \nu$, then there must be at least one pair of indices
+  $i,j \in \mathcal{N}$ that appears in opposite orders in $\nu$ and $\nu'$,
+  say, $i$ appears before $j$ in $\nu$ and $j$ appears before $i$ in $\nu'$. It
   follows that $i$ and $j$ cannot both belong to the same route, because
   otherwise one of the topological orders would be invalid.
   %
   Therefore, $r(i) \neq r(j)$, but then we have either $(i,j) \in \mathcal{O}$
-  or $(j,i) \in \mathcal{O}$, which shows again that one of $\pi$ or $\pi'$ must
+  or $(j,i) \in \mathcal{O}$, which shows again that one of $\nu$ or $\nu'$ must
   be invalid.
   %
-  Hence, $\pi$ is the only valid topological order.
+  Hence, this $\nu(\mathcal{O}) = \nu$ is the unique vehicle order belonging to
+  selection $\mathcal{O}$.
 
-  Suppose we are given some vehicle order $\pi$, then it is straightforward to
+  Suppose we are given some vehicle order $\nu$, then it is straightforward to
   construct the corresponding disjunctive graph as follows.
   %
-  Starting with an empty selection, we visit the non-dummy nodes in order $\pi$
-  and for each node $\pi_k$, we just add all disjunctive arcs
-  $\pi_k \rightarrow v$ such that $r(v) \neq r(\pi_k)$ and $v \in \mathcal{N}$
+  Starting with an empty selection, we visit the non-dummy nodes in order $\nu$
+  and for each node $\nu_k$, we just add all disjunctive arcs
+  $\nu_k \rightarrow v$ such that $r(v) \neq r(\nu_k)$ and $v \in \mathcal{N}$
   has not yet been visited before.
   %
   This way, we end up with a unique acyclic complete selection
-  $\mathcal{O}(\pi)$.
+  $\mathcal{O}(\nu)$.
 \end{proof}
 
 \clearpage
 
-\section{Sequential schedule construction}\label{sec:seq-modeling}
+\section{Scheduling as learning problem}\label{sec:seq-modeling}
 
-We will now return to our goal of applying the general methodological framework
-presented in Section~\ref{sec:ml-co} to the crossing time scheduling problem.
+We will now explain how the general methodological ML for CO framework presented
+in Section~\ref{sec:ml-co} can be applied to the crossing time scheduling
+problem~\eqref{eq:crossing_time_scheduling}.
 %
-As we mentioned there, the most important decision is the design of the state
-space, since this essentially determines the class of algorithms we are
-optimizing over, and which is the main way of incorporating prior knowledge and
-intuition into the model.
+As we discussed there, the most important decision is the design of the state
+space of the MDP algorithm model, since this essentially determines the class of
+algorithms over which we are optimizing. Therefore, this is our main way of
+incorporating prior knowledge and intuition into the model.
 %
 We will now show how the findings of the previous section leads to a natural
-choice of the state space and thus the corresponding algorithmic structure.
+choice of states and corresponding algorithmic structure.
 
-The main takeaway of the previous section is that, instead of trying to find an
-optimal schedule of crossing times $y_i$ directly, we can focus on trying to
-find the optimal crossing order, for which the crossing times follow immediately
-by solving the linear program~\eqref{eq:active_schedule} or using the procedure
-in the proof of Lemma~\ref{lemma:unique-active-schedule}.
+\paragraph{Constructive heuristic.}
+In the previous section, we have shown that the crossing time scheduling
+problem~\eqref{eq:crossing_time_scheduling}, stated in terms of finding crossing
+times $y_i$, is equivalent to the problem~\eqref{eq:RO}, stated in terms of finding an
+optimal route order $\eta \in E$. Given such a route order $\eta$, we can obtain the
+corresponding crossing time schedule $y^\eta$ by solving the linear program~\eqref{eq:active_schedule} or
+by using the simple sequential assignment procedure described in the proof of
+Lemma~\ref{lemma:unique-active-schedule}.
 %
-From now on, we will mainly be working with $\eta$, because it is in some sense the
-simplest representation of a schedule and focus on solving~\eqref{eq:RO}.
-%
-We propose to study a class of \emph{constructive algorithms}, which try to build the optimal schedule by scheduling a single vehicle at each step.
-%
-Therefore, the intermediate states of the underlying MDP naturally encode
-\emph{partial schedules}, which can be generally defined as acyclic selections
-$\mathcal{O}$ that are not yet complete.
-%
-We essentially propose a method to construct $\mathcal{O}$ in a step-by-step
-fashion, by adding sets of disjunctive arcs at each step until it is complete.
+Instead of searching directly over all feasible $\eta \in E$, we propose to study a
+class of \emph{constructive heuristics}, which essentially try to build the optimal
+schedule in a step-by-step fashion. This approach is particularly easy to
+capture within the MDP framework.
 
-Suppose that $\mathcal{O}$ is not yet complete and let $y(\mathcal{O})$ be the
+% informal description
+The basic idea is as follows.
+%
+Each state encodes a partial schedule, in which only the first few vehicles on
+each route---according to their relative order---are said to be
+\emph{scheduled}.
+%
+Initially, all vehicles are unscheduled.
+%
+Each step in the MDP corresponds to picking some route and then adding the next
+unscheduled vehicle on that route to the schedule.
+%
+This way, we obtain a sequence of \emph{partial schedules}, encoded as
+disjunctive graphs, until we arrive at a complete schedule, encoded as a
+complete disjunctive graph.
+
+\begin{remark}
+  Constructive heuristics like this are common in the scheduling literature and
+  are also known as dispatching rules in the context of job shop scheduling. For
+  some broader context, we refer to Appendix~\ref{app:nco}, where we discuss
+  some existing works in the ML for CO literature that focus on finding
+  dispatching rules for job shop problems, which are very similar to our
+  crossing time scheduling problem.
+\end{remark}
+
+% formal description
+% We now make the above more precise by providing the formal MDP specification.
+\subsection{Constructive scheduling as MDP}\label{sec:MDP}
+
+% \begin{itemize}
+%   \item input = instance $s = (\mathcal{N}, a) \in \mathcal{I}$
+%   \item initial state = $\mathcal{G}_0(s)$ as a function of instance
+%   \item states are disjunctive graphs $\mathcal{G}_t$
+%   \item actions are routes $\mathcal{A} = \mathcal{R}$
+%   \item transitions: add arcs to disjunctive graph
+%   \item output = schedule $y = y(\mathcal{G}_N) = y(\mathcal{O}_N) = y(\eta)$ as a function of final disjunctive graph
+%   \item final reward $m(s, \pi) = \sum_i y_i$
+%   \item The total number of vehicles $N$ in the system is the fixed episode length.
+% \end{itemize}
+
+We will now precisely define the MDP that models the class of constructive
+heuristics.
+% explicit dependence on problem specification s=(\mathcal{N},a)
+First note that, in the previous section, we did not explicitly state the
+dependence of the disjunctive graph on the specific problem instance at hand.
+From now on, we will use the notation $s = (\mathcal{N}, a) \in \mathcal{I}$ to
+denote a problem instance, which is completely defined by the set of vehicle
+indices $\mathcal{N}$ and the set of earliest crossing times
+$a := \{ a_i : i \in \mathcal{N} \}$. In what follows, we will also write
+$a(i) := a_i$ to keep notation consistent with upcoming definitions.
+%
+We will assume that $a$ satisfies the following property.
+\begin{assump}\label{assump:arrivals}
+  For each conjunctive arc $(i, j) \in \mathcal{C}$, we have
+  $a_i + \rho \leq a_j$.
+\end{assump}
+\noindent
+The rationale behind this assumption is that each feasible schedule $y$ must
+satisfy $a_i + \rho \leq y_i + \rho \leq y_j$ for all $(i,j) \in \mathcal{C}$,
+so when we would choose $a_j$ such that $a_j < a_i + \rho$, then we can as well
+set it at $a_j = a_i + \rho$ without changing the problem.
+
+
+% instance -> empty disjunctive graph
+Each instance $s$ corresponds uniquely to an empty disjunctive graph
+$\mathcal{G}_0$, or using the notation $\mathcal{G}_0(s)$ when we need to make
+the dependence explicit.
+%
+All vehicles are said to be \emph{unscheduled} in $\mathcal{G}_0$, which serves
+as the initial state of the MDP.
+% empty disjunctive graph is initial state
+Given some instance $s$, the possible states of the MDP correspond to all
+possible disjunctive graphs that can be obtained by adding disjunctive arcs to
+$\mathcal{G}_0$.
+%
+To help the following presentation, we will use $k(\mathcal{G}, r)$ to denote
+the number of vehicles on route $r$ that are \emph{scheduled} in state $\mathcal{G}$,
+so initially we have $k(\mathcal{G}_0, r) = 0$ for all $r \in \mathcal{R}$.
+%
+In each step, we have to choose some route $r$ which has still unscheduled
+vehicles left, so the route indices form the action space
+$\mathcal{A} = \mathcal{R}$.
+%
+We will now explain how the state transitions happen.
+%
+Let $\mathcal{G}$ denote the current state, and suppose we choose action $r$,
+which is thus valid as long as $k(\mathcal{G}, r) < n_r$.
+%
+Observe that the first unscheduled vehicle on route $r$ is
+\begin{align}
+  i = (r, k(\mathcal{G}, r) + 1).
+\end{align}
+%
+We add vehicle $i$ to the partial schedule by adding all the disjunctive arcs
+from $i$ to each unscheduled vehicle on all other routes, so formally these arcs
+are
+\begin{align}
+  \big\{ i \rightarrow (q, k) : q \neq r, \;  k \in \{ k(\mathcal{G}, q) + 1, \dots, n_q \} \big\} .
+\end{align}
+%
+After adding these arcs to $\mathcal{G}$, we obtain the next state $\mathcal{G}'$.
+%
+We emphasize that all transitions are thus defined deterministically, because
+the process is so simple that we do not need to introduce stochasticity in the
+model to approximate complex computations.
+\comment{Introduce additional notation, if neccessary. For example, introduce
+  $\eta(\mathcal{G})$ (or with sequence notation $\eta_{1:t} = \eta(\mathcal{G}_t)$) as
+  the partial route sequence belonging to the partial disjunctive graph. This
+  can be interpreted as a sort of \emph{read-out} function to obtain the solution from
+  the final state. Prove that the complete disjunctive graph $\mathcal{G}_N$ is
+  always acyclic and complete, such that $y(\eta(\mathcal{G}_N))$ is a valid active
+  schedule. [ optional: example MDP with example transitions ]}
+
+% episode length, final state and reward
+It can be shown that, after $N$ transitions of the automaton, we obtain some
+acyclic complete disjunctive graph $\mathcal{G}_N$. Therefore, it corresponds to
+some complete selection of disjunctive arcs $\mathcal{O}_N$, and we can define
+$y(\mathcal{G}_N) = y(\mathcal{O}_N)$ to be the corresponding active schedule.
+Furthermore, we can define a single final reward equal to the negative sum of
+all crossing times
+\begin{align}
+  r_f(\mathcal{G}_N) := \sum_{i \in \mathcal{N}} y_i(\mathcal{G}_N) ,
+\end{align}
+where we use the subscript $f$ to avoid confusion with the use of $r$ for routes
+and to distinguish it from an equivalent reward that we will define later.
+
+\subsection{Policy parameterization}
+
+Given the MDP above, we now turn our attention to parameterizing the policy $\pi$.
+%
+\comment{Why parameterize at all? Because it is not guaranteed that the policy space is finite.}
+% state augmentation
+The definition of the MDP above shows that the disjunctive graph captures all
+necessary information of the constructive scheduling process, so it can serve as
+the state.
+%
+However, it might be beneficial for learning to do some additional feature
+engineering, by considering some further information that can be derived from
+the state.
+%
+From here on, we will write states as $\mathcal{G}_t$, indicating at which step
+$t \in \{0, \dots, N\}$ it occurs. With this notation, $\mathcal{G}_0$ is an
+initial state and $\mathcal{G}_N$ a final state.
+%
+We will use the subscript $t$ to emphasize that derived quantities depend on
+some the current state $\mathcal{G}_t$.
+%
+For example, we will write the unscheduled vehicle counts used above as
+$k_t(r) := k(\mathcal{G}_t, r)$.
+%
+In a similar vein, we can define the following \emph{done flags}
+\begin{align}
+  d_t(r) := \mathbf{1}\{ k_t(r) = n_r \} \quad \text{ for all } r \in \mathcal{R} ,
+\end{align}
+where $\mathbf{1}\{ \cdot \}$ is again the indicator function, indicating for
+which route all vehicles have been scheduled.
+%
+Furthermore, note that each valid state $\mathcal{G}_t$ of the MDP represents a
+(partial) vehicle and route order, which we denote as
+$\nu_{1:t} = (\nu_1, \dots, \nu_t)$ and $\eta_{1:t} = (\eta_1,\dots, \eta_t)$,
+respectively, for $t \in \{1, \dots, N\}$.
+%
+Using this notation, observe that $\nu_t$ thus denotes the vehicle that was last
+added to the partial schedule.
+
+Next, we show that the active schedule obtained from each partial disjunctive
+graph provides a lower bound on the crossing times of the final schedule.
+%
+% crossing time lower bounds
+Recall that each disjunctive graph $\mathcal{G}_t$ encodes a selection
+$\mathcal{O}_t$ of disjunctive arcs.
+%
+Suppose that the selection is not yet complete and let $y(\mathcal{O}_t)$ be the
 corresponding active schedule.
 %
-Observe that adding more arcs to $\mathcal{O}$ can only cause the crossing times
-of the corresponding active schedule to increase with respect to
-$y(\mathcal{O})$, because additional constraints are added to~\eqref{eq:active_schedule}.
+Observe that adding more disjunctive arcs to $\mathcal{G}_t$ can only cause the
+crossing times of the corresponding active schedule to increase with respect to
+$y(\mathcal{O}_t)$, because additional constraints are added to the linear
+program~\eqref{eq:active_schedule}.
 %
 Therefore, the active schedules for incomplete selections can also be
 interpreted as providing lower bounds on the crossing times for any \emph{completion}
-of that selection, in the sense of the following corollary of
-Lemma~\ref{lemma:unique-active-schedule}.
-
+of that selection, which is made precise in the following lemma.
+%
 \begin{lemma}
   Let $\mathcal{O} \subseteq \mathcal{O}^*$ be two acyclic selections of disjunctive
   arcs and let $y = y(\mathcal{O})$ and $y^* = y(\mathcal{O}^{*})$ denote the
@@ -3254,259 +3563,213 @@ Lemma~\ref{lemma:unique-active-schedule}.
   $i \in \mathcal{N}$.
 \end{lemma}
 
-This leads to the definition of \emph{augmented disjunctive graphs}.
-
-\paragraph{MDP definition.}
-
-The states are all possible augmented disjunctive graphs.
-
-Let $i \in \mathcal{I}$ denote some problem instance.
-
-Let $\mathcal{G}_0$ denote the initial augmented graph.
-
-The action space consists of the route indices $\mathcal{A} = \mathcal{R}$.
-
-Note that not all actions are feasible for every
-state; we need to exclude route indices for routes where all vehicles have
-already been scheduled.
-%
-Final states are all the possible complete disjunctive graphs and the
-corresponding final reward is just the negative sum of all crossing times.
-
+\noindent
+Given some disjunctive graph $\mathcal{G}_t$, not necessarily complete, we use
+the notation $\beta_t(i)$ to denote the \emph{crossing time lower bound} for vehicle $i$ in
+state $\mathcal{G}_t$ with selection $\mathcal{O}_t$, by defining
 \begin{align}
-  m(i, \pi) = \sum_{i \in \mathcal{N}} y_i^\eta
+  \beta_t(i) = y_i(\mathcal{O}_t) \quad \text{ for all } i \in \mathcal{N} .
 \end{align}
+%
+Observe that, for some final state $\mathcal{G}_N$, the selection
+$\mathcal{O}_N$ must be complete, so it encodes some route order $\eta$. Hence,
+the final crossing time lower bounds $\beta_N(i) = y_i(\eta)$ are precisely the
+crossing times of the active schedule encoded by the complete disjunctive graph.
+%
+Even more, let $i$ be some vehicle that is scheduled at step $t$, then observe
+that future steps of the MDP will not introduce any more disjunctive arcs to
+$i$, which means that $\beta_t(i) = \beta_{t+1}(i) = \dots = \beta_N(i)$ is
+already the final crossing time.
 
-The total number of vehicles $N$ in the system is the fixed episode length.
-
+\begin{remark}
+  Instead of recomputing all the crossing time lower bounds $\beta$ at each step
+  of the MDP, we can do a partial update as follows, which makes the
+  implementation more efficient.
+  %
+  Let $\mathcal{G}_t$ be the current state and let $\eta_t$ denote the next
+  action, which means that vehicle $i = (\eta_t, k_t(\eta_t))$ will be added to
+  the schedule.
+  %
+  We just copy all the lower bounds by setting $\beta_{t+1} = \beta_t$ and then
+  make the necessary updates as follows.
+  %
+  For each other route $r \neq \eta_t$, observe that $j = (r, k_t(r))$ is the
+  first unscheduled vehicle. Because the disjunctive arc $i \rightarrow j$ gets
+  introduced, we need to update
+  \begin{align*}
+    \beta_{t+1}(j) = \max(\beta_t(j), \; \beta_t(i) + \rho + \sigma ) .
+  \end{align*}
+  %
+  When $\beta_{t+1}(j) = \beta_t(j)$, we say this update was void. If the update
+  was not void, we only have to propagate this change along the chain of
+  conjunctive arcs starting from $j$, because these unscheduled vehicles do not
+  have any outgoing disjunctive arcs. Let such conjunctive chain be denoted by
+  $j = (r,k) \rightarrow (r,k+1) \rightarrow \dots \rightarrow (r,n_r)$, then we
+  update
+  \begin{align*}
+    \beta_{t+1}(r,l + 1) = \max(\beta_t(r,l + 1) , \; \beta_t(r,l) + \rho) ,
+  \end{align*}
+  in a loop where $l$ steps from $k$ to $n_r - 1$. Once such update is void, we
+  know that all remaining updates will also be void, so we can simply stop the
+  loop.
+\end{remark}
 
 \clearpage
+\paragraph{Reducing the policy space.}
 
-\subsection{Policy optimization}
+Before we propose concrete parameterizations of $\pi$, we will first derive two
+rules that optimal policies must satisfy, thereby essentially reducing the
+policy space.
+%
+As part of the structural analysis of problem~\eqref{eq:crossing_time_scheduling} at the end of the previous
+chapter we discussed the platoon preservation Theorem~\ref{thm:exhaustive}, which states that
+\begin{quote}
+  If $y$ is an optimal schedule for~\eqref{eq:crossing_time_scheduling}, satisfying $y_{i} + \rho \geq a_{j}$ for some
+  $(i,j) \in \mathcal{C}$, then vehicle $i$ is followed immediately by $j$, so
+  $y_{i} + \rho = y_{j}$.
+\end{quote}
+%
+Roughly speaking, this means that whenever it is possible to schedule a vehicle
+immediately after its predecessor on the same route, then this must be done in
+an optimal schedule.
+%
+Observe that this rule essentially reduces the search space of feasible
+schedules---it lead to the definition of three types of cutting planes.
+%
+Similarly, this rule can be transferred to the MDP context to reduce the space
+of feasible policies as follows. Let $\mathcal{G}_t$ denote the current partial
+schedule and assume that it is not an initial state, so $t \geq 1$. Let the
+vehicle that was scheduled in the previous step be denoted by $i = (r, k)$ and
+suppose $j = (r, k+1)$ exists.
+%
+As we argued above, $\beta_t(i) = y_{i}$ is the crossing time of vehicle $i$,
+regardless of the remaining actions taken in the MDP.
+%
+Therefore, if we have
+\begin{align}\label{eq:rule-exhaustive}
+  \beta_t(i) + \rho \geq a(j),
+\end{align}
+then the platoon preservation rule requires the next action to be $r$.
+%
+Whenever a policy $\pi$ satisfies this rule, we say that it is
+\emph{exhaustive}, so the platoon preservation theorem implies that each optimal
+policy $\pi$ must be exhaustive.
 
-We will now explain how model parameters can be tuned using some sample of
-problem instances $X \sim \mathcal{X}$.
+Next, we present yet another simple rule that each optimal policy $\pi$ must
+satisfy.\comment{Better to first prove this rule for schedules (in the static
+  sense), and then show that this transfers to a rule that optimal policies must
+  satisfy.}
 %
-Given some instance $s$, let $\eta_{\tau}(s)$ be the schedule produced by the
-threshold heuristic. Note that $L(s, \eta^{\tau}(s))$ is not differentiable with
-respect to $\tau$, so we cannot use gradient-based optimization methods.
-However, we only have a single parameter, so we can simply select the value of
-$\tau$ that minimizes the average empirical loss
+Again, let $i = (r,k)$ denote the last scheduled vehicle and assume
+$j = (r,k+1)$ exists, so it is the next unscheduled vehicle on this route.
+Suppose that
+\begin{align}\label{eq:rule-active}
+  \beta_t(j) + \rho + \sigma \leq a(u) ,
+\end{align}
+for each first unscheduled vehicle $u = (r', k_t(r'))$ on every other route
+$r' \neq r$, then the next action must be $r$.
 %
-\begin{align*}
-  \min_{\tau \geq 0} \sum_{s \in X} L(s, \eta_{\tau}(s)) ,
-\end{align*}
+Whenever a policy $\pi$ satisfies this rule, we call it \emph{active}.
 %
-which can be computed through a simple grid search.
-%
-This approach is no longer possible when $p(\eta \, | s)$ is a proper distribution,
-so we need to something different for the neural parameterization.
-
-\paragraph{Supervised learning.}
-Consider some instance $s \in X$ and let $\eta^{*}$ denote some optimal route
-sequence, which can for example be computed by solving the integer
-program~\eqref{eq:C'}. For each such optimal schedule, we can
-compute the sequence $G_{0}, \eta_{1}, G_{1}, \eta_{2}, \dots, \eta_{N}, G_{N}$. The
-resulting set of pairs $\{ (G_{t}, \eta_{t+1}) : t = 1, \dots, N - 1 \}$ can be used to
-learn $p_{\theta}$ in a supervised fashion by treating it as a classification task
-and computing the maximum likelihood estimator $\hat{\theta}$. Interpreting $G_{t}$
-as \textit{states} and $\eta_{t+1}$ as \textit{actions}, we see that this approach is equivalent to \textit{imitation learning}
-in the context of finding policies for Markov decision processes from so-called
-\textit{expert demonstration}.
-%
-Let $Z$ denote the set of all state-action pairs collected from all
-training instances $X$. We make the procedure concrete for the case of two
-routes $\mathcal{R} = \{ 1, 2 \}$, which is slightly simpler. Let $p_{\theta}(G_{t})$
-denote the probability of choosing the first route, then we can use the binary
-cross entropy loss, given by
-\begin{align*}
-  L_{\theta}(Z) = - \frac{1}{|Z|} \sum_{(G_{t}, \eta_{t+1}) \in Z} \mathds{1}\{\eta_{t+1} = 1\} \log(p_{\theta}(G_{t})) + \mathds{1}\{\eta_{t+1} = 2\} \log(1 - p_{\theta}(G_{t})) ,
-\end{align*}
-where $\mathds{1}\{\cdot\}$ denotes the indicator function. Now we can simply rely on
-some gradient-descent optimization procedure to minimize $L_{\theta}(Z)$ with
-respect to $\theta$.
-
-\paragraph{Reinforcement learning.}
-
-% imitation learning -> RL (on/off-policy)
-Instead of using state-action pairs as examples to fit the model in a supervised
-fashion (imitation learning), we can also choose to use the reinforcement
-learning paradigm, in which the data collection process is guided by some
-policy.
-
-% reward definition
-The reinforcement learning approach depends on the definition of a reward. For
-each step $G_{t-1} \xrightarrow{\eta_{t}} G_{t}$, we can define a corresponding
-reward, effectively yielding a deterministic Markov decision process.
-Specifically, we define the reward at step $t$ to be
-\begin{align*}
-  R_{t} = \sum_{i \in \mathcal{N}} \beta_{t-1}(i) - \beta_{t}(i) .
-\end{align*}
-Let the return at step $t$ be defined as
-\begin{align*}
-  \hat{R}_{t} = \sum_{k=t + 1}^{N} R_{k} .
-\end{align*}
-Hence, when the \textit{episode} is done after $N$ steps, the total episodic
-reward is given by the telescoping sum
-\begin{align*}
-  \hat{R}_{0} = \sum_{t=1}^{N} R_{t} = \sum_{i \in \mathcal{N}} \beta_{0}(i) - \beta_{N}(i)  = \sum_{i \in \mathcal{N}} a_{i} - y_{i} = - L(s, \eta) ,
-\end{align*}
-Therefore, maximizing the episodic reward corresponds to minimizing the
-scheduling objective, as desired.
-%
-
-% REINFORCE
-Policy-based methods work with an explicit parameterization of the policy. The
-model parameters are then tuned based on experience, often using some form of
-(stochastic) gradient descent to optimize the expected total return.
-%
-Therefore, the gradient of the expected return
-plays a central role. The
-following identity is generally known as the Policy Gradient Theorem:
-\begin{align*}
-  \nabla \mathbb{E}_{p} \hat{R}_{0} &\propto \sum_{s} \mu_{p}(s) \sum_{a} q_{p}(s, a) \nabla p(a | s, \theta) \\
-  &= \mathbb{E}_{p}\left[ \sum_{a} q_{p} (S_{t}, a) \nabla p (a | S_{t}) \right] \\
-  &= \mathbb{E}_{p}\left[ \sum_{a} p(a | S_{t}) q_{p} (S_{t}, a) \frac{\nabla p (a | S_{t})}{p (a | S_{t})} \right] \\
-  &= \mathbb{E}_{p}\left[ q_{p} (S_{t}, A_{t}) \frac{\nabla p (A_{t} | S_{t})}{p (A_{t} | S_{t})} \right] \\
-  &= \mathbb{E}_{p} \left[ \hat{R}_{t} \log \nabla p (A_{t} | S_{t}) \right] .
-\end{align*}
-% \begin{align*}
-%   \nabla \mathbb{E}_{a \sim p_{\theta}(a | s)} R(s, a) &= \nabla \sum_{a} p_{\theta}(a | s) R(s, a) \\
-%   &= \sum_{a} \nabla p_{\theta}(a | s) R(s, a) \\
-%   &= \sum_{a} p_{\theta}(a | s) \frac{\nabla p_{\theta}(a | s)}{p_{\theta}(a | s)} R(s, a) \\
-%   &= \mathbb{E}_{a \sim p_{\theta}(a | s)} \left[  \frac{\nabla p_{\theta}(a | s)}{p_{\theta}(a | s)} R(s, a) \right] \\
-%   &= \mathbb{E}_{a \sim p_{\theta}(a | s)} [ \nabla \log p_{\theta}(a | s) R(s, a) ] .
-% \end{align*}
-%
-The well-known REINFORCE estimator is a direct application of the Policy
-Gradient Theorem. At each step $t$, we update the parameters $\theta$ using a
-gradient ascent update
-\begin{align*}
-  \theta \leftarrow \theta + \alpha \hat{R}_{t} \nabla \log p_{\theta}(\eta_{t} | G_{t}) ,
-\end{align*}
-with some fixed learning rate $\alpha$.
-% add baseline to reduce variance
-To reduce variance of the estimator, we can incorporate a so-called
-\textit{baseline}, which is an estimate of the expected return of the current
-state.
-%
-In the context of combinatorial optimization, the value of the baseline may be
-interpreted as estimating the relative difficulty of an instance?
-
-\paragraph{Beam search.}
-For inference, we would ideally want to calculate the maximum likelihood
-estimator
-\begin{align*}
-  \arg\max_{\eta} p(\eta | s) ,
-\end{align*}
-but this is generally very expensive to compute, because this could require
-$O(R^{N})$ evaluations of $p(\eta_{t} | s, \eta_{1:t-1})$ when we do
-not make additional structural model assumption. Therefore, one often uses
-\textit{greedy rollout}, which means that we pick $\eta_{t}$ with the highest
-probability at every step.
-% other inference methods
-Other inference strategies have been proposed in the context of modeling
-combinatorial optimization problems, see for example the ``Sampling'' and
-``Active Search'' strategies in the seminal
-paper~\cite{belloNeuralCombinatorialOptimization2017}.
-
-\clearpage
-
-\subsection{Policy parameterizations}
-We can consider different ways of parameterizing $p(\eta_{t+1} | s, \eta_{1:t})$.
-Here, each partial sequence $\eta_{1:t}$ represents some partial schedule, which
-can equivalenty be defined in terms of the sequence of \textit{scheduled} vehicles
-$\pi_{1:t}$. However, it is more convenient to define a partial schedule in terms
-of the \textit{partial disjunctive graph}
-$G_{t} = (\mathcal{N}, \mathcal{C} \cup \mathcal{O}_{t})$, which is defined by the
-unique selection $\mathcal{O}_{t}$ such that for each $i \in \pi_{1:t}$ and each
-$\{i, j\} \in \mathcal{D}$, we have either $(i, j) \in \mathcal{O}_{t}$ or
-$(j, i) \in \mathcal{O}_{t}$ with $j \in \pi_{1:t}$.
-%
-To emphasize this parameterization in terms of the partial disjunctive graph, we
-can alternatively write~\eqref{eq:autoregressive} as
-\begin{align*}
-  p(\eta | s) = \prod_{t=1}^{N} p(\eta_{t} | G_{t-1}) .
-\end{align*}
-
-There is a natural extensions of expression~\eqref{eq:y_max} for partial
-disjunctive graphs. Given $G_{t}$, let the \textit{earliest crossing time} of
-each vehicle $i \in \mathcal{N}$ be recursively defined as
-\begin{align*}
-  \beta_{t}(j) = \max\{ a_{j}, \max_{i \in \mathcal{N}^{-}_{t}(j)} \beta_{t}(i) + w(i,j) \} ,
-\end{align*}
-where $\mathcal{N}^{-}_{t}(j)$ denotes the set of in-neighbors of node $j$ in
-$G_{t}$.
-%
-For empty schedules, we have $\beta_{0}(i) = a_{i}$ for all $i$. For complete
-schedules, we have $\beta_{N}(i) = y^{\eta}(i)$ for all $i$. We have
-$\beta_{t}(i) \leq \beta_{t+1}(i)$ for all $i$, because
-$\mathcal{O}_{t} \subset \mathcal{O}_{t+1}$. Hence, $\beta_{t}$ can be
-interpreted as providing the best lower bounds $\beta_{t}(i) \leq y^{\eta}(i)$,
-regardless of how the partial schedule is completed.
+It is straightforward to see that optimal $\pi$ must be active: by
+contradiction, if $j$ is not scheduled immediately after $i$, then we can move
+it immediately after $i$, which is possible without affecting the crossing times
+of other vehicles, so that we obtain a strictly better schedule.
 
 \paragraph{Threshold heuristic.}
-
-We know from Theorem~\ref{thm:exhaustive} that whenever it is possible to schedule a vehicle
-immediately after its predecessor on the same route, then this must be done in
-any optimal schedule.
+When neither of the conditions~\eqref{eq:rule-exhaustive}
+or~\eqref{eq:rule-active} holds, there is still a lot of freedom to define the
+concrete policy.
 %
-Based on this idea, we might think that the same holds true whenever a vehicle
-can be scheduled \textit{sufficiently} soon after its predecessor. Although this is not
-true in general, we can define a simple heuristic based on this idea.
-
-In this case, the model does not specify a proper distribution over $\eta$, but
-selects a single candidate by selecting a single next route in each step, so
-with $\mathds{1}\{ \cdot \}$ denoting the indicator function, we have
-$p(\eta_{t+1} | G_{t}) = \mathds{1}\{ \eta_{t+1} = p_{\tau}(G_{t}) \}$, selecting the next
-route at step $t$ as
-% For every route $r \in \mathcal{R}$, let $k(r)$ denote the number of vehicles that
-% have already been scheduled. Hence, let $i = (\eta_{t}, k(\eta_{t}))$ denote the
-% vehicle that was scheduled in the last step.
+We will now define a concrete parameterizations of $\pi$ that has a particularly
+simple interpretation.
+%
+The idea is to only consider the crossing time lower bound of the next
+unscheduled vehicle on the route chosen in the last step. The idea is that we
+aim to continue on the same route as long as possible, to avoid introducing
+unnecessary switch-over time $\sigma$.
+%
+Recall that a platoon was defined as a sequence of consecutive vehicles
+$(r, l+1), (r, l+2), \dots, (r, l+n)$ from some route $r$ such that
 \begin{align*}
-  p_{\tau}(G_{t}) = \begin{cases}
-                \eta_{t} \quad &\text{ if } \beta_{t}(\pi_{t}) + \rho + \tau \geq a_{j} \text{ and } (\pi_{t},j) \in \mathcal{C} , \\
-                \texttt{next}(\eta_{t}) & \text{ otherwise, }
-              \end{cases}
+  a(r,k) + \rho = a(r, k+1)  \quad \quad \text{ for all } l < k < l + n.
 \end{align*}
-where $\texttt{next}(\eta_{t})$ denotes some arbitrary route other than $\eta_{t}$ with
-unscheduled vehicles left.
 %
-The threshold heuristic is illustrated in Figure~\ref{fig:threshold_heuristic}.
+Note that the platoon preservation theorem essentially says that platoons should
+be treated as a whole unit: given some other vehicle on a different lane, the
+platoon is either scheduled entirely before it or entirely after it. In other
+words, the platoon is never \emph{split} in an optimal schedule.
+% generalize to "almost platoons"
+Based on this idea, we might think that the same holds true whenever a vehicle
+can be scheduled \textit{sufficiently} soon after its predecessor.
+%
+In other words, we might relax the definition of a platoon to
+\begin{align}
+  a(r,k) + \rho + \tau \geq a(r, k + 1) \quad \text{ for all } l < k < l + n,
+\end{align}
+for some small \emph{threshold} parameter $\tau \geq 0$.
+%
+Although the platoon preservation rule does not necessarily transfer to these
+relaxed platoons, we can use it as the basis for a simple heuristic.
+%
+Consider the following rule
+\begin{align}
+  \text{ if } \; \beta_t(j) + \rho + \tau \geq a(j) , \; \text{ then next action is } \eta_t ,
+\end{align}
+where $\eta_t$ denotes the last scheduled route. Observe that this rule is a
+direct generalization of~\eqref{eq:rule-exhaustive}.
+%
+When the condition does not hold, we choose the next route that has unscheduled
+vehicles instead. The threshold heuristic is illustrated in
+Figure~\ref{fig:threshold_heuristic}. \note{First action is ``earliest'' route.
+  Add algorithm to precisely define the heuristic.}
 
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{figures/single/threshold}
   \caption{Illustration of how the threshold heuristic is evaluated at some
-    intermediate step $t$ to choose the next route $\eta_{t+1}$. The top and
-    bottom row contains the unscheduled vehicles from route 1 and route 2,
-    respectively, drawn at their earliest crossing times $\beta_{t}(i)$. The
-    middel row represents the current partial schedule. Vehicle $\pi_{t-1}$ is
-    from route 1 and the last scheduled vehicle $\pi_{t}$ is from route 2 and
-    the disjunctive constraint for them happens to be tight in this case,
-    illustrated by the arrow. Whenever the indicated distance is smaller than
-    $\tau$, the threshold rule selects vehicle $*$ to be scheduled next. Otherwise,
-    vehicle $\dagger$ will be chosen.}\label{fig:threshold_heuristic}
+    intermediate step $t$ to choose the next route $\eta_{t+1}$. The top and bottom
+    row contains the unscheduled vehicles from route 1 and route 2,
+    respectively, drawn at their earliest crossing times $\beta_{t}(i)$. The middle
+    row represents the current partial schedule. Vehicle $\nu_{t-1}$ is from
+    route 1 and the last scheduled vehicle $\nu_{t}$ is from route 2 and the
+    disjunctive constraint for them happens to be tight in this case,
+    illustrated by the arrow. Whenever the indicated time difference is smaller
+    than $\tau$, the threshold rule selects vehicle $B$ to be scheduled next.
+    Otherwise, vehicle $A$ will be chosen.}\label{fig:threshold_heuristic}
 \end{figure}
 
-
-\paragraph{Neural parameterization.}
+\paragraph{Horizon feature.}
 
 We will now consider a parameterizaton that directly generalizes the
 threshold heuristic. Instead of looking at the earliest crossing time of the
 next vehicle in the current lane, we now consider the earliest crossing
 times of all unscheduled vehicles across lanes.
 %
-In the following definitions, we drop the step index $t$ to avoid
-cluttering the notation.
+The intuitive hypothesis is some sort of platoon preservation holds for
+sequences of vehicles that are almost platoons.
+
+In some sense, $\beta_t(i)$ does not include any more useful information for the
+policy to complete the schedule.
 %
-For every route $r$, let $\pi^{r}$ denote the sequence of unscheduled vehicles
-and consider their crossing time lower bounds
-$\beta(\pi^{r}) = (\beta(\pi^{r}_{1}), \beta(\pi^{r}_{2}), \dots)$. Let the
-minimum crossing time lower bound among unscheduled vehicles be denoted by $T$,
-then we call
-$h_{r} = \beta(\pi^{r}) - T = (\beta(\pi^{r}_{1}) - T, \beta(\pi^{r}) - T, \dots)$
-the \textit{horizon} of route $r$.
+This leads to the definition of some sort of \emph{horizon} of crossing time
+lower bounds, which we will now make precise.
+%
+Let $\bar{\beta}_t$ denote the minimum crossing time lower bound of all
+unscheduled vehicles.
+%
+Consider some route $r \in \mathcal{R}$ and let $k = k_t(r)$ denote the number
+of scheduled vehicles, such that $(r, k+1)$ is the first unscheduled vehicle on
+this route, then the horizon $h_t(r)$ at this route is defined to be the
+sequence
+\begin{align}
+  h_t(r) := (\beta_t(r, k + 1) - \bar{\beta}_t, \; \beta_t(r, k + 2) - \bar{\beta}_t, \; \dots , \; \beta_t(r, n_r) - \bar{\beta}_t) .
+\end{align}
+
+\paragraph{Neural parameterization.}
+
+\note{In the following definitions, we drop the step index $t$ to avoid
+cluttering the notation.}
 
 Next, we define some neural embedding $\bar{h}_{r}$ of each horizon. Observe
 that horizons can be variable length. We could fix the length by using padding,
@@ -3528,9 +3791,10 @@ a fixed-length embedding by feeding it in reverse order through a plain Elman
 RNN. Generally speaking, the most recent inputs tend to have greater influence
 on the output of an RNN, which is why we feed the horizon in reverse order, such
 that those vehicles that are due first are processed last, since we expect those
-should have the most influence on the decision. These horizon embeddings are
-arranged into a vector $h_{t}$ by the following cycling rule. At position $k$ of
-vector $h_{t}$, we put the embedding for route
+should have the most influence on the decision.
+
+These horizon embeddings are arranged into a vector $h_{t}$ by the following
+cycling rule. At position $k$ of vector $h_{t}$, we put the embedding for route
 \begin{align*}
   k - \eta_{t} \; \mathrm{mod} \; |\mathcal{R}|
 \end{align*}
@@ -3544,7 +3808,7 @@ position of the vector.
 Using some fully connected neural network $f_{\theta}$ and a softmax layer, this
 global embedding is then finally mapped to a probability distribution as
 \begin{align*}
-  p_{\theta}(\eta_{t+1} | G_{t}) = \text{softmax} ( f_{\theta}(h_{t})) ,
+  \pi_{\theta}(\eta_{t+1} \, | \, \mathcal{G}_{t}) = \text{softmax} ( f_{\theta}(h_{t})) ,
 \end{align*}
 where $\theta$ denotes the parameters of $f$ and of the recurrent neural
 networks.
@@ -3553,20 +3817,197 @@ After $\theta$ has been determined, we can apply greedy rollout by simply
 ignoring routes that have no unscheduled vehicles left and take the argmax of
 the remaining probabilities.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.8\textwidth]{figures/single/embedding}
-  \caption{Schematic overview of parameterization of the neural heuristic. The
-    distribution over the next route is parameterized as
-    $p_{\theta}(\eta_{t+1} | G_{t})$, which is computed from the current route horizons
-    $h_{r}$ via embeddings $\bar{h}_{r}$ and the cyling trick. Observe that the
-    particular cycling shown in the figure corresponds to a situation in which
-    the current route is $\eta_{t} = 2$.}\label{fig:neural_embedding}
-\end{figure}
+% \begin{figure}
+%   \centering
+%   \includegraphics[width=0.8\textwidth]{figures/single/embedding}
+%   \caption{Schematic overview of parameterization of the neural heuristic. The
+%     distribution over the next route is parameterized as
+%     $\pi_{\theta}(\eta_{t+1} | \mathcal{G}_{t})$, which is computed from the current route horizons
+%     $h_{r}$ via embeddings $\bar{h}_{r}$ and the cyling trick. Observe that the
+%     particular cycling shown in the figure corresponds to a situation in which
+%     the current route is $\eta_{t} = 2$.}\label{fig:neural_embedding}
+% \end{figure}
+
+
+
+\clearpage
+
+\subsection{Policy optimization}
+
+Recall from Section~\ref{sec:ml-co} the abstract formulation of our goal to
+develop an efficient algorithm for some combinatorial problem. Given some
+distribution $P$ of relevant problem instances of
+problem~\eqref{eq:crossing_time_scheduling}, we aim to find a policy $\pi$ for
+the MDP, defined in Section~\ref{sec:MDP}, that minimizes
+\begin{align*}
+  \min_{\pi \in \Pi} \mathbb{E}_{s \sim P} [m(s,\pi)] ,
+\end{align*}
+where $m(s, \pi)$ is some measure of performance of the policy, which can
+include optimality of the produced solution or running time.
+%
+Since problem distribution $P$ is generally inaccessible and the space $\Pi$ of
+valid policies is too large to consider entirely, we instead aim to minimize
+\begin{align}
+  \min_{\theta} \sum_{s \in D_\text{train}} \frac{1}{|D_\text{train}|} m(s, \pi_\theta) ,
+\end{align}
+where $D_\text{train}$ is some finite set of problem instances sampled from
+distribution $P$.
+%
+The performance of an algorithm generally depends on the running time and the
+quality of the solution obtained.
+%
+Furthermore, we also need to take into account the fact that optimizing $\theta$
+takes time as well.
+%
+We will take the following approach.
+%
+Given some parameterization $\pi_\theta$ from above, this section will discuss how to optimize $\theta$ to obtain the best average performance on a set of training problem instances.
+%
+In the next section, we will evaluate the training time and evaluation time of
+the trained policies.
+
+
+\paragraph{Grid search for threshold heuristic.}
+Given some instance $s$, let $\eta_{\tau}(s)$ be the schedule produced by the
+threshold heuristic. Note that the objective is not differentiable with respect
+to $\tau$, so we cannot directly use gradient-based optimization methods. However,
+we only have a single parameter, so we can simply select the value of $\tau$ that
+minimizes the average emperical objective
+%
+\begin{align}
+  \min_{\tau \geq 0} \sum_{s \in D_\text{train}} \sum_{i \in \mathcal{N}} y_i(\eta_{\tau}(s)) ,
+\end{align}
+%
+which can be approximated using a simple grid search.
+%
+We could also opt to approximate the class of threshold policies by using some
+differentiable function to approximate the step function, but we will not
+discuss this further.
+
+\paragraph{Gradient-based imitation learning.}
+
+Consider some instance $s \in D_\text{train}$ and let $\eta^{*}$ denote some optimal
+route sequence, which can for example be computed by solving the MILP
+formulation~\eqref{eq:C'}. For each such optimal schedule, we can compute the sequence
+\begin{align*}
+  \mathcal{G}_{0}, \eta_{1}, \mathcal{G}_{1}, \eta_{2}, \dots, \eta_{N}, \mathcal{G}_{N}.
+\end{align*}
+The resulting set of pairs $\{ (\mathcal{G}_{t}, \eta_{t+1}) : t = 1, \dots, N - 1 \}$
+can be used to learn $\pi_{\theta}$ in a supervised fashion by treating it as a
+classification task and computing the maximum likelihood estimator $\hat{\theta}$.
+%
+This approach of using so-called \textit{demonstration} to derive policies that are
+similar to some \emph{expert policy} is generally refered to as
+\textit{imitation learning}.
+%
+Let $Z$ denote the set of all state-action pairs collected from all
+training instances $D_\text{train}$.
+%
+We make the procedure concrete for the case of two
+routes $\mathcal{R} = \{ 1, 2 \}$, which is slightly simpler. Let $\pi_{\theta}(\mathcal{G}_{t})$
+denote the probability of choosing the first route, then we can use the binary
+cross entropy loss, given by
+\begin{align}
+  L_{\theta}(Z) := - \frac{1}{|Z|} \sum_{(\mathcal{G}, r) \in Z} \mathbf{1}\{r = 1\} \log(\pi_{\theta}(\mathcal{G})) + \mathbf{1}\{r = 2\} \log(1 - \pi_{\theta}(\mathcal{G})) ,
+\end{align}
+where $\mathbf{1}\{\cdot\}$ denotes the indicator function. Now we can simply rely on
+some gradient-descent optimization procedure to minimize $L_{\theta}(Z)$ with
+respect to $\theta$.
+
+\paragraph{Policy gradient reinforcement learning.}
+
+% imitation learning -> RL (on/off-policy)
+Instead of using state-action pairs as examples to fit the model in a supervised
+fashion (imitation learning), we can also choose to use the reinforcement
+learning paradigm, in which the data collection process is guided by some
+policy.
+
+
+% REINFORCE
+Policy-based methods work with an explicit parameterization of the policy. The
+model parameters are then tuned based on experience, often using some form of
+(stochastic) gradient descent to optimize the expected total return.
+%
+Therefore, the gradient of the expected return plays a central role. The
+following identity is generally known as the Policy Gradient Theorem, where we
+drop $\theta$ from $\pi_\theta$ to avoid cluttering the notation. The gradient
+is with respect to the parameters $\theta$.
+\begin{align*}
+  \nabla \mathbb{E}_{\pi} G_{0} &\propto \sum_{s} \mu_{\pi}(s) \sum_{a} q_{\pi}(s, a) \nabla \pi(a | s, \theta) \\
+  &= \mathbb{E}_{\pi}\left[ \sum_{a} q_{\pi} (S_{t}, a) \nabla \pi (a | S_{t}) \right] \\
+  &= \mathbb{E}_{\pi}\left[ \sum_{a} \pi(a | S_{t}) q_{\pi} (S_{t}, a) \frac{\nabla \pi (a | S_{t})}{\pi (a | S_{t})} \right] \\
+  &= \mathbb{E}_{\pi}\left[ q_{\pi} (S_{t}, A_{t}) \frac{\nabla \pi (A_{t} | S_{t})}{\pi (A_{t} | S_{t})} \right] \\
+  &= \mathbb{E}_{\pi} \left[ G_{t} \log \nabla \pi (A_{t} | S_{t}) \right] .
+\end{align*}
+% \begin{align*}
+%   \nabla \mathbb{E}_{a \sim p_{\theta}(a | s)} R(s, a) &= \nabla \sum_{a} p_{\theta}(a | s) R(s, a) \\
+%   &= \sum_{a} \nabla p_{\theta}(a | s) R(s, a) \\
+%   &= \sum_{a} p_{\theta}(a | s) \frac{\nabla p_{\theta}(a | s)}{p_{\theta}(a | s)} R(s, a) \\
+%   &= \mathbb{E}_{a \sim p_{\theta}(a | s)} \left[  \frac{\nabla p_{\theta}(a | s)}{p_{\theta}(a | s)} R(s, a) \right] \\
+%   &= \mathbb{E}_{a \sim p_{\theta}(a | s)} [ \nabla \log p_{\theta}(a | s) R(s, a) ] .
+% \end{align*}
+%
+The well-known REINFORCE estimator is a direct application of the Policy
+Gradient Theorem. At each step $t$, we update the parameters $\theta$ using a
+gradient ascent update
+\begin{align*}
+  \theta \leftarrow \theta + \alpha G_{t} \nabla \log \pi_{\theta}(\eta_{t} | \mathcal{G}_{t}) ,
+\end{align*}
+with some fixed learning rate $\alpha$.
+% add baseline to reduce variance
+To reduce variance of the estimator, we can incorporate a so-called
+\textit{baseline}, which is an estimate of the expected return of the current
+state.
+%
+In the context of combinatorial optimization, the value of the baseline may be
+interpreted as estimating the relative difficulty of an instance?
+
+\paragraph{Dense reward.}
+% reward definition
+The reinforcement learning approach depends on the definition of a reward. For
+each step $\mathcal{G}_{t-1} \xrightarrow{\eta_{t}} \mathcal{G}_{t}$.
+Specifically, we define the \emph{dense} reward at step $t$ to be
+\begin{align*}
+  r_d(\mathcal{G}_t) = \sum_{i \in \mathcal{N}} \beta_{t-1}(i) - \beta_{t}(i) .
+\end{align*}
+Let the return at step $t$ be defined as
+\begin{align*}
+  G_{t} = \sum_{k=t + 1}^{N} R_{k} .
+\end{align*}
+Hence, when the \textit{episode} is done after $N$ steps, the total episodic
+reward is given by the telescoping sum
+\begin{align*}
+  G_{0} = \sum_{t=1}^{N} R_{t} = \sum_{i \in \mathcal{N}} \beta_{0}(i) - \beta_{N}(i)  = \sum_{i \in \mathcal{N}} a_{i} - y_{i} = - L(s, \eta) ,
+\end{align*}
+Therefore, maximizing the episodic reward corresponds to minimizing the
+scheduling objective, as desired.
+%
+
+\paragraph{Beam search.}
+
+Because the learned policy is still a stochastic policy, we need to specify how to obtain a deterministc policy.
+%
+One way would be to calculate the maximum likelihood estimator
+\begin{align*}
+  \arg\max_{\eta} \pi_\theta(\eta | s) ,
+\end{align*}
+but this is generally very expensive to compute, because this could require
+$O(R^{N})$ evaluations of $\pi_\theta(\eta_{t} | s, \eta_{1:t-1})$ when we do
+not make additional structural model assumption.
+%
+Therefore, one often uses \textit{greedy rollout}, which means that we pick $\eta_{t}$ with
+the highest probability at every step.
+% other inference methods
+Other inference strategies have been proposed in the context of modeling
+combinatorial optimization problems, see for example the ``Sampling'' and
+``Active Search'' strategies in the seminal
+paper~\cite{belloNeuralCombinatorialOptimization2017}.
 
 
 \clearpage
 \section{Experimental results}\label{sec:results}
+
+\note{indicate what low, med and high mean}
 
 The evalutation of model performance is roughly based on two aspects. Of course,
 the quality of the produced solutions is important. Second, we need to take into
@@ -3574,7 +4015,16 @@ account the time that the algorithm requires to compute the solutions. We need
 to be careful here, because we have both training time as well as inference
 time for sequence models.
 
+Consider generalization along the two axes introduced in methodological
+introduction of Section~\ref{sec:ml-co}.
+%
 
+% define \mathcal{N} through $vehicles per route
+\paragraph{Instance specification.}
+
+\note{Need to satisfy Assumption~\ref{assump:arrivals}.}
+
+% define a through a_r
 For each route $r \in \mathcal{R}$, we model the sequence of earliest crossing times
 $a_{r} = (a_{r1}, a_{r2}, \dots)$ as a stochastic process, to which we refer as
 the \textit{arrival process}. Recall that constraints~\eqref{eq:conjunctive}
@@ -3587,7 +4037,10 @@ for all $k = 1, 2, \dots$.
 %
 Let the interarrival times be denoted as $X_{n}$ with cumulative distribution
 function $F$ and mean $\mu$, assuming it exists. We define the arrival times
-$A_{n} = A_{n-1} + X_{n} + \rho$, for $n \geq 1$ with $A_{0} = 0$.
+\begin{align*}
+ A_{n} = A_{n-1} + X_{n} + \rho,
+\end{align*}
+ for $n \geq 1$ with $A_{0} = 0$.
 
 \begin{remark}
 Note that the arrival process may be interpreted as an renewal process with interarrivals
@@ -3657,7 +4110,11 @@ We keep $\lambda_{s} = 0.5$ constant, and use
 to keep the arrival rate constant across arrival distributions.
 
 
-%
+\paragraph{Experiment design.}
+
+\note{[some notes on implementation] We implemented the MDP as a simple finite state automaton that keeps track of
+the augmented state.}
+
 We study the effect of the problem instance distribution $\mathcal{X}$ by
 varying the number of routes and number of arrivals per route, distribution of
 interarrival times, arrival intensity per route and degree of platooning.
@@ -3699,9 +4156,9 @@ For the policy gradient method using REINFORCE with baseline, the training loss
 with episodic baseline is shown in Figure~\ref{fig:rl_neural_episodic_fit} and
 for the stepwise baseline in Figure~\ref{fig:rl_neural_stepwise_fit}.
 
-\input{data-single/threshold-woven.tex}
+% \input{data-single/threshold-woven.tex}
 
-\input{data-single/neural-woven.tex}
+% \input{data-single/neural-woven.tex}
 
 \clearpage
 \section{Notes and references}
@@ -3733,73 +4190,8 @@ in Appendix~\ref{app:misc}).
 for every pair $i = \pi_t$ and $j = \pi_{t+1}$ with $t = 1, \dots, N-1$.
 \end{restatable}
 
-\note{
-\subsection{Local search}\label{sec:local_search}
-
-Without relying on systematic search methods like branch-and-bound, an often
-employed method is to use some kind of local search heuristic.
-%
-The main idea is that the solution space can be organized based on some measure
-of similarity. From the current solution, we only move to a neighboring solution
-if it has a better objective value.
-%
-Next, give an example of such a neighborhood.
-
-As seen in the previous sections, vehicles of the same route occur mostly in
-platoons. For example, consider for example the route order
-$\eta = (0, 1, 1, 0, 0, 1, 1, 1, 0, 0)$. This example has 5 platoons of
-consecutive vehicles from the same route. The second platoon consists of two
-vehicles from route 1.
-%In general, let $P(\eta)$ denote the total number of platoons in $\eta$.
-The basic idea is to make little changes in these platoons by moving vehicles at
-the start and end of a platoon to the previous and next platoon of the same
-route.
-%
-More precisely, we define the following two types of modifications to a route
-order. A \textit{right-shift} modification of platoon $i$ moves the last vehicle of this
-platoon to the next platoon of this route. Similarly, a \textit{left-shift} modification
-of platoon $i$ moves the first vehicle of this platoon to the previous platoon
-of this route.
-%
-We construct the neighborhood of a solution by performing every possible
-right-shift and left-shift with respect to every platoon in the route order. For
-illustration purposes, we have listed a full neighborhood for some example route
-order in Table~\ref{tab:local_search}.
-
-Now using this definition of a neighborhood, we must specify how the search
-procedure visits these candidates.
-In each of the following variants, the value of each neighbor is always computed.
-%
-The most straightforward way is to select the single best candidate in the
-neighborhood and then continue with this as the current solution and compute its
-neighborhood. This procedure can be repeated for some fixed number of times.
-Alternatively, we can select the $k$ best neighboring candidates and then
-compute the combined neighborhood for all of them. Then in the next step, we
-again select the $k$ best candidates in this combined neighborhood and repeat.
-The latter variant is generally known as \textit{beam search}.
-}
-
-\newcommand*{\one}{{\color{blue}1}}%
-\newcommand*{\zero}{{\color{red}0}}%
-
-\begin{table}
-  \caption{Local search neighborhood of route order
-    $\eta = (\zero, \one, \one, \zero, \zero, \one, \one, \one, \zero, \zero)$
-    based on the left-shift and right-shift operations applied to every
-    ``platoon'' in the current order.}
-\label{tab:local_search}
-\begin{center}
-\begin{tabular}{c|c|c}
-  platoon id  & left-shift & right-shift \\
-  1 &  & (\one, \one, \zero, \zero, \zero, \one, \one, \one, \zero, \zero) \\
-  2 & (\one, \zero, \one, \zero, \zero, \one, \one, \one, \zero, \zero) & (\zero, \one, \zero, \zero, \one, \one, \one, \one, \zero, \zero) \\
-  3 & (\zero, \zero, \one, \one, \zero, \one, \one, \one, \zero, \zero) & (\zero, \one, \one, \zero, \one, \one, \one, \zero, \zero, \zero) \\
-  4 & (\zero, \one, \one, \one, \zero, \zero, \one, \one, \zero, \zero) & (\zero, \one, \one, \zero, \zero, \one, \one, \zero, \zero, \one) \\
-  5 & (\zero, \one, \one, \zero, \zero, \zero, \one, \one, \one, \zero) &
-\end{tabular}
-\end{center}
-\end{table}
-
+The narrative and notation in Section~\ref{sec:ml-co} has been based on the
+presentation in~\cite{bengioMachineLearningCombinatorial2020}.
 
 
 \microtypesetup{deactivate}
@@ -5689,8 +6081,74 @@ disjunctive arcs, then the pair of disjunctive constraint can be rewritten to
 which is generally referred to as the \emph{big-M method}. The resulting MILP can
 be solved by any off-the-shelf solver.
 
+\chapter{Local search}\label{sec:local_search}
 
-\chapter{Neural combinatorial optimization}
+Without relying on systematic search methods like branch-and-bound, an often
+employed method is to use some kind of local search heuristic.
+%
+The main idea is that the solution space can be organized based on some measure
+of similarity. From the current solution, we only move to a neighboring solution
+if it has a better objective value.
+%
+Next, give an example of such a neighborhood.
+
+As seen in the previous sections, vehicles of the same route occur mostly in
+platoons. For example, consider for example the route order
+$\eta = (0, 1, 1, 0, 0, 1, 1, 1, 0, 0)$. This example has 5 platoons of
+consecutive vehicles from the same route. The second platoon consists of two
+vehicles from route 1.
+%In general, let $P(\eta)$ denote the total number of platoons in $\eta$.
+The basic idea is to make little changes in these platoons by moving vehicles at
+the start and end of a platoon to the previous and next platoon of the same
+route.
+%
+More precisely, we define the following two types of modifications to a route
+order. A \textit{right-shift} modification of platoon $i$ moves the last vehicle of this
+platoon to the next platoon of this route. Similarly, a \textit{left-shift} modification
+of platoon $i$ moves the first vehicle of this platoon to the previous platoon
+of this route.
+%
+We construct the neighborhood of a solution by performing every possible
+right-shift and left-shift with respect to every platoon in the route order. For
+illustration purposes, we have listed a full neighborhood for some example route
+order in Table~\ref{tab:local_search}.
+
+Now using this definition of a neighborhood, we must specify how the search
+procedure visits these candidates.
+In each of the following variants, the value of each neighbor is always computed.
+%
+The most straightforward way is to select the single best candidate in the
+neighborhood and then continue with this as the current solution and compute its
+neighborhood. This procedure can be repeated for some fixed number of times.
+Alternatively, we can select the $k$ best neighboring candidates and then
+compute the combined neighborhood for all of them. Then in the next step, we
+again select the $k$ best candidates in this combined neighborhood and repeat.
+The latter variant is generally known as \textit{beam search}.
+
+\newcommand*{\one}{{\color{blue}1}}%
+\newcommand*{\zero}{{\color{red}0}}%
+
+\begin{table}
+  \caption{Local search neighborhood of route order
+    $\eta = (\zero, \one, \one, \zero, \zero, \one, \one, \one, \zero, \zero)$
+    based on the left-shift and right-shift operations applied to every
+    ``platoon'' in the current order.}
+\label{tab:local_search}
+\begin{center}
+\begin{tabular}{c|c|c}
+  platoon id  & left-shift & right-shift \\
+  1 &  & (\one, \one, \zero, \zero, \zero, \one, \one, \one, \zero, \zero) \\
+  2 & (\one, \zero, \one, \zero, \zero, \one, \one, \one, \zero, \zero) & (\zero, \one, \zero, \zero, \one, \one, \one, \one, \zero, \zero) \\
+  3 & (\zero, \zero, \one, \one, \zero, \one, \one, \one, \zero, \zero) & (\zero, \one, \one, \zero, \one, \one, \one, \zero, \zero, \zero) \\
+  4 & (\zero, \one, \one, \one, \zero, \zero, \one, \one, \zero, \zero) & (\zero, \one, \one, \zero, \zero, \one, \one, \zero, \zero, \one) \\
+  5 & (\zero, \one, \one, \zero, \zero, \zero, \one, \one, \one, \zero) &
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\chapter{Neural combinatorial optimization}\label{app:nco}
 
 % maybe discuss traditional epsilon-approximation schemes?
 % argue that it takes a lot of expert knowledge about the problem structure to design these
