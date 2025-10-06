@@ -2511,13 +2511,26 @@ in order to estimate~\eqref{eq:max-expected-performance} and solve instead
 \begin{figure}
   \centering
   \includegraphics[scale=1]{figures/problem-distribution.pdf}
-  \caption{Illustration of a typical hierarchical relationship between classes
+  \caption{This figure illustrates a typical hierarchical relationship between classes
     of combinatorial problems: instances of the traveling salesman problem (TSP)
-    with linear objective functions can be understood as specific instances of
-    mixed-integer linear programs (MILP). Furthermore, in certain practical
-    contexts, it might make more sense to consider some distribution of TSP
-    instances (illustrated here as planar Gaussian distributions $P_1$ and
-    $P_2$).}\label{fig:problem-distribution}
+    can be understood as specific instances of mixed-integer programs (MIP) and this relationship is mathematically well-defined.
+    %
+    In contrast to this clear boundary between problems, it might make more
+    sense to consider a less sharp boundary between classes of problems by
+    considering their distribution instead.
+    %
+    For example, we might consider the distribution $P_\mathrm{Eindhoven}$ of
+    TSP problems encountered by some delivery company in Eindhoven. The left graph illustrates a typical sample from this distribution.
+    %
+    Suppose this delivery company also has a branch in Montreal, then the distribution $P_\mathrm{Montreal}$ of problems faced by that branch will be very different.
+    %
+    For example, the Dommel river does not have such a large influence on the
+    connectivity in Eindhoven compared to that of the St. Lawrence River.
+    Furthermore, Eindhoven has some sort of circular connectivity due to the
+    ring road, whereas large parts of Montreal are fairly Manhattan-like. It
+    should be clear that statements like these are very cumbersome to formalize
+    precisely, which is one of the main motivations of the ML for CO
+    methodology.}\label{fig:problem-distribution}
 \end{figure}
 
 \subsection{Algorithm execution as MDP}
@@ -3358,6 +3371,9 @@ problem.
     \label{eq:D}\tag{D}
     \min_{\eta \in E} \; \sum_{i \in \mathcal{N}} y_i(\eta) - a_i .
   \end{align}
+  %
+  An instance of this problem is uniquely identified by the tuple
+  $(\mathcal{N}, a, \rho, \sigma)$.
 \end{define}
 
 \clearpage
@@ -3365,12 +3381,12 @@ problem.
 \section{Scheduling as learning problem}\label{sec:seq-modeling}
 
 We will now explain how the general ML for CO framework presented in Section~\ref{sec:ml-co}
-can be applied to solve the route ordering problem~\eqref{eq:D}.
+can be applied to the route ordering problem~\eqref{eq:D}.
 %
-As we discussed there, the most important decision is the design of the state
+As we discussed before, the most important decision is the design of the state
 space of the MDP algorithm model, since this essentially determines the class of
-algorithms over which we are optimizing. Therefore, this is our main way of
-incorporating prior knowledge and intuition into the model.
+algorithms over which we are optimizing---it is our main way of incorporating
+prior knowledge and intuition into the model.
 %
 We will now show how the findings of the previous section leads to a natural
 choice of states and corresponding algorithmic structure.
@@ -3403,24 +3419,8 @@ unscheduled vehicle on that route to the schedule.
 This way, we obtain a sequence of \emph{partial schedules}, encoded as
 disjunctive graphs, until we arrive at a complete schedule.
 
-% explicit dependence on problem specification s=(\mathcal{N},a)
-From now on, we will use the notation $s = (\mathcal{N}, a) \in \mathcal{I}$ to
-denote an instance of problem~\eqref{eq:D}, so it is determined by the set of
-vehicle indices $\mathcal{N}$ and the set of earliest crossing times
-$a := \{ a_i : i \in \mathcal{N} \}$.
-%
-Parameters $\rho$ and $\sigma$ are assumed to be fixed.
-%
-In the following subsection, we will first define an MDP for each instance $s$,
-denoted by $\mathcal{M}(s)$.
-%
-Because we are interested in policies that perform well over arbitrary
-distributions of problem instances, we then show how these MDPs are joined
-together into a single MDP.
+\clearpage
 
-
-% formal description
-% We now make the above more precise by providing the formal MDP specification.
 \subsection{Constructive scheduling MDP}\label{sec:MDP}
 
 % \begin{itemize}
@@ -3434,79 +3434,60 @@ together into a single MDP.
 %   \item The total number of vehicles $N$ in the system is the fixed episode length.
 % \end{itemize}
 
-We will now precisely define the MDP that models the constructive scheduling
-procedure.
-
-% each instance s defines an MDP \mathcal{M}(s)
-
-
 % instance -> empty disjunctive graph
-Each instance $s$ corresponds uniquely to an empty disjunctive graph
-$\mathcal{G}_0 = \mathcal{G}_0(s)$.
+
+We start by defining the \emph{single-instance} MDP for some problem instance
+$s = (\mathcal{N}, a, \rho, \sigma)$ of the route ordering problem~\eqref{eq:D}.
 %
-All vehicles are said to be \emph{unscheduled} in $\mathcal{G}_0$, which serves
-as the initial state of the MDP.
-% empty disjunctive graph is initial state
-Given some instance $s$, the possible states of the MDP correspond to all
-possible disjunctive graphs that can be obtained by adding disjunctive arcs to
-$\mathcal{G}_0$.
+The initial state is the empty disjunctive graph $\mathcal{G}_0$ belonging to
+instance $s$.
 %
-To help the following presentation, we will use $k(\mathcal{G}, r)$ to denote
-the number of vehicles on route $r$ that are \emph{scheduled} in state $\mathcal{G}$,
-so initially we have $k(\mathcal{G}_0, r) = 0$ for all $r \in \mathcal{R}$.
+All vehicles are said to be \emph{unscheduled} in $\mathcal{G}_0$.
 %
-In each step, we have to choose some route $r$ which has still unscheduled
-vehicles left, so the route indices form the action space
-$\mathcal{A} = \mathcal{R}$.
+In each step, we add some vehicle to the schedule, until all vehicles are
+scheduled.
 %
-We will now explain how the state transitions happen.
+Therefore, the MDP has exactly $N$ decision epochs\footnote{This corresponds to
+  a \emph{finite-horizon} of size $N+1$, in the formal definition, see
+  Appendix.}, where we recall that $N$ denotes the total number of vehicles.
 %
-Let $\mathcal{G}$ denote the current state, and suppose we choose action $r$,
-which is thus valid as long as $k(\mathcal{G}, r) < n_r$.
+Each intermediate state $\mathcal{G}_t$ is some disjunctive graph, encoding the
+current partial schedule.
 %
-Observe that the first unscheduled vehicle on route $r$ is
+We will define the transitions such that the final state $\mathcal{G}_N$ always
+represents a complete schedule.
+
+Vehicles are scheduled according to the relative order in which they appear on
+their route. To make this precise, let $k_r(\mathcal{G}_t)$ denote the number of
+vehicles on route $r$ that are \emph{scheduled} in state $\mathcal{G}_t$.
+%
+Initially we have $k_r(\mathcal{G}_0) = 0$ for all $r \in \mathcal{R}$.
+%
+At every decision epoch, we choose some route $r$ that has some unscheduled
+vehicles left. Hence, the set of admissible actions at state $\mathcal{G}_t$ is
+defined as
 \begin{align}
-  i = (r, k(\mathcal{G}, r) + 1).
+  \label{eq:5}
+  \mathcal{A}(\mathcal{G}_t) := \{ r: k_r(\mathcal{G}_t) < n_r \} .
 \end{align}
 %
-We add vehicle $i$ to the partial schedule by adding all the disjunctive arcs
-from $i$ to each unscheduled vehicle on all other routes, so formally these arcs
-are
+Suppose we take action $r$, then the first unscheduled vehicle on route $r$ is
 \begin{align}
-  \big\{ i \rightarrow (q, k) : q \neq r, \;  k \in \{ k(\mathcal{G}, q) + 1, \dots, n_q \} \big\} .
+  i = (r, k_r(\mathcal{G}_t) + 1).
 \end{align}
 %
-After adding these arcs to $\mathcal{G}$, we obtain the next state $\mathcal{G}'$.
-%
-We emphasize that all transitions are thus defined deterministically, because
-the process is so simple that we do not need to introduce stochasticity in the
-model to approximate complex computations.
-\comment{Introduce additional notation, if neccessary. For example, introduce
-  $\eta(\mathcal{G})$ (or with sequence notation $\eta_{1:t} = \eta(\mathcal{G}_t)$) as
-  the partial route sequence belonging to the partial disjunctive graph. This
-  can be interpreted as a sort of \emph{read-out} function to obtain the solution from
-  the final state. Prove that the complete disjunctive graph $\mathcal{G}_N$ is
-  always acyclic and complete, such that $y(\eta(\mathcal{G}_N))$ is a valid active
-  schedule. [ optional: example MDP with example transitions ]}
-
-% episode length, final state and reward
-It can be shown that, after $N$ transitions of the automaton, we obtain some
-acyclic complete disjunctive graph $\mathcal{G}_N$. Therefore, it corresponds to
-some complete selection of disjunctive arcs $\mathcal{O}_N$, and we can define
-$y(\mathcal{G}_N) = y(\mathcal{O}_N)$ to be the corresponding active schedule.
-Furthermore, we can define a single final reward equal to the negative sum of
-all crossing times
+We include vehicle $i$ in the partial schedule by adding the disjunctive arcs
 \begin{align}
-  r_f(\mathcal{G}_N) := \sum_{i \in \mathcal{N}} y_i(\mathcal{G}_N) ,
+  \label{eq:disj-arcs}
+  \big\{ i \rightarrow (r', k) : r' \neq r, \;  k \in \{ k_{r'}(\mathcal{G}_t) + 1, \dots, n_{r'} \} \big\} .
 \end{align}
-where we use the subscript $f$ to avoid confusion with the use of $r$ for routes
-and to distinguish it from an equivalent reward that we will define later.
+to $\mathcal{G}_t$ to obtain the next state $\mathcal{G}_{t+1}$.
 
-\subsection{Auxiliary features and dense rewards}
+% interpret the above
+Note that~\eqref{eq:disj-arcs} are all the disjunctive arcs from $i$ to each
+unscheduled vehicle on all other routes, which essentially appends $i$ at the
+end of the current vehicle order encoded by $\mathcal{G}_t$.
 
-Given the MDP above, we now turn our attention to parameterizing the policy $\pi$.
-%
-\comment{Why parameterize at all? Because it is not guaranteed that the policy space is finite.}
 % state augmentation
 The definition of the MDP above shows that the disjunctive graph captures all
 necessary information of the constructive scheduling process, so it can serve as
@@ -3515,16 +3496,7 @@ the state.
 However, it might be beneficial for learning to do some additional feature
 engineering, by considering some further information that can be derived from
 the state.
-%
-From here on, we will write states as $\mathcal{G}_t$, indicating at which step
-$t \in \{0, \dots, N\}$ it occurs. With this notation, $\mathcal{G}_0$ is an
-initial state and $\mathcal{G}_N$ a final state.
-%
-We will use the subscript $t$ to emphasize that derived quantities depend on
-some the current state $\mathcal{G}_t$.
-%
-For example, we will write the unscheduled vehicle counts used above as
-$k_t(r) := k(\mathcal{G}_t, r)$.
+
 %
 In a similar vein, we can define the following \emph{done flags}
 \begin{align}
@@ -3543,6 +3515,34 @@ added to the partial schedule.
 
 \note{We will also write $a(i) := a_i$ to align
 the notation with upcoming definitions.}
+
+We emphasize that all transitions are thus defined deterministically, because
+the process is so simple that we do not need to introduce stochasticity in the
+model to approximate complex computations.
+\comment{Introduce additional notation, if neccessary. For example, introduce
+  $\eta(\mathcal{G})$ (or with sequence notation $\eta_{1:t} = \eta(\mathcal{G}_t)$) as
+  the partial route sequence belonging to the partial disjunctive graph. This
+  can be interpreted as a sort of \emph{read-out} function to obtain the solution from
+  the final state. Prove that the complete disjunctive graph $\mathcal{G}_N$ is
+  always acyclic and complete, such that $y(\eta(\mathcal{G}_N))$ is a valid active
+  schedule. [ optional: example MDP with example transitions ]}
+
+\clearpage
+% episode length, final state and reward
+It can be shown that, after $N$ transitions of the automaton, we obtain some
+acyclic complete disjunctive graph $\mathcal{G}_N$. Therefore, it corresponds to
+some complete selection of disjunctive arcs $\mathcal{O}_N$, and we can define
+$y(\mathcal{G}_N) = y(\mathcal{O}_N)$ to be the corresponding active schedule.
+Furthermore, we can define a single final reward equal to the negative sum of
+all crossing times
+\begin{align}
+  r_f(\mathcal{G}_N) := \sum_{i \in \mathcal{N}} y_i(\mathcal{G}_N) ,
+\end{align}
+where we use the subscript $f$ to avoid confusion with the use of $r$ for routes
+and to distinguish it from an equivalent reward that we will define later.
+
+\subsection{Auxiliary features and dense rewards}
+
 
 \paragraph{Crossing time lower bounds.}
 Next, we show that the active schedule obtained from each partial disjunctive
@@ -3661,6 +3661,8 @@ Some brief discussion of what the learning objective is are in order here.
 \clearpage
 
 \subsection{Optimal policies and parameterizations}
+
+\comment{Why parameterize at all? Because it is not guaranteed that the policy space is finite.}
 
 Narrow the space of policies to optimize over without losing optimality guarantees.
 %
