@@ -18,9 +18,8 @@
 \usepackage{pdfcomment} % adding floating pdf comments
 \newcommand{\comment}[1]{\pdfmargincomment[author=Jeroen van Riel]{#1}}
 
-% just playing around here
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta, positioning}
+\usetikzlibrary{calc, positioning, fit, backgrounds, spy}
 
 % micro-level typesetting
 \usepackage[activate={true,nocompatibility},final,tracking=true,kerning=true,spacing=true,
@@ -53,6 +52,7 @@
 \newcommand*\diff{\mathop{}\!\mathrm{d}}
 
 \newcommand\note[1]{{\color{Navy}#1}}
+
 
 % set title, date and author
 \newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
@@ -2946,7 +2946,8 @@ schedules; the goal of this section is to first show that optimal schedules
 can actually be represented as a sequence of route indices.
 %
 This allows us to formulate the scheduling problem in terms of a particularly
-simple sequential decision making problem, which is made precise in Section~\ref{sec:seq-modeling}.
+simple sequential decision problem, which we later make precise by defining an
+MDP in Section~\ref{sec:seq-modeling}.
 
 For ease of reference, let us now restate the MILP reformulation of the original
 crossing time scheduling problem
@@ -3294,7 +3295,7 @@ We will use the following notation:
 
 \begin{theorem}
   Problem~\eqref{eq:crossing_time_scheduling} is equivalent to the \emph{route ordering problem}
-  \begin{align}\tag{RO}
+  \begin{align}
     \label{eq:RO}
     \min_{\eta \in E} \; \sum_{i \in \mathcal{N}} y_i(\eta) .
   \end{align}
@@ -3342,13 +3343,29 @@ We will use the following notation:
   $\mathcal{O}(\nu)$.
 \end{proof}
 
+We make one more slight change to the problem. Until now, we have been using the
+total sum of crossing times as our objective. This captures our goal of
+minimizing the travel delay of vehicles and has been convenient in terms of
+notation. However, from now on, we will consider the total delay, which is the
+sum of $y_i - a_i$ over all vehicles $i$.
+%
+In the remainder of this chapter, we focus on solving the following equivalent
+problem.
+
+\begin{define}
+  The route ordering problem with delay objective is defined as
+  \begin{align}
+    \label{eq:D}\tag{D}
+    \min_{\eta \in E} \; \sum_{i \in \mathcal{N}} y_i(\eta) - a_i .
+  \end{align}
+\end{define}
+
 \clearpage
 
 \section{Scheduling as learning problem}\label{sec:seq-modeling}
 
-We will now explain how the general methodological ML for CO framework presented
-in Section~\ref{sec:ml-co} can be applied to the crossing time scheduling
-problem~\eqref{eq:crossing_time_scheduling}.
+We will now explain how the general ML for CO framework presented in Section~\ref{sec:ml-co}
+can be applied to solve the route ordering problem~\eqref{eq:D}.
 %
 As we discussed there, the most important decision is the design of the state
 space of the MDP algorithm model, since this essentially determines the class of
@@ -3358,19 +3375,18 @@ incorporating prior knowledge and intuition into the model.
 We will now show how the findings of the previous section leads to a natural
 choice of states and corresponding algorithmic structure.
 
-\paragraph{Constructive heuristic.}
+\paragraph{Constructive scheduling.}
 In the previous section, we have shown that the crossing time scheduling
-problem~\eqref{eq:crossing_time_scheduling}, stated in terms of finding crossing
-times $y_i$, is equivalent to the problem~\eqref{eq:RO}, stated in terms of finding an
-optimal route order $\eta \in E$. Given such a route order $\eta$, we can obtain the
-corresponding crossing time schedule $y^\eta$ by solving the linear program~\eqref{eq:active_schedule} or
-by using the simple sequential assignment procedure described in the proof of
-Lemma~\ref{lemma:unique-active-schedule}.
+problem~\eqref{eq:crossing_time_scheduling}, stated in terms of finding crossing times $y_i$, is equivalent to
+the problem~\eqref{eq:D}, stated in terms of finding an optimal route order $\eta \in E$.
+Given such a route order $\eta$, we can obtain the corresponding crossing time
+schedule $y(\eta)$ by solving the linear program~\eqref{eq:active_schedule} or by using the simple
+procedure described in the proof of Lemma~\ref{lemma:unique-active-schedule}.
 %
-Instead of searching directly over all feasible $\eta \in E$, we propose to study a
-class of \emph{constructive heuristics}, which essentially try to build the optimal
-schedule in a step-by-step fashion. This approach is particularly easy to
-capture within the MDP framework.
+Instead of searching directly over all feasible $\eta \in E$, we propose to search
+for a good \emph{constructive policy}, which is essentially a procedure to build the
+optimal schedule in a step-by-step fashion. This approach is particularly suited
+to capture within the MDP framework.
 
 % informal description
 The basic idea is as follows.
@@ -3385,21 +3401,27 @@ Each step in the MDP corresponds to picking some route and then adding the next
 unscheduled vehicle on that route to the schedule.
 %
 This way, we obtain a sequence of \emph{partial schedules}, encoded as
-disjunctive graphs, until we arrive at a complete schedule, encoded as a
-complete disjunctive graph.
+disjunctive graphs, until we arrive at a complete schedule.
 
-\begin{remark}
-  Constructive heuristics like this are common in the scheduling literature and
-  are also known as dispatching rules in the context of job shop scheduling. For
-  some broader context, we refer to Appendix~\ref{app:nco}, where we discuss
-  some existing works in the ML for CO literature that focus on finding
-  dispatching rules for job shop problems, which are very similar to our
-  crossing time scheduling problem.
-\end{remark}
+% explicit dependence on problem specification s=(\mathcal{N},a)
+From now on, we will use the notation $s = (\mathcal{N}, a) \in \mathcal{I}$ to
+denote an instance of problem~\eqref{eq:D}, so it is determined by the set of
+vehicle indices $\mathcal{N}$ and the set of earliest crossing times
+$a := \{ a_i : i \in \mathcal{N} \}$.
+%
+Parameters $\rho$ and $\sigma$ are assumed to be fixed.
+%
+In the following subsection, we will first define an MDP for each instance $s$,
+denoted by $\mathcal{M}(s)$.
+%
+Because we are interested in policies that perform well over arbitrary
+distributions of problem instances, we then show how these MDPs are joined
+together into a single MDP.
+
 
 % formal description
 % We now make the above more precise by providing the formal MDP specification.
-\subsection{Constructive scheduling as MDP}\label{sec:MDP}
+\subsection{Constructive scheduling MDP}\label{sec:MDP}
 
 % \begin{itemize}
 %   \item input = instance $s = (\mathcal{N}, a) \in \mathcal{I}$
@@ -3412,33 +3434,15 @@ complete disjunctive graph.
 %   \item The total number of vehicles $N$ in the system is the fixed episode length.
 % \end{itemize}
 
-We will now precisely define the MDP that models the class of constructive
-heuristics.
-% explicit dependence on problem specification s=(\mathcal{N},a)
-First note that, in the previous section, we did not explicitly state the
-dependence of the disjunctive graph on the specific problem instance at hand.
-From now on, we will use the notation $s = (\mathcal{N}, a) \in \mathcal{I}$ to
-denote a problem instance, which is completely defined by the set of vehicle
-indices $\mathcal{N}$ and the set of earliest crossing times
-$a := \{ a_i : i \in \mathcal{N} \}$. In what follows, we will also write
-$a(i) := a_i$ to keep notation consistent with upcoming definitions.
-%
-We will assume that $a$ satisfies the following property.
-\begin{assump}\label{assump:arrivals}
-  For each conjunctive arc $(i, j) \in \mathcal{C}$, we have
-  $a_i + \rho \leq a_j$.
-\end{assump}
-\noindent
-The rationale behind this assumption is that each feasible schedule $y$ must
-satisfy $a_i + \rho \leq y_i + \rho \leq y_j$ for all $(i,j) \in \mathcal{C}$,
-so when we would choose $a_j$ such that $a_j < a_i + \rho$, then we can as well
-set it at $a_j = a_i + \rho$ without changing the problem.
+We will now precisely define the MDP that models the constructive scheduling
+procedure.
+
+% each instance s defines an MDP \mathcal{M}(s)
 
 
 % instance -> empty disjunctive graph
 Each instance $s$ corresponds uniquely to an empty disjunctive graph
-$\mathcal{G}_0$, or using the notation $\mathcal{G}_0(s)$ when we need to make
-the dependence explicit.
+$\mathcal{G}_0 = \mathcal{G}_0(s)$.
 %
 All vehicles are said to be \emph{unscheduled} in $\mathcal{G}_0$, which serves
 as the initial state of the MDP.
@@ -3498,7 +3502,7 @@ all crossing times
 where we use the subscript $f$ to avoid confusion with the use of $r$ for routes
 and to distinguish it from an equivalent reward that we will define later.
 
-\subsection{Policy parameterization}
+\subsection{Auxiliary features and dense rewards}
 
 Given the MDP above, we now turn our attention to parameterizing the policy $\pi$.
 %
@@ -3537,6 +3541,10 @@ respectively, for $t \in \{1, \dots, N\}$.
 Using this notation, observe that $\nu_t$ thus denotes the vehicle that was last
 added to the partial schedule.
 
+\note{We will also write $a(i) := a_i$ to align
+the notation with upcoming definitions.}
+
+\paragraph{Crossing time lower bounds.}
 Next, we show that the active schedule obtained from each partial disjunctive
 graph provides a lower bound on the crossing times of the final schedule.
 %
@@ -3563,6 +3571,18 @@ of that selection, which is made precise in the following lemma.
   $i \in \mathcal{N}$.
 \end{lemma}
 
+Furthermore, we will from now on assume that $a$ satisfies the following property.
+\begin{assump}\label{assump:arrivals}
+  For each conjunctive arc $(i, j) \in \mathcal{C}$, the arrival times satisfy
+  $a_i + \rho \leq a_j$.
+\end{assump}
+\noindent
+The rationale behind this assumption is that each feasible schedule $y$ must
+satisfy $a_i + \rho \leq y_i + \rho \leq y_j$ for all $(i,j) \in \mathcal{C}$,
+so when we would choose $a_j$ such that $a_j < a_i + \rho$, then we can as well
+set it at $a_j = a_i + \rho$ without changing the problem instance.
+
+
 \noindent
 Given some disjunctive graph $\mathcal{G}_t$, not necessarily complete, we use
 the notation $\beta_t(i)$ to denote the \emph{crossing time lower bound} for vehicle $i$ in
@@ -3580,6 +3600,26 @@ Even more, let $i$ be some vehicle that is scheduled at step $t$, then observe
 that future steps of the MDP will not introduce any more disjunctive arcs to
 $i$, which means that $\beta_t(i) = \beta_{t+1}(i) = \dots = \beta_N(i)$ is
 already the final crossing time.
+
+\paragraph{Dense rewards.}
+% reward definition
+The reinforcement learning approach depends on the definition of a reward. For
+each step $\mathcal{G}_{t-1} \xrightarrow{\eta_{t}} \mathcal{G}_{t}$.
+Specifically, we define the \emph{dense} reward at step $t$ to be
+\begin{align*}
+  r_d(\mathcal{G}_t) = \sum_{i \in \mathcal{N}} \beta_{t-1}(i) - \beta_{t}(i) .
+\end{align*}
+Let the return at step $t$ be defined as
+\begin{align*}
+  G_{t} = \sum_{k=t + 1}^{N} R_{k} .
+\end{align*}
+Hence, when the \textit{episode} is done after $N$ steps, the total episodic
+reward is given by the telescoping sum
+\begin{align*}
+  G_{0} = \sum_{t=1}^{N} R_{t} = \sum_{i \in \mathcal{N}} \beta_{0}(i) - \beta_{N}(i)  = \sum_{i \in \mathcal{N}} a_{i} - y_{i} = - L(s, \eta) ,
+\end{align*}
+Therefore, maximizing the episodic reward corresponds to minimizing the
+scheduling objective, as desired.
 
 \begin{remark}
   Instead of recomputing all the crossing time lower bounds $\beta$ at each step
@@ -3614,15 +3654,205 @@ already the final crossing time.
   loop.
 \end{remark}
 
+\subsection{Learning objective}
+
+Some brief discussion of what the learning objective is are in order here.
+
 \clearpage
-\paragraph{Reducing the policy space.}
+
+\subsection{Optimal policies and parameterizations}
+
+Narrow the space of policies to optimize over without losing optimality guarantees.
+%
+After that, we propose a very simple and natural parameterization of policies
+that is inspired by the platoon preservation theorem. This parameterization is
+however not very suited to gradient-based optimization. Therefore, we propose a
+generalization of this parameterization that can be readily approached using
+standard policy gradient-based optimization, which is discussed in the next
+section.
+
+\paragraph{MDP and policy classes.}
+
+Define general infinite-horizon MDP.
+Define policies as sequence of decision rules.
+Explain non-stationary vs. stationary policies.
+Let $\bar{\Pi}$ denote the set of all policies.
+Let $\Pi$ denote the set of all stationary policies.
+Mention Markovian and history-dependent policies, but refer to Puterman for details.
+Let $\Pi_\text{det}$ denote the set of all deterministic stationary policies.
+
+
+\begin{theorem}
+  There exists an optimal policy $\pi^* \in \bar{\Pi}$ for our scheduling MDP
+  that is stationary and deterministic, so $\pi^* \in \Pi_\text{det}$.
+\end{theorem}
+\begin{proof}
+  Stationarity is the most important to show.
+\end{proof}
+
+\note{Show that our deterministic MDP has an optimal policy that is stationary
+  and deterministic.} \note{From now on we only consider $\Pi_\text{det}$}.
+
+\paragraph{Deterministic MDP with deterministic policies.}
+
+Let $\mathcal{S}$ be the set of states. Let $\mathcal{A}(s) \neq \varnothing$ be
+the set of admissible actions when in state $s \in \mathcal{S}$. Let
+$p : \mathcal{S} \times \mathcal{A} \rightarrow \mathcal{S}$ be the transition
+function and $r : \mathcal{S} \times \mathcal{A} \rightarrow \mathbb{R}$ the
+reward function.
+We emphasize that $p$ may encode so-called \emph{self-loops}, so it perfectly
+fine to set $p(s, a) = s$ for all $a \in \mathcal{A}(s)$, such a state $s$ is
+called a \emph{terminal state}. This allows us to model processes of finite
+length within this general infinite-horizon framework.
+
+Let $\Pi_\text{det}$ denote the set of admissible deterministic stationary
+policies, which are all functions $\pi: \mathcal{S} \rightarrow \mathcal{A}$
+that satisfy $\pi(s) \in \mathcal{A}(s)$ for all $s \in \mathcal{S}$.
+%
+Given some policy $\pi \in \Pi_\text{det}$ and state $s_0 \in \mathcal{S}$, let
+the \emph{rolled-out} episode $\tau$ be defined as the infinite sequence
+\begin{align}
+  \tau = (s_0, a_1, r_1, s_1, a_2, r_2, s_2, \dots) ,
+\end{align}
+such that $s_{t+1} = p(s_t, a_{t+1})$ and $r_{t+1} = r(s_t, a_{t+1})$ for all
+$t \in \{ 0, 1, 2, \dots \}$.
+
+\paragraph{State abstraction.}
+
+Let $\phi : \mathcal{S} \rightarrow \bar{\mathcal{S}}$ be some function that
+takes each state $s$ from the so-called \emph{ground MDP} to a so-called
+\emph{abstract state} $\bar{s}$.
+%
+The idea is that some parts of the state may be irrelevant for the agent to make
+optimal decisions, see also Figure~\ref{fig:state-abstraction}.
+%
+% Every state abstraction naturally induces equivalence classes on the state
+% space: every $s_1, s_2 \in \mathcal{S}$ such that $\phi(s_1) = \phi(s_2)$
+% belong to the same equivalence class.
+%
+We say that some deterministic policy $\pi \in \Pi_\text{det}$ is an
+\emph{abstract} policy with respect to $\phi$ when we have $\pi(s_1) = \pi(s_2)$
+for all $s_1, s_2 \in \mathcal{S}$ such that $\phi(s_1) = \phi(s_2)$.
+%
+Let the class of all deterministic abstract policies with respect to $\phi$ be
+denoted by $\Pi_\phi$.
+
+\begin{figure}[h]
+\centering
+\tikzstyle{block} = [rectangle, draw,
+    text width=7em, text centered, rounded corners, minimum height=4em]
+\tikzstyle{phi} = [draw, fill=white, minimum size=12pt, inner sep=1pt, font=\small]
+\tikzstyle{line} = [draw, -latex]
+\begin{tikzpicture}[node distance = 6.5em, auto, thick]
+  \node [block] (Agent) {Agent};
+  \node [block, below of=Agent] (Environment) {Environment};
+
+    \path [line] (Agent.0) --++ (4em,0em) |- node [near start]{Action $a_t$} (Environment.0);
+    % \path [line] (Environment.190) --++ (-6em,0em) |- node [near start] {New state  $s_{t+1}$} (Agent.170);
+    \path [line] (Environment.170) --++ (-4.25em,0em) |- node [near start, right] {Reward $r_{t+1}$} (Agent.190);
+
+  \draw [line] (Environment.190) --++ (-6em,0em) |-
+      node[left, align=center, yshift=-45pt]{Ground state $s_{t+1}$}
+      node[midway, phi, yshift=-35pt] {$\phi$}
+      node[left, align=center, yshift=-10pt]{Abstract state $\bar{s}_{t+1}$}
+      (Agent.170);
+\end{tikzpicture}
+\caption{Reinforcement learning control loop with state abstraction $\phi$
+  placed between the state signal and the agent.}\label{fig:state-abstraction}
+\end{figure}
+
+
+\paragraph{State abstraction.}
+
+Once vehicle $i$ has been scheduled in step $t$, it can be shown that the policy
+does not need to take into account any information related to this vehicle
+anymore in order to complete the schedule.
+%
+For example, in the remaining steps, the policy should no longer depend on
+$\beta_t(i)$.
+%
+Generally speaking, there exists some \emph{observation mapping} $\phi : \mathcal{S} \rightarrow \mathcal{X}$, mapping states to the \emph{observation space} $\mathcal{X}$, such that the class
+\begin{align}
+  \Pi_\phi := \{ \pi : \pi = f(\phi(s)) , \text{ for some function } f : \mathcal{X} \rightarrow \Delta(\mathcal{A}) \}
+\end{align}
+contains some policy $\pi^* \in \Pi_\phi$ that is optimal with respect to all policies.
+%
+The general notion of ignoring irrelevant state information is known as
+\emph{state abstraction}. \note{[cite]}
+
+\paragraph{Horizon observation.}
+This irrelevance leads us to define some sort of \emph{horizon} observation of crossing
+time lower bounds and some auxiliary flags, involving only the unscheduled
+vehicles.
+%
+Let $\bar{\beta}_t$ denote the minimum crossing time lower bound of all unscheduled
+vehicles.
+%
+Consider some route $r \in \mathcal{R}$ and let $k = k_t(r)$ denote the number
+of scheduled vehicles, such that $(r, k+1)$ is the first unscheduled vehicle on
+this route, then the horizon $h_t(r)$ at this route is defined to be the
+sequence
+\begin{align}
+  h_t(r) := (\beta_t(r, k + 1) - \bar{\beta}_t, \; \beta_t(r, k + 2) - \bar{\beta}_t, \; \dots , \; \beta_t(r, n_r) - \bar{\beta}_t) .
+\end{align}
+%
+The total $\beta$-horizon is now given by the vector
+$h_t = (h_t(1), \dots, h_t(R))$.
+
+% Define pastel colors
+\definecolor{pastelblue}{RGB}{179,205,227}
+\definecolor{pastelorange}{RGB}{251,180,174}
+\definecolor{pastelgreen}{RGB}{170, 210, 170}
+
+% \begin{figure}[h]
+% \centering
+% \begin{tikzpicture}
+
+% \pgfmathsetseed{1}
+
+% \def\width{1.2}
+% \def\height{0.5}
+
+% \tikzset{
+%     rect/.style={
+%         % draw,
+%         minimum width=\width,
+%         minimum height=\height,
+%         thick,
+%         align=center
+%     }
+% }
+
+% \def\routespace{1.2}
+
+% \foreach \r/\color in {1/pastelblue,2/pastelorange,3/pastelgreen} {
+%   \pgfmathsetmacro{\x}{0}
+%   \foreach \k in {1,...,5} {
+%     \node[rect, fill=\color] (\r-\k) at (\x, -\routespace * \r) {(\r,\k)};
+%     \pgfmathparse{\x + \width + rnd*0.8}
+%     \global\let\x\pgfmathresult
+%   }
+% }
+
+% \begin{pgfonlayer}{background}
+%   \node[fill=gray!15, rounded corners, fit=(1-1)(1-5), inner sep=0.2cm] {};
+%   \node[fill=gray!15, rounded corners, fit=(2-1)(2-5), inner sep=0.2cm] {};
+%   \node[fill=gray!15, rounded corners, fit=(3-1)(3-5), inner sep=0.2cm] {};
+% \end{pgfonlayer}
+
+% \end{tikzpicture}
+% \end{figure}
+
+% -----
+
+\paragraph{Platoon preserving policies.}
 
 Before we propose concrete parameterizations of $\pi$, we will first derive two
 rules that optimal policies must satisfy, thereby essentially reducing the
 policy space.
 %
 As part of the structural analysis of problem~\eqref{eq:crossing_time_scheduling} at the end of the previous
-chapter we discussed the platoon preservation Theorem~\ref{thm:exhaustive}, which states that
+chapter, we discussed the platoon preservation Theorem~\ref{thm:exhaustive}, which states that
 \begin{quote}
   If $y$ is an optimal schedule for~\eqref{eq:crossing_time_scheduling}, satisfying $y_{i} + \rho \geq a_{j}$ for some
   $(i,j) \in \mathcal{C}$, then vehicle $i$ is followed immediately by $j$, so
@@ -3655,6 +3885,7 @@ Whenever a policy $\pi$ satisfies this rule, we say that it is
 \emph{exhaustive}, so the platoon preservation theorem implies that each optimal
 policy $\pi$ must be exhaustive.
 
+\paragraph{Active policies.}
 Next, we present yet another simple rule that each optimal policy $\pi$ must
 satisfy.\comment{Better to first prove this rule for schedules (in the static
   sense), and then show that this transfers to a rule that optimal policies must
@@ -3724,22 +3955,28 @@ vehicles instead. The threshold heuristic is illustrated in
 Figure~\ref{fig:threshold_heuristic}. \note{First action is ``earliest'' route.
   Add algorithm to precisely define the heuristic.}
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.8\textwidth]{figures/single/threshold}
-  \caption{Illustration of how the threshold heuristic is evaluated at some
-    intermediate step $t$ to choose the next route $\eta_{t+1}$. The top and bottom
-    row contains the unscheduled vehicles from route 1 and route 2,
-    respectively, drawn at their earliest crossing times $\beta_{t}(i)$. The middle
-    row represents the current partial schedule. Vehicle $\nu_{t-1}$ is from
-    route 1 and the last scheduled vehicle $\nu_{t}$ is from route 2 and the
-    disjunctive constraint for them happens to be tight in this case,
-    illustrated by the arrow. Whenever the indicated time difference is smaller
-    than $\tau$, the threshold rule selects vehicle $B$ to be scheduled next.
-    Otherwise, vehicle $A$ will be chosen.}\label{fig:threshold_heuristic}
-\end{figure}
+% \begin{figure}
+%   \centering
+%   \includegraphics[width=0.8\textwidth]{figures/single/threshold}
+%   \caption{Illustration of how the threshold heuristic is evaluated at some
+%     intermediate step $t$ to choose the next route $\eta_{t+1}$. The top and bottom
+%     row contains the unscheduled vehicles from route 1 and route 2,
+%     respectively, drawn at their earliest crossing times $\beta_{t}(i)$. The middle
+%     row represents the current partial schedule. Vehicle $\nu_{t-1}$ is from
+%     route 1 and the last scheduled vehicle $\nu_{t}$ is from route 2 and the
+%     disjunctive constraint for them happens to be tight in this case,
+%     illustrated by the arrow. Whenever the indicated time difference is smaller
+%     than $\tau$, the threshold rule selects vehicle $B$ to be scheduled next.
+%     Otherwise, vehicle $A$ will be chosen.}\label{fig:threshold_heuristic}
+% \end{figure}
 
-\paragraph{Horizon feature.}
+
+
+
+
+\clearpage
+
+\paragraph{Neural parameterization.}
 
 We will now consider a parameterizaton that directly generalizes the
 threshold heuristic. Instead of looking at the earliest crossing time of the
@@ -3748,25 +3985,6 @@ times of all unscheduled vehicles across lanes.
 %
 The intuitive hypothesis is some sort of platoon preservation holds for
 sequences of vehicles that are almost platoons.
-
-In some sense, $\beta_t(i)$ does not include any more useful information for the
-policy to complete the schedule.
-%
-This leads to the definition of some sort of \emph{horizon} of crossing time
-lower bounds, which we will now make precise.
-%
-Let $\bar{\beta}_t$ denote the minimum crossing time lower bound of all
-unscheduled vehicles.
-%
-Consider some route $r \in \mathcal{R}$ and let $k = k_t(r)$ denote the number
-of scheduled vehicles, such that $(r, k+1)$ is the first unscheduled vehicle on
-this route, then the horizon $h_t(r)$ at this route is defined to be the
-sequence
-\begin{align}
-  h_t(r) := (\beta_t(r, k + 1) - \bar{\beta}_t, \; \beta_t(r, k + 2) - \bar{\beta}_t, \; \dots , \; \beta_t(r, n_r) - \bar{\beta}_t) .
-\end{align}
-
-\paragraph{Neural parameterization.}
 
 \note{In the following definitions, we drop the step index $t$ to avoid
 cluttering the notation.}
@@ -3962,30 +4180,10 @@ state.
 In the context of combinatorial optimization, the value of the baseline may be
 interpreted as estimating the relative difficulty of an instance?
 
-\paragraph{Dense reward.}
-% reward definition
-The reinforcement learning approach depends on the definition of a reward. For
-each step $\mathcal{G}_{t-1} \xrightarrow{\eta_{t}} \mathcal{G}_{t}$.
-Specifically, we define the \emph{dense} reward at step $t$ to be
-\begin{align*}
-  r_d(\mathcal{G}_t) = \sum_{i \in \mathcal{N}} \beta_{t-1}(i) - \beta_{t}(i) .
-\end{align*}
-Let the return at step $t$ be defined as
-\begin{align*}
-  G_{t} = \sum_{k=t + 1}^{N} R_{k} .
-\end{align*}
-Hence, when the \textit{episode} is done after $N$ steps, the total episodic
-reward is given by the telescoping sum
-\begin{align*}
-  G_{0} = \sum_{t=1}^{N} R_{t} = \sum_{i \in \mathcal{N}} \beta_{0}(i) - \beta_{N}(i)  = \sum_{i \in \mathcal{N}} a_{i} - y_{i} = - L(s, \eta) ,
-\end{align*}
-Therefore, maximizing the episodic reward corresponds to minimizing the
-scheduling objective, as desired.
-%
-
 \paragraph{Beam search.}
 
-Because the learned policy is still a stochastic policy, we need to specify how to obtain a deterministc policy.
+Because the learned policy is still a stochastic policy, we need to specify how
+to obtain a deterministic policy.
 %
 One way would be to calculate the maximum likelihood estimator
 \begin{align*}
@@ -4022,7 +4220,7 @@ introduction of Section~\ref{sec:ml-co}.
 % define \mathcal{N} through $vehicles per route
 \paragraph{Instance specification.}
 
-\note{Need to satisfy Assumption~\ref{assump:arrivals}.}
+\note{Need to satisfy assumption on arrivals in definition of (D)}
 
 % define a through a_r
 For each route $r \in \mathcal{R}$, we model the sequence of earliest crossing times
@@ -4193,6 +4391,13 @@ for every pair $i = \pi_t$ and $j = \pi_{t+1}$ with $t = 1, \dots, N-1$.
 The narrative and notation in Section~\ref{sec:ml-co} has been based on the
 presentation in~\cite{bengioMachineLearningCombinatorial2020}.
 
+Constructive scheduling procedures similar to the one proposed in this chapter
+are common in the scheduling literature and are also known as dispatching rules
+in the context of job shop scheduling. For some broader context, we refer to
+Appendix~\ref{app:nco}, where we discuss some existing works in the ML for CO
+literature that focus on finding dispatching rules for job shop problems, which
+are very similar to our crossing time scheduling problem.
+
 
 \microtypesetup{deactivate}
 \part*{\hspace{-0.8em}\textsc{Part II}\\[0.6em] Networks of Intersections\\[3em]
@@ -4201,6 +4406,8 @@ presentation in~\cite{bengioMachineLearningCombinatorial2020}.
 \addcontentsline{toc}{part}{Part II \;--\; Networks of Intersections}
 
 \chapter{Learning to schedule in networks}\label{chap:network-learning}
+
+\section{Decomposition}
 
 Due to the second-order boundary conditions
 $\dot{x}_{i}(a_{i}) = \dot{x}_{i}(b_{i}) = 1$, the feasibility of the lane
@@ -5754,6 +5961,17 @@ necessary.
 
 \paragraph{Contributions.}
 \begin{outline}
+
+  \1 Definition an analysis of single intersection coordination as offline
+  optimization problem.
+  \2 Expose computational challenge by formulating a bilevel decomposition.
+  \2 Reduction to scheduling problem when additional assumptions are made.
+  \2 Further reduction to sequencing problem (Section~\ref{sec:sequence-representation}).
+
+  \1 Illustrate the ML for CO methodology for a relatively simple sequencing
+  problem, arising from the single intersection coordination problem for
+  autonomous vehicles.
+
   \1 Explicit trajectory calculation
   \2 For haste objective
   \2 For general arrival/crossing times (cf. Timmerman, Joshi)
