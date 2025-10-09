@@ -43,7 +43,7 @@
 \draw (-1.2,-0.4) ellipse (3 and 2);
 
 \node at (3,1) {(MIP)};
-\node at (0.4,0.5) {(TSP)};
+\node at (0.4,0.5) {(VRP)};
 
 
 \begin{scope}[shift={(-2.2,-0.2)}, scale=\blobscale]
@@ -65,12 +65,12 @@
 \end{scope}
 
 \node[inner sep=0pt] (eindhoven) at (-3.0, -6)
-    {\includegraphics[width=.4\textwidth]{eindhoven-tsp.pdf}};
+    {\includegraphics[trim={0 17px 0 0}, clip, width=.4\textwidth]{eindhoven-tsp.pdf}};
 
 \draw[{Circle[fill=black,scale=0.6]}-] (Pe) ++(-0.2,-0.35) -- (eindhoven.north) ;
 
 \node[inner sep=0pt] (montreal) at (3.0,-6)
-    {\includegraphics[width=.4\textwidth]{montreal-tsp.pdf}};
+    {\includegraphics[trim={0 17px 0 0}, clip, width=.4\textwidth]{montreal-tsp.pdf}};
 
 \draw[{Circle[fill=black,scale=0.6]}-] (Pm) ++(0.2,-0.4) -- (montreal) ;
 
