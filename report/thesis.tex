@@ -2,12 +2,6 @@
 \usepackage[margin=3.5cm,top=2.8cm,bottom=2.8cm]{geometry} %,top=0.5cm,bottom=1.8cm]{geometry}
 \usepackage[pdftex]{hyperref}
 \usepackage[svgnames]{xcolor}
-
-% \usepackage[numbers]{natbib}
-% \bibliographystyle{abbrvnat}
-\usepackage[style=numeric,natbib=true,doi=false,isbn=false,url=true]{biblatex}
-\addbibresource{references.bib}
-
 \usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools,thmtools,thm-restate,cleveref}
 \usepackage{bookmark,graphicx,dsfont,datetime,float,booktabs,multirow,siunitx}
 \usepackage{enumitem,outlines,nicematrix}
@@ -18,22 +12,78 @@
 \usepackage{setspace}   % for bookmark fix of bibliography
 \usepackage{mdframed}   % for "emphasis boxes"
 
-% table setup
+\usepackage{todonotes}
+\usepackage{xstring}
+\setlength{\marginparwidth}{3cm} % more room
+\usepackage{etoolbox}
+% chapters in todolist
+\makeatletter
+\newif\ifinappendix        % define a boolean
+\pretocmd{\appendix}{\inappendixtrue}{}{}  % turn on flag when appendix begins
+\pretocmd{\@chapter}{%
+  % Only add to list if this is a numbered chapter (not starred)
+  \ifnum\c@secnumdepth>0
+    \ifinappendix\else
+    \addcontentsline{tdo}{todo}{\protect\textbf{Chapter \thechapter: \space}}%
+    \fi
+  \fi
+}{}{}
+\makeatother
+
+% my custom comment command
+\newcounter{mycomment}
+\newcommand{\comment}[2][]{%
+    \refstepcounter{mycomment}% up counter
+    {%
+        \setstretch{0.7}% spacing
+        \StrLeft{#2}{60}[\shortcaption]% truncate text for caption
+        \todo[%
+        color={red!100!green!33},%
+        size=\small,%
+        caption={\protect\hypertarget{todo\themycomment}{}\textit{\thesubsection}%
+        \hspace{1.0em}{\shortcaption}~\textit{[\themycomment]}}, #1]%
+        {%
+        #2~\hyperlink{todo\themycomment}{\textit{[\themycomment]}}}
+    }%
+}
+
+
+%% bibliography setup
+% \usepackage[numbers]{natbib}
+% \bibliographystyle{abbrvnat}
+\usepackage[
+    style=numeric-comp,
+    natbib=true, % enables \citet, \citep
+    doi=false, isbn=false, url=false,
+    maxcitenames=1,  % max one author when using \citet
+    % maxbibnames=99 % show all authors
+    backend=biber,
+]{biblatex}
+\addbibresource{references.bib}
+\setlength{\biblabelsep}{0.5em}  % space between number and entry
+\renewcommand*{\bibfont}{\small} % optional: font size same as natbib
+
+
+%% table setup
 \usepackage{tabto,caption}
 % \captionsetup[table]{skip=5pt}
 
-\usepackage{pdfcomment} % adding floating pdf comments
-\newcommand{\comment}[1]{\pdfmargincomment[author=Jeroen van Riel]{#1}}
+%% for adding floating pdf comments
+% \usepackage{pdfcomment}
+% \newcommand{\comment}[1]{\pdfmargincomment[author=Jeroen van Riel]{#1}}
 
-\usepackage{tikz} \usetikzlibrary{arrows.meta, decorations.markings,
-  decorations.pathreplacing, positioning, fit, calc, backgrounds}
 
-% micro-level typesetting
+%% tikz
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, decorations.markings, decorations.pathreplacing,
+  positioning, fit, calc, backgrounds}
+
+%% micro-level typesetting
 \usepackage[activate={true,nocompatibility},final,
             tracking=true,kerning=true,spacing=true,
             factor=500,stretch=15,shrink=15]{microtype}
 
-% theorem environments
+%% theorem environments
 \theoremstyle{definition}
 \newtheorem{eg}{Example}[chapter]
 \newtheorem{define}{Definition}[chapter]
@@ -46,13 +96,14 @@
 \newtheorem*{remark}{Remark}
 \newtheorem{remarknum}{Remark}[chapter]
 
-% cref settings
+%% cref settings
 \crefname{equation}{equation}{equations}
 \newcommand{\crefrangeconjunction}{--}
 
-% load styling for knitr produced tables
+%% load styling for knitr produced tables
 \input{knitr_init.tex}
 
+%% some (math) macros
 \DeclareMathOperator{\interior}{int}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \DeclareMathOperator*{\argmin}{arg\,min}
@@ -63,24 +114,24 @@
 \newcommand\note[1]{{\color{Navy}\noindent#1}}
 \newcommand\smallnote[1]{{\color{Navy}\noindent\scriptsize#1}}
 
-\definecolor{review}{HTML}{8c1f85}
+\definecolor{review}{HTML}{a0a0a0}
 \newcommand\review[1]{{\color{review}#1}}
 
 \newcommand{\TUE}{TU\kern-0.12em/\kern-0.08eme }
 
-% set title, date and author
+%% title, date and author
 \newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
 \author{\Large Jeroen van Riel \\[6em] {\it Combined Master's Thesis} \\[0.6em] Industrial and Applied Mathematics \\ Computer Science and Engineering  \\[3em] {\it Supervisors} \\[0.6em] Marko Boon \\ Stella Kapodistria \\ Mykola Pechenizkiy \\ Danil Provodin  \\[8em] October 2025 \\[0.6em] Eindhoven University of Technology}
 \date{}
 \newcommand{\mytitle}{%
   {\huge\bf Reinforcement learning}\\[0.0em]
-  {\Large\bf as a tool of solving}\\[0.2em]
+  {\Large\bf as a tool for solving}\\[0.2em]
   {\huge\bf Combinatorial optimization problems}\\[0.0em]
-  {\Large\bf found within the context of}\\[0.2em]
+  {\Large\bf found in the context of}\\[0.2em]
   {\huge\bf Autonomous traffic coordination}}
 \title{\mytitle}
 
-% set pdf meta-data
+%% set pdf meta-data
 \hypersetup{
     pdftitle = {\mytitle},
     pdfauthor = {Jeroen van Riel}
@@ -88,13 +139,11 @@
 
 \begin{document}
 
-%
+%%
 % title page
-%
+%%
 \noindent\makebox[\textwidth][c]{%
   \begin{minipage}[h]{\textwidth}
-  \note{[ parts that will probably change and comments are in blue ]}\\
-  \review{[ parts that the reviewer may want to revisit are in purple ]}
   \maketitle
   \end{minipage}
 }
@@ -188,9 +237,9 @@ We find that the order in which the model is evaluated matters for the final
 performance, confirming previous observations and motivating further research on
 alternative encodings. }
 
-%
+%%
 % table of contents setup
-%
+%%
 
 % 'parts' in toc without page numbers
 % the 'Part' text is included manually
@@ -217,6 +266,8 @@ alternative encodings. }
 % add toc entry in pdf bookmarks
 \addtocontents{toc}{\protect{\pdfbookmark[0]{\contentsname}{toc}}}
 
+\listoftodos[Changes and Comments]
+
 
 % \chapter*{Preface}
 % \addcontentsline{toc}{chapter}{\protect\numberline{}Preface}
@@ -230,8 +281,6 @@ alternative encodings. }
 \chapter{Introduction}\label{chap:introduction}
 
 \section{Motivation and challenges}
-
-%%% motivation:
 
 % natural to study aut. coord.
 % define "coordination"
@@ -790,13 +839,11 @@ We provide some general discussion and pointers for further research in
 Chapter~\ref{chap:conclusion}.
 
 
-
-
-\microtypesetup{deactivate}
-\part*{\hspace*{-0.8em}\textsc{Part I}\\[0.6em] Isolated Intersection\\[3em]
-       \centering\includegraphics[scale=1]{figures/intersection-non-axis-aligned}}
-\microtypesetup{activate}
-\addcontentsline{toc}{part}{Part I \;--\; Isolated Intersection}
+% \microtypesetup{deactivate}
+% \part*{\hspace*{-0.8em}\textsc{Part I}\\[0.6em] Isolated Intersection\\[3em]
+%        \centering\includegraphics[scale=1]{figures/intersection-non-axis-aligned}}
+% \microtypesetup{activate}
+% \addcontentsline{toc}{part}{Part I \;--\; Isolated Intersection}
 
 
 
@@ -1004,8 +1051,8 @@ In general, this set can thus simply be defined as
 \end{align}
 %
 However, it is often easier to take the opposite perspective, by characterizing
-the set of conflicting configurations $\mathcal{X}_{ij}^{C}$. \comment{Nice, ``C''
-  for conflict and for complement!}
+the set of conflicting configurations $\mathcal{X}_{ij}^{C}$.
+% \comment{Nice, C for conflict and for complement!}
 
 % discuss rectangular subset of configuration space
 %
@@ -1127,8 +1174,7 @@ For example, consider the following parametric cost functional
 First of all, note that the absolute value of the acceleration is often used as
 a proxy for energy consumption, so $\beta > 0$ is generally desirable.
 %
-\comment{There are nice physics arguments why one proxy is preferred over the
-  other, but we just ignore this.}
+% \comment{There are nice physics arguments why one proxy is preferred over the other, but we just ignore this.}
 %
 Minimizing energy is in direct conflict with our other main goal, which is to
 reach the intersection in some reasonable amount of time. However, we have not
@@ -1181,10 +1227,7 @@ fixed.
 \begin{remark}
 Problem~\eqref{eq:single-trajectory-optimization} is non-convex in some sense;
 recall that the set of feasible configurations $\mathcal{X}_{ij}$ for two
-vehicles is already non-convex.\comment{I say ``roughly speaking'', because I am
-  not sure personally what this even means precisely. My guess is that the set
-  of feasible function, which is a subset of some underlying vector space of
-  functions, is convex.}
+vehicles is already non-convex.
 %
 An interpretation of this non-convexity is that we must decide which of the
 vehicles crosses the intersection first.
@@ -1398,17 +1441,17 @@ same time $t$.
 In general, the resulting transcribed optimization problem is a mixed-integer
 nonlinear program. We consider an small problem instance with five vehicles for
 our cost functional $J_{\alpha,\beta}$, for which the optimal trajectories are
-shown in Figure~\ref{fig:direct_transcription_example}. \comment{Optionally include running time analysis to
-  motivate the need for fast approximations.}
+shown in Figure~\ref{fig:direct_transcription_example}.
 
 \begin{remark}
   We used the forward Euler integration scheme for sake of a simple
   presentation. However, note that in practice we most likely want to use a more
   numerically stable method like a higher-order Runge-Kutta scheme or by means
-  of some spline interpolation technique. We refer to~\cite{Ch10Trajectory} for a light
-  introduction to trajectory optimization in general and~\cite{kellyIntroductionTrajectoryOptimization2017} for a tutorial
-  on the direct collocation method, which also contains a concise overview of
-  different numerical methods (ibid., Section 9).
+  of some spline interpolation technique. We refer
+  to~\cite{TrajectoryOptimization} for a light introduction to trajectory
+  optimization in general and~\cite{kellyIntroductionTrajectoryOptimization2017} for a tutorial on the direct collocation
+  method, which also contains a concise overview of different numerical methods
+  (ibid., Section 9).
 \end{remark}
 
 
@@ -1469,8 +1512,6 @@ and a set of lower-level problems.
 Roughly speaking, the upper-level problem optimizes the time slots during which
 vehicles occupy the intersection, while the lower-level problems produce optimal
 safe trajectories that respect these time slots.
-%
-\comment{c.f. Benders' decomposition}
 %
 % The following presentation and notation is adapted
 % from~\cite{hultApproximateSolutionOptimal2015}.
@@ -1548,7 +1589,7 @@ as the choice of occupancy time slots. Therefore, given initial states $s_{r}$,
 we write $(y_{r}, z_{r}) \in \mathcal{T}(s_{r})$ to denote the set of occupancy
 time slots that allow a feasible solution.
 
-The upper-level problem is now to find a set of occupancy timeslots
+The upper-level problem is now to find a set of occupancy time slots
 satisfying~\eqref{eq:disjoint-occupancy}, such that the lower-level problem for each route is feasible.
 Let $s = \{s_{r} : r \in \mathcal{R} \}$ denote the set of global initial states for
 all routes and write $y = \{y_{r} : r \in \mathcal{R} \}$ and
@@ -1736,7 +1777,7 @@ $\dot{x}_{i}(y_{i}) = \bar{v}$.
 Because the end times $z_{i}$ are not involved in $J_d(\cdot)$, we can let each
 vehicle continue at full speed across the intersection, without inducing extra
 cost. This full-speed-crossing takes exactly $\sigma := (B-E)/\bar{v}$ time, so we
-can fix the end of the occupancy timeslot to be
+can fix the end of the occupancy time slot to be
 \begin{align*}
   z_{i} = y_{i} + \sigma, \; \text{ for all } i \in \mathcal{N} ,
 \end{align*}
@@ -1781,15 +1822,8 @@ $y_{r} \in \mathcal{T}_{y}(s_{r})$ holds if and only if
 where $a_{i} := (B - x_{i}^{0}) / \bar{v}$ is the earliest time at which vehicle
 $i$ can enter the intersection.
 %
-A rigorous proof of this fact is outside the scope of the current
-chapter.\footnote{The analysis would be very similar to that of
-  Chapter~\ref{chap:network}. There is, however, a subtle difference in how the
-  problem is stated there: whereas we provide initial \emph{positions} here, the
-  problem considered in Chapter~\ref{chap:network} is based on initial
-  \emph{times} at which the vehicles enter the system.}
-\comment{It would be nice to include a retrospective proof in that later
-  chapter, but note that there is a subtle difference: whereas we provide
-  initial *positions* here, we will later consider initial *entry times*.}
+A rigorous proof of this fact is outside the scope of this project.\footnote{The analysis would be very similar to that of Chapter~\ref{chap:network}. There is, however, a subtle difference in how the problem is stated there: whereas we provide initial \emph{positions} here, the problem considered in Chapter~\ref{chap:network} is based on initial \emph{times} at which the vehicles enter the system.}
+
 %
 This polyhedral characterization causes the trajectory optimization problem to
 reduce to the \textit{crossing time scheduling} problem
@@ -1809,16 +1843,19 @@ problem, which can, for example, be solved within the mixed-integer linear
 programming framework after encoding the \textit{disjunctive constraints}~\eqref{eq:disjunctive} using the
 big-$M$ technique, which we will do in the next section.
 
-% \review{
+
+
 \paragraph{Problem instances and candidate schedules.}
 
 The last section of this chapter and the entire next chapter will be about
+\comment[noline]{[Added] this part.}
 solving problem~\eqref{eq:C}, so let us take a step back and spend a few words on
 explaining how we specify (sets of) instances of this problem.
 %
 Recall that the sets $\mathcal{C}$ and $\mathcal{D}$ follow immediately from the
 definition of $\mathcal{N}$, so an instance $s$ of~\eqref{eq:C} is entirely determined by
 the tuple
+%
 \begin{align}
   \label{eq:6}
   s = (\mathcal{N}, a, \rho, \sigma) ,
@@ -1862,13 +1899,12 @@ For example, Figure~\ref{fig:instance-example} depicts some instance with
 
 To visualize some candidate schedule $y$, we collapse all the route rows into a
 single row, see Figure~\ref{fig:solution-example}, such that every block starts at the schedule time
-$y_i$. Therefore, every block represents the crossing timeslot that is allocated
+$y_i$. Therefore, every block represents the crossing time slot that is allocated
 to the corresponding vehicle. Sometimes, we also add arrows of length $\sigma - \rho$
 to illustrate the necessary switch-over time between consecutive time slots for
 different routes.
 
 
-% }
 
 \def\vizfigscale{0.90}
 \begin{figure}[h]
@@ -1927,7 +1963,7 @@ formulating~\eqref{eq:C} as a mixed-integer linear
 program and defining three types of cutting planes.
 %
 We conclude this section by an evaluation of the running time improvement of
-these cutting planes. \comment{Clearly motivate why we want fast heuristics.}
+these cutting planes.
 %
 The next chapter focuses mainly on heuristics and machine learning techniques to
 tune heuristics to exploit specific structures often found in practical problem
@@ -2177,8 +2213,8 @@ The example shows that, when we decide to put one vehicle of a platoon before
 another platoon, it is always better to put all vehicles of the platoon in
 front. In other words, whenever a vehicle can be scheduled immediately after its
 predecessor, this should happen in any optimal schedule. It turns out that this
-property holds more generally, as stated by the following result. \comment{[add
-  proof in Appendix]}
+property holds more generally, as stated by the following result. \comment{[Add]
+  proof in Appendix}
 
 \begin{restatable}[Platoon Preservation~\cite{limpensOnlinePlatoonForming2023}]{theorem}{Exhaustive}\label{thm:exhaustive}
   If $y$ is an optimal schedule for~\eqref{eq:C},
@@ -2233,11 +2269,7 @@ Observe that the constraints $y_i + \rho \leq y_j$ cause a fixed order of
 crossing for all vehicles on the same routes. Hence, let $\mathit{pred}(i)$
 denote the set of all vehicles on route $r(i)$ that cross the intersection
 strictly before vehicle $i$ and let $\mathit{succ}(i)$ denote those that cross
-strictly later,
-%
-\comment{Alternatively, we could say these are all the vehicles from which there is a path of conjunctive arcs to $i$, but then we would have to introduce the disjunctive graph.}
-%
-so we have
+strictly later, so we have
 \begin{align*}
   \mathit{pred}(i) := \{ (r(i), k) : k > k(i) \} , \\
   \mathit{succ}(i) := \{ (r(i), k) : k < k(i) \} .
@@ -2302,9 +2334,9 @@ significant runtime improvement.
     using the bimodal exponential interarrival time model from
     Section~\ref{sec:results} with parameters $p=0.5, \mu_{s} = 0.1, \mu_{l} = 10$.
     This figure clearly shows that the conjunctive cutting planes provide the
-    most runtime improvement. \comment{Why not show the case without any cutting
+    most runtime improvement. \note{[Why not show the case without any cutting
       planes? Because this takes sooo much time. What we could do is give some
-      idea of this for up to 10 arrivals per route.}}
+      idea of this for up to 10 arrivals per route.]}}
   \label{fig:running_time}
 \end{figure}
 
@@ -3093,10 +3125,10 @@ To model the relative occurence and/or importance of problems, we can induce a
 probability distribution $P$ over $\mathcal{I}$.
 %
 To illustrate this, imagine some delivery company in Eindhoven that needs to
-solve many instances of the vehicle routing problem (VRP) every
-day~\cite{bengioMachineLearningCombinatorial2020}. The problems they encounter
-are often similar in some sense: many customers are located in the north, with
-only a few regular customers at the \TUE campus; it often turns out to be
+solve many instances of the vehicle routing problem (VRP) every day~\cite{bengioMachineLearningCombinatorial2020}. The
+problems they encounter are often similar in some sense: many customers are
+located in the north, there is one large customer in the south, only a few
+regular customers are located at the \TUE campus; it often turns out to be
 beneficial to plan routes that use the ring road, etc. The company does not care
 about solving all possible VRPs, just their particular kind. This example is
 further illustrated in Figure~\ref{fig:problem-distribution}.
@@ -3108,8 +3140,7 @@ This distribution captures the problem instances the company actually cares
 about.
 %
 Hence, instead of~\eqref{eq:min-max-runtime}, the company is actually more
-interested in\comment{It can be argued that this ``sharper'' objective
-  is even necessary in some sense due to the no free lunch theorem.}
+interested in\comment{The free lunch theorem also motivates this sharper definition.}
 \begin{align}
   \label{eq:max-expected-performance}
   \min_{\pi \in \Pi} \mathbb{E}_{s \sim P} \left[ m(s, \pi) \right] .
@@ -3143,7 +3174,9 @@ our disposal, then we could approximate~\eqref{eq:max-expected-performance} by s
     VRPs encountered by some imaginary delivery company in Eindhoven. The left graph
     illustrates what a typical sample from this distribution could look like.
     %
-    Suppose that the delivery company also has an overseas branch in Montreal, then the distribution $P_\mathrm{Montreal}$ of problems faced by that branch will be very different.
+    Suppose that the delivery company also has an overseas branch in Montreal,
+    then the distribution $P_\mathrm{Montreal}$ of
+    problems faced by that branch will be very different.
     %
     For example, the Dommel river does not have such a large influence on the
     connectivity in Eindhoven compared to that of the St. Lawrence River.
@@ -3314,6 +3347,7 @@ action selection, or by other search procedures proposed like \emph{active
   search}~\cite{belloNeuralCombinatorialOptimization2017} or \emph{beam
   search}~\cite{koolLearningOptimizationCombinatorial2022}.
 
+\pagebreak[4]
 \paragraph{\textit{Computing MDP} framework.}
 
 We now summarize the algorithm optimization paradigm, outlined above, by listing
@@ -3723,12 +3757,13 @@ However, a single final reward is not convenient in practice. It is often better
 for convergence of the learning algorithm when rewards happen more evenly
 throughout the episode.
 %
-Therefore, we will show next how such a \emph{dense reward} can be defined based
-on changes of certain lower bounds.
+Therefore, we show how such \emph{dense rewards} can be defined in terms of changes of
+certain lower bounds, which we define next.
 
-\paragraph{Dense rewards.}
 
-Let $s_t = (s, \eta_{1:t})$ denote some state, then define the corresponding \emph{crossing time lower bounds}
+\paragraph{Lower bounds.}
+Consider $s_t = (s, \eta_{1:t})$ some state, and define \emph{crossing time lower
+  bounds}
 \begin{align}
   \beta_i(s_t) = y_i(\eta_{1:t}) \quad \text{ for each } i \in \mathcal{N} .
 \end{align}
@@ -3789,8 +3824,9 @@ properties:
 
 \end{enumerate}
 
-The dense rewards are now defined as follows. For each transition
-$s_{t-1} \xrightarrow{\eta_{t}} s_{t}$, we define the corresponding reward to be
+\paragraph{Dense rewards.}
+For each transition $s_{t-1} \xrightarrow{\eta_{t}} s_{t}$, we define the reward to
+be
 \begin{align}
   r^s(s_{t-1}, \eta_t, s_t) = \sum_{i \in \mathcal{N}} \beta_{i}(s_{t-1}) - \beta_{i}(s_t) .
 \end{align}
@@ -3901,6 +3937,94 @@ Figure~\ref{fig:mdp-episode}.
   stop and continue to the next route.
 \end{remark}
 
+\subsection{Problem distributions and learning objective}
+
+We will now discuss how we define some class of problems $\mathcal{I}$ and the
+corresponding problem distribution $P$.
+%
+From now on, we will assume that $\rho$ and $\sigma$ are fixed, given system
+parameters that do not vary between problem instances.
+%
+Let $R$ be the number of routes and let $n_r$ denote the number of vehicles on
+route $r$.
+%
+We will consider sets of problem instances $\mathcal{I}$ in which $R$ and
+$n:= (n_r)_{r=1}^R$ are the same for all instances.
+%
+Observe that $\mathcal{N}$ follows directly from $R,n$, so instead of providing
+the full tuple $s = (\mathcal{N}, a, \rho, \sigma)$, we will uniquely identify
+instances by the ragged array
+\begin{align*}
+  s(a) \equiv {\left({(a_{rk})}_{k=1}^{n_r}\right)}_{r=1}^R ,
+\end{align*}
+which we will simply call the arrival sequence of the instance.
+%
+Hence, we will now define the distribution $P$ in terms of \emph{distributions
+  over arrival sequences}.
+%
+For each route $r \in \mathcal{R}$, consider the stochastic process
+\begin{align*}
+  A_r := (A_{r1}, A_{r2}, \dots, A_{rn_r}) ,
+\end{align*}
+satisfying the recursion
+\begin{align*}
+  A_{rk} = A_{r,k-1} + X_{rk} + \rho ,
+\end{align*}
+where $X_{rk} \stackrel{\text{iid}}{\sim} F_r$ are \emph{interarrival times}
+with a common mean $\mu_r$.
+%
+We will call $\lambda_r := (\mu_r + \rho)^{-1}$ the \emph{arrival
+  intensity}\footnote{Assume $n_r = \infty$ and let $N_t$ denote the
+  \emph{counting process} of the \emph{renewal process}
+  $A_r = (A_{rk})_{k=1}^\infty$ with interarrival times $X_{rk} + \rho$.
+  %
+  In other words, $N_{t}$ counts the cumulative number of arrivals up to time
+  $t$. By the \textit{renewal theorem}, we obtain the \textit{limiting density} of arrivals
+  %
+  \begin{align*}
+    \mathbb{E}(N_{t + h}) - \mathbb{E}(N_{t}) \rightarrow h (\mu_r + \rho)^{-1} \quad \text{ as } t \rightarrow \infty ,
+  \end{align*}
+  for time distance $h > 0$. Hence, $\lambda_r := {(\mu_r + \rho)}^{-1}$
+  naturally captures the limiting density of arrivals, when we increase the time
+  window under consideration.} of route $r$.
+%
+We now write $s = s(a) \sim P$ if and only if $a \sim A$, with
+$a_r \stackrel{\text{iid}}{\sim} A_r$, for all $r\in \mathcal{R}$.
+%
+Observe that this definition naturally satisfies $a_i + \rho \leq a_j$ for each
+$(i,j) \in \mathcal{C}$, guaranteeing a safe initial following distance between
+successive vehicles on the same route, see also~\Cref{lemma:arrivals}.
+
+The rest of this chapter is now devoted to solving the following learning
+problem:
+
+\begin{mdframed}[%
+  innertopmargin=0.3em,
+  innerbottommargin=0.9em,
+  skipabove=1.5em,
+  skipbelow=4em,
+]
+  \begin{define}
+    Given some distribution $P$ over problem instances of some class
+    $\mathcal{I}$ and some class of admissible policies $\Pi$, then the
+    \emph{learning to schedule} problem is defined as
+    \begin{align}
+      \tag{MDP}
+      \max_{\pi \in \Pi} \mathbb{E}_{s \sim P} [R(s, \eta^\pi(s))] ,
+    \end{align}
+    where $\eta^\pi(s)$ denotes the unique schedule obtained for instance $s$ by
+    applying $\pi$ in $\mathcal{M}_\mathrm{constr}$ with initial state
+    $(s, \varnothing)$, and where $R(s, \eta)$ denotes the delay of the
+    resulting schedule.
+  \end{define}
+\end{mdframed}
+
+Consider the following distinguishing feature of problem distributions.
+\begin{define}
+  When $F_r = F$ for all $r \in \mathcal{R}$, the problem distribution is called \emph{symmetric}.
+\end{define}
+
+
 
 \clearpage
 
@@ -3952,29 +4076,7 @@ consider stochastic policies again for technical reaons; as we explained in the
 previous chapter, this can be best understood as being similar to relaxing and
 rounding in integer programming.
 
-The rest of this chapter is now devoted to solving the following learning
-problem:
 
-\begin{mdframed}[%
-  innertopmargin=0.3em,
-  innerbottommargin=0.9em,
-  skipabove=1.5em,
-  skipbelow=4em,
-]
-  \begin{define}
-    Given some distribution $P$ of problem instances over some class of
-    instances $\mathcal{I}$, the learning problem is
-    \begin{align}
-      \tag{MDP}
-      \max_{\pi \in \Pi_\mathrm{p}} \mathbb{E}_{s \in \mathcal{I}} [R(s, \eta^\pi(s))] ,
-    \end{align}
-    where $\eta^\pi(s)$ denotes the unique schedule obtained for instance $s$ by
-    applying $\pi$ in $\mathcal{M}_\mathrm{constr}$ with initial state $(s, \varnothing)$, and
-    where $R(s, \eta)$ denotes the delay of the resulting schedule.
-  \end{define}
-\end{mdframed}
-
-\clearpage
 \subsection{State reduction and symmetry}
 
 % first intuition
@@ -4169,7 +4271,6 @@ Let
 
 % -----
 
-\clearpage
 \subsection{Platoon preserving policies}
 
 Before we propose concrete parameterizations of $\pi$, we will first derive two
@@ -4212,9 +4313,7 @@ policy $\pi$ must be exhaustive.
 
 \paragraph{Active policies.}
 Next, we present yet another simple rule that each optimal policy $\pi$ must
-satisfy.\comment{Better to first prove this rule for schedules (in the static
-  sense), and then show that this transfers to a rule that optimal policies must
-  satisfy.}
+satisfy.\comment{Move to scheduling section, show it transfers to a policy rule.}
 %
 Again, let $i = (r,k)$ denote the last scheduled vehicle and assume
 $j = (r,k+1)$ exists, so it is the next unscheduled vehicle on this route.
@@ -4295,11 +4394,6 @@ Figure~\ref{fig:threshold_heuristic}. \note{First action is ``earliest'' route.
 %     Otherwise, vehicle $A$ will be chosen.}\label{fig:threshold_heuristic}
 % \end{figure}
 
-
-
-
-
-\clearpage
 
 \paragraph{Neural parameterization.}
 
@@ -4540,63 +4634,6 @@ inference time.
 As discussed in~\Cref{chap:ml-co}, we consider generalization along the two
 axes: instance size and instance structure.
 
-\paragraph{Instance distribution.}
-Throughout the following, we will assume that $\rho$ and $\sigma$ are fixed,
-given system parameters that do not vary between problem instances.
-%
-Let $R$ be the number of routes and let $n_r$ denote the number of vehicles on
-route $r$.
-%
-We will consider sets of problem instances $\mathcal{I}$ in which $R$ and
-$n:= (n_r)_{r=1}^R$ are the same for all instances.
-%
-Observe that $\mathcal{N}$ follows directly from $R,n$, so instead of providing
-the full tuple $s = (\mathcal{N}, a, \rho, \sigma)$, we will uniquely identify
-instances by the ragged array
-\begin{align*}
-  s \equiv {\left({(a_{rk})}_{k=1}^{n_r}\right)}_{r=1}^R ,
-\end{align*}
-which we will simply call the \emph{arrival sequence} of the instance.
-%
-We now define a probability distribution $P$ over arrival sequences.
-%
-For each route $r \in \mathcal{R}$, consider the stochastic process
-\begin{align*}
-  A_r := (A_{r1}, A_{r2}, \dots, A_{rn_r}) ,
-\end{align*}
-satisfying the recursion
-\begin{align*}
-  A_{rk} = A_{r,k-1} + X_{rk} + \rho ,
-\end{align*}
-where $X_{rk} \stackrel{\text{iid}}{\sim} F_r$ are \emph{interarrival times}
-with a common mean $\mu_r$.
-%
-We will call $\lambda_r := (\mu_r + \rho)^{-1}$ the \emph{arrival
-  intensity}\footnote{Assume $n_r = \infty$ and let $N_t$ denote the
-  \emph{counting process} of the \emph{renewal process}
-  $A_r = (A_{rk})_{k=1}^\infty$ with interarrival times $X_{rk} + \rho$.
-  %
-  In other words, $N_{t}$ counts the cumulative number of arrivals up to time
-  $t$. By the \textit{renewal theorem}, we obtain the \textit{limiting density} of arrivals
-  %
-  \begin{align*}
-    \mathbb{E}(N_{t + h}) - \mathbb{E}(N_{t}) \rightarrow h (\mu_r + \rho)^{-1} \quad \text{ as } t \rightarrow \infty ,
-  \end{align*}
-  for time distance $h > 0$. Hence, $\lambda_r := {(\mu_r + \rho)}^{-1}$
-  naturally captures the limiting density of arrivals, when we increase the time
-  window under consideration.} of route $r$.
-%
-Let $a \sim A$ denote some arrival sequence sampled as
-$a_r \stackrel{\text{iid}}{\sim} A_r$, for all $r\in \mathcal{R}$, then observe
-that it naturally satisfies $a_i + \rho \leq a_j$ for each
-$(i,j) \in \mathcal{C}$, guaranteeing a safe initial following distance between
-successive vehicles on the same route, see also~\Cref{lemma:arrivals}. Consider
-the following distinguishing feature of problem distributions.
-
-\begin{define}
-  When $F_r = F$ for all $r \in \mathcal{R}$, the problem distribution is called \emph{symmetric}.
-\end{define}
-
 \paragraph{Degree of platooning.}
 In order to model the natural occurrence of platoons, we could let the interarrival
 time distribution $F$ be a mixture of two random variables, one with a small expected
@@ -4604,12 +4641,10 @@ value $\mu_s$ to model the gap between vehicles within the same platoon and one
 with a larger expected value $\mu_{l}$ to model the gap between vehicles of
 different platoons. For instance, we could use a mixture of two exponentials, such
 that
-\begin{subequations}
 \begin{align}\label{eq:mixture}
-  X \sim F(x) &= p ( 1 - e^{-x / \mu_{s}} ) + (1 - p) (1 - e^{-x / \mu_{l}}) , \tag{mix.1} \\[0.2em]
-  \mathbb{E}{X} &= p \mu_{s} + (1-p) \mu_{l} , \tag{mix.2}
+  X \sim F(x) &= p ( 1 - e^{-x / \mu_{s}} ) + (1 - p) (1 - e^{-x / \mu_{l}}) , \tag{bimodal} \\[0.2em]
+  \mathbb{E}{X} &= p \mu_{s} + (1-p) \mu_{l} , \notag
 \end{align}
-\end{subequations}
 %
 assuming $\mu_{s} < \mu_{l}$. Observe that the parameter $p$ determines the
 average length of platoons.
@@ -4715,12 +4750,11 @@ refer to Appendix~\ref{app:nco}, where we discuss some existing works in the ML 
 literature that focus on finding dispatching rules for job shop problems, which
 are very similar to our crossing time scheduling problem.
 
-
-\microtypesetup{deactivate}
-\part*{\hspace{-0.8em}\textsc{Part II}\\[0.6em] Networks of Intersections\\[3em]
-       \centering\includegraphics[scale=1]{figures/network-intersections}}
-\microtypesetup{activate}
-\addcontentsline{toc}{part}{Part II \;--\; Networks of Intersections}
+% \microtypesetup{deactivate}
+% \part*{\hspace{-0.8em}\textsc{Part II}\\[0.6em] Networks of Intersections\\[3em]
+%        \centering\includegraphics[scale=1]{figures/network-intersections}}
+% \microtypesetup{activate}
+% \addcontentsline{toc}{part}{Part II \;--\; Networks of Intersections}
 
 \chapter{Learning to schedule in networks}\label{chap:network-learning}
 
