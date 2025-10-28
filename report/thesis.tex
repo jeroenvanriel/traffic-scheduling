@@ -139,8 +139,8 @@
 \author{\Large Jeroen van Riel \\[6em] {\it Combined Master's Thesis} \\[0.6em] Industrial and Applied Mathematics \\ Computer Science and Engineering  \\[3em] {\it Supervisors} \\[0.6em] Marko Boon \\ Stella Kapodistria \\ Mykola Pechenizkiy \\ Danil Provodin  \\[8em] October 2025 \\[0.6em] Eindhoven University of Technology}
 \date{}
 \newcommand{\mytitle}{%
-  {\huge\bf Provably Safe Coordination of Autonomous Traffic}\\[3.0em]
-  {\Large\bf Exposing the combinatorial challenge of motion planning}}
+  {\huge\bf Efficient and Provably Safe Coordinated Intersection Crossing of Autonomous Vehicles}\\[3.0em]
+  {\Large\bf Opportunities of machine learning for combinatorial problems in network-wide motion planning}}
 \title{\mytitle}
 
 % links setup
@@ -336,11 +336,12 @@ networks of interconnected intersections. In such systems, the optimization of
 one intersection cannot be treated in isolation, as traffic flow at any given
 junction directly influences neighboring ones. Coordinated strategies
 could extend across the entire network, allowing vehicles to plan optimal
-trajectories over multiple intersections. This network-level coordination not
-only enhances traffic efficiency and reduces congestion but also improves energy
-consumption and overall system safety.
+trajectories over multiple intersections.
+% This network-level coordination not
+% only enhances traffic efficiency and reduces congestion but also improves energy
+% consumption and overall system safety.
 
-\paragraph{Challenges.}
+\paragraph{Research landscape}
 
 % broader picture
 The concept of network-wide coordination offers a rich terrain for research and
@@ -350,358 +351,195 @@ as well as policy development, involving questions on how to
 adopt~\cite{naisehTrustRiskPerception2025} autonomous vehicle for
 safe~\cite{hilaryMakingAutomatedVehicles2022} and
 accessible~\cite{fatimaEquityIssuesAssociated2024} transportation systems.
-% we focus on tech, high-level coordination
-In this work, we concentrate on the technological challenge of high-level
-coordination between vehicles, deliberately abstracting away from lower-level
-issues such as sensor hardware, control loops, and communication devices.
+%
+The current literature reflects this breadth through diverse modeling choices
+and conflicting requirements that raise challenging trade-offs and design
+questions.
 % broad literature overview
-To illustrate the complexity and breadth of the resulting problem setting, we
-highlight four research themes and related modeling decisions in the current
-literature. In particular, many of the requirements and optimization objectives
-in such systems are inherently conflicting, which raises challenging trade-offs
-and design questions.
+We highlight four active research themes:
 
 \begin{itemize}
 
-  \item \emph{Performance objectives and user preferences.} From the perspective
-        of promoting traffic throughput of the system, minimizing travel delay
-        is a very natural objective. However, there is a tension with the goal
-        of limiting fuel and energy consumption and secondary objectives like
-        passenger comfort, which are both related to smooth acceleration and
-        deceleration. There is a growing interest in the literature towards
-        strategies for so-called eco-driving approaches,
-        see~\cite{hadjigeorgiouEnergyConsumptionOptimization2025} and references
-        therein.
+  \item \emph{Performance objectives and user preferences.} From the perspective of
+        promoting traffic throughput, minimizing travel delay is a very natural
+        objective. However, this conflicts with the goals of limiting fuel
+        consumption and promoting passenger comfort; there is growing interest
+        in eco-driving approaches~\cite{hadjigeorgiouEnergyConsumptionOptimization2025}.
         %
-        In multi-user systems like traffic networks, fairness in service
-        distribution and economic implications are also of central importance.
-        %
-        For example, existing
-        works~\cite{reyOnlineIncentiveCompatibleMechanisms2020,sayinInformationDrivenAutonomousIntersection2019}
-        have proposed systems in which users bid for priority service at
-        intersections in an online auction.
+        In multi-user systems, fairness and economic implications are also
+        central---for example, some works~\cite{reyOnlineIncentiveCompatibleMechanisms2020,sayinInformationDrivenAutonomousIntersection2019} propose auction-based
+        systems where users bid for priority service at intersections.
   
-  \item \emph{Decentralized control and communication.}
+  \item \emph{Decentralized control and communication.} A key design issue is
+        how to organize communication and control in the systems.
         %
-        Given some combination of the performance measurements sketched in the
-        previous point, a key design issue is how to organize communication and
-        control in the systems.
-        %
-        Centralized coordination in which a single
-        entity can observe the entire system and compute globally optimal
-        decisions is almost impossible in practice.
-        %
-        The first major limitation lies in the difficulty of obtaining an
-        accurate and complete view of the system’s state, as sensor measurements
-        are inherently noisy and uncertain.
-        %
-        Furthermore, the exchange of information between vehicles and the
-        central coordinator introduces
-        delays~\cite{wangAssessingImpactCommunication2024}, potential data loss
-        or inaccurate sensory
-        information~\cite{vitaleAutonomousIntersectionCrossing2022}, and
-        scalability challenges.
-        %
-        As a result, most proposals in the literature assume a decentralized
-        architecture~\cite{yangAutonomousDrivingV2X2022}, where low-level
-        control and immediate decision-making are handled by individual
-        vehicles, while a central entity focuses on higher-level planning and
-        coordination.
+        Centralized coordination with full observability is nearly impossible in
+        practice due to noisy sensors, communication
+        delays~\cite{wangAssessingImpactCommunication2024}, data loss or
+        inaccurate information~\cite{vitaleAutonomousIntersectionCrossing2022},
+        and scalability challenges. Most proposals assume decentralized
+        architectures~\cite{yangAutonomousDrivingV2X2022}, where low-level
+        control is handled by individual vehicles while a central entity focuses
+        on higher-level coordination.
 
-  \item \emph{Graceful adoption of autonomous driving.} Fully autonomous driving
-        without any human drivers is not to be expected in the foreseeable
-        future, if ever. Hence, a lot of effort has gone into studying the
-        effects of different adoption rates of connected autonomous vehicles and
-        designing systems to support mixed
-        traffic~\cite{liSurveyUrbanTraffic2023}.
+  \item \emph{Graceful adoption of autonomous driving.} Fully autonomous traffic without
+        human drivers is not expected in the foreseeable future. Consequently,
+        significant effort has gone into studying mixed traffic
+        systems~\cite{liSurveyUrbanTraffic2023}.
         %
-        One particular observation is that even low penetration rates can bring
-        large benefits in terms of efficiency, because autonomous vehicles can,
-        in some sense, be used to \emph{influence the behavior} of human
-        drivers~\cite{wangLearningControlCoordinate2025}, thereby effectively
-        reducing congestion.
+        Interestingly, even low penetration rates can bring large efficiency
+        benefits, as autonomous vehicles can influence human driver
+        behavior~\cite{wangLearningControlCoordinate2025}, thereby reducing
+        congestion.
 
   \item \emph{Robustness to uncertainty.}
         %
-        Uncertainty and unobservability plays a fundamental role in almost all
+        Uncertainty and unobservability are fundamental in all
         formulations of coordination.
         %
-        A major source of uncertainty is the demand for mobility, which
-        fluctuates heavily throughout the day.
-        %
-        Furthermore, urban road traffic remains inherently chaotic, even with
-        high levels of automation.
-        %
-        Apart from noisy sensor information and partial unobservability
-        mentioned above, systems should be capable of avoiding dangerous
-        situation~\cite{yuUncertaintyAwareSafetyCriticalDecision2025},
-        especially when pedestrians and other vulnerable users are involved;
-        handling mechanical failures; software faults and cyberattacks; and
-        other unregular events like dynamic prioritization of emergency
-        vehicles.
+        Major sources include fluctuating mobility demand throughout the day,
+        noisy sensors, partial observability, and the need to handle dangerous
+        situations~\cite{yuUncertaintyAwareSafetyCriticalDecision2025},
+        mechanical failures, software faults, cyberattacks, and dynamic
+        prioritization of emergency vehicles.
 \end{itemize}
 
+\section{Problem scope and model assumptions}
 
-\paragraph{Coordinated motion planning.}
+While acknowledging the breadth of research on autonomous intersection
+coordination, we focus on a simplified formulation that exposes the fundamental
+challenges of large-scale coordination, studying an idealized traffic model that
+captures only the essential components.
 
-% fundamental computational/optimization/decision-making challenge
 
-While recognizing the breadth of research on autonomous intersections in
-particular and coordination in general---as illustrated by the above
-non-exhaustive exposition of the literature---we focus on a problem formulation
-that exposes some of the more fundamental issues of large-scale coordination.
+% tension: safety + efficiency
+At the heart of any traffic coordination system lies a fundamental tension:
+safety requirements and efficiency objectives are inherently in conflict, yet
+both are essential goals of coordination.
 %
-We propose to study the inherent complexity of the coordination problem, by
-framing it in terms of optimizing the joint motion of vehicles, with a focus on
-computional complexity.
-%
-Our aim is to study coordination in an idealized traffic model that captures
-only the most essential components.
-%
-Our problem formulation is based on the premise that the following two aspects
-are \emph{essential to the value proposition of autonomous vehicle
-  coordination}:
-
-\begin{itemize}
-  \item \emph{Improving efficiency.}
-        %
-        Coordination of autonomous vehicle provides enormous opportunities to
-        optimize vehicle's routes and speeds on the network scale, in order to
-        minimize travel delay, fuel and energy consumption, improving overall
-        service quality for users while reducing the impact on the environment.
-
-  \item \emph{Ensuring safety.}
-        %
-        Avoiding collisions and maintaining sufficient margins for unexpected
-        incidents is regarded as non-negotiable in the context of traffic, given
-        the potentially severe consequences of failures or collisions.
-
-\end{itemize}
-
-Accordingly, we will study the problem of \emph{safe and efficient} motion
-planning of autonomous vehicles in urban networks of intersection.
-%
-This is arguably the underlying goal of most work on autonomous traffic
-coordination sketched above.
-%
-Even in relatively simple or stylized models of autonomous traffic, the above
-two requirements give rise to interesting technological challenges.
-%
-In order to better understand these inherent difficulties and to enable us to
-obtain concrete interpretable results, we focus on \emph{fully autonomous
-  mobility systems}---in which all vehicles are assumed to have autonomous
-driving and communication capabilities---under \emph{centralized control},
-assuming full observability of the system, without any uncertainty or
-randomness.
-%
-We will elaborate our modeling assumptions below.
-
-% motivate the relevance of such a simple model
-% \paragraph{Relevance of simple models.}
-
-% motivation: upper bounds
-%
-In the context of urban road traffic, stylized models are relevant, because they
-provide upper bounds on what we can expect to gain in more realistic situations
-with, e.g., decentralized control, uncertainty and problems of unobservability
-due to issue like communication latency and noisy information.
-%
-% directly applicable in some situations
-Even though such model does not capture many of the intricacies of current urban
-traffic, there are many examples in which such simple model is perfectly
-appropriate. For example, think of autonomous vehicles being deployed in
-confined sites, like ports, mines or
-quarries~\cite{kojchevOptimizationBasedCoordination2024}; but also warehouses
-and manufacturing sites, or even indoor farming installations.
+Safety demands maintaining sufficient separation between vehicles and avoiding
+simultaneous occupation of conflict zones.
+% 
+Efficiency requires minimizing delays and maximizing throughput, which naturally
+pushes toward tighter spacing and more aggressive intersection usage.
 
 
-\section{Model assumptions}
+% irreducible core of the problem
+This conflict represents the irreducible core of the coordination problem: every
+system must resolve this tension.
+%
+Traditional traffic lights resolve it conservatively, sacrificing efficiency for
+guaranteed safety.
+%
+Human drivers resolve it through continuous negotiation and risk assessment.
+% again: motivation
+Autonomous coordination offers the potential for a more sophisticated resolution
+of this trade-off, making it a promising technology.
+
+\paragraph{Safe and efficient motion planning.}
 
 % focus on optimization of motion
-We will take an \emph{optimization-based planning perspective} on coordination,
-in which the joint trajectories of the vehicles in the system are the main
-decision variables.
+We formulate the coordination problem as a trajectory-optimization problem
+subject to collision-avoidance constraints.
 %
-Since we are specifically interested in the high-level coordination across
-multiple vehicles, we assume that the technical problems involving the
-lower-level steering control of individual vehicles is taken care of; we assume
-that vehicles can follow planned trajectories perfectly.
+Since our focus is on high-level coordination, we assume that low-level steering
+and control are handled such that vehicles can perfectly follow planned
+trajectories.
 %
-Furthermore, we assume that the vehicle's routes are fixed a priori.
+The coordination task is thus to steer the traffic system from an initial to a
+desired configuration as efficiently as possible, subject to safety constraints.
 %
-The coordination task can then be viewed as steering the traffic system from an
-initial configuration to a desired target configuration in the most efficient
-manner possible, subject to safety constraints.
+% The system state consists of the joint positions and speeds of all vehicles in
+% the network.
+
+To better understand the inherent difficulties of coordination, we consider an
+idealized setting with centralized control, no human drivers, and perfect
+information. The problem is formulated in an \emph{offline} setting: all
+vehicles, their routes, and their objectives are known in advance, and we do not
+consider random arrivals, reoptimization, or rolling-horizon control.
 %
-Here, the system state is defined by the \emph{joint positions and speeds of all
-  vehicles} within the network.
+We refer to this setting as the \emph{safe and efficient motion planning problem}.
+
+\paragraph{Motivation for idealized setting.}
+
+% motivate simple model
+This abstraction sacrifices realism for clarity, isolating the computational
+core of the coordination problem and enabling concrete, interpretable results.
+We make this choice for two reasons:
+
+First, even in this idealized setting, the problem exhibits interesting
+computational challenges arising from the inherent conflict between safety and
+efficiency.
 %
-We ignore any issues related to communication by assuming there is a
-central control with perfect information about the system.
+Any method that succeeds here provides an upper bound on what can be
+achieved in real systems with decentralized control, communication delays, noisy
+information, and mixed traffic.
+% Understanding solutions in our simplified
+% setting provides valuable insights that can guide the design of practical
+% coordination strategies.
 
-\begin{quote}
-  We will refer to this problem setting as \emph{safe and efficient motion planning}.
-\end{quote}
+Second, our idealized model fits certain controlled environments where many
+complications of urban traffic can be avoided. Autonomous vehicles are already
+being deployed in confined sites such as ports, mines, and
+quarries~\cite{kojchevOptimizationBasedCoordination2024}, as well as warehouses,
+manufacturing facilities, and indoor farming installations. In these settings,
+assumptions of full autonomy and centralized control are reasonable, making our
+methods immediately applicable.
 
-\noindent
-There is still a lot of freedom to define a concrete mathematical optimization
-problem within this framework. In particular, we will cover the following four
-main modeling aspects.
-%
-
-\begin{itemize}
-
-  \item \emph{Road layout.}
-        %
-        We start by considering a single intersection of single-lane roads. To
-        keep things simple, we assume that vehicles are not allowed to turn on
-        the intersection, so they always stay on their dedicated lane, as
-        illustrated in Figure~\ref{fig:intersection-nice}.
-        %
-        It will be convenient to assume the lanes are of unbounded length,
-        meaning that there is room for any number of vehicles. Once we start
-        considering networks of intersection, this assumption is no longer
-        valid. In other words, we need to assume that lanes between
-        intersections have a \emph{finite capacity}, which adds further
-        complexity.
-  
-  \item \emph{Safety constraints.}
-        %
-        First of all, the geometry of the network and vehicles dictates the
-        positions for which vehicles collide, thereby defining a set of
-        \emph{conflicting} joint vehicle positions that should be avoided.
-        %
-        Very broadly, there are two ways in which safety constraints can be formulated.
-        So-called \emph{hard constraints} require the absolute absense of collisions,
-        while \emph{soft constraints} model this in terms of limiting the probability
-        with which collisions occur.
-        %
-        We argue that collision-avoidance should be non-negotiable in all models of
-        vehicle coordination, so we advocate for pushing the development of
-        computational methods that can handle hard safety constraints.
-
-  \item \emph{Vehicle dynamics.}
-        %
-        There is a natural trade-off between model accuracy and computational
-        tractability. Roughly speaking, the more realistic the dynamics model
-        is, the harder it becomes to produce optimal motion plans in terms of
-        computational requirements.
-        %
-        We will opt for a very simple vehicle dynamics model, because we are
-        interested in the computation complexity of coordination on a
-        network-level scale.
-
-  \item \emph{Performance criteria.}
-        %
-        We start by considering minimization of total delay experienced by all
-        users in the system as the central optimization objective, while
-        recognizing the importance of performance criteria that involve measures
-        of energy consumption and bounded acceleration and deceleration.
-        %
-        As we will explain below, it turns out that only focusing on delay makes
-        the optimization problem significantly easier.
-\end{itemize}
-
-\begin{figure}
-  \centering
-  \includegraphics[scale=1]{figures/intersection-nice}
-  \caption{Stylized model of a single intersection with two conflicting flows of
-    vehicles that are not allowed to turn at the intersection, so we can
-    assume---without loss of generality---that vehicles cross the
-    intersection in straight lines.}\label{fig:intersection-nice}
-\end{figure}
 
 \section{Challenges and opportunities}
 
-\begin{itemize}
-  \item Vehicle motion
-  \item Crossing sequence
-  \item Joint optimization
-  \item Patterns in problems $\rightarrow$ use ML
-\end{itemize}
+% challenge: scale + hard safety constraints
+\paragraph{Safe trajectory optimization.}
 
-\paragraph{Planning crossing sequences.}
+Trajectory optimization is infinite-dimensional: we are looking for a set of
+functions describing vehicle motion over time. Moreover, the potentially severe
+consequences make collision avoidance a \emph{hard constraint}, distinguishing
+traffic coordination from optimization problems where constraints can be relaxed
+or penalized.
 
-In traffic coordination, combinatorial problems arise naturally from ordering
-constraints---deciding which vehicle should move first across shared resources
-such as intersections, merge areas, or lanes, while taking into account trade-offs
-between throughput, fairness, and safety.
+A common approach is \emph{direct transcription}---discretizing time to obtain a
+finite-dimensional program---for which hard constraint satisfaction is
+straightforward to achieve. However, this method becomes computationally
+expensive as the number of vehicles, intersections, and time steps grows.
 %
-Traditionally, such problems are resolved by implementing traffic lights or
-static rules for yielding.
-%
-Autonomous connected vehicles provide us with better ways of handling these
-conflicts dynamically.
+When vehicle dynamics are simple and explicitly known, analytical solutions can sometimes be derived, but enforcing hard safety constraints makes this notoriously difficult. For more complex or uncertain dynamics, learning-based approaches can be used to approximate the dynamics or control policies, but ensuring safety and interpretability remains a major challenge.
 
-For example, we will focus specifically on the order in which vehicles cross
-intersections, which can also be thought of as first grouping vehicles together
-and then deciding in which order these groups are allowed to cross the
-intersection.
-%
-Instead of relying on fixed traffic signal phases, we can optimize this decision
-for the current traffic situation.
-%
-Although the number of choices at a single intersection may be relatively
-limited, when considering large networks of intersections, the number of
-possible crossing sequences grows rapidly.
+\paragraph{Crossing order optimization.}
 
-Furthermore, even when vehicle routes are fixed, such ordering decisions at one
-intersection directly influence the arrival process at nearby intersections,
-hence these decisions are coupled across the network.
+Trajectory optimization is inherently non-convex because collision-avoidance
+constraints impose an implicit vehicle crossing decision at intersections.
+Rather than relying on fixed traffic signal phases, these ordering decisions
+can, in principle, be optimized.
 %
-Due to this coupling, finding the optimal crossing plan becomes harder when
-larger networks are considered, because of the exponential growth of the space
-of feasible solutions.
-%
-This issue is further complicated by the real-time requirement that real traffic
-systems impose on the computation time, which motivates the development of fast
-computational methods.
+Even at a single intersection, the number of feasible crossing sequences grows
+quickly with the number of vehicles. In a network, decisions at one intersection
+directly influence arrivals at others, coupling the problem across the system.
+This coupling, combined with the combinatorial growth of possible sequences
+in larger networks, makes exact optimization intractable. Real-time requirements
+further constrain computation, motivating the development of fast heuristic
+methods.
 
-\paragraph{Planning vehicle motion.}
+\paragraph{Joint combinatorial-continuous optimization.}
 
-We are dealing with the optimization of vehicle trajectories, which is in
-general an infinite-dimensional problem.
-%
-Such problems can be approached in an end-to-end fashion by
-\textit{direct transcription} to an equivalent mixed-integer optimization
-problem, which can be solved using off-the-shelf solvers. This method can be
-used to compute optimal trajectories up to any precision, by choosing a fine
-enough time discretization. However, it is exactly this time discretization that
-causes prohibitive growth of the number of variables with respect to the size of
-the network and the number of vehicles, so this method is only useful for
-relatively small problem instances.
-%
-Moreover, in the context of traffic systems, there are complex constraints and
-safety requirements that need to be handled with care.
-%
-Furthermore, optimization methods would benefit a lot from closed-form
-expressions of trajectories, which is in principle possible in some situations,
-but the appearance of constraints makes this notoriously difficult in practice.
+The combinatorial aspect of trajectory optimization cannot be considered in
+isolation, since the feasibility and cost of any crossing sequence depend
+non-trivially on the continuous-time dynamics and interactions of the vehicles.
+Simultaneously optimizing both the combinatorial and continuous
+components---what we refer to as \emph{joint optimization}---poses major
+algorithmic challenges. While heuristics have been proposed in the literature,
+often assuming decentralized control and communication, approaches that optimize
+both levels in a unified framework, with clearly identifiable trade-offs, remain
+relatively scarce.
 
-\paragraph{Joint optimization.}
+\paragraph{Learning from problem structure.}
 
-There are lots of well-understood solution techniques for purely combinatorial
-problems.
-%
-However, in the current context, the combinatorial part of the problem cannot be
-considered in isolation. The feasibility and cost of each solution to the
-combinatorial part depends in a non-trivial way on the lower-level
-continuous-time dynamics and interactions between vehicles.
-%
-In other words, simultaneously optimizing the combinatorial part and the
-continuous-time part, to which we refer as \emph{joint optimization}, poses
-major algorithmic challenges.
-%
-In the literature, heuristics have been studied, often based on the presumption
-of decentralized control and communication.
-%
-However, works in which the combinatorial aspects and the lower-level
-continuous-time trajectories are optimized in a unified fashion, in which the
-trade-offs that are made can be clearly identified, are scarce in the current
-literature.
+The coordination problems discussed above exhibit regularities that can potentially be exploited algorithmically. Traditional approaches rely on manually designed heuristics to capture such structure, but recent advances in machine learning for combinatorial optimization suggest an alternative: treating problem instances as data and learning to recognize patterns associated with good solutions.
 
+A key insight from this literature is that practical applications rarely require optimal solutions for all conceivable instances. Instead, problem instances are typically drawn from a limited distribution with predictable characteristics—such as recurring traffic patterns, common vehicle routes, or structured networks. By focusing on expected performance over these distributions, rather than worst-case guarantees, heuristics can be learned that are both efficient and effective.
 
 \section{Related work}
+
 
 The survey \cite{marianiCoordinationAutonomousVehicles2022} classifies works
 mainly on the level of organization. Moreover, apart from vehicle motion around
@@ -745,7 +583,7 @@ topology, curved lanes affecting the maximum safe speed, merging lanes;
 implications of mixing human traffic with fully autonomous traffic.
 
 
-\paragraph{Reservation-based systems.}
+\subsection{Reservation-based systems}
 % adjacent: auction, bidding, fairness
 
 Instead of an optimization-based perspective, many studies assume that
@@ -792,7 +630,18 @@ extension of AIM has been introduced
 in~\cite{khayatianCrossroadsTimeawareApproach2020}.
 
 
-\paragraph{Optimizing the crossing order.}
+\subsection{Optimizing the crossing order}
+
+In traffic coordination, combinatorial problems arise naturally from ordering
+constraints---deciding which vehicle should move first across shared resources
+such as intersections, merge areas, or lanes, while taking into account trade-offs
+between throughput, fairness, and safety.
+%
+Traditionally, such problems are resolved by implementing traffic lights or
+static rules for yielding.
+%
+Autonomous connected vehicles provide us with better ways of handling these
+conflicts dynamically.
 
 Rather than obtaining a crossing order as the result of a sequence of granted
 reservation requests, later studies assume that the intersection manager
@@ -821,10 +670,10 @@ solved using a tabu search heuristic.
 % bubbles paper
 The policy in~\cite{tallapragadaHierarchicaldistributedOptimizedCoordination2017} deals explicitly with the complexity of the crossing order
 decisions by defining groups of consecutive vehicles on the same lane. The first
-step is to group vehicles into these so-called ``bubbles''. All vehicles in a
-bubble are required to cross the intersection together, while maintaining
+step is to group vehicles into platoons. All vehicles in a
+platoon are required to cross the intersection together, while maintaining
 feasibility with respect to safe trajectories. Next, crossing times are assigned
-to bubbles while avoiding collisions. Based on this schedule, a local vehicular
+to platoons while avoiding collisions. Based on this schedule, a local vehicular
 control method~\cite{tallapragadaDistributedControlVehicle2017} is used that guarantees safety to reach the assigned
 crossing times.
 
@@ -856,7 +705,7 @@ For example, it makes intuitively sense to assign heavy trucks with slow
 acceleration/deceleration characteristics to a dedicated lane to avoid
 interfering with passenger vehicles that are more agile.
 
-\paragraph{Joint optimization and decomposition methods.}
+\subsection{Joint optimization and decomposition methods}
 
 Finally, we mention some of the few works that have considered the joint
 optimization perspective, which has also been called ``signal-vehicle coupled
@@ -898,8 +747,8 @@ current solution.
 \begin{tabularx}{2.0\textwidth}{@{} l L{0.7} L{0.45} L{0.35} L{0.45} L{0.7} @{}}
 \toprule
 \textbf{Ref.} &
-\textbf{Paradigm} &
-\textbf{Control} &
+\textbf{Key Paradigm} &
+\textbf{Control Setting} &
 \textbf{Safety} &
 \textbf{Objective} &
 \textbf{Notes / Limitations} \\
@@ -929,7 +778,7 @@ Optimization of intersection entry speed  \\
 Approximation algorithm based on bilevel decomposition &
 Centralized offline optimization &
 Non-collision &
-Convex quadratic objective &
+Integral over function of distance and acceleration &
 Single vehicle per lane \\
 
 \cite{zhaoBilevelProgrammingModel2021} &
@@ -956,11 +805,154 @@ No crossing order optimization; performance analysis using polling theory  \\
 \bottomrule
 \end{tabularx}}
 \end{adjustbox}
-\caption{Comparison of approaches to signal-free intersection management.}
+\caption{Comparison of approaches to autonomous intersection coordination.}
 \label{tab:litreview}
 \end{table}
 
-\section{Project goals and outline}
+\paragraph{Safe reinforcement learning.}
+The decision variables in this kind of problem represent the individual
+vehicle's trajectories, which are functions of time.
+%
+The study of optimizing over functions traces back to the calculus of
+variations, which has evolved into the modern theory of optimal
+control~\cite{liberzonCalculusVariationsOptimal}.
+%
+The latest manifestation of this line of research is found within the roots of
+the popular field of reinforcement learning, which grew out of the dynamic
+programming approach to optimal
+control~\cite{bellmanDynamicProgramming1984,bertsekas2012dynamic,putermanMarkovDecisionProcesses2009,suttonReinforcementLearningIntroduction2018}.
+
+An alternative line of research explores \emph{safe reinforcement learning } as
+a data-driven approach to motion planning under safety constraints. Instead of
+solving large-scale optimization problems explicitly, such methods learn control
+policies, while embedding safety considerations directly into the learning
+process—either through constrained optimization formulations, shielded policy
+updates, or model-based safety layers. These approaches offer the potential to
+scale to high-dimensional systems where classical trajectory optimization
+becomes intractable. However, guaranteeing strict safety remains an open
+challenge.
+
+\subsection{Machine learning for combinatorial optimization}
+
+A part of our work is inspired by recent developments in applying machine
+learning methods to combinatorial optimization problems. This emerging field
+seeks to leverage the pattern-recognition capabilities of machine learning to
+either improve existing algorithms or discover entirely new solution strategies.
+
+\paragraph{Core methodology.}
+
+Combinatorial optimization problems seek the best option from a finite set of
+discrete structures---such as routes through graphs, optimal subsets, or machine
+schedules. While theoretically we could evaluate every candidate solution, this
+brute-force approach quickly becomes infeasible. Traditional algorithms exploit
+problem structure to search more efficiently, using techniques like
+branch-and-bound for systematic exploration with provable guarantees, or local
+search heuristics based on intuitions about optimal solutions.
+
+The machine learning perspective treats algorithm development itself as an
+optimization problem. Given some class of problem instances and a distribution
+$P$ over these instances, the goal is to find an algorithm that performs
+well on average when instances are sampled from $P$. This contrasts with
+the classical worst-case analysis, which seeks algorithms that perform well on
+all possible instances.
+
+Two main approaches have emerged in the literature, as surveyed by Bengio et
+al.~\cite{bengioMachineLearningCombinatorial2020} and Mazyavkina et
+al.~\cite{mazyavkinaReinforcementLearningCombinatorial2020}:
+
+\begin{enumerate}
+  \item \emph{Joint methods} replace expensive components of existing algorithms
+        with fast learned approximations. For example, machine learning models
+        have been used to approximate branching decisions in
+        branch-and-bound~\cite{gasseExactCombinatorialOptimization2019} and to
+        select cutting planes in integer
+        programming~\cite{tangReinforcementLearningInteger2020}. Crucially,
+        learned approximations need not compromise optimality guarantees if they
+        produce valid decisions (e.g., valid cuts or feasible branches).
+
+  \item \emph{Principal methods} use machine learning to explore the space of
+        possible algorithms and discover new solution strategies. This can be
+        understood as learning to construct solutions from scratch or as
+        predicting optimal solutions given problem instances. Our methodology
+        belongs to this class.
+\end{enumerate}
+
+Markov decision processes as algorithmic models A key technical innovation in
+this literature is modeling algorithms as policies for Markov decision processes
+(MDPs). In this framework, states represent the internal state of the
+algorithm---including data structures, partial solutions, and relevant problem
+information. Actions correspond to algorithmic decisions (e.g., which variable
+to branch on, which node to visit next). State transitions capture how these
+decisions update the algorithm's internal state, and rewards measure solution
+quality or progress toward a solution.
+
+This MDP perspective naturally connects to reinforcement learning methods, which
+have been successfully applied to various combinatorial problems. Notable
+examples include pointer networks for sequence problems like
+TSP~\cite{vinyalsPointerNetworks2017a}, graph neural networks with reinforcement
+learning for general graph
+problems~\cite{daiLearningCombinatorialOptimization2018}, and attention
+mechanisms trained with reinforcement learning for routing
+problems~\cite{koolAttentionLearnSolve2019}.
+
+For our crossing time scheduling problem, this framework is natural: each state
+represents a partial schedule (which vehicles have been assigned crossing
+times), actions correspond to selecting which vehicle or route to schedule next,
+and rewards capture how the schedule quality evolves.
+
+\newcolumntype{L}[1]{>{\RaggedRight\hsize=#1\hsize\hspace{0pt}}X}
+\begin{table}
+\centering
+\renewcommand{\arraystretch}{1.2}
+
+\begin{adjustbox}{center}
+\scalebox{0.8}{
+\begin{tabularx}{1.4\textwidth}{@{} l L{0.5} L{1.5} @{}}
+\toprule
+\textbf{Reference} &
+\textbf{Problem focus} &
+\textbf{Contribution / Method} \\
+\midrule
+\citet{bengioMachineLearningCombinatorial2020} & General CO problems & Survey on using ML for CO, framing the learning problem \\
+\citet{mazyavkinaReinforcementLearningCombinatorial2020} & General CO problems & Survey on using ML for CO, with a focus on reinforcement learning \\
+\citet{daiLearningCombinatorialOptimization2018} & Graph problems & Deep RL with graph embeddings to construct solutions \\
+\citet{vinyalsPointerNetworks2017a} & TSP & Pointer networks for sequence-based combinatorial problems \\
+\citet{koolAttentionLearnSolve2019} & Routing problems & Attention model trained with RL for solving TSP, VRP \\
+\citet{gasseExactCombinatorialOptimization2019} & MILP & Approximate strong branching policy with GNNs in branch-and-bound \\
+\citet{tangReinforcementLearningInteger2020} & ILP & Attention-based model for cutting plane selection trained with RL \\
+\citet{gravesNeuralTuringMachines2014} & General computation & Neural turing machine as a differentiable model of universal computation \\
+\bottomrule
+\end{tabularx}}
+\end{adjustbox}
+\caption{Some key references on machine learning for combinatorial optimization.}%
+\label{tab:ml-co-literature}
+\end{table}
+
+\paragraph{Relevance to intersection scheduling.}
+
+Our crossing time scheduling problem shares structural similarities with
+classical job shop scheduling, where jobs (vehicles) must be processed by
+machines (intersections) in predetermined sequences. Recent work has
+successfully applied neural reinforcement learning methods to job shop problems,
+demonstrating that learned heuristics can compete with or outperform traditional
+approaches. These successes motivated our investigation of similar techniques
+for intersection coordination.
+
+However, our problem has distinctive features: the natural occurrence of
+platoons (vehicles traveling close together), the network structure when
+multiple intersections are considered, and the constraint that vehicles must
+eventually cross at full speed. These characteristics require adaptations of
+existing methods, which we detail in~\Cref{chap:single-learning}.
+
+The fundamental premise underlying our approach is that the distribution of
+problem instances encountered at any particular intersection exhibits learnable
+structure. By training on representative instances---whether generated from models
+or collected from real traffic data---we can potentially discover coordination
+strategies specifically tuned to local conditions, rather than relying on
+worst-case guarantees that may be overly conservative for the traffic patterns
+actually observed.
+
+\section{Research questions and outline}
 
 % \paragraph{Research goals and questions.}
 
@@ -1089,95 +1081,6 @@ shop scheduling problem.
 %
 In this setting, feasibility of trajectories deserves special attention.
 
-\paragraph{Outline.}
-
-In Chapter~\ref{chap:single}, we consider a simple model of a single
-intersection, like the example above. After discussing the decomposition method,
-we present some classical solutions methods to solve the crossing time
-scheduling problem.
-%
-We explain how the problem can be treated as a learning problem in
-Chapter~\ref{chap:single-learning}.
-%
-In order to generalize to a network of intersections, we need to give a precise
-characterization of the feasibility of trajectories in lanes of finite length,
-which is done in Chapter~\ref{chap:network}.
-%
-The resulting scheduling problem is then subjected to a learning algorithm in
-Chapter~\ref{chap:network-learning}.
-%
-We provide some general discussion and pointers for further research in
-Chapter~\ref{chap:conclusion}.
-
-\section{Intro bits and pieces}
-
-% broad problem:
-% - why intersections matter in traffic coordination
-% - why coordination is interesting
-
-% simpflified model as a tractable starting point
-% assumptions:
-% - two lanes
-% - perpendicular
-% - no turning
-% - no overtaking
-% - homogeneous vehicles (same dimensions and dynamics)
-% - no randomness
-%  - fixed
-
-% optimization objective:
-%   - energy consumption -> very desirable on top of delay, but makes analysis difficult
-%   - travel delay -> essential, enables problem simplification (decomposition)
-
-% mathematical punchline:
-% - first, it becomes a trajectory optimization problem (optimal control)
-%   - can be solved directly
-% - next, we turn it into a very simple scheduling (when) / sequencing (only order) problem
-
-% preview of results:
-% - mention direct transcription
-% - main takeaway: bilevel decomposition
-% - branch-and-cut solution
-%   - problem structure yields cutting planes
-%   - analye performance improvement
-% - optionally, mention local search
-
-Efficient coordination of vehicle motion at intersections has always been a
-central challenge in traffic management. Intersections are natural bottlenecks
-where safety requirements and efficiency objectives are directly in conflict,
-calling upon systems of law or technology to avoid chaos.
-%
-With the advent of autonomous vehicles and reliable wireless communication
-technologies, there is increasing potential to replace traditional traffic
-signal-based approaches with coordinated trajectory planning methods.
-
-Our literature review clearly shows that previous works have approached
-coordination of autonomous vehicles from a wide range of perspectives and with
-varying degrees of model complexity.
-%
-Furthermore, we highlighted some fundamental computational challenges that are
-still unresolved in the literature.
-%
-Specifically, the joint optimization of crossing order and continuous-time
-vehicle trajectories has received relatively little attention.
-%
-In order to better understand this issue and to enable precise analytical
-results, we propose to study a stylized single intersection model.
-
-\paragraph{Optimal control.}
-
-The decision variables in this kind of problem represent the individual
-vehicle's trajectories, which are functions of time.
-%
-The study of optimizing over functions traces back to the calculus of
-variations, which has evolved into the modern theory of optimal
-control~\cite{liberzonCalculusVariationsOptimal}.
-%
-The latest manifestation of this line of research is found within the roots of
-the popular field of reinforcement learning, which grew out of the dynamic
-programming approach to optimal
-control~\cite{bellmanDynamicProgramming1984,bertsekas2012dynamic,putermanMarkovDecisionProcesses2009,suttonReinforcementLearningIntroduction2018}.
-
 
 % \microtypesetup{deactivate}
 % \part*{\hspace*{-0.8em}\textsc{Part I}\\[0.6em] Isolated Intersection\\[3em]
@@ -1194,9 +1097,10 @@ further detail our mathematical optimization approach to traffic management of
 autonomous vehicles.
 
 \paragraph{Autonomous intersection model.}
-In~\Cref{sec:intersection-model}, we model a single isolated intersection in which
-vehicles, equipped with perfect communication and steering capabilities, operate
-under the supervision of a central traffic manager.
+In~\Cref{sec:intersection-model}, we model a single isolated intersection,
+illustrated in Figure~\ref{fig:intersection-nice}, in which vehicles, equipped
+with perfect communication and steering capabilities, operate under the
+supervision of a central traffic manager.
 %
 The model is based on the essential trade-offs inherent to all transportation
 systems. Specifically, the model is general enough to capture the following
@@ -1223,6 +1127,14 @@ three fundamental and conflicting objectives.
         controlled acceleration and deceleration.
 \end{itemize}
 
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{figures/intersection-nice}
+  \caption{Stylized model of a single intersection with two conflicting flows of
+    vehicles that are not allowed to turn at the intersection, so we can
+    assume---without loss of generality---that vehicles cross the
+    intersection in straight lines.}\label{fig:intersection-nice}
+\end{figure}
 
 \paragraph{Trajectory optimization.}
 The task of safely and efficiently coordinating the motion of autonomous vehicles
@@ -1349,7 +1261,7 @@ investigate the safe configurations of two vehicles, each on its own route.
 
 \begin{figure}[b]
   \centering
-  \includegraphics[scale=1.1]{figures/intersection-non-axis-aligned-annotated}
+  \includegraphics[scale=1.0]{figures/intersection-non-axis-aligned-annotated}
   \caption{Example of two vehicle routes intersecting at some angle $\alpha$. The
     indicated positions $x_{i} = B$ and $x_{i} = E$ for each vehicle $i$ are
     chosen such that whenever the vehicle position $x_{i}$ satisfies either
@@ -2681,44 +2593,43 @@ We conclude this section with an evaluation of the running time of the
 branch-and-bound approach.
 %
 Since the running time is primarily determined by the total number of vehicles
-in the system, we consider problem instances with two routes and report
-running times as a function of the number of vehicles per route.
+in the system, we consider problem instances with four routes and report running
+times as a function of the number of vehicles per route, see
+Figure~\ref{fig:running_time}.
 %
-Problem instances are generated with fixed $\rho=1.2$ and $\sigma=1.7$ and randomly
-generated earliest crossing times $a_i$.
+Each average is computed over $10$ problem instances.
 %
-A detailed discussion of the distribution of $a_i$ that we used is deferred to
-the end of the next chapter, where a more extensive comparison will be provided.
-
+Problem instances are generated with fixed $\rho=1.2$ and $\sigma=1.7$ and
+random earliest crossing times $a_i$, generated with gaps that are uniformly
+distributed on $[0,1]$.
+%
+A detailed discussion of how $a_i$ is generated is deferred to
+~\Cref{sec:results}.
+%
 To keep the total computational effort within reasonable limits, we impose a
-time limit of 60 seconds per instance.
+time limit of 60 seconds per instance, so some observations correspond to cases
+when the time limit is reached.
 %
-Some care must be taken when interpreting the average running time, because some
-observations correspond to cases when the time limit is reached.
-
 For this benchmark, we used the Gurobi solver version 11.0.2 on a system with a
 13th Gen Intel i5-13600K CPU and 32GiB of RAM.
-%
-Figure~\ref{fig:running_time} shows the average running time for the three types of cutting planes.
-Observe that the necessary conjunctive cutting planes provide the most
-significant runtime improvement.
 
-% \begin{figure}
-%   \centering
-%   \includegraphics[scale=1]{../single/figures/milp-benchmark.pdf}
-%   \caption{\note{[current figure is placeholder]} The average running time of
-%     the branch-and-cut procedure is plotted as a function of the number of
-%     arriving vehicles per route, for each of the three indicated cutting planes.
-%     Each average is computed over $20$ problem instances. All instances use
-%     $\rho = 1.2$ and $\sigma = 1.7$. The earliest crossing times for vehicles are generated
-%     using the bimodal exponential interarrival time model from
-%     Section~\ref{sec:results} with parameters $p=0.5, \mu_{s} = 0.1, \mu_{l} = 10$.
-%     This figure clearly shows that the conjunctive cutting planes provide the
-%     most runtime improvement. \note{[Why not show the case without any cutting
-%       planes? Because this takes sooo much time. What we could do is give some
-%       idea of this for up to 10 arrivals per route.]}}
-%   \label{fig:running_time}
-% \end{figure}
+The results clearly show that the conjunctive cutting planes provide the most
+runtime improvement, enabling us to solve instances that contain four times more
+vehicles than the vanilla approach without any cutting planes.
+%
+Interestingly, it seems that adding transitive cuts even degrades performance
+slightly, which might be explained by the fact that there are a lot of these
+cuts. It could be interesting for further research to try some sort of lazy row
+generation approach here
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{../single/figures/milp-benchmark.pdf}
+  \caption{Average run time of branch-and-cut as a function of the number of
+    arriving vehicles per route, for instances with four routes. Vanilla means
+    MILP without cuts.}%
+  \label{fig:running_time}
+\end{figure}
 
 % choose disjunctive constraints -> linear program
 \section{Route order optimization}\label{sec:sequence-representation}
@@ -3249,8 +3160,7 @@ an \emph{active schedule} in the scheduling literature, see~\cite[Definition
 
 
 
-
-\chapter{Scheduling as learning probem}\label{chap:single-learning}
+\chapter{Learning to schedule}\label{chap:single-learning}
 
 We will now explain how the general ML for CO framework presented in the
 previous chapter can be applied to the crossing time problem~\eqref{eq:C}.
@@ -3967,7 +3877,6 @@ feasibility of this approach in general. Hence, we will use the modern and very
 popular Proximal Policy Optimization (PPO) algorithm~\cite{schulmanProximalPolicyOptimization2017}.
 
 
-\clearpage
 \section{Experimental results}\label{sec:results}
 
 % performance metrics: optimality, training time, eval (inference) time
@@ -4148,7 +4057,7 @@ are very similar to our crossing time scheduling problem.
 % \addcontentsline{toc}{part}{Part II \;--\; Networks of Intersections}
 
 % pagebreak in toc listing
-\addtocontents{toc}{\protect\newpage}
+% \addtocontents{toc}{\protect\newpage}
 
 \chapter{Networks of intersections}\label{chap:network-learning}
 
@@ -5931,21 +5840,6 @@ direction of further research and collaboration.
 
 \chapter{Feasible configurations for single intersection model}\label{app:configuration-space}
 
-\begin{figure}
-  \centering
-  \includegraphics[scale=1]{figures/configuration-space}
-  \caption{Sketches to derive the feasible configurations of two vehicles in the
-    intersecting routes model. Using some elementary trigonometry, the distances
-    in the first figure can be shown to be $c = W / \tan(\alpha)$ and
-    $d = W / \sin(\alpha)$. Furthermore, observe that we have
-    $(x_{i} - B) / d_{1} = \cos(\alpha)$ for
-    $x_{i} \in \openhalf{B}{B + c}$, as shown in the middle figures and
-    $d_{2}/(E - x_{i}) = \cos(\alpha)$ for $x_{i} \in \halfopen{B + c}{E}$,
-    as shown in the right figure. These two types of distances can be used to
-    derive the full characterization.}
-  \label{fig:configuration-space}
-\end{figure}
-
 We present a way to derive the feasible configurations of the two routes that
 intersect at some arbitrary angle, as shown in Figure~\ref{fig:intersection-non-axis-aligned}.
 % general case
@@ -6003,6 +5897,22 @@ such that the set of feasible configurations is simply given by
 \begin{align}
   \mathcal{X}_{ij} = \mathbb{R}^{2} \setminus [B,E + L]^{2} .
 \end{align}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=1]{figures/configuration-space}
+  \caption{Sketches to derive the feasible configurations of two vehicles in the
+    intersecting routes model. Using some elementary trigonometry, the distances
+    in the first figure can be shown to be $c = W / \tan(\alpha)$ and
+    $d = W / \sin(\alpha)$. Furthermore, observe that we have
+    $(x_{i} - B) / d_{1} = \cos(\alpha)$ for
+    $x_{i} \in \openhalf{B}{B + c}$, as shown in the middle figures and
+    $d_{2}/(E - x_{i}) = \cos(\alpha)$ for $x_{i} \in \halfopen{B + c}{E}$,
+    as shown in the right figure. These two types of distances can be used to
+    derive the full characterization.}
+  \label{fig:configuration-space}
+\end{figure}
+
 
 \chapter{Job shop scheduling}\label{app:job-shop}
 
