@@ -37,6 +37,8 @@ rng = np.random.default_rng(seed=70)
 # - instances data class
 # - optimal schedules, using mixed-integer linear programming
 # - instance generation by sampling arrival sequences per route
+# - some examples of visualizing instances and schedules
+# - we verify that the MILP and MPD implementation agree in terms of the total delay and negative reward
 
 # %% [markdown]
 # ## Instance data class
@@ -57,8 +59,8 @@ class SingleInstance:
     # allow dynamically adding of routes
     arrivals: list[np.ndarray] | None = None
 
-    rho: float   = 1     # following time
-    sigma: float = 1.5   # time between conflicting vehicles
+    rho: float   = 1.2   # following time
+    sigma: float = 1.7   # time between conflicting vehicles
 
     @property
     def switch(self): return self.sigma - self.rho
@@ -87,12 +89,12 @@ class SingleInstance:
         env = SingleScheduleEnv(instance=self, options=options)
         env.reset(); env.render()
 
-    def add_route(self, lengths):
+    def add_route(self, arrivals):
         """Add the arrivals of a new route."""
         if self.arrivals is None:
-            self.arrivals = [lengths]
+            self.arrivals = [arrivals]
         else:
-            self.arrivals.append(lengths)
+            self.arrivals.append(arrivals)
 
     def add_route_from_gaps(self, gaps):
         """Compute $A_n = A_{n-1} + X_n + \rho$ for all n, where X_n is given by `gaps`."""
@@ -110,6 +112,8 @@ class SingleInstance:
 
 # %%
 from dataclasses import dataclass
+from typing import Optional
+import pandas as pd
 
 @dataclass
 class SingleMILPSchedule:
@@ -119,6 +123,7 @@ class SingleMILPSchedule:
     done: bool
     gap: float
     time: float
+    progress: Optional[pd.DataFrame] = None
 
     @property
     def vehicle_order(self):
@@ -156,14 +161,14 @@ import numpy as np
 from itertools import product, combinations
 import os
 
-def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None, cutting_planes=None):
+def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False, logfile=None, cutting_planes=None):
     """Solve a single intersection scheduling problem as a MILP.
 
     `cutting_planes` is a list/set specifying which cutting planes to add,
     possible choices are integers:
         1 - transitive cutting planes
-        2 - necessary conjunctive cutting planes
-        3 - necessary disjunctive cutting planes
+        2 - conjunctive cutting planes
+        3 - disjunctive cutting planes
     """
 
     env = gp.Env(empty=True)
@@ -182,7 +187,7 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None, cuttin
     if cutting_planes is None:
         cutting_planes = []
 
-    arrivals = instance.arrivals    # earliest crossing times (a_i)
+    arrivals = instance.arrivals  # earliest crossing times (a_i)
     rho = instance.rho            # vehicle follow time (rho)
     sigma = instance.sigma        # time between conflicts (sigma)
 
@@ -242,20 +247,48 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None, cuttin
             for l in range(n[r1] - 1): # for all conjunctive pairs (i, j) = ((r1, l), (r1, l + 1))
                 for k in range(n[r2]):
                     g.addConstr(delta[r1, l] + (1 - o[r1, l, r2, k]) + o[r1, l + 1, r2, k] <= 2)
-                    g.addConstr(delta[r1, l] + o[r1, l, r2, k] + (1 - o[r1, l + 1, r2, k]) <= 2)
+                    # g.addConstr(delta[r1, l] + o[r1, l, r2, k] + (1 - o[r1, l + 1, r2, k]) <= 2)
 
     ### Solving
 
+    progress = []
+    def record_progress(model, where):
+        if where == gp.GRB.Callback.MIP:
+            runtime = model.cbGet(gp.GRB.Callback.RUNTIME)
+            best_obj = model.cbGet(gp.GRB.Callback.MIP_OBJBST)
+            best_bound = model.cbGet(gp.GRB.Callback.MIP_OBJBND)
+            if best_obj < gp.GRB.INFINITY and best_bound < gp.GRB.INFINITY:
+                gap = abs(best_obj - best_bound) / (abs(best_obj) + 1e-10)
+                # record every 0.5 seconds or on significant gap change
+                if len(progress) == 0 or runtime - progress[-1][0] >= 0.5 or gap < progress[-1][3] - 1e-4:
+                    progress.append((runtime, best_obj, best_bound, gap))
+
+    res = {}
     g.ModelSense = gp.GRB.MINIMIZE
     g.Params.MIPGap = gap
     g.update()
-    g.optimize()
+    if recordprogress:
+        g.optimize(record_progress)
 
-    res = { 'y': [], 'obj': g.getObjective().getValue() }
+        # make sure last progress observation is recorded
+        if g.SolCount > 0:  # if feasible solution exists
+            final_time = g.Runtime
+            final_best = g.ObjVal
+            final_bound = g.ObjBound
+            final_gap = abs(final_best - final_bound) / (abs(final_best) + 1e-10)
+            progress.append((final_time, final_best, final_bound, final_gap))
+
+        progress = pd.DataFrame(progress, columns=["time", "best_obj", "best_bound", "gap"])
+        progress["gap_percent"] = progress["gap"] * 100
+        res['progress'] = progress
+    else:
+        g.optimize()
+
     y = { r : (v.X if hasattr(v, 'X') else v) for r, v in y.items() }
+    res['y'] = []
     for r in range(R):
         res['y'].append(np.array([y[r, j] for j in range(n[r])]))
-
+    res['obj'] = g.getObjective().getValue() 
     res['done'] = int(g.status == gp.GRB.OPTIMAL)
     res['gap'] = g.MIPGap
     res['time'] = g.Runtime
@@ -267,7 +300,7 @@ def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None, cuttin
 # Just keep this method at the instance class, for convenience.
 
 # %%
-def solve_myself(self, **kwargs): self.opt = solve(self, **kwargs)
+def solve_myself(self, **kwargs): self.opt = solve(self, **kwargs); return self.opt
 SingleInstance.solve = solve_myself
 
 # %% [markdown]
@@ -370,7 +403,6 @@ def generate_instance(F, n=1, R=None, rho=1.2, sigma=1.7):
 def generate_simple_instance(n=[3, 3]):
     return generate_instance(clipped(uniform()), n)
 
-
 # %% [markdown]
 # ## Visualizing instances and schedules
 
@@ -390,6 +422,7 @@ def generate_simple_instance(n=[3, 3]):
 # options = {
 #     'block_text': True,
 #     'no_axis': True,
+#     'one_based_indices': True,
 #     'tex': True,
 # }
 #
@@ -414,32 +447,31 @@ def generate_simple_instance(n=[3, 3]):
 # env.render()
 
 # %% [markdown]
-# ## Testing the MILP and MDP implementation
+# ## Verify MILP and MDP implementations
 
-# %%
-instance = SingleInstance(
-    arrivals=[np.array([1, 2, 4]), np.array([1, 2.5])],
-    rho=1, sigma=3
-)
+# %% [markdown]
+# Verify that the MILP and MDP implementations agree, in the sense that replaying the optimal route order on the MDP yields a total reward that is the negative delay of the optimal schedule.
 
-instance.solve()
-
-print(instance.opt.delay)
-instance, instance.opt
-
-# %%
-from single.mdp import SingleScheduleEnv
-
-env = SingleScheduleEnv(instance=instance)
-
-obs, info = env.reset()
-total_reward = 0
-for r in instance.opt.route_order:
-    _, reward, *_ = env.step(r)
-    total_reward += reward
-
-env.render()
-print(total_reward)
-env.LB
+# %% tags=["active-ipynb"]
+# from single.mdp import SingleScheduleEnv
+#
+# instance = SingleInstance(
+#     arrivals=[np.array([1, 2.5, 4]), np.array([1, 2.5])],
+#     rho=1.5, sigma=2
+# )
+#
+# # solve as MILP
+# instance.solve()
+#
+# # replay the optimal route order on the MDP
+# env = SingleScheduleEnv(instance=instance)
+# obs, info = env.reset()
+# total_reward = 0
+# for r in instance.opt.route_order:
+#     _, reward, *_ = env.step(r)
+#     total_reward += reward
+#
+# # verify that the negative reward is the total delay
+# assert -total_reward == instance.opt.delay
 
 # %%

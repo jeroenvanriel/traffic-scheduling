@@ -29,17 +29,18 @@ class TqdmCallback(BaseCallback):
 
 import matplotlib.pyplot as plt
 
-plt.rcParams.update({
-    'text.usetex': True,
-    'font.family': 'serif',
-    'font.serif': ['Computer Modern Roman'],
-    'font.size': 14,
-    'axes.labelsize': 18,
-    # 'axes.titlesize': 18,
-    'legend.fontsize': 13,
-    'xtick.labelsize': 14,
-    'ytick.labelsize': 14
-})
+def set_plot_defaults():
+    plt.rcParams.update({
+        'text.usetex': True,
+        'font.family': 'serif',
+        'font.serif': ['Computer Modern Roman'],
+        'font.size': 12,
+        'axes.labelsize': 12,
+        # 'axes.titlesize': 12,
+        'legend.fontsize': 12,
+        'xtick.labelsize': 12,
+        'ytick.labelsize': 12
+    })
 
 textwidth_pt = 398.3386
 inches_per_pt = 1.0 / 72.27

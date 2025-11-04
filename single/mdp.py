@@ -16,15 +16,40 @@ from matplotlib.ticker import MaxNLocator
 
 def current_route(base_env):
     eta = base_env.route_order
-    # empty schedule?: take current route to be the one with earliest arrival
-    return eta[-1] if eta else np.argmin(base_env.LB[:,0])
+    if all(base_env.done):
+        return eta[-1] # does not matter
+
+    if len(eta) == 0 or base_env.done[eta[-1]]:
+        # empty schedule or last scheduled route done?
+        # take pending route with earliest arrival
+        LB, k = base_env.LB, base_env.k
+        lbs = []
+        for r in range(base_env.R):
+            if not base_env.done[r]:
+                lbs.append((r, LB[r, k[r]]))
+        return sorted(lbs, key=lambda i: i[1])[0][0]
+    else:
+        # take last scheduled route
+        return eta[-1]
     
+
+def random_steps(env):
+    # check whether .reset() is necessary (i.e., env not yet initialized)
+    if not hasattr(env, 'route_order'):
+        env.reset()
+    while not all(env.done):
+        # mask = valid actions = routes with unscheduled vehicles
+        mask = (~env.done).astype(np.int8)
+        action = env.action_space.sample(mask)
+        env.step(action)
+
 
 class SingleScheduleEnv(gym.Env):
     """
     Constructive scheduling MDP for crossing time scheduling in single intersection.
     Each state encodes a (partial) disjunctive graph augmented with crossing time lower bounds.
     """
+    metadata = {"render_modes": ["human"]}
 
     def __init__(self, instance=None, instance_generator=None,
                  dense_rewards=True, options=None):
@@ -32,6 +57,7 @@ class SingleScheduleEnv(gym.Env):
         super().__init__()
         self.dense_rewards = dense_rewards
         self.options = options or {}
+        self.render_mode = "human"
 
         if instance is not None:
             # single instance specified
@@ -177,6 +203,7 @@ class SingleScheduleEnv(gym.Env):
         no_axis = self.options.get('no_axis', False)
         dimmed_partial = self.options.get('dimmed_partial', True)
         block_text = self.options.get('block_text', True)
+        one_based_indices = self.options.get('one_based_indices', False)
         if self.options.get('tex', False): # use TeX for text
             plt.rcParams.update({
                 "text.usetex": True,
@@ -259,11 +286,15 @@ class SingleScheduleEnv(gym.Env):
 
                 # lower bound number (or arrivals)
                 if block_text:
-                    text_i = f"{r}{'' if r <= 9 and k <= 9 else ','}{k}"
+                    ri = r; ki = k
+                    if one_based_indices:
+                        ri += 1
+                        ki += 1
+                    text_i = f"{ri}{'' if ri <= 9 and k <= 9 else ','}{ki}"
                     if arrivals:
                         text = f"$a_{{{text_i}}} = {start:.2f}$"
                     else:
-                        text = f"$\\beta_{{{text_i}}}(s_{self.t}) = {start:.2f}$"
+                        text = f"$\\beta_{{{text_i}}}(s_{{{self.t}}}) = {start:.2f}$"
                     ax.text(start + 0.08, y + 0.18, text, fontsize=9)
 
                 # draw "switch"-arrow between scheduled vehicles from different routes
@@ -390,33 +421,43 @@ class HorizonObservationWrapper(gym.ObservationWrapper):
                 s = self.unwrapped.instance
             else:
                 s = self.unwrapped.instance_generator()
-            max_vehicles_per_route = max(len(a) for a in s.arrivals)
+            self.max_k = max(len(a) for a in s.arrivals)
+        else:
+            self.max_k = max_vehicles_per_route
 
         self.observation_space = gym.spaces.Dict({
-            "horizon": gym.spaces.Box(low=-np.inf, high=np.inf, shape=(self.R, max_vehicles_per_route), dtype=np.float32),
+            "horizon": gym.spaces.Box(low=0, high=np.inf, shape=(self.R, self.max_k), dtype=np.float32),
             "h_lengths": gym.spaces.Box(low=0, high=np.inf, shape=(self.R,), dtype=np.int16),
         })
 
     def observation(self, obs):
         n, k, lb = obs['n'], obs['k'], obs['lb']
 
-        # Translate everything to the "current time", which is
-        # - second smallest lower bound - "switch time", for initial states;
-        # - end of last scheduled vehicle timeslot, otherwise.
-        if sum(k) == 0: # initial state
-            current_time = np.sort(lb[:,0])[1] - self.unwrapped.switch
-        else:
+        # compute "current time"    
+        if all(obs['done']):
             current_time = obs['partial_makespan']
+        else:
+            first = []
+            for r in range(self.R):
+                horizon = lb[r, k[r]:]
+                if len(horizon) > 0:
+                    first.append(horizon[0])
+            
+            if len(first) >= 2:
+                first = sorted(first)
+                current_time = min(first[0], first[1] - self.unwrapped.switch)
+            else:
+                current_time = first[0]
 
         # new observation is "ragged array"
         # - horizon has shape (R, max_k)
         # - h_lengths contains the number of entries in each route horizon
-        horizon = np.zeros_like(lb, dtype=np.float32)
+        horizon = np.zeros((self.R, self.max_k), dtype=np.float32)
         h_lengths = np.zeros(self.R, dtype=np.int16)
-        for i, r in enumerate(range(self.R)):
-            n_unscheduled = n[r] - k[r]
-            h_lengths[i] = n_unscheduled
-            horizon[i, :n_unscheduled] = lb[r, k[r]:] - current_time
+        for r in range(self.R):
+            n_unscheduled = min(n[r] - k[r], self.max_k)
+            h_lengths[r] = n_unscheduled
+            horizon[r, :n_unscheduled] = lb[r, k[r]:k[r] + n_unscheduled] - current_time
         return {'horizon': horizon, 'h_lengths': h_lengths}
 
 
@@ -426,29 +467,64 @@ class HorizonRollingWrapper(gym.Wrapper):
     - last scheduled route, or
     - route with earliest arrival (for empty schedules).
     """
+
     def __init__(self, env):
         super().__init__(env)
+
+    def reset(self, **kwargs):
+        obs, info = self.env.reset(**kwargs)
+        obs = self._observation(obs)  # transform initial observation!
+        return obs, info
 
     def step(self, action):
         action = self._action(action)
         obs, *rest = self.env.step(action)
         return self._observation(obs), *rest
-
+    
     def _observation(self, obs):
+        if all(self.unwrapped.done):
+            return obs # does not matter
+
+        active_routes = [r for r in range(self.unwrapped.R) if not self.unwrapped.done[r]]
+
         # permute the routes according to "current route"
-        roll = current_route(self.unwrapped)
+        c = current_route(self.unwrapped)
+        roll = -active_routes.index(c)
+
+        # first list the pending routes
+        pending_horizon = obs['horizon'][active_routes]
+        pending_h_lengths = obs['h_lengths'][active_routes]
+
+        # fill the rest with zeros
+        n_done = sum(self.unwrapped.done)
+        zeros = np.zeros((n_done, obs['horizon'].shape[1]))
+
         return {
-            'horizon':   np.roll(obs['horizon'], roll, axis=0),
-            'h_lengths': np.roll(obs['h_lengths'], roll, axis=0),
+            'horizon':   np.vstack([np.roll(pending_horizon, roll, axis=0), zeros]),
+            'h_lengths': np.concatenate([np.roll(pending_h_lengths, roll, axis=0), np.zeros(n_done)]),
         }
 
     def _action(self, action):
-        # action = number of routes to advance from current route (while "wrapping" around the end)
+        c = current_route(self.unwrapped)
         active_routes = [r for r in range(self.unwrapped.R) if not self.unwrapped.done[r]]
-        return active_routes[(current_route(self.unwrapped) + action) % len(active_routes)]
+
+        # action = number of routes to advance from current route (while "wrapping" around the end)
+        current_ix = active_routes.index(c)
+        action = min(action, len(active_routes) - 1) # prevent unnecessary "wrapping around"
+        return active_routes[(current_ix + action) % len(active_routes)]
+    
+    def _inverse_action(self, route):
+        c = current_route(self.unwrapped)
+        active_routes = [r for r in range(self.unwrapped.R) if not self.unwrapped.done[r]]
+
+        # inverse action = number of advances to take from current route to arrive at "route"
+        current_ix = active_routes.index(c)
+        next_ix = active_routes.index(route)
+        action = next_ix - current_ix
+        return action if action >= 0 else action + len(active_routes)
 
 
-def draw_horizon_obs(obs):
+def draw_horizon_obs(obs, rho):
     horizon, h_lengths = obs['horizon'], obs['h_lengths']
     end = horizon.max() + rho # maximum y value in the plot
     fig, ax = plt.subplots(figsize=(end, len(horizon)))
