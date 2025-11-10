@@ -1,0 +1,321 @@
+\documentclass{beamer}
+\usepackage{xcolor}
+\usepackage{pgffor}
+\usepackage{amsmath}
+
+\usepackage[absolute,overlay]{textpos}
+% define coordinate grid
+\setlength{\TPHorizModule}{1cm}
+\setlength{\TPVertModule}{1cm}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, decorations.markings, decorations.pathreplacing,
+  positioning, fit, calc, backgrounds}
+
+\usetheme{default}
+\usecolortheme{beaver}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{}
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{itemize items}[default]
+\setbeamertemplate{section in toc}{\inserttocsectionnumber.~\inserttocsection}
+\setbeamertemplate{subsection in toc}{\hspace{1.2em}\inserttocsubsectionnumber.~\inserttocsubsection}
+
+% clean section page
+\setbeamertemplate{section page}{
+  \begin{centering}
+    \vfill
+    {\color{structure} \huge \insertsection} % Just the section title
+    \vfill
+  \end{centering}
+}
+
+\title[]{Efficient and Provably Safe\\ Autonomous Intersection Coordination}
+\subtitle{Combinatorial Learning for Vehicle Motion Planning}
+\author{Jeroen van Riel}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+
+\section*{Motivation and Model}
+
+\begin{frame}{Motivation}
+\centering
+
+\includegraphics[scale=0.9]{figures/intersection-nice}
+\vspace{1em}
+
+\begin{columns}[t]
+\begin{column}{0.12\linewidth}
+\end{column}
+\begin{column}{0.38\linewidth}
+    \begin{itemize}
+      \item[$+$] safety
+      \item[$+$] comfort
+    \end{itemize}
+\end{column}
+\begin{column}{0.48\linewidth}
+    \begin{itemize}
+      \item[$-$] travel time
+      \item[$-$] fuel usage
+    \end{itemize}
+\end{column}
+\end{columns}  
+\end{frame}
+
+
+\foreach \i in {1,...,4}{
+\begin{frame}{Network Model}
+\begin{tikzpicture}[remember picture,overlay]
+    \node[anchor=center,inner sep=0] (img) at ($(current page.center) + (0, -0.5)$)
+        {\includegraphics[scale=0.6]{../network/figures/network-\i.pdf}};
+\end{tikzpicture}
+\end{frame}
+}
+
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Crossing Time Scheduling}
+\begin{frame}[plain]
+  \sectionpage
+\end{frame}
+
+\foreach \i in {1,...,12}{
+  \begin{frame}{Crossing Time}
+    \centering
+    \includegraphics[trim=60 0 60 0,clip,scale=0.65]{../network/figures/crossing-\i}
+  \end{frame}
+}
+
+\begin{frame}{Crossing Time Scheduling}
+\begin{textblock*}{10cm}(1cm,2cm)
+\begin{itemize}
+  \only<1>{\item Single intersection with two routes}
+  \item<2-> Vehicle $i = (r, k)$ is the $k$th vehicle on route $r$
+  \item<3-> Earliest crossing time $a_{i}$
+  \item<5-> Scheduled crossing time $y_{i}$
+  \item<6-> Ordering decision for each pair $(i, j)$ with $r(i) \neq r(j)$
+\end{itemize}
+\end{textblock*}
+\begin{tikzpicture}[overlay]
+  \node (intersection) at (9,-1.2)
+  {\includegraphics[trim=70 0 40 20,clip,scale=0.45]{../network/figures/initial-intersection}};
+
+  \only<1>{
+    \node at ($(intersection) + (-1.6,1.4)$) {route $1$};
+    \node at ($(intersection) + (0,-2)$) {route $2$};
+  }
+
+  % manually found coordinates of the vehicles
+  \node (n11) at ($(intersection) + (-0.85, 0.9)$) {};
+  \node (n12) at ($(intersection) + (-1.28, 0.9)$) {};
+  \node (n21) at ($(intersection) + (0.92, -0.5)$) {};
+  \node (n22) at ($(intersection) + (0.92, -1.6)$) {};
+
+  \only<3-8>{\node[anchor=south west] (schedule) at (-0.8,-4.5) {\includegraphics[scale=0.75]{../network/figures/empty-schedule}};}
+  \only<9->{\node[anchor=south west] at (-0.8,-4.5) {\includegraphics[scale=0.75]{../network/figures/complete-schedule}};}
+
+  \only<2-5>{
+    \draw[-latex] ($ (n11) + (0,1) $) to [out=-90, in=90] (n11) node {};
+    \node[yshift=0.3cm] at ($ (n11) + (0,1) $) {$(1, 1)$};
+    \draw[-latex] ($ (n12) + (-1,1)  $) to [out=-90, in=90] (n12) node {};
+    \node[yshift=0.3cm] at ($ (n12) + (-1,1) $) {$(1, 2)$};
+
+    \draw[-latex] ($ (n21) + (-1,0) $) to [out=0, in=180] (n21) node {};
+    \node[xshift=-0.6cm] at ($ (n21) + (-1,0) $) {$(2, 1)$};
+    \draw[-latex] ($ (n22) + (-1,0)  $) to [out=0, in=180] (n22) node {};
+    \node[xshift=-0.6cm] at ($ (n22) + (-1,0) $) {$(2, 2)$};
+  }
+
+  \only<4,5>{
+    \draw[-latex] 
+        ($ (schedule) + (1.5, 0.99) $) to [out=90, in=-90] (n12)
+        node {};
+  }
+
+  \only<6,7>{
+    \draw[-,dashed] (n11) to [out=-90, in=180] (n21) node {};
+  }
+  \only<7>{
+    \draw[-,dashed] (n11) to [out=-90, in=180] (n22) node {};
+    \draw[-,dashed] (n12) to [out=-90, in=180] (n21) node {};
+    \draw[-,dashed] (n12) to [out=-90, in=180] (n22) node {};
+  }
+  % the actual ordering
+  \only<8->{
+    \draw[latex-] (n11) to [out=-90, in=180] (n21) node {};
+    \draw[-latex] (n11) to [out=90, in=90,looseness=2.5] (n12) node {};
+    \draw[-latex] (n12) to [out=-90, in=180] (n22) node {};
+  }
+
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Crossing Time Scheduling}
+\begin{tikzpicture}[overlay]
+  \node[anchor=south west] at (-0.8,1.2) {\includegraphics[scale=0.75]{../network/figures/complete-schedule}};
+\end{tikzpicture}
+  
+\begin{textblock*}{10cm}(1cm,4cm)
+\begin{itemize}
+  \item Try to minimize total delay
+\begin{align*}
+  &\min_y \sum_i y_i - a_i \\
+  &\text{ s.t. time slots are disjoint}
+\end{align*}
+  \vspace{0.7em}
+  \item<2> Ordering decisions $\rightarrow$ Binary variables
+  \item<2> Mixed-Integer Linear Program (MILP)
+\end{itemize}
+\end{textblock*}
+\end{frame}
+
+\begin{frame}{Crossing Time Scheduling}
+\begin{textblock*}{10cm}(1cm,1.5cm)
+\begin{itemize}
+  \item How fast can we solve this?
+  \item<4-> Vanilla integer programming does not scale so well
+  \vspace{3em}
+  \item<5-> A couple of options
+  \begin{itemize}
+    \only<5>{\item Reformulation}
+    \only<6>{\item {\color{gray} Reformulation}}
+    \only<5>{\item Primal heuristics}
+    \only<6>{\item{\color{gray} Primal heuristics}}
+    \item<5-> Cutting planes     \only<6>{$\longleftarrow$} 
+    \only<5>{\item Better branching decisions}
+    \only<6>{\item{\color{gray} Better branching decisions}}
+  \end{itemize}
+\end{itemize}
+\end{textblock*}
+\begin{tikzpicture}[remember picture,overlay]
+  \only<1>{
+    \node[anchor=center,inner sep=0,yshift=-.8cm] (img) at (current page.center) 
+        {\includegraphics[scale=0.4]{../network/figures/empty-network-2-2.pdf}};}
+  \only<2>{
+    \node[anchor=center,inner sep=0,yshift=-.8cm] (img) at (current page.center) 
+        {\includegraphics[scale=0.4]{../network/figures/empty-network-3-2.pdf}};}
+
+  \only<3-4>{
+    \node[anchor=center,inner sep=0,yshift=-1.0cm] (img) at (current page.center)
+        {\includegraphics[scale=0.5]{../network/figures/network.pdf}};}
+
+  % \only<4>{
+  %   \draw[decorate,decoration={brace,amplitude=6pt}] 
+  %       ($ (img.south west)!0.24!(img.north west) $) -- 
+  %       ($ (img.south west)!0.76!(img.north west) $) 
+  %       node[midway,xshift=-0.55cm] {$n$};
+
+  %   \draw[decorate,decoration={brace,amplitude=6pt}] 
+  %       ($ (img.south west)!0.8!(img.south east) $) -- 
+  %       ($ (img.south west)!0.2!(img.south east) $) 
+  %       node[midway,yshift=-0.5cm] {$m$};
+  %   }
+\end{tikzpicture}
+\end{frame}
+
+
+\section{Cutting Planes in Single Intersection}
+\begin{frame}[plain]
+  \sectionpage
+\end{frame}
+
+\begin{frame}{Platoon Preservation}
+\begin{tikzpicture}[remember picture,overlay]
+
+\only<1-4>{
+\node[anchor=north west] at (0,2)
+    {\includegraphics[scale=0.8]{../network/figures/cut-1}};}
+\only<5>{
+\node[anchor=north west] at (0.07,2)
+    {\includegraphics[scale=0.8]{../network/figures/cut-1-no-axis}};}
+
+\foreach \i in {2,...,4}{
+  \only<\i>{
+    \node[anchor=south west] at (0,-3.5)
+        {\includegraphics[scale=0.8]{../network/figures/cut-\i}};}
+}
+
+\only<5>{
+\draw[decorate,decoration={brace,amplitude=6pt,mirror}] 
+    (0.91, 0) -- (4.15, 0)
+    node[midway,yshift=-0.75cm] {``platoon''};}
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Cutting Planes in Single Intersection}
+\begin{textblock*}{10cm}(1cm,1.5cm)
+  \begin{itemize}
+    \only<1>{\item Two routes, 20 vehicles per route, 40 in total}
+    \only<2>{\item Three routes, 20 vehicles per route, 60 in total}
+  \end{itemize}
+\end{textblock*}
+\begin{tikzpicture}[remember picture,overlay]
+  \only<1>{
+    \node[anchor=south] at (5.3,-4.5)
+        {\includegraphics[width=\textwidth]{../single/results/figures/milp-bench-small}};}
+  \only<2>{
+    \node[anchor=south] at (5.3,-4.5)
+        {\includegraphics[width=\textwidth]{../single/results/figures/milp-bench-large}};}
+\end{tikzpicture}
+\end{frame}
+
+
+% \begin{frame}{Integer Programming}
+%   \centering
+%   \includegraphics[width=0.8\textwidth]{../network/figures/milp-bench-net3x2.pdf}
+% \end{frame}
+
+\section{Heuristics and Combinatorial Learning}
+\begin{frame}[plain]
+  \setlength{\baselineskip}{1.8\baselineskip}
+  \sectionpage
+\end{frame}
+
+\begin{frame}{Constructive Heuristics}
+\begin{textblock*}{10cm}(1cm,4cm)
+\begin{itemize}
+  \item<1> Construct the schedule step by step
+\end{itemize}
+\end{textblock*}
+\begin{tikzpicture}[remember picture,overlay]
+  \only<2>{
+    \node[anchor=south] (epi0) at (5,-1.4)
+        {\includegraphics[scale=0.6]{../single/figures/episode0.pdf}};}
+  \only<3>{
+    \node[anchor=south] (epi1) at (5,-1.4)
+        {\includegraphics[scale=0.6]{../single/figures/episode1.pdf}};}
+  \only<4>{
+    \node[anchor=south] (epi2) at (5,-1.4)
+        {\includegraphics[scale=0.6]{../single/figures/episode2.pdf}};}
+  \only<5>{
+    \node[anchor=south] (epi3) at (5,-1.4)
+        {\includegraphics[scale=0.6]{../single/figures/episode3.pdf}};}
+
+\end{tikzpicture}
+\end{frame}
+
+\begin{frame}
+  \begin{itemize}
+    \item Imitation learning
+    \item Policy-gradient optimization
+  \end{itemize}
+  
+\end{frame}
+
+\section*{Takeaways}
+\begin{frame}{Takeaways}
+  \begin{block}{Key takeaway}
+    Beamer helps create professional presentations.
+  \end{block}
+\end{frame}
+
+\end{document}
