@@ -2,6 +2,7 @@
 \usepackage{xcolor}
 \usepackage{pgffor}
 \usepackage{amsmath}
+\usepackage{booktabs,multirow}
 
 \usepackage[absolute,overlay]{textpos}
 % define coordinate grid
@@ -179,7 +180,7 @@
 \end{frame}
 
 \begin{frame}{Crossing Time Scheduling}
-\begin{textblock*}{10cm}(1cm,1.5cm)
+\begin{textblock*}{12cm}(1cm,1.5cm)
 \begin{itemize}
   \item How fast can we solve this?
   \item<4-> Vanilla integer programming does not scale so well
@@ -190,7 +191,7 @@
     \only<6>{\item {\color{gray} Reformulation}}
     \only<5>{\item Primal heuristics}
     \only<6>{\item{\color{gray} Primal heuristics}}
-    \item<5-> Cutting planes     \only<6>{$\longleftarrow$} 
+    \item<5-> Cutting planes     \only<6>{$\longleftarrow$ There are some for a single intersection!}
     \only<5>{\item Better branching decisions}
     \only<6>{\item{\color{gray} Better branching decisions}}
   \end{itemize}
@@ -274,7 +275,7 @@
 %   \includegraphics[width=0.8\textwidth]{../network/figures/milp-bench-net3x2.pdf}
 % \end{frame}
 
-\section{Heuristics and Combinatorial Learning}
+\section{Constructive Heuristics}
 \begin{frame}[plain]
   \setlength{\baselineskip}{1.8\baselineskip}
   \sectionpage
@@ -288,34 +289,133 @@
 \end{textblock*}
 \begin{tikzpicture}[remember picture,overlay]
   \only<2>{
-    \node[anchor=south] (epi0) at (5,-1.4)
-        {\includegraphics[scale=0.6]{../single/figures/episode0.pdf}};}
+    \node[anchor=south] (epi0) at (5.3,-1.8)
+        {\includegraphics[scale=0.8]{../network/figures/episode0.pdf}};}
   \only<3>{
-    \node[anchor=south] (epi1) at (5,-1.4)
-        {\includegraphics[scale=0.6]{../single/figures/episode1.pdf}};}
+    \node[anchor=south] (epi1) at (5.3,-1.8)
+        {\includegraphics[scale=0.8]{../network/figures/episode1.pdf}};}
   \only<4>{
-    \node[anchor=south] (epi2) at (5,-1.4)
-        {\includegraphics[scale=0.6]{../single/figures/episode2.pdf}};}
+    \node[anchor=south] (epi2) at (5.3,-1.8)
+        {\includegraphics[scale=0.8]{../network/figures/episode2.pdf}};}
   \only<5>{
-    \node[anchor=south] (epi3) at (5,-1.4)
-        {\includegraphics[scale=0.6]{../single/figures/episode3.pdf}};}
+    \node[anchor=south] (epi3) at (5.3,-1.8)
+        {\includegraphics[scale=0.8]{../network/figures/episode3.pdf}};}
 
 \end{tikzpicture}
 \end{frame}
 
-\begin{frame}
+\begin{frame}{Formulate as MDP}
+\begin{tikzpicture}[remember picture,overlay]
+    \node[anchor=south,draw] (epi0) at (8.7,2)
+        {\includegraphics[scale=0.3]{../network/figures/episode0.pdf}};
+    \node[left=0.1cm of epi0] {$s_1 = $};
+    \node[anchor=south,draw] (epi1) at (8.7,0)
+        {\includegraphics[scale=0.3]{../network/figures/episode1.pdf}};
+    \node[left=0.1cm of epi1] {$s_2 = $};
+    \node[anchor=south,draw] (epi2) at (8.7,-2.0)
+        {\includegraphics[scale=0.3]{../network/figures/episode2.pdf}};
+    \node[left=0.1cm of epi2] {$s_3 = $};
+    \node[anchor=south,draw] (epi3) at (8.7,-3.8)
+        {\includegraphics[scale=0.3]{../network/figures/episode3.pdf}};
+    \node[left=0.1cm of epi3] {$s_4 = $};
+\end{tikzpicture}
+\begin{textblock*}{6cm}(0.6cm,4.4cm)
   \begin{itemize}
-    \item Imitation learning
-    \item Policy-gradient optimization
+    \item Action = route index
+    \item Reward = change in delay
+    \only<2>{\item[] \hspace{-2em} $\implies$ Final reward = total delay}
   \end{itemize}
-  
+\end{textblock*}
 \end{frame}
 
-\section*{Takeaways}
-\begin{frame}{Takeaways}
-  \begin{block}{Key takeaway}
-    Beamer helps create professional presentations.
-  \end{block}
+\begin{frame}{Threshold policy}
+\begin{tikzpicture}[remember picture,overlay]
+    \node[anchor=south west,draw] (epi0) at (-0.6,-1)
+        {\includegraphics[scale=0.68]{../network/figures/threshold-2}};
+    \node[anchor=south west,draw] (epi1) at (5.6,-1)
+        {\includegraphics[scale=0.68]{../network/figures/threshold-1}};
+
+    \draw[-latex] (epi0) to ($(epi0) + (0,-2) $) node[xshift=-4, yshift=-5] {route = red};
+    \draw[-latex] (epi1) to ($(epi1) + (0,-2) $) node[xshift=-2, yshift=-5] {route = blue};
+\end{tikzpicture}
+\end{frame}
+
+\newcommand{\simpleNN}[3]{
+  \begin{tikzpicture}[
+      neuron/.style={circle, draw, minimum size=10pt, inner sep=0pt},
+      every path/.style={-latex},
+      node distance=0.8cm and 1.5cm
+  ]
+    % Inputs
+    \foreach \i in {1,...,#1}
+      \node[neuron, fill=red!30] (I-\i) at (0,-\i) {};
+    % Hidden
+    \foreach \j in {1,...,#2}
+      \node[neuron, fill=red!30, right=of I-\j] (H-\j) {};
+    % Output
+    \node[neuron, fill=red!30, right=of H-2, yshift=0.3cm] (O-1) {};
+    \node[neuron, fill=red!30, right=of H-2, yshift=-0.3cm] (O-2) {};
+    % Connections
+    \foreach \i in {1,...,#1}
+      \foreach \j in {1,...,#2}
+        \draw (I-\i) -- (H-\j);
+    \foreach \j in {1,...,#2}
+      \foreach \k in {1,...,#3}
+        \draw (H-\j) -- (O-\k);
+  \end{tikzpicture}
+}
+
+
+\begin{frame}{Neural parameterized policy}
+
+\begin{tikzpicture}[remember picture,overlay]
+    \node[anchor=south west] (epi0) at (-0.6,-1.8)
+    {\includegraphics[scale=0.68]{../network/figures/threshold-1}};
+    \only<2>{\node at (8,0) {\simpleNN{3}{3}{2}};}
+    \only<2>{\draw[dashed] (2.8,0.5) rectangle (5,-1);}
+\end{tikzpicture}
+\begin{textblock*}{6cm}(0.6cm,6.8cm)
+  \begin{itemize}
+    \item<2> Imitation learning
+    \item<2> Policy-gradient optimization
+  \end{itemize}
+\end{textblock*}
+\end{frame}
+
+\begin{frame}
+\begin{table}
+\scalebox{0.72}{
+  \hspace{-3.9em}
+\begin{tabular}{cc|cc|ccc|ccc|ccc}
+& & \multicolumn{2}{c|}{MILP} & \multicolumn{3}{c|}{Threshold} & \multicolumn{3}{c|}{Imitation} & \multicolumn{3}{c}{PPO} \\
+$n_r$ & $R$ & opt & $T$ & obj & gap & $T_\text{train}$ & obj & gap & $T_\text{train}$ & obj & gap & $T_\text{train}$ \\
+\midrule
+\multirow[t]{2}{*}{20} & 2 & 13.54 & (3s) & 13.64 & \textbf{0.75}\% & (6s) & 13.74 & 1.54\% & (12s) & 14.00 & 3.41\% & (2m) \\
+\multirow[t]{2}{*}{40} & 2 & 26.35 & (17s) & 26.76 & \textbf{1.53}\% & (12s) & 26.97 & 2.35\% & (19s) & 26.96 & 2.29\% & (2m) \\
+\multirow[t]{2}{*}{60} & 2 & 41.89 & (27s) & 42.63 & 1.77\% & (18s) & 42.57 & \textbf{1.62}\% & (23s) & 43.54 & 3.94\% & (2m) \\
+  \midrule
+\multirow[t]{2}{*}{20} & 3 & 60.47 & (1m) & 65.84 & \textbf{8.89}\% & (11s) & 67.59 & 11.79\% & (53s) & 69.91 & 15.62\% & (2m) \\
+\multirow[t]{2}{*}{40} & 3 & 121.91 & (15m) & 132.56 & 8.73\% & (21s) & 132.14 & \textbf{8.39}\% & (3m) & 151.01 & 23.87\% & (2m) \\
+\multirow[t]{2}{*}{60} & 3 & 187.47 & (38m) & 202.12 & \textbf{7.81}\% & (32s) & 202.73 & 8.14\% & (6m) & 233.93 & 24.78\% & (2m)
+\end{tabular}
+}
+\end{table}
+\end{frame}
+
+
+\begin{frame}{Conclusion}
+  \begin{itemize}
+
+    \item Single intersection $\rightarrow$ cutting planes
+    \item Constructive scheduling $\rightarrow$ threshold heuristic
+    \vspace{2em}
+    \item Further questions
+    \begin{itemize}
+        \item Cutting planes in networks?
+        \item Constructive scheduling in networks?
+        \item Remove full speed assumption
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
 \end{document}
