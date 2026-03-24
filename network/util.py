@@ -214,3 +214,18 @@ def as_dict(list_of_lists):
         for k in range(n[r]):
             d[r,k] = list_of_lists[r][k]
     return d
+
+import matplotlib.pyplot as plt
+
+def set_plot_defaults():
+    plt.rcParams.update({
+        'text.usetex': True,
+        'font.family': 'serif',
+        'font.serif': ['Computer Modern Roman'],
+        'font.size': 12,
+        'axes.labelsize': 12,
+        # 'axes.titlesize': 12,
+        'legend.fontsize': 12,
+        'xtick.labelsize': 12,
+        'ytick.labelsize': 12
+    })

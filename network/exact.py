@@ -1,7 +1,7 @@
 import gurobipy as gp
 import numpy as np
 from itertools import product, combinations
-from util import dist
+from network.util import dist
 
 
 def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
