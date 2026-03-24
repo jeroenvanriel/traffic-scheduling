@@ -1,7 +1,7 @@
 import numpy as np
-import pandas as pd
-from amplpy import AMPL
-import matplotlib.pyplot as plt
+
+from amplpy import AMPL, Environment
+env = Environment("/home/jeroen/files/tue/final/project/ampl/ampl.linux-intel64")
 
 
 def motion_synthesize(checkpoints, params, prev=None):
@@ -48,7 +48,7 @@ def motion_synthesize(checkpoints, params, prev=None):
         param y {Ys}; # position of vehicle in front
         subject to follow {t in Ys}: y[t] - x[t] >= l;"""
 
-    ampl = AMPL()
+    ampl = AMPL(env)
     ampl.eval(model)
 
     # first and final time step indices
@@ -72,35 +72,31 @@ def motion_synthesize(checkpoints, params, prev=None):
     for key, value in params.items():
         ampl.param[key] = value
 
-    ampl.solve(solver="gurobi")
+    ampl.solve(solver="scip")
     assert ampl.solve_result == "solved"
     return ampl.get_variable("x").to_pandas().T.values.tolist()[0]
 
 
-def generate_trajectories(instance, y, params):
+def generate_trajectories(G, routes, arrivals, y, vehicle_w, params):
     """From a crossing time schedule y, generate trajectories using the
     MotionSynthesize procedure."""
-    nodes = instance['G'].nodes
-    route = instance['route']
-    release = instance['release']
-
-    N = len(release) # number of classes
-    n = [len(r) for r in release] # number of arrivals per class
+    N = len(arrivals) # number of classes
+    n = [len(r) for r in arrivals] # number of arrivals per class
 
     trajectories = [[] for l in range(N)]
 
     for l in range(N):
         for k in range(n[l]):
             pos_cum = 0 # cumulative position
-            checkpoints = np.empty((len(route[l]), 2))
+            checkpoints = np.empty((len(routes[l]), 2))
             # first checkpoint is just (t = release time, relative position = 0)
-            checkpoints[0] = np.array([release[l][k], 0])
-            for i in range(1, len(route[l])):
-                u = route[l][i-1]
-                v = route[l][i]
+            checkpoints[0] = np.array([arrivals[l][k], 0])
+            for i in range(1, len(routes[l])):
+                u = routes[l][i-1]
+                v = routes[l][i]
                 t = y[l, k, v]
-                pos_cum += float(np.linalg.norm(np.array(nodes[u]['pos']) - np.array(nodes[v]['pos'])))
-                checkpoints[i] = np.array([t, pos_cum])
+                pos_cum += float(np.linalg.norm(np.array(G.nodes[u]['pos']) - np.array(G.nodes[v]['pos'])))
+                checkpoints[i] = np.array([t, pos_cum - vehicle_w / 2])
             prev = None
             if k > 0: # there is a vehicle ahead
                 prev = (prev_tf, trajectories[l][-1][1])
