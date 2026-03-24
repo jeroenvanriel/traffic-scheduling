@@ -2,13 +2,13 @@ from stable_baselines3.common.callbacks import BaseCallback
 from tqdm import tqdm
 
 class TqdmCallback(BaseCallback):
-    """
-    Progress bar for SB3 training with tqdm.
-    """
-    def __init__(self, total_timesteps, update_interval=1000, verbose=1):
+    """Progress bar for SB3 training with tqdm."""
+
+    def __init__(self, total_timesteps, n_envs=1, verbose=1):
         super().__init__(verbose)
         self.total_timesteps = total_timesteps
-        self.update_interval = update_interval
+        self.n_envs = n_envs
+        self.update_interval = 1000
         self.pbar = None
 
     def _on_training_start(self):
@@ -18,7 +18,7 @@ class TqdmCallback(BaseCallback):
     def _on_step(self):
         # Update every update_interval timesteps
         if self.n_calls % self.update_interval == 0:
-            self.pbar.update(self.update_interval)
+            self.pbar.update(self.update_interval * self.n_envs)
         return True
 
     def _on_training_end(self):

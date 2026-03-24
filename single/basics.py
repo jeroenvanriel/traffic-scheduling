@@ -17,12 +17,12 @@
 # ### Preamble
 
 # %% [markdown]
-#
 # > ⚠️ **Warning:** This notebook file is paired to a .py file with the same name, such that we can cleanly import the functionality from other notebooks. This is done using the facilities of the jupytext package. The cells in this notebook that are only meant as "demonstration" are marked with the cell tag "active-ipynb", which causes the jupytext synchronization command to ignore these when syncing to the .py file. This is our current way of doing "literate programming" with jupyter notebooks.
 
 # %%
 import numpy as np
 rng = np.random.default_rng(seed=70)
+import pandas as pd
 
 # %%
 # %load_ext autoreload
@@ -33,7 +33,7 @@ rng = np.random.default_rng(seed=70)
 # # Getting started
 
 # %% [markdown]
-# Table of contents:
+# Contents:
 # - instances data class
 # - optimal schedules, using mixed-integer linear programming
 # - instance generation by sampling arrival sequences per route
@@ -41,7 +41,7 @@ rng = np.random.default_rng(seed=70)
 # - we verify that the MILP and MPD implementation agree in terms of the total delay and negative reward
 
 # %% [markdown]
-# ## Instance data class
+# ## Data class for problem instances
 
 # %% [markdown]
 # Let us first introduce a little utility class to keep everything related to an instance nice and organized. The `add_route_from_gaps()` method computes the arrival times $a_i$ from a list of "gaps" between the vehicles. This makes sure that $a_i + \rho \leq a_j$ is satisfied for each conjunctive pair.
@@ -91,29 +91,19 @@ class SingleInstance:
 
     def add_route(self, arrivals):
         """Add the arrivals of a new route."""
-        if self.arrivals is None:
-            self.arrivals = [arrivals]
-        else:
-            self.arrivals.append(arrivals)
-
-    def add_route_from_gaps(self, gaps):
-        """Compute $A_n = A_{n-1} + X_n + \rho$ for all n, where X_n is given by `gaps`."""
-        lengths = np.repeat(self.rho, len(gaps))
-        shifted = np.roll(lengths, 1); shifted[0] = 0
-        arrivals = np.cumsum(gaps + shifted)
-        self.add_route(arrivals)
+        if self.arrivals is None: self.arrivals = [arrivals]
+        else: self.arrivals.append(arrivals)
 
 
 # %% [markdown]
-# ## Optimal schedules (MILP)
+# ## Optimal schedules with integer programming
 
 # %% [markdown]
-# ### Simple data class for solutions
+# ### Data class for schedules
 
 # %%
 from dataclasses import dataclass
 from typing import Optional
-import pandas as pd
 
 @dataclass
 class SingleMILPSchedule:
@@ -166,9 +156,10 @@ def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False
 
     `cutting_planes` is a list/set specifying which cutting planes to add,
     possible choices are integers:
-        1 - transitive cutting planes
-        2 - conjunctive cutting planes
-        3 - disjunctive cutting planes
+
+        1. transitive cutting planes
+        2. conjunctive cutting planes
+        3. disjunctive cutting planes
     """
 
     env = gp.Env(empty=True)
@@ -267,6 +258,7 @@ def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False
     g.ModelSense = gp.GRB.MINIMIZE
     g.Params.MIPGap = gap
     g.update()
+
     if recordprogress:
         g.optimize(record_progress)
 
@@ -303,8 +295,9 @@ def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False
 def solve_myself(self, **kwargs): self.opt = solve(self, **kwargs); return self.opt
 SingleInstance.solve = solve_myself
 
+
 # %% [markdown]
-# ## Instance generation
+# ## Instance distributions and generation
 
 # %% [markdown]
 # A problem instance of the crossing time scheduling problem is specified by the tuple
@@ -315,11 +308,7 @@ SingleInstance.solve = solve_myself
 # $$
 # \mathcal{N} = \{ (i,j) : j \in \{ 1, \dots, n_r \}, i \in \mathcal{R} \} .
 # $$
-# The processing time $\rho$ and the switch-over time $\sigma$ are assumed to be fixed in our analysis.
-
-# %%
-rho, sigma = 1.2, 1.7 # so "switch" = sigma-rho
-
+# The processing time $\rho$ and $\sigma$ are assumed to be fixed in our analysis.
 
 # %% [markdown]
 # The most interesting part of the problem specification are the earliest arrival times $a_i : i \in \mathcal{N}$. Our hypothesis is that the way these are distributed influences the performance of the learned scheduling algorithm. Therefore, we propose some artificial distribution of arrival times based on the following  two aspects:
@@ -364,13 +353,20 @@ def clipped(generator, min=0.2):
 # %% editable=true slideshow={"slide_type": ""}
 from collections.abc import Iterable
 
+def arrivals_from_gaps(gaps, rho):
+    """Compute $A_n = A_{n-1} + X_n + \rho$ for all n, where X_n is given by `gaps`."""
+    lengths = np.repeat(rho, len(gaps))
+    shifted = np.roll(lengths, 1); shifted[0] = 0
+    arrivals = np.cumsum(gaps + shifted)
+    return arrivals
+
 def generate_instance(F, n=1, R=None, rho=1.2, sigma=1.7):
     """F is a (list of) "gap-generator" function(s) to generate the interarrival
     times. n is the number of arrivals per route
     (either single number or list). R is the number of routes, which needs to be
     specified explicitly if it cannot be derived from F or n. In other words,
     R and n are automatically 'broadcasted'."""
-    assert sigma > rho, "This choice surely gives a valid combinatorial problem, but it makes no sense in the original problem context."
+    assert sigma > rho, "Choosing sigma > rho gives a valid combinatorial problem, but it makes no sense in the original problem context."
     instance = SingleInstance(rho=rho, sigma=sigma)
 
     R1 = len(F) if not callable(F) else None
@@ -392,7 +388,7 @@ def generate_instance(F, n=1, R=None, rho=1.2, sigma=1.7):
 
         # create random interarrival times ("gaps") and cumulate them to obtain
         # earliest arrival times
-        instance.add_route_from_gaps(f(n1))
+        instance.add_route(arrivals_from_gaps(f(n1), rho))
     return instance
 
 
