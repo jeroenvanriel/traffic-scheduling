@@ -1,0 +1,707 @@
+<?xml version="1.0"?>
+<!DOCTYPE ipe SYSTEM "ipe.dtd">
+<ipe version="70000" creator="pdftoipe 2024/11/15">
+<ipestyle>
+<layout paper="390.716 397.709" frame="390.716 397.709" origin="0 0"/>
+<symbol name="bullet"><path matrix="0.04 0 0 0.04 0 0" fill="black">
+18 0 0 18 0 0 e</path></symbol>
+</ipestyle>
+<!-- Page: 1 1 -->
+<page>
+<path fill="1.000000 1.000000 1.000000" fillrule="wind">
+0 309.853 m
+390.716 309.853 l
+390.716 397.709 l
+0 397.709 l
+0 309.853 l
+h
+</path>
+<path fill="1.000000 1.000000 1.000000" fillrule="wind">
+9.11555 332.909 m
+383.516 332.909 l
+383.516 390.509 l
+9.11555 390.509 l
+9.11555 332.909 l
+h
+</path>
+<path fill="0.701950 0.803909 0.890182" fillrule="wind">
+31.5873 373.857 m
+100.601 373.857 l
+100.601 390.236 l
+31.5873 390.236 l
+31.5873 373.857 l
+h
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5" dash="[1.85 0.8] 0">
+31.5873 373.857 m
+100.601 373.857 l
+100.601 390.236 l
+31.5873 390.236 l
+31.5873 373.857 l
+h
+</path>
+<path fill="0.984299 0.705872 0.682343" fillrule="wind">
+51.3178 346.558 m
+120.332 346.558 l
+120.332 362.937 l
+51.3178 362.937 l
+51.3178 346.558 l
+h
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5" dash="[1.85 0.8] 0">
+51.3178 346.558 m
+120.332 346.558 l
+120.332 362.937 l
+51.3178 362.937 l
+51.3178 346.558 l
+h
+</path>
+<path fill="0.984299 0.705872 0.682343" fillrule="wind">
+138.861 346.558 m
+207.875 346.558 l
+207.875 362.937 l
+138.861 362.937 l
+138.861 346.558 l
+h
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5" dash="[1.85 0.8] 0">
+138.861 346.558 m
+207.875 346.558 l
+207.875 362.937 l
+138.861 362.937 l
+138.861 346.558 l
+h
+</path>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+9.69067 332.909 m
+9.69067 329.409 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+9.69067 332.909 m
+9.69067 329.409 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 7.2 318.99">0</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+67.2022 332.909 m
+67.2022 329.409 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+67.2022 332.909 m
+67.2022 329.409 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 64.7115 318.99">1</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+124.714 332.909 m
+124.714 329.409 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+124.714 332.909 m
+124.714 329.409 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 122.223 318.99">2</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+182.225 332.909 m
+182.225 329.409 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+182.225 332.909 m
+182.225 329.409 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 179.735 318.99">3</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+239.737 332.909 m
+239.737 329.409 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+239.737 332.909 m
+239.737 329.409 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 237.246 318.99">4</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+297.248 332.909 m
+297.248 329.409 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+297.248 332.909 m
+297.248 329.409 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 294.758 318.99">5</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+354.76 332.909 m
+354.76 329.409 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+354.76 332.909 m
+354.76 329.409 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 352.269 318.99">6</text>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5" cap="2">
+9.11555 332.909 m
+383.516 332.909 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 36.1882 378.77">a</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 41.0702 377.774">11</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 51.434 378.77">=</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 61.158 378.77">0</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 65.7691 378.77">.</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 68.3289 378.77">38</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 55.9188 351.472">a</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 60.8008 350.476">21</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 71.1646 351.472">=</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 80.8885 351.472">0</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 85.4996 351.472">.</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 88.0594 351.472">72</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 143.462 351.472">a</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 148.344 350.476">22</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 158.708 351.472">=</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 168.432 351.472">2</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 173.043 351.472">.</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 175.603 351.472">25</text>
+<path fill="1.000000 1.000000 1.000000" fillrule="wind">
+0 196.998 m
+390.716 196.998 l
+390.716 284.853 l
+0 284.853 l
+0 196.998 l
+h
+</path>
+<path fill="1.000000 1.000000 1.000000" fillrule="wind">
+9.11555 220.053 m
+383.516 220.053 l
+383.516 277.653 l
+9.11555 277.653 l
+9.11555 220.053 l
+h
+</path>
+<path fill="0.984299 0.705872 0.682343" fillrule="wind">
+51.3178 261.001 m
+120.332 261.001 l
+120.332 277.38 l
+51.3178 277.38 l
+51.3178 261.001 l
+h
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5">
+51.3178 261.001 m
+120.332 261.001 l
+120.332 277.38 l
+51.3178 277.38 l
+51.3178 261.001 l
+h
+</path>
+<path fill="0.984299 0.705872 0.682343" fillrule="wind">
+138.861 261.001 m
+207.875 261.001 l
+207.875 277.38 l
+138.861 277.38 l
+138.861 261.001 l
+h
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5" dash="[1.85 0.8] 0">
+138.861 261.001 m
+207.875 261.001 l
+207.875 277.38 l
+138.861 277.38 l
+138.861 261.001 l
+h
+</path>
+<path fill="0.701950 0.803909 0.890182" fillrule="wind">
+149.087 233.702 m
+218.101 233.702 l
+218.101 250.082 l
+149.087 250.082 l
+149.087 233.702 l
+h
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5" dash="[1.85 0.8] 0">
+149.087 233.702 m
+218.101 233.702 l
+218.101 250.082 l
+149.087 250.082 l
+149.087 233.702 l
+h
+</path>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+120.619 242.142 m
+144.587 242.142 l
+144.087 243.392 l
+149.087 241.892 l
+144.087 240.392 l
+144.587 241.642 l
+120.619 241.642 l
+120.619 242.142 l
+</path>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+9.69067 220.053 m
+9.69067 216.553 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+9.69067 220.053 m
+9.69067 216.553 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 7.2 206.135">0</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+67.2022 220.053 m
+67.2022 216.553 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+67.2022 220.053 m
+67.2022 216.553 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 64.7115 206.135">1</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+124.714 220.053 m
+124.714 216.553 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+124.714 220.053 m
+124.714 216.553 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 122.223 206.135">2</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+182.225 220.053 m
+182.225 216.553 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+182.225 220.053 m
+182.225 216.553 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 179.735 206.135">3</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+239.737 220.053 m
+239.737 216.553 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+239.737 220.053 m
+239.737 216.553 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 237.246 206.135">4</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+297.248 220.053 m
+297.248 216.553 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+297.248 220.053 m
+297.248 216.553 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 294.758 206.135">5</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+354.76 220.053 m
+354.76 216.553 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+354.76 220.053 m
+354.76 216.553 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 352.269 206.135">6</text>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5" dash="[5 2.5] 0" join="1">
+120.332 252.812 m
+120.332 230.973 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5" cap="2">
+9.11555 220.053 m
+383.516 220.053 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 55.9188 265.915">$\beta$</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 61.1121 264.919">21</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 68.9161 265.915">(</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 72.4998 265.915">s</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 76.7927 264.919">1</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 80.9438 265.915">)</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 87.0812 265.915">=</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 96.8052 265.915">0</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 101.422 265.915">.</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 103.982 265.915">72</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 143.462 265.915">$\beta$</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 148.656 264.919">22</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 156.459 265.915">(</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 160.043 265.915">s</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 164.336 264.919">1</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 168.487 265.915">)</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 174.625 265.915">=</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 184.349 265.915">2</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 188.966 265.915">.</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 191.526 265.915">25</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 153.688 238.616">$\beta$</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 158.882 237.62">11</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 166.686 238.616">(</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 170.269 238.616">s</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 174.562 237.62">1</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 178.713 238.616">)</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 184.851 238.616">=</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 194.575 238.616">2</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 199.192 238.616">.</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 201.752 238.616">42</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="7.97011" valign="baseline" matrix="1 0 0 1 132.836 244.622">$\delta$</text>
+<path fill="1.000000 1.000000 1.000000" fillrule="wind">
+0 84.1418 m
+390.716 84.1418 l
+390.716 171.998 l
+0 171.998 l
+0 84.1418 l
+h
+</path>
+<path fill="1.000000 1.000000 1.000000" fillrule="wind">
+9.11555 107.198 m
+383.516 107.198 l
+383.516 164.798 l
+9.11555 164.798 l
+9.11555 107.198 l
+h
+</path>
+<path fill="0.984299 0.705872 0.682343" fillrule="wind">
+51.3178 148.145 m
+120.332 148.145 l
+120.332 164.525 l
+51.3178 164.525 l
+51.3178 148.145 l
+h
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5">
+51.3178 148.145 m
+120.332 148.145 l
+120.332 164.525 l
+51.3178 164.525 l
+51.3178 148.145 l
+h
+</path>
+<path fill="0.701950 0.803909 0.890182" fillrule="wind">
+149.087 148.145 m
+218.101 148.145 l
+218.101 164.525 l
+149.087 164.525 l
+149.087 148.145 l
+h
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5">
+149.087 148.145 m
+218.101 148.145 l
+218.101 164.525 l
+149.087 164.525 l
+149.087 148.145 l
+h
+</path>
+<path fill="0.984299 0.705872 0.682343" fillrule="wind">
+246.857 120.847 m
+315.871 120.847 l
+315.871 137.226 l
+246.857 137.226 l
+246.857 120.847 l
+h
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5" dash="[1.85 0.8] 0">
+246.857 120.847 m
+315.871 120.847 l
+315.871 137.226 l
+246.857 137.226 l
+246.857 120.847 l
+h
+</path>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+120.619 156.585 m
+144.587 156.585 l
+144.087 157.835 l
+149.087 156.335 l
+144.087 154.835 l
+144.587 156.085 l
+120.619 156.085 l
+120.619 156.585 l
+</path>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+218.389 129.286 m
+242.357 129.286 l
+241.857 130.536 l
+246.857 129.036 l
+241.857 127.536 l
+242.357 128.786 l
+218.389 128.786 l
+218.389 129.286 l
+</path>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+9.69067 107.198 m
+9.69067 103.698 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+9.69067 107.198 m
+9.69067 103.698 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 7.2 93.279">0</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+67.2022 107.198 m
+67.2022 103.698 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+67.2022 107.198 m
+67.2022 103.698 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 64.7115 93.279">1</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+124.714 107.198 m
+124.714 103.698 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+124.714 107.198 m
+124.714 103.698 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 122.223 93.279">2</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+182.225 107.198 m
+182.225 103.698 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+182.225 107.198 m
+182.225 103.698 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 179.735 93.279">3</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+239.737 107.198 m
+239.737 103.698 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+239.737 107.198 m
+239.737 103.698 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 237.246 93.279">4</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+297.248 107.198 m
+297.248 103.698 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+297.248 107.198 m
+297.248 103.698 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 294.758 93.279">5</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+354.76 107.198 m
+354.76 103.698 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+354.76 107.198 m
+354.76 103.698 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 352.269 93.279">6</text>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5" dash="[5 2.5] 0" join="1">
+218.101 139.956 m
+218.101 118.117 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5" cap="2">
+9.11555 107.198 m
+383.516 107.198 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 55.9188 153.059">$\beta$</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 61.1121 152.063">21</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 68.9161 153.059">(</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 72.4998 153.059">s</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 76.7927 152.063">2</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 80.9438 153.059">)</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 87.0812 153.059">=</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 96.8052 153.059">0</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 101.422 153.059">.</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 103.982 153.059">72</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="7.97011" valign="baseline" matrix="1 0 0 1 132.836 159.065">$\delta$</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 153.688 153.059">$\beta$</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 158.882 152.063">11</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 166.686 153.059">(</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 170.269 153.059">s</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 174.562 152.063">2</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 178.713 153.059">)</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 184.851 153.059">=</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 194.575 153.059">2</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 199.192 153.059">.</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 201.752 153.059">42</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 251.458 125.761">$\beta$</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 256.651 124.764">22</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 264.455 125.761">(</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 268.039 125.761">s</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 272.332 124.764">2</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 276.483 125.761">)</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 282.62 125.761">=</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 292.344 125.761">4</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 296.962 125.761">.</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 299.521 125.761">12</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="7.97011" valign="baseline" matrix="1 0 0 1 230.606 131.766">$\delta$</text>
+<path fill="1.000000 1.000000 1.000000" fillrule="wind">
+0 0 m
+390.716 0 l
+390.716 59.1418 l
+0 59.1418 l
+0 0 l
+h
+</path>
+<path fill="1.000000 1.000000 1.000000" fillrule="wind">
+9.11555 23.0557 m
+383.516 23.0557 l
+383.516 51.8557 l
+9.11555 51.8557 l
+9.11555 23.0557 l
+h
+</path>
+<path fill="0.984299 0.705872 0.682343" fillrule="wind">
+51.3178 36.0287 m
+120.332 36.0287 l
+120.332 51.5962 l
+51.3178 51.5962 l
+51.3178 36.0287 l
+h
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5">
+51.3178 36.0287 m
+120.332 36.0287 l
+120.332 51.5962 l
+51.3178 51.5962 l
+51.3178 36.0287 l
+h
+</path>
+<path fill="0.701950 0.803909 0.890182" fillrule="wind">
+149.087 36.0287 m
+218.101 36.0287 l
+218.101 51.5962 l
+149.087 51.5962 l
+149.087 36.0287 l
+h
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5">
+149.087 36.0287 m
+218.101 36.0287 l
+218.101 51.5962 l
+149.087 51.5962 l
+149.087 36.0287 l
+h
+</path>
+<path fill="0.984299 0.705872 0.682343" fillrule="wind">
+246.857 36.0287 m
+315.871 36.0287 l
+315.871 51.5962 l
+246.857 51.5962 l
+246.857 36.0287 l
+h
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5">
+246.857 36.0287 m
+315.871 36.0287 l
+315.871 51.5962 l
+246.857 51.5962 l
+246.857 36.0287 l
+h
+</path>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+120.619 44.0624 m
+144.587 44.0624 l
+144.087 45.3124 l
+149.087 43.8124 l
+144.087 42.3124 l
+144.587 43.5624 l
+120.619 43.5624 l
+120.619 44.0624 l
+</path>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+218.389 44.0624 m
+242.357 44.0624 l
+241.857 45.3124 l
+246.857 43.8124 l
+241.857 42.3124 l
+242.357 43.5624 l
+218.389 43.5624 l
+218.389 44.0624 l
+</path>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+9.69067 23.0557 m
+9.69067 19.5557 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+9.69067 23.0557 m
+9.69067 19.5557 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 7.2 9.13718">0</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+67.2022 23.0557 m
+67.2022 19.5557 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+67.2022 23.0557 m
+67.2022 19.5557 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 64.7115 9.13718">1</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+124.714 23.0557 m
+124.714 19.5557 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+124.714 23.0557 m
+124.714 19.5557 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 122.223 9.13718">2</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+182.225 23.0557 m
+182.225 19.5557 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+182.225 23.0557 m
+182.225 19.5557 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 179.735 9.13718">3</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+239.737 23.0557 m
+239.737 19.5557 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+239.737 23.0557 m
+239.737 19.5557 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 237.246 9.13718">4</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+297.248 23.0557 m
+297.248 19.5557 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+297.248 23.0557 m
+297.248 19.5557 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 294.758 9.13718">5</text>
+<path fill="0.000000 0.000000 0.000000" fillrule="wind">
+354.76 23.0557 m
+354.76 19.5557 l
+</path>
+<path stroke="0.000000 0.000000 0.000000" pen="0.8" join="1">
+354.76 23.0557 m
+354.76 19.5557 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="9.96264" valign="baseline" matrix="1 0 0 1 352.269 9.13718">6</text>
+<path stroke="0.000000 0.000000 0.000000" pen="0.5" cap="2">
+9.11555 23.0557 m
+383.516 23.0557 l
+</path>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 55.9188 40.6989">$\beta$</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 61.1121 39.7027">21</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 68.9161 40.6989">(</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 72.4998 40.6989">s</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 76.7927 39.7027">3</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 80.9438 40.6989">)</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 87.0812 40.6989">=</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 96.8052 40.6989">0</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 101.422 40.6989">.</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 103.982 40.6989">72</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="7.97011" valign="baseline" matrix="1 0 0 1 132.836 46.407">$\delta$</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 153.688 40.6989">$\beta$</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 158.882 39.7027">11</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 166.686 40.6989">(</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 170.269 40.6989">s</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 174.562 39.7027">3</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 178.713 40.6989">)</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 184.851 40.6989">=</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 194.575 40.6989">2</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 199.192 40.6989">.</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 201.752 40.6989">42</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="7.97011" valign="baseline" matrix="1 0 0 1 230.606 46.407">$\delta$</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 251.458 40.6989">$\beta$</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 256.651 39.7027">22</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 264.455 40.6989">(</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 268.039 40.6989">s</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="5.97758" valign="baseline" matrix="1 0 0 1 272.332 39.7027">3</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 276.483 40.6989">)</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 282.62 40.6989">=</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 292.344 40.6989">4</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 296.962 40.6989">.</text>
+<text stroke="0.000000 0.000000 0.000000" pos="0 0" transformations="affine" size="8.96638" valign="baseline" matrix="1 0 0 1 299.521 40.6989">12</text>
+</page>
+</ipe>

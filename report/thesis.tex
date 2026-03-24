@@ -1,16 +1,20 @@
-\documentclass[a4paper]{report}
-\usepackage[margin=3.5cm,top=2.8cm,bottom=2.8cm]{geometry} %,top=0.5cm,bottom=1.8cm]{geometry}
+\documentclass{report}
+\pagestyle{plain}
+\raggedbottom
+% \usepackage[margin=3.5cm,top=2.8cm,bottom=2.8cm]{geometry} %,top=0.5cm,b/pagottom=1.8cm]{geometry}
+\usepackage[a4paper, inner=3.5cm, outer=3.5cm, top=2.8cm, bottom=2.8cm]{geometry}
 \usepackage[svgnames]{xcolor}
 \usepackage[pdftex]{hyperref}
 \usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools,thmtools,thm-restate,cleveref}
 \usepackage{cases}
 \usepackage{soul}
-\usepackage{mathrsfs}   % for \mathscr "script"
+% \usepackage{mathrsfs}   % for \mathscr "script"
 \usepackage{bookmark,graphicx,dsfont,datetime,float,booktabs,multirow,siunitx}
 \usepackage{caption,subcaption}
 \usepackage{enumitem,outlines,nicematrix}
 \usepackage{algorithm,algpseudocode}
 \usepackage{tabularx,ragged2e,adjustbox} % for literature table
+% \usepackage{titlesec}
 \usepackage{tocloft}    % customize toc entries
 \usepackage{xpatch}     % for bookmark 'hack' for appendix naming
 \usepackage{setspace}   % for bookmark fix of bibliography
@@ -19,11 +23,8 @@
 \usepackage{xstring}
 \setlength{\marginparwidth}{3cm} % more room in margin
 
-% for full page tables
-\usepackage{pdflscape}
-
 \usepackage{etoolbox}
-% chapters in todolist
+%% chapters in todolist
 \makeatletter
 \newif\ifinappendix        % define a boolean
 \pretocmd{\appendix}{\inappendixtrue}{}{}  % turn on flag when appendix begins
@@ -37,7 +38,7 @@
 }{}{}
 \makeatother
 
-% my custom comment command
+%% custom comment command
 \newcounter{mycomment}
 \newcommand{\comment}[2][]{%
     \refstepcounter{mycomment}% up counter
@@ -54,30 +55,9 @@
     }%
 }
 
-
-%% bibliography setup
-% \usepackage[numbers]{natbib}
-% \bibliographystyle{abbrvnat}
-\usepackage[
-    style=numeric-comp,
-    natbib=true, % enables \citet, \citep
-    doi=false, isbn=false, url=true,
-    maxcitenames=1,  % max one author when using \citet
-    % maxbibnames=99 % show all authors
-    backend=biber,
-]{biblatex}
-\DeclareSourcemap{
-  \maps[datatype=bibtex, overwrite=true]{
-    \map{
-      \step[fieldsource=url, final]
-      \step[typesource=misc, typetarget=online]
-    }
-  }
-}
-\addbibresource{references.bib}
-\setlength{\biblabelsep}{0.5em}  % space between number and entry
-\renewcommand*{\bibfont}{\small} % optional: font size same as natbib
-
+%% full page tables
+% \usepackage{pdflscape} % also rotate the page in the pdf file itself
+\usepackage{rotating}
 
 %% table setup
 \usepackage{tabto,caption}
@@ -87,13 +67,12 @@
 % \usepackage{pdfcomment}
 % \newcommand{\comment}[1]{\pdfmargincomment[author=Jeroen van Riel]{#1}}
 
-
 %% tikz
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, decorations.markings, decorations.pathreplacing,
   positioning, fit, calc, backgrounds}
 
-% overall text appearance
+%% overall text appearance
 \usepackage{setspace}
 % \setstretch{1.15}        % Custom spacing (1.25x)
 %% micro-level typesetting
@@ -138,7 +117,7 @@
 
 \newcommand{\TUE}{TU\kern-0.12em/\kern-0.08eme}
 
-% links setup
+%% links setup
 \colorlet{redcustom}{red!80!black}
 \colorlet{bluecustom}{blue!60!black}
 \hypersetup{
@@ -151,27 +130,33 @@
     % hypertexnames=false,   % Avoids duplicate anchor names
 }
 
+%% bibliography setup
+\usepackage[
+  style=numeric-comp, natbib=true,
+  doi=false, isbn=false, url=false,
+  maxcitenames=1, backend=biber,
+]{biblatex}
+\addbibresource{references.bib}
+\AtEveryBibitem{%
+  \clearfield{eprint}%
+  \clearfield{eprinttype}%
+  \clearfield{eprintclass}%
+  \clearfield{urldate}%
+}
+% \setlength{\biblabelsep}{0.5em}  % space between number and entry
+% \renewcommand*{\bibfont}{\small} % optional: font size same as natbib
+
+
 %% set pdf meta-data
 \hypersetup{
-    pdftitle = {Efficient and Provably Safe Autonomous Intersection Coordination: Combinatorial Learning in Network-Wide Motion Planning},
+    pdftitle = {Efficient and Provably Safe Autonomous Intersection Coordination - Combinatorial Learning for Vehicle Motion Planning},
     pdfauthor = {Jeroen van Riel}
 }
 
-
-%% title, date and author
-% \newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
-% \author{\Large Jeroen van Riel \\[4em] {\it Combined Master's Thesis} \\[0.6em] Industrial and Applied Mathematics \\ Computer Science and Engineering  \\[3em] {\it Supervisors} \\[0.6em] Marko Boon \\ Stella Kapodistria \\ Mykola Pechenizkiy \\ Danil Provodin  \\[4em] October 2025 \\[0.6em] Eindhoven University of Technology}
-% \date{}
-% \newcommand{\mytitle}{%
-%   {\huge\bf Efficient and Provably Safe Autonomous Intersection Coordination}\\[1.2em]
-%   {\Large\bf Opportunities of combinatorial learning\\[-0.3em] in network-wide motion planning}}
-% \title{\mytitle}
-
-
 \title{%
   {\huge\bfseries Efficient and Provably Safe Autonomous Intersection Coordination}\\[1em]
-  {\Large\bfseries Combinatorial Learning in\\[-0.3em] 
-  Network-Wide Motion Planning}
+  {\Large\bfseries Combinatorial Learning for\\[-0.3em] 
+  Vehicle Motion Planning}
 }
 
 \author{%
@@ -203,49 +188,209 @@
   \end{minipage}
 }
 
-% \chapter*{Abstract}
+% \cleardoublepage
+% \thispagestyle{empty}     % no page number
+
+% \vspace*{\fill}           % push content to vertical center
+% \begin{center}
+%     \textit{To my parents}
+% \end{center}
+% \vspace*{\fill}           % balance space below
+% \cleardoublepage
+
+\chapter*{Abstract}
+
+The growing adoption of autonomous vehicles motivates the need for systems that
+coordinate joint motion across traffic networks, aiming to reduce travel time,
+fuel consumption, and improve comfort. We study this coordination problem under
+ideal conditions, assuming perfect communication and a centralized controller
+that prescribes precise vehicle trajectories. Focusing on intersection
+management, we identify the determination of optimal crossing orders as a key
+combinatorial challenge. Formulating delay minimization as a scheduling problem,
+we develop an integer programming model and introduce two types of cutting
+planes that significantly accelerate solution time for single-intersection
+cases. As exact optimization scales poorly, we investigate step-by-step
+scheduling as a basis for fast heuristics. For a single intersection, a simple
+one-parameter threshold policy achieves less than 2\% and 10\% optimality gaps
+for two and three crossing routes, respectively, with up to 60 vehicles per
+route. Neural network policies trained via imitation and reinforcement learning
+offer limited additional benefit. Finally, we outline challenges in extending
+the framework to networks of intersections, particularly in modeling finite lane
+capacities, and present preliminary insights into how finite lane capacity
+defines the space of feasible crossing time schedules.
+ 
+% \chapter*{Preface}
+
+% The idea for this project is somewhat rooted in the final project of my
+% bachelor. Marko, who also supervised me then, asked one question that has stuck
+% with me: how to model horizontal queues of vehicles?
+% %
+% On top of this, I became fascinated by \emph{green waves}, which is a very nice
+% idea, but somehow very difficult to achieve in practice.
+% %
+% Some of the main difficulties lies in the fact that human driving behavior is
+% unpredictable and small disturbances tend to propagate and cause all kinds of
+% chaotic behavior---congestion and traffic jams.
+
+% \emph{``If you can't win the game, change the rules''.} The situation gets a lot
+% more manageable when we assume that all vehicles are autonomous, so human driver
+% behavior is no issue anymore.
+% %
+% In such sitatuion, we can in principle manage congestion far more effectively,
+% by having vehicles communicate with each other and optimize their movement.
+% %
+% Of course, there are many technical problems that we need to solve before such a
+% system would work in practice, robust wireless communication being a very
+% obvious one.
+
+% When I started this project, I did not really have concrete research questions.
+% Instead, there were two topics that I wanted to explore further.
+% %
+% The first topic, optimal control, has been on my wishlist for quite some time.
+% In some sense, optimal control is involved in a lot of tangeable technology,
+% like robots, autonomous vehicles---things most people immediately associate
+% technical universities with.
+% %
+% My combined program did not leave much room to go shopping for courses at the
+% mechanical engineering department, but I took a course on stochastic decision
+% making, where we discussed the modern descendant---reinforcement learning.
+% %
+% These success stories of super-human level game playing, which were still
+% relatively recent at the time, also captivated my imigination.
+
+% The book of Daniel Liberzon was very helpful in shaping some idea of the issues
+% that come with optimization over functions. I very much recommend this book as a
+% first introduction. The first few chapters trace the historical development of
+% variational calculus, which almost makes you feel you are reading a novel.
+
+% The second topic is about using machine learning to speed
+% up solvers for combinatorial optimization.
+% %
+% I was following a course on integer programming when I read some papers
+% where they trained neural networks to take certain decisions of the solver,
+% e.g., branching variable, cutting plane selection.
+% %
+% My curiosity was further piqued when I also heard some skepticism about these
+% methods.
+
+% In hindsight, you could say that the vehicle coordination problem has been the
+% perfect ``playground'' to pursue both these directions.
+% %
+% I enjoyed an enormous amount of freedom in shaping this project. Admittedly,
+% this has also come at some cost; I recognize that I have not been able to
+% explore some topics in the depth that I had originally anticipated.
+
+% I remember that I had did not understand why it was so hard to find
+% reinforcement learning methods with \emph{hard constraints}, which is what I
+% needed to prevent collisions---always.
+% %
+% I guess it is fair to say that the project has been about dealing with hard
+% constraints, but mainly in a model-based manner.
+% %
+% The same question I had back then is still alive, but has crystallized a little
+% bit more: what does model-free reinforcement learning with hard constraints look
+% like; how can we use samples to estimate the safe/feasible part of the state
+% space?
+
+% Looking back on how the direction of the project has changed over time, there
+% has been a clear trend of removing more and more uncertainty from the model, to
+% the point where everything was completely deterministic---which seems strange
+% for a project with supervisors working in stochastics and operations research.
+% %
+% Interestingly, the only remaining non-determinism is found in the stochastic
+% scheduling policies, which we have discused a number of times.
+% %
+% At first, I was a little bit unsure about the approach myself, but over time, I
+% realized that using stochastic policies is just some way to relax the solution
+% space. Similarly, some of the procedures I found in the literature for
+% transforming a stochastic policy into a deterministic one are similar to
+% rounding in integer programming.
+
+% I would like to thank all my supervisors, for their guidance, motivation and
+% patience.
+
+% Marko, thanks for your confidence in me, which I like to believe has caused me
+% to gain confidence of my own ideas; I am starting to learn how to tame my inner
+% critic.
+% %
+% Thanks again for involving me in your traffic visualization project. There is
+% now finally time to look at the bug you reported; your email has been waiting in
+% my inbox for quite some time now.
+
+% Danil, thanks for choosing to work with me. I ended up solliciting with you,
+% because you worked on constrained Markov decision processes. At the time, I was
+% under the impression that area of literature provided ready-to-use methods to
+% solve general constrained decision making processes.
+% %
+% It turned out this issue was far from solved, and at the time of writing, this
+% issue is gaining popularity as \emph{safe reinforcment learning.}
+% %
+% Since my project only touches upon the issues involved with constraints, I hope
+% you enjoyed the alternative course we eventually took.
+
+% Stella, given the fact that supervision is generally fairly regulated within
+% your group, it is an honor that you decided to get on board with my project.
+% %
+% Thanks for seeing things in perspective when I felt stuck.
+% %
+% Your colorful tips about writing and style have changed my thoughts about what
+% makes written communication successful.
+
+% Mykola, although we did not have many interactions, you asked valuable questions
+% that have forced me to think about how this project fits in the existing
+% literature. To be fair, I think I still find this one of the most difficult
+% tasks. I believe you are in a better position to assess this, so I am very
+% interested in your unfiltered view on this project.
+
+% Luuc, thanks for reading some earlier drafts of this document and for your help
+% with understanding the decomposition proof.
+
+% Thanks to Erjen Lefeber, who helped me gain some confidence that I have not been
+% reinventing the wheel while working on the analysis of the capacitated lane
+% model.
+
+% Next to my study, I have had the opportunity to keep working in the event
+% industry, which has tought me some of the most important lessons in life so far.
+
+% % All hand-drawn figures in this thesis were produced by the Ipe extensible
+% % drawing editor\footnote{\url{https://ipe.otfried.org}}.
+
+% \vspace{2\baselineskip} % some vertical space before the signature
+
+% \begin{flushright}
+% \textit{Jeroen van Riel}\\[0.5em]
+% October 2025
+% \end{flushright}
+
 
 %%
 % table of contents setup
 %%
-
 % 'parts' in toc without page numbers
 % the 'Part' text is included manually
 \cftpagenumbersoff{part}
 \renewcommand{\cftpartfont}{\color{red!70!black}}
 \renewcommand{\cftpartpresnum}{}
-
 % exclude part level in pdf bookmarks
 \makeatletter
 \renewcommand{\toclevel@part}{100}
 \makeatother
-
 % numbers before each chapter/section in pdf bookmarks
-\bookmarksetup{
-  numbered,
-}
-
+\bookmarksetup{numbered}
 % greyed out leader dots
 \renewcommand{\cftdot}{\textcolor{gray!70}{.}}
 
-\newpage
+
+\cleardoublepage
 \tableofcontents
 
 % add toc entry in pdf bookmarks
 \addtocontents{toc}{\protect{\pdfbookmark[0]{\contentsname}{toc}}}
 
-% \listoftodos[Changes and Comments]
 
-
-% \chapter*{Preface}
-% \addcontentsline{toc}{chapter}{\protect\numberline{}Preface}
-
-
-% All hand-drawn figures in this thesis were produced by the Ipe extensible
-% drawing editor\footnote{\url{https://ipe.otfried.org}}.
-
-
+% \addtocontents{toc}{\protect\vspace*{2em}}
 \chapter{Introduction}\label{chap:introduction}
+\addtocontents{toc}{\protect\renewcommand\cftbeforechapskip{2em}}
 
 \section{Context and motivation}
 
@@ -288,7 +433,7 @@ trajectories across multiple intersections.
 % broader picture
 The concept of network-wide coordination offers a rich terrain for research and
 technological innovation~\cite{padmajaExplorationIssuesChallenges2023,yangAutonomousDrivingV2X2022} as well as policy development,
-involving questions of how to adopt autonomous vehicle for safe~\cite{hilaryMakingAutomatedVehicles2022},
+involving questions of how to adopt autonomous driving for safe~\cite{hilaryMakingAutomatedVehicles2022},
 accessible~\cite{fatimaEquityIssuesAssociated2024} and trustworthy~\cite{naisehTrustRiskPerception2025}
 transportation systems.
 %
@@ -312,7 +457,7 @@ We highlight four active research themes:
         intersections.
   
   \item \emph{Decentralized control and communication.} A key design issue is
-        how to organize communication and control within such systems.
+        how to organize communication and control in such systems.
         %
         Centralized coordination with full observability is nearly impossible in
         practice due to noisy sensors, communication delays~\cite{wangAssessingImpactCommunication2024},
@@ -706,12 +851,12 @@ scalability.
 
 Our work has been organized around the following research questions:
 
-\begin{enumerate}[label=RQ\arabic*:, leftmargin=3em, rightmargin=4em]
+\begin{enumerate}[label=\textbf{RQ\arabic*}:, leftmargin=3em, rightmargin=4em]
   \item Under which assumptions can the combinatorial aspect of the
         problem---determining the crossing order---be considered in isolation?
         (decomposing)
 
-  \item How well do established methods solve the crossing order problem?
+  \item How well do existing methods solve the crossing order problem?
         (complexity)
 
   \item How to leverage the recent successes in combinatorial learning to solve
@@ -726,6 +871,7 @@ Our work has been organized around the following research questions:
 % - real-time computational requirements
 % - not completely model-free, but partly model-based to exploit apparant structure
 
+\pagebreak
 The contributions of our project can be summarized into corresponding
 categories:
 
@@ -908,15 +1054,15 @@ three fundamental and conflicting objectives.
   \centering
   \includegraphics[scale=1]{figures/intersection-nice}
   \caption{Stylized model of a single intersection with two conflicting flows of
-    vehicles that are not allowed to turn at the intersection, so we can
-    assume---without loss of generality---that vehicles cross the
-    intersection in straight lines.}\label{fig:intersection-nice}
+    vehicles that are not allowed to turn at the intersection, which means that
+    we can assume that vehicles cross the intersection in straight
+    lines.}\label{fig:intersection-nice}
 \end{figure}
 
 \paragraph{Trajectory optimization.}
-The task of safely and efficiently coordinating the motion of autonomous vehicles
-through our single-intersection model, can be formulated mathematically as 
-\emph{trajectory optimization}, which is precisely defined in
+The task of safely and efficiently coordinating the motion of autonomous
+vehicles through our single-intersection model, can be formulated mathematically
+as \emph{trajectory optimization}, which is precisely defined in
 Section~\ref{sec:motion-planning}.
 % direct transcription
 Perhaps the most natural way of solving this kind of problems depends on
@@ -976,7 +1122,7 @@ We make the following two assumptions:
         smoothness or \emph{shape} of the vehicles' trajectories.
 \end{itemize}
 %
-\emph{Under these assumption, the decomposition is proper}. Consequently, the
+\emph{Under these assumptions, the decomposition is proper}. Consequently, the
 infinite-dimensional trajectory optimization problem reduces to a
 finite-dimensional \emph{scheduling problem}, in terms of finding feasible sets
 of intersection occupancy time slots, while minimizing the total travel delay.
@@ -1294,7 +1440,7 @@ that are
         Section~\ref{sec:valid-configs} at all times;
   \item[admissible] $\rightarrow$ $x_i$ satisfy the dynamic motion constraints of
         Section~\ref{sec:dynamics};
-  \item[efficient] $\rightarrow$ $x_i$ are optimal w.r.t.\ some criterium of
+  \item[efficient] $\rightarrow$ $x_i$ are optimal w.r.t.\ some criterion of
         Section~\ref{sec:criteria}.
 \end{description}
 \end{samepage}
@@ -1818,7 +1964,7 @@ the next chapter.
 \paragraph{Instances and schedules.}
 
 The next chapter will be about solving~\eqref{eq:C}, so let us first take a step back and
-spend a few words on explaining our notation for specifying (sets of) instances
+spend a few words on explaining our notation for specifying instances
 of this problem.
 %
 We will write $a := \{ a_i \}_{i \in \mathcal{N} }$ to denote the set of
@@ -1994,8 +2140,8 @@ algorithms specifically tailored to the case when feasible solutions can be
 thought of as time
 schedules~\cite{pinedoSchedulingTheoryAlgorithms2016,grahamOptimizationApproximationDeterministic1979}.
 %
-One of the most prominent distinction among algorithms lies in whether it
-guarantees to find an optimal solution or not.
+One of the most prominent distinction among algorithms lies in whether they
+guarantee to find an optimal solution or not.
 %
 Of course, it is desirable to find optimal solutions, but this is often not
 tractable in practice: the number of feasible solutions typically explodes
@@ -2021,8 +2167,8 @@ We conclude the first part of this chapter by evaluating how much the running
 time is reduced by these cutting planes.
 
 \paragraph{Constructive heuristics.}
-In many practical applications---like in our case of motion planning for
-autonomous vehicles---the time that is available to obtain a solution is
+In many practical applications, like in our case of motion planning for
+autonomous vehicles, the time that is available to obtain a solution is
 limited. Hence, it is not essential to obtain the best solution. This is the
 main motivation for the development of so-called heuristics, which discard the
 optimality guarantee in favor of speed. In other words, we want a good
@@ -2094,7 +2240,7 @@ currently best known feasible solution, the subtree at that node is pruned.
 We show how to reformulate the crossing time scheduling
 problem~\eqref{eq:C} into the form~\eqref{eq:MILP}. Note that we
 only have to rewrite the disjunctive constraints~\eqref{eq:disjunctive}. For
-each conflict $\{i,j\} \in \mathcal{D}$, this constraints essentially encodes
+each conflict $\{i,j\} \in \mathcal{D}$, this constraint essentially encodes
 the crossing order of $i$ and $j$, i.e., whether $i$ crosses the intersection
 before $j$, or vice versa.
 %
@@ -2309,7 +2455,7 @@ For every conjunctive pair $(i,j) \in \mathcal{C}$, we introduce a binary
 variable $b_{ij} \in \{0, 1\}$, which must satisfy
 \begin{align*}
   b_{ij} = 0 &\iff y_{i} + \rho < a_{j} , \\
-  b_{ij} = 1 &\iff y_{i} + \rho = a_{j} .
+  b_{ij} = 1 &\iff y_{i} + \rho \geq a_{j} .
 \end{align*}
 This can be enforced using the big-$M$ method, by adding the constraints
 \begin{align*}
@@ -2408,14 +2554,14 @@ It is clear that both types of cutting planes provide some runtime improvement, 
   \centering
   \begin{subfigure}[b]{1.0\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{../single/figures/milp-bench-small.pdf}
+    \includegraphics[width=\textwidth]{../single/results/figures/milp-bench-small.pdf}
     \caption{Small instances with 40 vehicles in total.}%
     \label{fig:a}
   \end{subfigure}
   \par\vspace{2em}
   \begin{subfigure}[b]{1.0\textwidth}
     \centering
-    \includegraphics[width=\textwidth]{../single/figures/milp-bench-large.pdf}
+    \includegraphics[width=\textwidth]{../single/results/figures/milp-bench-large.pdf}
     \caption{Large instances with 60 vehicles in total.}%
     \label{fig:b}
   \end{subfigure}
@@ -2737,6 +2883,7 @@ The discussion so far can be concisely summarized as:
   for~\eqref{eq:C''} such that $y = y(\mathcal{O})$.
 \end{proof}
 
+\clearpage
 \subsection{Ordering vehicles and routes}
 
 The disjunctive graph representation was helpful in deriving the results above,
@@ -2981,22 +3128,56 @@ literature~\cite{sorensenMetaheuristicsMetaphorExposed2015}.
 
 \chapter{Learning to schedule}\label{chap:single-learning}
 
-Recent research has increasingly explored the use of machine learning (ML)
-techniques for tackling combinatorial optimization (CO) problems.
+Recent years have seen increased interest for using machine learning (ML)
+techniques to tackle combinatorial optimization (CO) problems.
 %
-This chapter begins with an overview of the main ideas and methods in this area,
+The main underlying motivation is that combinatorial problems contain structure
+that is difficult to formalize precisely, and the hope is that learning
+algorithms can help with discovering, encoding and exploiting these structures
+algorithmically.
+
+This chapter begins with a very brief survey of the main ideas and methods in
+this relatively new area of research.
 %
-Based on this, the rest of this chapter details our own version of this
-methodology for solving the crossing time problem introduced in~\Cref{chap:single}.
+The rest of this chapter details our own version of this methodology for solving
+the crossing time problem introduced in~\Cref{chap:single}. Our main idea is to
+encode a step-by-step scheduling approach as a Markov decision process, which we
+then try to solve using tools from the reinforcement learning literature.
 
 \section[Combinatorial learning]{Combinatorial learning}
+
+\newcolumntype{L}[1]{>{\RaggedRight\hsize=#1\hsize\hspace{0pt}}X}
+\begin{table}[!b]
+\centering
+\renewcommand{\arraystretch}{1.2}
+
+\caption{Some key references on combinatorial learning.}%
+\label{tab:ml-co-literature}
+\begin{adjustbox}{center}
+\scalebox{0.8}{
+\begin{tabularx}{1.35\textwidth}{@{} l L{0.5} L{1.5} @{}}
+\toprule
+\textbf{Reference} &
+\textbf{Problem focus} &
+\textbf{Contribution / Method} \\
+\midrule
+\citet{bengioMachineLearningCombinatorial2020} & General CO problems & Survey on using ML for CO, framing the learning problem \\
+\citet{mazyavkinaReinforcementLearningCombinatorial2020} & General CO problems & Survey on using ML for CO, with a focus on reinforcement learning \\
+\citet{daiLearningCombinatorialOptimization2018} & Graph problems & Deep RL with graph embeddings to construct solutions \\
+\citet{vinyalsPointerNetworks2017a} & TSP & Pointer networks for sequence-based combinatorial problems \\
+\citet{koolAttentionLearnSolve2019} & Routing problems & Attention model trained with RL for solving TSP, VRP \\
+\citet{gasseExactCombinatorialOptimization2019} & MILP & Approximate strong branching policy with GNNs in branch-and-bound \\
+\citet{tangReinforcementLearningInteger2020} & ILP & Attention-based model for cutting plane selection trained with RL \\
+\citet{gravesNeuralTuringMachines2014} & General computation & Neural turing machine as a differentiable model of computation \\
+\bottomrule
+\end{tabularx}}
+\end{adjustbox}
+\end{table}
 
 Some key publications on which the following discussion is based are collected in
 Table~\ref{tab:ml-co-literature}.
 %
-The presentation here draws inspiration and notation from
-\cite{bengioMachineLearningCombinatorial2020} to formalize the algorithm
-optimization problem.
+The following presentation draws heavily from \cite{bengioMachineLearningCombinatorial2020}.
 
 \paragraph{Combinatorial optimization.}
 In typical CO problems, we try to find some the best option from some set of
@@ -3007,7 +3188,7 @@ graph, like in the traveling salesman problem; selecting some optimal subset,
 like in the knapsack problem or set cover problem; or selecting the best
 sequence in which machines are assigned to pending jobs, as in job-shop
 scheduling.
-%
+
 Generally speaking, we can think of CO problems as being concerned with finding
 an optimal configuration vector $v \in V$ from a finite set of candidates, such
 that some objective function $f : V \rightarrow \mathbb{R}$ is minimized.
@@ -3039,33 +3220,6 @@ solutions should look like.
 %
 This very much applies to so-called \emph{local search} algorithms.
 
-\newcolumntype{L}[1]{>{\RaggedRight\hsize=#1\hsize\hspace{0pt}}X}
-\begin{table}
-\centering
-\renewcommand{\arraystretch}{1.2}
-
-\begin{adjustbox}{center}
-\scalebox{0.8}{
-\begin{tabularx}{1.4\textwidth}{@{} l L{0.5} L{1.5} @{}}
-\toprule
-\textbf{Reference} &
-\textbf{Problem focus} &
-\textbf{Contribution / Method} \\
-\midrule
-\citet{bengioMachineLearningCombinatorial2020} & General CO problems & Survey on using ML for CO, framing the learning problem \\
-\citet{mazyavkinaReinforcementLearningCombinatorial2020} & General CO problems & Survey on using ML for CO, with a focus on reinforcement learning \\
-\citet{daiLearningCombinatorialOptimization2018} & Graph problems & Deep RL with graph embeddings to construct solutions \\
-\citet{vinyalsPointerNetworks2017a} & TSP & Pointer networks for sequence-based combinatorial problems \\
-\citet{koolAttentionLearnSolve2019} & Routing problems & Attention model trained with RL for solving TSP, VRP \\
-\citet{gasseExactCombinatorialOptimization2019} & MILP & Approximate strong branching policy with GNNs in branch-and-bound \\
-\citet{tangReinforcementLearningInteger2020} & ILP & Attention-based model for cutting plane selection trained with RL \\
-\citet{gravesNeuralTuringMachines2014} & General computation & Neural turing machine as a differentiable model of universal computation \\
-\bottomrule
-\end{tabularx}}
-\end{adjustbox}
-\caption{Some key references on combinatorial learning.}%
-\label{tab:ml-co-literature}
-\end{table}
 
 \paragraph{Motivation.}
 Two main motivations for applying ML for solving CO problems can be identified
@@ -3112,7 +3266,7 @@ solutions and training data for a machine learning model~\cite{bengioMachineLear
 This training data is used to fit a machine learning model and the hope is that
 it somehow captures model structure, similar to how we as humans develop
 intuition about the problem.
-%
+
 In what follows, we will make this notion more precise by presenting the process
 of designing algorithms for CO problems as an optimization problem in and of
 itself.
@@ -3162,7 +3316,7 @@ similar problems.
 %
 To model the relative occurence and/or importance of problems, we can induce a
 probability distribution $P$ over $\mathcal{I}$.
-%
+
 To illustrate this, imagine some delivery company in Eindhoven that needs to
 solve many instances of the vehicle routing problem (VRP) every day~\cite{bengioMachineLearningCombinatorial2020}. The
 problems they encounter are often similar in some sense: many customers are
@@ -3220,10 +3374,10 @@ our disposal, then we could approximate~\eqref{eq:max-expected-performance} by s
     For example, the Dommel river does not have such a large influence on the
     connectivity in Eindhoven compared to that of the St. Lawrence River.
     Furthermore, Eindhoven has some sort of circular connectivity due to the
-    ring road, whereas large parts of Montreal are fairly Manhattan-like. It
-    should be clear that statements like these are very cumbersome to formalize
-    precisely, which is one of the main motivations for exploring how machine
-    learning can be applied to such problem settings.}\label{fig:problem-distribution}
+    ring road, whereas large parts of Montreal are fairly Manhattan-like.
+    Statements like these are clearly cumbersome to formalize precisely, which
+    is one of the main motivations for employing techniques from machine
+    learning.}\label{fig:problem-distribution}
 \end{figure}
 
 
@@ -3231,17 +3385,19 @@ our disposal, then we could approximate~\eqref{eq:max-expected-performance} by s
 To make the algorithm optimization idea outlined above more concrete, we first
 need to fix a suitable representation for the set of algorithms $\Pi$. In
 principle, we could take $\Pi$ to consist of all possible C programs, or all
-Python programs, for example. However, real-world code runs on a complex stack
-of compilers, interpreters, and other complicating factors like hardware
-optimizations. Therefore, it might be more desirable to work with simplified
-models of computation. A common modeling choice in the ML for CO literature is
-to represent algorithms as policies for Markov decision processes (MDPs). This
-perspective naturally connects algorithm optimization to reinforcement learning
-methods, which many existing works indeed
-leverage~\cite{mazyavkinaReinforcementLearningCombinatorial2020,daiLearningCombinatorialOptimization2018,koolAttentionLearnSolve2019}.
-In what follows, we show how the MDP framework arises naturally as a model of
-computation and explain why it provides a particularly useful abstraction within
-the contex of algorithm optimization.
+Python programs, for example.
+%
+However, real-world code runs on a complex stack of compilers, interpreters, and
+other complicating factors like hardware optimizations. Therefore, it might be
+more desirable to work with simplified models of computation.
+
+A common modeling choice in the ML for CO literature is to represent algorithms
+as policies for Markov decision processes (MDPs). This perspective naturally
+connects algorithm optimization to reinforcement learning methods, which many
+existing works indeed leverage~\cite{mazyavkinaReinforcementLearningCombinatorial2020,daiLearningCombinatorialOptimization2018,koolAttentionLearnSolve2019}. In what follows, we
+show how the MDP framework arises naturally as a model of computation and
+explain why it provides a particularly useful abstraction within the contex of
+algorithm optimization.
 
 \subsection{Modeling a class of learnable algorithms}
 
@@ -3271,7 +3427,7 @@ Let $\mathcal{A}$ denote the finite non-empty set of \emph{actions}\footnote{Not
 and let $p : \mathcal{S} \times \mathcal{A} \to \mathcal{S}$ be some
 \emph{transition function} that specifies the next state when a particular
 action is chosen.
-%
+
 In this context, an algorithm can be viewed as a \emph{policy} function
 $\pi : \mathcal{S} \rightarrow \mathcal{A}$ that provides the action to be taken
 from each state.
@@ -3304,6 +3460,7 @@ class of algorithms.
 The algorithm designer can choose to use a very general automaton, similar to a
 Turing machine, or incorporate prior knowledge and intuition by carefully
 crafting a more restricted state space.
+
 % example: local search
 To illustrate this, suppose we let the state space represent all possible
 permutations of nodes in a traveling salesman problem, then $\Pi$ would
@@ -3332,7 +3489,7 @@ Therefore, we now write
 %
 This generalization turns the automaton into a finite-horizon MDP, with $r = {-c}$
 taking the role of final reward function.
-%
+
 To take into account the additional stochasticity this introduces, we can generalize the algorithm development objective~\eqref{eq:max-expected-performance} to
 \begin{align}\label{eq:max-mdp-performance}
   \max_{\pi \in \Pi} \mathbb{E}_{\omega \sim P} \left[ \, \mathbb{E}_\pi \left[ r(s_f^\pi) \mid \omega \right] \, \right] ,
@@ -3340,12 +3497,37 @@ To take into account the additional stochasticity this introduces, we can genera
 where the inner expectation corresponds to the randomness of policy evaluation
 in the MDP, because $s_f^\pi$ is now a random variable.
 
-\paragraph{\textit{Algorithm as MDP} framework.}
+\paragraph{Constraint satisfaction with neural networks.}
 
-We now summarize the algorithm optimization paradigm, outlined above, by listing
-the main components of the MDP and their modeling role:
+A major challenge when using neural networks to parameterize policies is
+constraint satisfaction, or in other words, making sure valid actions are
+selected. For example, solutions produced by neural policies need
+to satisfy the constraints of the original combinatorial problem.
+%
+This issue has led to the development of neural network components whose outputs
+satisfy some specific type of constraint, for example: being a permutation of
+the input, for which the paper on \emph{pointer
+  networks}~\cite{vinyalsPointerNetworks2017a} is a seminal example.
 
+Recent works focus more heavily on using some sort of correction mechanism. For
+example, the DC3 framework~\cite{dontiDC3LearningMethod2021} employs two
+differentiable processes, completion and correction, to solve any violations of
+equality or inequality constraints, respectively. The more recent HardNet
+framework~\cite{minHardConstrainedNeuralNetworks2024} uses a closed-form
+projection to map to feasible solutions under affine constraints and relies on a
+differentiable convex optimization solver (e.g.,
+OptNet~\cite{amosOptNetDifferentiableOptimization2021a}) when general convex
+constraints are considered.
+
+\pagebreak
+\paragraph{``Algorithm as MDP policy''.}
+
+We summarize the algorithm optimization paradigm outlined above, by listing the
+main components of the MDP and their modeling role:
+
+\vspace{1em}
 \begin{mdframed}
+\vspace{1em}
 \begin{enumerate}[label=$\bullet$,leftmargin=2.5em,rightmargin=4em,midpenalty=5]
   \item The \textbf{state space} models all configurations of the \emph{internal state}
         of the algorithm. These may correspond to hand-crafted, problem-specific
@@ -3364,6 +3546,7 @@ the main components of the MDP and their modeling role:
         maximizes~\eqref{eq:max-mdp-performance}. Stochastic policies are
         considered during optimization for technical reasons.
 \end{enumerate}
+\vspace{1em}
 \end{mdframed}
 
 \section{Constructive scheduling}\label{sec:MDP}
@@ -3602,7 +3785,7 @@ telescoping sum
 where we used the properties of $\beta_i$ outlined above. Hence, maximizing the
 episodic reward corresponds to minimizing the delay objective of~\eqref{eq:D}.
 
-\begin{figure}
+\begin{figure}[p]
   \centering
 \begin{tikzpicture}[arrow/.style={-latex}]
     \node[anchor=south west, inner sep=0] (img) at (0,0)
@@ -3642,19 +3825,18 @@ episodic reward corresponds to minimizing the delay objective of~\eqref{eq:D}.
 \paragraph{Joining single-instance MDPs.}
 
 Observe that the state space is a union of disjoint sets
-\begin{align}
-  \label{eq:8}
+\begin{align*}
   \mathcal{S}^\omega = \{(\omega, \varnothing)\} \sqcup \mathcal{S}_1^\omega \sqcup \mathcal{S}_2^\omega \sqcup \dots \sqcup \mathcal{S}_N^\omega ,
-\end{align}
+\end{align*}
 where each $\mathcal{S}_t^\omega = \{\omega\} \times E_t$ denotes the set of all possible
 partial schedules that can be obtained from $(\omega, \varnothing)$ after scheduling
 exactly $t$ vehicles.
 %
 Further, suppose we have two distinct problem instances $\omega_1 \neq \omega_2$, then we
 clearly have
-\begin{align}
+\begin{align*}
   \mathcal{S}^{\omega_1} \cap \mathcal{S}^{\omega_2} = \varnothing .
-\end{align}
+\end{align*}
 %
 Given some set of instances $\mathcal{I}$ such that each $\omega \in \mathcal{I}$ has
 the same set of routes $\mathcal{R}$, we can consider the following \emph{joint state space}
@@ -3715,6 +3897,7 @@ Figure~\ref{fig:mdp-episode}.
 %   stop and continue to the next route.
 % \end{remark}
 
+\clearpage
 \subsection{Combinatorial learning objective}
 
 For the MDP defined above, we now define the learning objective in terms of
@@ -3794,12 +3977,18 @@ policies is general enough, in the sense that it contains optimal policies.
 
 \section{Efficient policy parameterization}
 
-After the definition of the MDP itself, the way we parameterize the class of
-admissible policies is the second way of incorporating prior knowledge into the
-learning pipeline.
+With the definition of the MDP, the way we parameterize the class of admissible
+policies is the second way of incorporating prior knowledge into the learning
+pipeline.
+%
+Before we present two types of concrete policy parameterizations, we first discuss some redundancy in the state space of the initial definition of $\mathcal{M}_\mathrm{constr}$.
 
+
+\subsection{State abstraction function}
 After a closer look at $\mathcal{M}_\mathrm{constr}$, we identify some sort of
 symmetry in the state space.
+%
+Such redundancy can potentially hamper our ability to find a good policy.
 %
 Instead of redefining the MDP, it will be convenient to address this redundancy
 through a \emph{state abstraction function}, which maps states that are, in some sense,
@@ -3829,24 +4018,23 @@ operations:
 \begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{../single/figures/abstract.pdf}
-  \caption{Two states of the constructive scheduling MDP that are equivalent
-    with respect to optimal completion, because they only differ by a fixed
-    shift of time. It can be shown that any optimal completion of the above
-    partial schedule is also optimal for the lower one.}%
+  \caption{Two states of $\mathcal{M}_\mathrm{constr}$ that only differ by a
+    fixed shift of time. They are equivalent with respect to optimal
+    completions: it can be shown that any sequence of actions that optimally
+    completes the upper partial schedule would also optimally complete the lower
+    one.}%
   \label{fig:abstract}
 \end{figure}
 
-\subsection{State abstraction function}
 Let $s = (\omega, \eta)$ be some state of $\mathcal{M}_\mathrm{constr}$.
 % notation
 Let $\mathcal{N}(s)$ denote the index set of the problem instance and let
-$n_r(s)$ and $k_r(s)$ denote the total number vehicles and the number of
+$n_r(s)$ and $k_r(s)$ denote the total number of vehicles and the number of
 scheduled vehicles on route $r$, respectively. Furthermore, let $\nu(s)$ denote
 the unique vehicle order corresponding to the current route order $\eta$.
 
-
-We define the \emph{abstract state mapping}
-$\phi : \mathcal{S} \rightarrow \mathcal{S}$ by directly constructing $\phi(s)$.
+We define the \emph{abstract state mapping} $\phi : \mathcal{S} \rightarrow \mathcal{S}$ by showing
+how to construct the abstract state $\phi(s)$.
 %
 The abstract state is an empty instance
 $\phi(s) = ((\bar{a}, \rho, \sigma), \varnothing)$ with index set
@@ -3862,18 +4050,21 @@ Let $\{ \beta_i(s) : i \notin \nu(s) \}$ be the set of lower bounds of all
 unscheduled vehicles. Among these lower bounds, let $\beta^{(1)}(s)$ and
 $\beta^{(2)}(s)$ denote the smallest and second smallest, respectively.
 %
-Define the arrivals times by time-shifting the lower bounds by
-\begin{subequations}
+Define the time
 \begin{align}
-  c(s) &:= \min \{ \beta^{(1)}(s), \beta^{(2)}(s) - \delta \} , \\
+  c(s) &:= \min \{ \beta^{(1)}(s), \beta^{(2)}(s) - \delta \} ,
+\end{align}
+%
+which can be interpreted as some kind of \emph{current time} of the
+partial schedule.
+Define the arrivals times by time-shifting the lower bounds by
+\begin{align}
   \bar{a}_i(s) &:= \beta_i(s) - c(s) \quad \text{ for all } i \in \bar{\mathcal{N}}(s) .
 \end{align}
-\end{subequations}
-
 
 \begin{theorem}
   Let $\pi^* \in \Pi_\mathrm{p}$ be some optimal policy for~\eqref{eq:MDP}, then
-  there exists some function $f : \mathcal{S} \rightarrow \mathcal{S}$ such that
+  there exists some function $f : \mathcal{S} \rightarrow \mathcal{A}$ such that
   $\pi^* = f \circ \phi$.
 \end{theorem}
 \begin{proof}[Proof (sketch)]
@@ -3885,15 +4076,15 @@ Define the arrivals times by time-shifting the lower bounds by
     \phi(p(s_1, a)) = \phi(p(s_2, a)) ,
   \end{align*}
   which shows that $\phi$ is a model-irrelevant state abstraction, see
-  Definition 3 in~\cite{liUnifiedTheoryState}, then Theorem 3 of the same paper
+  Definition 3 in~\cite{liUnifiedTheoryState2006}, then Theorem 3 of the same paper
   guarantees the existence of $f$. The same result can also be established using
   the more general framework of MDP
   homomorphisms~\cite{ravindran2001symmetries}.
 \end{proof}
 
-Next, we provide two suggestions for parameterizing $f$.
+Next, we provide two suggestions for parameterizing this function $f$.
 
-\subsection{Platoon preservation: threshold heuristics}
+\subsection{Guaranteed platoon preservation with threshold heuristics}\label{sec:threshold}
 
 Let $s_t$ denote the current partial schedule and assume that it is
 not an initial state, so $t \geq 1$. Let the vehicle that was scheduled in the
@@ -3978,9 +4169,9 @@ The following property is straightforward to verify from this definition.
 
 Given some set of instances $D_\mathrm{train}$, we approximate the best
 parameter $\tau^*$ through a simple grid search by selecting $K$ evenly spaced
-$\tau_k \in [\tau_{\min}, \tau_{\max}]$ and evaluating
+$\{\tau_k \} \subset [\tau_{\min}, \tau_{\max}]$ and evaluating
 \begin{align*}
-  \tau^* := \argmax_{\tau_k} \sum_{\omega \in D_\textrm{train}} R(\eta(\omega, \pi_{\tau_k})) .
+  \tau^* := \argmax_{\tau \in \{\tau_k\}} \sum_{\omega \in D_\textrm{train}} R(\eta(\omega, \pi_{\tau})) .
 \end{align*}
 %
 Alternatively, we could use some derivative-free optimization method like Brent's method.
@@ -4009,60 +4200,87 @@ Alternatively, we could use some derivative-free optimization method like Brent'
 % \end{proposition}
 
 
-\subsection{Further generalization: recurrent neural embedding}\label{sec:neural-param}
+\subsection{More freedom with neural parameterizations}\label{sec:neural-param}
 
-Instead of manually trying to develop a good parameterization of $f$, we will
-weaken our prior by considering a simple neural parameterization.
+Given the recent successes of combinatorial learning, as surveyed at the
+beginning of this chapter, it seems a natural to parameterize $f$ using a neural
+network model.
 %
-Instead of only considering the first unscheduled vehicle on each route, we now
-propose a parameterization that takes into account the sequence of relative
-lower bounds of unscheduled vehicles as follows.
-%
-Let $\bar{n}_r$ denote the number of unscheduled vehicles in $s$, such that
-$\bar{\mathcal{N}}(s)$ contains precisely $\bar{n}_r$ vehicles on route $r$,
-which we denote as
-%
+This frees us from the task of manually trying to develop a good
+parameterization of $f$ and opens up the possibilities of finding structure in
+problem instances. By using a neural parameterization, we weaken the amount of
+prior we put in the policy, in some sense.
+
+\paragraph{Neural architecture.}
+
+Recall that each abstract state is determined by the set of route arrival
+sequences
 \begin{align}
-  \bar{a}_r := \{ \bar{a}_{rk} : 1 \leq k \leq \bar{n}_r \} .
+  \bar{a}_r := \{ \bar{a}_{rk} : 1 \leq k \leq \bar{n}_r \} ,
 \end{align}
+for each $r \in \mathcal{R}$, where $\bar{n}_r$ denotes the number of
+unscheduled vehicles on this route.
 %
-Each of these \emph{route sequences} $\bar{a}_r$ is encoded by a recurrent
-neural network $f^{\mathrm{RNN}}_\theta$ to produce a \emph{route embedding}
-$f^{\mathrm{RNN}}_\theta(\bar{a}_r)$.
+A straightforward way would be to just take the flattened vector $\bar{a}$ as
+input and consider a fully connect neural network
+$f^{\mathrm{full}}_\theta(\bar{a})$.
 %
-The concatenation of these route embeddings is fed through a fully connected
-layer $f^{\mathrm{full}}_\theta$ and softmax to produce a distribution over
-routes.
+Alternatively, we could for example encode each sequence $\bar{a}_r$ using a
+recurrent neural network $f^{\mathrm{RNN}}_{r,\theta}$ to produce a \emph{route
+  embedding} $f^{\mathrm{RNN}}_{r,\theta}(\bar{a}_r)$.
+%
+The concatenation of these route embeddings is then fed through a fully connected
+layer $f^{\mathrm{full}}_\theta$.
+%
+In both cases, we need a final softmax layer to produce logits that encode a
+probability distribution over actions.
 
-This means that we will explicitly consider stochastic policies, which is
-numerically attractive.
+
+\paragraph{Gradient-based parameter optimization.}
+Regardless of the precise architecture, a neural parameterization has generally
+many parameters, which we will denote as the vector $\theta$. Obviously, a
+simple grid search is no longer tractable.
 %
-We could call this policy the \emph{training policy} $\pi_\theta$.
+In order to use gradient-based parameter optimization, we will explicitly
+consider stochastic policies. This ensures that the gradient of the expected
+return in~\eqref{eq:MDP} with respect to $\theta$ is properly defined.
 %
-However, note that eventually want a deterministic \emph{target policy} $\pi_\mathrm{d}$. Hence,
-we need to specify how to make the training policy deterministic again. We will
-use the following simple greedy action selection. Let
-$\pi = f \circ \phi : \mathcal{S} \rightarrow \Delta(A)$ be some stochastic
+We call the stochastic policy the \emph{training policy} $\pi_\theta$.
+%
+Note that eventually want a deterministic \emph{target policy} $\pi_\mathrm{d}$.
+This means that we need to specify some way to make the training policy deterministic again.
+One way would be to use the following simple greedy action selection.
+%
+Let $\pi = f \circ \phi : \mathcal{S} \rightarrow \Delta(A)$ be some stochastic
 policy, then let $\pi_\mathrm{d} : \mathcal{S} \rightarrow \mathcal{A}$ be
 defined as
 \begin{align} 
   \pi_\mathrm{d}(s) = \max_{a \in \mathcal{A}(s)} \pi(a | s).
 \end{align}
 
+
 \paragraph{Imitation learning.}
 
-The simplest method to find $\theta$ is to use an \emph{imitation learning} approach.
+When we have access to some \emph{expert policy}, which we know performs well on
+the task at hand, a natural strategy is to try to imitate its behavior.
 %
-First, we collect \emph{expert demonstration} by taking some instance from the
-distribution of interest and replaying an optimal route sequence on the MDP,
-while keeping track of the visited states. This results in a set of state-action
-pairs for which we can consider a simple prediction task, which we will now make
-precise.
+In our case, we can use integer programming to solve problems to optimality, so
+it is an \emph{expert} in some sense.
+%
+The way integer programming solvers operate does not immediately fit our
+constructive scheduling scheme, but we can simply \emph{backtrack} the states
+and actions that are necessary to construct the optimal schedule.
+%
+By sampling some instance from the distribution of interest and replaying an
+optimal route sequence on the MDP, while keeping track of the visited states.
+This results in a set of state-action pairs. We are now in the usual supervised
+learning setting, where we need to choose the parameters $\theta$ such that our
+policy best fits this set of training data.
 
-Let $\mathcal{I}_\mathrm{train}$ be some set of training instances. For each
-$\omega \in \mathcal{I}_\mathrm{train}$, let $\eta^\omega$ denote some optimal
-route sequence, which we can be found, for example, by solving~\eqref{eq:C'},
-and let $N(\omega)$ denote the total number of vehicles in $\omega$.
+Let $\mathcal{I}_\mathrm{train}$ be some sample of training instances. For each
+$\omega \in \mathcal{I}_\mathrm{train}$, let $\eta^\omega$ denote some optimal route sequence,
+which can be found by solving~\eqref{eq:C'} using integer programming, and let $N(\omega)$
+denote the total number of vehicles in $\omega$.
 %
 For each $\omega \in \mathcal{I}_\mathrm{train}$, we let
 $\mathcal{M}_\mathrm{constr}$ start in $s_0 = (\omega, \varnothing)$ and we
@@ -4082,38 +4300,71 @@ cross entropy loss
 where $\pi_\theta(a | s) \in [0,1]$ denotes probability assigned to action $a$
 by the policy.
 
-
-
 \paragraph{Policy-gradient optimization.}
 
-The above method relies on the ability to compute optimal schedules in the first
-place. For very large instances, this is not possible in reasonable time.
-Therefore, it is attractive to consider a method that is based on sampling from
-the MDP. These kinds of policy-gradient methods rely on the fundamental Policy
-Gradient Theorem.
+The imitation learning method relies on our ability to compute optimal
+schedules. This assumption fails to hold relatively quickly, once we start
+considering reasonably sized instances, which means that we do not have an
+expert to rely on.
 %
-Define
+A central aim in the field of reinforcement learning is to automatically
+discover good behavior from direct interaction with the system. In other words,
+the goal is to \emph{learn from experience} rather than from demonstration.
+
+Concretely, this means that we pick some initial $\theta$, execute $\pi_\theta$
+on $\mathcal{M}_\mathrm{constr}$ a few times, evaluate how good the resulting
+schedules turned out to be, and update $\theta$ such that it hopefully goes
+better next time.
+%
+The magic is really in the last step: how can we change $\theta$ a little bit
+such that $\pi_\theta$ improves?
+
+A large part of the answer to this central question is given by the
+fundamental Policy Gradient Theorem, see for
+example~\cite{suttonReinforcementLearningIntroduction2018}.
+%
+Recall our learning objective~\eqref{eq:MDP}, and consider the expected reward
 \begin{align}
-  J(\theta) := \mathbb{E}_{\omega \sim P}[R(\eta(\omega, \pi_\theta))] 
+  J(\theta) := \mathbb{E}_{\omega \sim P}[R(\eta(\omega, \pi_\theta))] ,
 \end{align}
-which is the expected reward of $\mathcal{M}_\mathrm{constr}$, when sampling the
-initial state according to $P$.
-Note that the expectation is also taken over the random actions of our training policy.
+as a function of the parameter $\theta$. Note that the expectation is taken
+over random instance samples as well as the random behavior of the policy.
 %
-The policy gradient theorem essentially tells us that we can use samples of an
-episode $\tau = (s_0, \eta_1, r_1, s_1, \dots, s_N, r_N)$ to estimate the gradient as
+The Policy Gradient Theorem essentially tells us that we can use samples of an
+episode $\tau = (s_0, \eta_1, r_1, s_1, \dots, s_N, r_N)$ to estimate the gradient of
+the average reward with respect to the parameter as
 %
-\begin{align}
+\begin{align}\label{eq:grad}
   \nabla_\theta J(\theta) &\propto \mathbb{E}_{\omega \sim P, \tau \sim \pi_\theta} \left[ \sum_{t=0}^{N-1} \nabla_\theta \log \pi_\theta(\eta_{t+1} | s_{t}) \sum_{t'=t+1}^{N} r_{t'}  \right]  .
 \end{align}
+%
+We can use this gradient approximation $\widetilde{\nabla_\theta J}$ to take a
+little step in the direction in parameter space to increase the expected
+performance, i.e., we perform the \emph{gradient ascent} update
+\begin{align*}
+  \theta \leftarrow \theta + \alpha \widetilde{\nabla_\theta J} ,
+\end{align*}
+for some small learning rate $\alpha > 0$.
+%
+A well-known manifestations of this approach is the classical REINFORCE
+algorithm.
 
-A well-known manifestations of this sampling approach is the classical REINFORCE
-with baseline algorithm. However, our current purpose is not to understand the
-fundamentals of policy-gradient algorithms, but rather to investigate the
-feasibility of this approach in general. Hence, we will use the modern and very
-popular Proximal Policy Optimization (PPO) algorithm~\cite{schulmanProximalPolicyOptimization2017}.
+In practice, the gradient estimate~\eqref{eq:grad} suffers from a lot of
+variance, which may hamper convergence.
+%
+% A classical way to prevent this is to use a so-called baseline estimate.
+%
+Much later work can be seen as ways of tackling this issue.
+%
+Our current purpose is not to understand the fundamentals of policy-gradient
+algorithms in general, but rather to investigate the feasibility of this
+approach in general. We will use the modern and popular Proximal Policy
+Optimization (PPO) algorithm~\cite{schulmanProximalPolicyOptimization2017}. Very roughly speaking, this method keeps
+the updated policy close to the current policy, by limiting how far the gradient
+ascent step updates the parameter.
 
-
+\addtocontents{toc}{\protect\pagebreak}
+% \addtocontents{toc}{\protect\vspace*{2em}}
 \section{Results and discussion}\label{sec:results}
 
 In this section, we evaluate the quality of the heuristics proposed above by
@@ -4122,13 +4373,17 @@ presenting some numerical results on randomly generated problem instances.
 \subsection{Experimental setup}
 
 % performance metrics: optimality, training time, eval (inference) time
-The evaluation is based on two aspects. Of course, the quality of the produced
-solutions is important. Second, we need to take into account the time that the
-algorithm requires to compute the solutions. We need to be careful here, because
-some of our methods involve both training time as well as inference time.
+Algorithm performance is evaluated based on two aspects. Of course, the
+quality of the produced solutions is important. Second, we need to take into
+account the time that the algorithm requires to compute the solutions. We need
+to be careful here, because some of our methods involve both training time as
+well as inference time; the main benefit of learned heuristics lies in the fact
+that trade of longer training time, which is spend only once, for shorter
+inference time.
+
 % measure generalization w.r.t. instance size and structure
-Furthermore, we will evaluate generalization of learned policies along the axis
-of instance size and the axis of instance structure.
+% Furthermore, we will evaluate generalization of learned policies along the axis
+% of instance size and the axis of instance structure.
 
 % instance size
 \paragraph{Instance size.}
@@ -4204,12 +4459,14 @@ parameters.
 We fix two route arrival distributions $F_\mathrm{low}$ and $F_\mathrm{high}$,
 modeling arrivals with low and high chance of vehicles occuring in platoons; we
 achieve this by letting the interarrival times be distributed according
-to~\eqref{eq:mixture} with parameters as given in~Table~\ref{tab:distributions}.
+to~\eqref{eq:mixture} with parameters:
+% in~Table~\ref{tab:distributions}.
 
-\begin{table}[h]
-  \caption{Two fixed route arrival distributions with the same arrival
-    intensity.}\label{tab:distributions}
-  \centering
+% \begin{table}[h]
+  % \caption{Two fixed route arrival distributions with the same arrival
+  %   intensity.}\label{tab:distributions}
+  % \centering
+ \begin{center}
   \begin{tabular}{l S[table-format=2.1] S[table-format=2.1] S[table-format=2.1]}
     \multicolumn{1}{c}{$F$} & \multicolumn{1}{c}{$p$} & \multicolumn{1}{c}{$\mu_s$} & \multicolumn{1}{c}{$\mu_l$} \\
     \midrule
@@ -4217,122 +4474,216 @@ to~\eqref{eq:mixture} with parameters as given in~Table~\ref{tab:distributions}.
     % $F_\mathrm{med}$  & 0.3 & 0.1 &  7.17 \\
     $F_\mathrm{high}$ & 0.1 & 0.1 &  5.6
   \end{tabular}
-\end{table}
+ \end{center} 
+% \end{table}
 
-\subsection{Experiments}
+\paragraph{Performance measures.}
 
 We study the effect of problem distribution $P(\mathcal{I})$ by varying $R$,
 $n$ and $F$.
 %
-Given some problem instance $\omega \sim P$, let $\eta^{*}$ denote some optimal route
-order, which we compute by solving the MILP problem~\eqref{eq:C'}, where we use the two
-cutting planes of~\Cref{sec:cuts}. We use a fixed time limit of two minutes per
-instance for the integer programming, in order to keep the total analysis time
-within reason. Therefore, we might not always be able to obtain the actual
-$\eta^{*}$ some of the larger instances; we use the best solution found by the
-solver as a proxy. Given some $\eta$, we define its \textit{optimality gap} as
+Given some problem instance $\omega \sim P$, let $\eta^{*}$ denote some optimal
+route order, which we compute by solving the MILP problem~\eqref{eq:C'}, where
+we use the two cutting planes of~\Cref{sec:cuts}. We use a fixed time limit of
+two minutes per instance for the integer programming, in order to keep the total
+analysis time within reason. Therefore, we might not always be able to obtain
+the actual $\eta^{*}$ some of the larger instances; we use the best solution
+found by the solver as a proxy. Given some route order $\eta$, we define its
+\textit{optimality gap} as
 \begin{align*}
-  \mathrm{gap}(\omega, \eta) = \frac{R(\omega, \eta) - R(\omega, \eta^*)}{R(\omega, \eta^{*})} .
+  \mathrm{gap}(\omega, \eta) = \frac{R(\omega, \eta) - R(\omega, \eta^*)}{R(\omega, \eta^{*})} ,
 \end{align*}
-For each method $\pi$, we report the average optimality gap
+and for each trained policy $\pi$, which may be stochastic, we report the
+average optimality gap
 \begin{align*}
   \mathrm{gap}(\pi) = \sum_{\omega \in D_\mathrm{test}} \frac{\mathrm{gap}(\omega, \eta^\pi(\omega))}{|D_\mathrm{test}|} , \quad \text{ with } D_\mathrm{test} \sim P(\mathcal{I}) .
 \end{align*}
 
-In Table~\ref{tab:heuristics-results}, we compare the performance of integer programming with the three
-heuristics, being the \emph{threshold heuristic learned with grid search}, the
-\emph{recurrent neural embedding parameterized policy with imitation learning}
-and \emph{neural parameterized policy with policy-gradient optimization}.
+\subsection{Methodological details}
+
+We compare the following four solution methods:
+\begin{enumerate}
+  \item (MILP) For each problem distribution, we solve 50 instance with
+        Mixed-Integer Linear Programming using the
+        Gurobi\footnote{\url{https://www.gurobi.com}} solver with both cutting
+        planes of~\Cref{sec:cuts}. We limit the running time to one minute per
+        instance. We report the average objective $\mathrm{obj}$ of these
+        instances and the average running time $T$ that is actually spend per
+        instance. For the remaining methods, we report the gap with respect to
+        these optimal solutions, as defined above.
+
+  \item (Threshold) We use a grid search to fit the threshold heuristic
+        from~\Cref{sec:threshold} by searching over 20 evenly spaced parameter
+        values between $0$ and $1$. Because inference is so cheap for this
+        heuristic, we use 500 training instances to evaluate the performance of
+        each parameter value.
+
+  \item (Imitation) Expert demonstration is obtained by solving 20 training
+        instances with integer programming, with a running time limit of 20
+        seconds per instance.
+        %
+        We perform imitation learning with the recurrent architecture
+        from~\Cref{sec:neural-param}. The recurrent neural net is shared for
+        each route and has a single hidden state of size 32, with tanh
+        activation. The fully connected network has two layers of size 32, with
+        ReLU activation.
+        %
+        Supervised learning is done in batches of 20, for a total of 2000 steps,
+        using the Adam optimizer and a learning rate of 1e-4.
+
+  \item (PPO) We use the Stable Baselines PPO implementation%
+        %
+        \footnote{\url{https://stable-baselines3.readthedocs.io/en/master/modules/ppo.html}}
+        with the default policy network with ReLU activation.
+        %
+        Training is done for half a million steps.
+\end{enumerate}
+
+Our implementation of $\mathcal{M}_\textrm{constr}$ satisfies the interface of
+the Gymnasium\footnote{\url{https://gymnasium.farama.org}} framework, so it can
+be used with any reinforcement learning implementation that is compatible with
+this.
 %
-The latter does not use our hand-crafted recurrent neural network
-parameterization, but instead uses the default policy network of the stable
-baselines PPO
-implementation\footnote{\url{https://stable-baselines3.readthedocs.io/en/master/modules/ppo.html}}.
+This class \emph{SingleScheduleEnv} also contains a method for rendering the state of
+the partial schedule, which was also used to generate the figures in this
+report.
+%
+The abstract state function $\phi$ is implemented as a Gymnasium wrapper,
+\emph{HorizonObservationWrapper}.
+%
+To avoid invalid actions when some route does not longer have any unscheduled
+vehicles, so when it is done, we also implemented a
+\emph{HorizonRollingWrapper}, that permutes---or ``rolls''---the observation and
+actions in such a way that any action is always valid.
+%
+Due to limited time, we cannot specify more detail here, but it would be
+interesting to verify whether this transformation is also a proper state
+abstraction function.
 
-\paragraph{Interpretation of results.}
+The code is organized in a couple of Jupyter notebooks, which can be found at
+\begin{quote}
+  \url{https://github.com/jeroenvanriel/traffic-scheduling/tree/master/single}
+\end{quote}
+%
+Data classes for instances and schedules, instance generation, and mixed-integer
+programming is implemented in the \emph{basics.ipynb} notebook, so this would be a
+good starting point to explore the code.
+%
+The implementation of $\mathcal{M}_\textrm{constr}$ and $\phi$ is found in
+\emph{mdp.py}.
+%
+Experiment orchestration is handled from a single notebook
+\emph{experiments.ipynb}.
+%
+Each method is implemented in its own notebook and we used the
+Jupytext\footnote{\url{https://jupytext.readthedocs.io}} package to expose this
+implementation for reuse in other notebooks. This means that some
+\emph{notebook.ipynb} notebooks are synced to \emph{notebook.py} files, in
+which all cells are exported, except those marked with the \emph{active-ipynb}
+cell tag.
 
-The threshold rule clearly provide a heuristic that is cheap to fit and that works
-well for most problem distributions; there is one outlier of almost 11\%, which
-we cannot really explain.
 
-As expected, the imitation learning heuristic performs always better than
-reinforcement learning (PPO), because it has access to more high-quality data.
+\subsection{Interpretation of results}
+
+Table~\ref{tab:heuristics-results} contains the numerical results for
+intersections with two and three routes, for various numbers of arriving
+vehicles per route and the two route arrival distributions defined above.
+%
+This table took a couple of hours to compute. As can be seen from the table,
+this time is mainly dominated by the integer programming for the six largest
+distributions of instances, for which the time limit is almost always reached.
+%
+We stress that each of the heuristics has an evaluation time of less than a
+second. In other words, we pay the price of the training time once, after which
+the learned fast heuristic can be applied nearly instantly to any unseen
+instance.
+
+\paragraph{Threshold heuristic.}
+The threshold rule clearly provide a heuristic that is cheap to fit and that
+works well for almost all problem distributions.
+%
+This somewhat confirms our initial believe that there is a lot of structure in
+single intersection instances. It also provides some additional verification
+that our definition and implementation of the state abstraction function is
+correct.
+
+\paragraph{Imitation learning and policy-gradient.}
+As expected for small instances, the imitation learning heuristic performs
+always better than policy-gradient optimization, because the former has access
+to more high-quality data.
 %
 It becomes increasingly expensive to compute this expert demonstration for
-larger instances, which is why we did not include imitation learning results for
-the largest two problem distributions.
+larger instances, so we had expected that policy-gradient would eventually
+outperform the imitation learning heuristic for larger instances.
 %
-Although PPO provides a ready-to-use method for distributions with instances of
-any size, its performance clearly degrades for the larger instances.
+Although PPO provides a ready-to-use method that can handle instances of any
+size, its performance clearly degrades for larger instances.
 %
-We hypothesize that our recurrent embedding could provide a better alternative
-to the default policy network of the stable baselines implementation. There was
-not enough time to try this during the current project.
+It is not clear at this moment whether the problem lies in our implementation of
+$\mathcal{M}_\textrm{constr}$ and $\phi$, or in the policy architecture or
+training hyperparameters.
 
-We stress again that each of the heuristics has an evaluation time of less than a second. In other words, we pay the price of the training time once, after which the learned fast heuristic can be applied nearly instantly to any unseen instance.
+We hypothesize that the recurrent embedding of~\Cref{sec:neural-param} could
+provide a better alternative to the default policy network of the Stable
+Baselines implementation.
 %
-Integer programming, on the other hand, does not benefit from this learning,
-which means that it takes the indicated average time for unseen instances.
+We did experiment with this by implementing the recurrent architecture as a
+\emph{custom feature extractor} within the Stable Baselines policy definition,
+see \emph{ppo-learning.ipynb}, but this caused significantly worse convergence
+compared to the defaults.
+%
+Alternatively, constructing a tailored-made critic or value estimate could help
+reduce variance of the gradient estimate, thereby improving convergence.
+%
+We also experimented with a value estimate based on a roll-out of the threshold
+heuristic, which is somewhat similar to a greedy rollout baseline method, see
+Section 4 in~\cite{koolAttentionLearnSolve2019}.
 
-\begin{table}[t]
-  \caption{\emph{Performance comparison of heuristics with respect to integer programming baseline.}
+\begin{sidewaystable}[p]
+  \centering
+  \input{experiments.tex}
+  \captionsetup{width=0.8\linewidth}
+  \caption{%
+    \emph{Performance comparison of heuristics with respect to integer programming baseline.}
     Each row corresponds to a problem distribution, specified by the number of
     vehicles per route $n_r$ and the type of arrival distribution 
     $F_\mathrm{train}$ that is used on all routes.
     %
-    To evaluate the integer programming baseline (MILP), we sample and solve 10 instances to optimality, with a fixed time limit of five minutes per instance.
-    For each distribution, we indicate the average objective (opt) and the average solver time ($T$).
+    To evaluate the integer programming baseline, we sample and solve 50 instances to optimality, with a fixed time limit of one minute per instance.
+    For each distribution, we indicate the average objective opt and the average solver time $T$.
     %
-    For each heuristic, we list the average objective for the 10 test instances (obj), the average optimality gap with respect to the optimal MILP solutions (gap) and the total training time ($T_\mathrm{train}$).
+    For each heuristic, we list the average objective obj for the 50 test instances, the average optimality gap with respect to the optimal MILP solutions and the total training time $T_\mathrm{train}$.
     %
     The lowest gap is highlighted in each row.
     %
-    The evaluation time of heuristics is not listed, because it is less than 1
+    The evaluation time of heuristics is not listed, because it is less than one 
     second in all cases.}\label{tab:heuristics-results}
-\begin{adjustbox}{center}
-\scalebox{0.9}{
-\input{experiments.tex}
-}
-\end{adjustbox}
-\end{table}
+% \begin{adjustbox}{center}
+% \scalebox{1.0}{
+% \input{experiments.tex}
+% }
+% \end{adjustbox}
+\end{sidewaystable}
 
-
-\subsection{Why is stochasticity useful?}
+% \pagebreak
+\subsection{Interpretation of using stochastic policies}
 
 % stochastic transitions
-It might not be immediately clear why we would want to introduce stochasticity in
-a seemingly deterministic problem environment.
+It might seem strange to introduce stochasticity
+in a completely deterministic problem environment.
 %
-We will discuss two reasons why the MDP framework is nevertheless an attractive
-starting point.
-
-First of all, non-deterministic transitions can be used to model certain parts
-of the computation that are too complex to model explicitly.
+Although the final policy should be deterministic, during the optimization
+of~\eqref{eq:max-mdp-performance}, we consider stochastic policies.
 %
-This has for example been done in existing joint methods, in which some part of
-an existing CO solver is augmented by replacing a specific component with a ML
-model.
-%
-For example, we might take some existing integer programming solver as the base
-algorithm, while parameterizing a specific component, say, cutting plane
-selection, as done in~\cite{tangReinforcementLearningInteger2020}.
-%
-In that case, the actions correspond to selecting some valid
-cutting plane, upon which the state transition $p$ models the whole of the
-execution of the solver until the next time a cutting plane has to be selected.
-
-Although the final policy should be deterministic, during the optimization of~\eqref{eq:max-mdp-performance}, stochastic policies might be considered.
-%
-The reasons for this are mainly of a technical nature, for example to promote
-exploration or to make sure the policy gradient exists. Alternatively, we could
-interpret action probabilities as modeling the uncertainty about which actions
-are optimal.
+The reasons for this are mainly of a technical nature: promoting exploration and
+to make sure the policy gradient actually exists.
 %
 In some sense, this is similar to the practice of considering \emph{relaxations}
-when solving integer programs. In the relaxed version of an integer program, the
-integer constraints are removed, which makes it much easier to solve. Of course,
-the final solution must satisfy the integer constraints, so we need some sort of
-\emph{rounding procedure} to return to integer values.
+when solving problems with integer constraints. In the relaxed version of an
+integer program, the integer constraints are removed, which makes it generally
+much easier to solve. Of course, the final solution must satisfy the integer
+constraints, so we need some sort of \emph{rounding procedure} to return to
+integer values.
 %
 Similarly, we eventually want to find an optimal deterministic policy, but we
 relax the ``determinism constraint'' by allowing distributions of actions
@@ -4343,6 +4694,22 @@ called \emph{degenerate}) distributions, for example, by performing greedy
 action selection, or by other search procedures proposed like \emph{active
   search}~\cite{belloNeuralCombinatorialOptimization2017} or \emph{beam
   search}~\cite{koolLearningOptimizationCombinatorial2022}.
+
+More generally, non-deterministic transitions of the MDP have been be used to
+model certain parts of the computation that are too complex to model explicitly.
+%
+This has for example been done in existing joint methods of combinatorial
+learning, in which some part of an existing combinatorial optimization solver is
+augmented by replacing a specific component with a machine learning model.
+%
+For example, we might take some existing integer programming solver as the base
+algorithm, while parameterizing a specific component, say, cutting plane
+selection, as done in~\cite{tangReinforcementLearningInteger2020}.
+%
+In that case, the actions correspond to selecting some valid
+cutting plane, upon which the state transition $p$ models the whole of the
+execution of the solver until the next time a cutting plane has to be selected.
+
 
 
 % \section{Notes and references}
@@ -4362,121 +4729,170 @@ action selection, or by other search procedures proposed like \emph{active
 
 \chapter{Networks of intersections}\label{chap:network-learning}
 
-We now turn to extending the methodology of the previous chapters to networks.
-With some mild assumptions on the paths that vehicles take through the network,
-much of what we have done so far extends to networks of intersections.
-
-\paragraph{Network model.}
-First, we introduce some graph notation to model simple networks of
-intersections with fixed routes. To keep it simple, we assume that routes are
-independent, in the sense that vehicles of different routes only meet at
+Under some mild assumptions, some parts of the framework presented in the
+previous chapters can be extended rather easily to model traffic networks with
+multiple intersection.
+%
+Specifically, we introduce some simple graph notation to model grid-like
+networks of intersections. To keep it simple, we assume that routes are fixed
+and independent, in the sense that vehicles of different routes only meet at
 intersection; there is no merging and splitting of routes.
 %
-We will see that the trajectory optimization problem~\eqref{eq:T} considered so
-far extends immediately to this model.
+We expect that this assumption keeps the combinatorial complexity of the problem
+somewhat under control.
+
+The trajectory optimization problem~\eqref{eq:T} has a very simple extension in to the
+network setting.
+%
+Again, direct transcription is a relatively straightforward way to solve this
+problem. However, this method does already pose scaling issues in the single
+intersection, so without further modifications, we do not consider this method a
+feasible approach for network-wide coordination.
 
 \paragraph{Decomposition.}
 
-It is possible to solve the resulting network trajectory problem using direct
-transcription. However, we will now demonstrate this. Instead, we show how the
-bilevel decomposition extends to networks. Similar to what we did
-in~\Cref{sec:delay-minimization}, we will again assume that the objective only
-involves delay and that vehicles are required to cross intersections at full
-speed.
+We show how the bilevel decomposition of~\Cref{sec:decomposition} can
+be extended to the network setting.
 %
-In this case, however, delay can be measured in two ways: at every intersection,
-or at the last intesection of the vehicle's route.
+Similar to what was done in~\Cref{sec:delay-minimization}, we will assume that
+the objective only involves delay and that vehicles are required to cross
+intersections at full speed.
+%
+In networks, we can measure delay in more than one way. For example, we can
+consider delay at every intersection, or at the last intesection of the
+vehicle's route.
+%
+Like for the single intersection, these assumptions reduce the problem to a
+crossing time scheduling problem and we can again employ integer programming as
+a baseline solution method.
 
-We argue that---in principle---these assumptions can be used to reduce the
-problem to a scheduling problem. However, compared to the single intersection
-setting, there is one additional complicating factor. Before, we did not have to
-take into account the maximum number of vehicles that an approaching lane can
-handle. However, in the current setting, we can no longer ignore the finite
-nature of the lanes between intersection, so they have a \emph{finite capacity}
-for vehicles.
-%
-The precise relationship between the length of the lane and the maximum
-acceleration and speed of vehicles turned out to be nontrivial.
+Compared to the single intersection setting, there is one additional
+complicating factor. Until now, we did not take into account the maximum number
+of vehicles that an approaching lane can handle. In the current setting, we can
+no longer ignore the finite space of the lanes between intersection; we need to
+explicitly model their \emph{finite capacity}.
+
+It turns out to be nontrivial to describe how the capacity is affected by the
+lane length and the vehicle dynamics.
 %
 In other words, it is not easy to characterize the feasibility of trajectories
-as a simple set of linear inequalities, like we did for the single intersection,
-see~\eqref{eq:feasibility-inequalities}.
+as a simple set of linear inequalities, like we did for the single intersection;
+see the two inequalities in~\eqref{eq:feasibility-inequalities}.
 %
-Our preliminary investigation towards a similar characterization are outlined
+Our preliminary work towards a similar characterization is outlined
 in~\Cref{chap:capacitated-lanes}.
+%
+For now, we present some conditions that are a little bit too conservative, but
+guarantee that vehicle trajectories are safe.
 
 \paragraph{Constructive scheduling.}
 
-Instead of a precise characterization of feasibility, we will work with some sufficient conditions.
+We briefly discuss the constructive approach for crossing time scheduling in
+networks.
 %
-This results in a scheduling problem that is somewhat similar to the classical
-job shop scheduling problem.
+There was not enough time in this project to fully explore this direction, but
+we did identify some fundamental issue that we think is worth mentioning.
 %
-Again, we aim to solve this problem using a constructive heuristic.
+With multiple intersections, each scheduling decisions involves picking both an
+intersection and a route.
 %
-% Quite a few existing works have adopted the same strategy and applied deep
-% reinforcement learning successfully.
-%
-% Hence, we mention some pointers for further research to leverage the recent
-% advances in this field to solve our particular job shop variant.
+In other words, the scheduler has to pick an intersection to \emph{attend} and
+then choose the route from which the next pending vehicle is scheduled.
 
-We identify an issue with the constructive approach. Scheduling decisions
-involve picking both an intersection and a route. However, we will see that the
-order in which intersections are chosen does not matter for the final schedule.
-This redundancy makes the convergence of procedures like policy-gradient very
-slow. Removing this redundancy is an interesting direction for further research.
+Observe that it does not matter for the final schedule in which order intersections are
+attended by the scheduler.
+%
+It is natural to expect that this redundancy slows the convergence of procedures
+like imitation learning or policy-gradient and some quick numerical experiments
+verify this.
+%
+Removing this redundancy is an interesting direction for further research.
 
-\pagebreak
-
-\section{Trajectory optimization in the network model}
+\section{Network model and trajectory optimization}
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.55\textwidth]{figures/network/grid_example.png}
-  \caption{Illustration of some grid-like network of intersections with vehicles
-    drawn as grey rectangles. There are five vehicle routes: two from east to
-    west and three from south to north. Turning at intersections is not
-    allowed.}\label{fig:network_illustration}
+  \vspace{1.0em}
+  \includegraphics[width=0.75\textwidth]{../network/figures/network-1}
+  \caption{Stylistic illustration of our network model, showing some
+    Manhattan-like traffic network with vehicle drawn as little red rectangle.
+    There are $n=3$ rows and $m=4$ columns of intersections, and we assume there
+    are $n+m$ routes: two from east to west and three from south to north. All
+    roads are single-lane and one-directional without turning at intersections.}\label{fig:network_illustration}
 \end{figure}
 
-We now extend the single intersection model to a simple network of intersections
-with single lanes where turning is not allowed, illustrated in
-Figure~\ref{fig:network_illustration}.
-
-% network definition
-\paragraph{Connectivity graph.}
-We define a directed graph $(\bar{V},A)$ with nodes $\bar{V}$ and arcs $A$,
-representing the possible paths that vehicles can follow. Nodes with only
-outgoing arcs are \textit{entrypoints} and nodes with only incoming arcs are \textit{exitpoints}.
-Let $V$ be the set of \textit{intersections}, which are all the nodes with
-in-degree at least two.
+Consider a traffic network with straight lanes and intersections where turning
+is not allowed, as illustrated in Figure~\ref{fig:network_illustration}.
+% 
+We define a directed graph $(\bar{V},A)$ with nodes $\bar{V}$ and arcs $A$, to
+which we will refer as \emph{lanes}. Let $d(v, w)$ denote the length of lane
+$(v,w)$.
 %
-Let $d(v, w)$ denote the distance between nodes $v$ and $w$.
-%
-For each route index $r \in \mathcal{R}$, we let
-\begin{align*}
-  \bar{V}_{r} = (v_{r}(0), v_{r}(1), \dots, v_{r}(m_{r}), v_{r}(m_{r}+1))
-\end{align*}
-be the path that vehicles on this route follow through the network. We require
-that the first node $v_{r}(0)$ is an entrypoint and that the last node
-$v_{r}(m_{r}+1)$ is an exitpoint and we write
-\begin{align*}
-  V_{r} = \bar{V}_{r} \setminus \{ v_{r}(0), \, v_{r}(m_{r}+1) \}
-\end{align*}
-to denote the path restricted to intersections. We say that some $(v, w) \in A$
-is on path $V_{r}$ whenever $v$ and $w$ are two consecutive nodes on the path
-and we write $A_{r}$ to denote the set of all these arcs. We require that
-routes can only overlap at nodes by making the following assumption.
+Nodes with only outgoing arcs are \textit{entrypoints} and nodes with only incoming arcs
+are \textit{exitpoints}. Let $V$ be the set of \textit{intersections}, which are all the nodes
+with in-degree at least two.
 
-\begin{assump}\label{assump:disjoint-routes}
-  For every distinct routes $p,q \in \mathcal{R}$ such that $p \neq q$, we
-  assume $A_{p} \neq A_{q}$.
+This weighted graph encodes the possible routes $\mathcal{R}$ that vehicles can
+follow.
+%
+Each route $r$ is defined as a path
+\begin{align*}
+  \bar{V}_{r} = (v_{r}(0), v_{r}(1), \dots, v_{r}(m_{r}), v_{r}(m_{r}+1)) .
+\end{align*}
+We require that the first node $v_{r}(0)$ is an entrypoint and that the last
+node $v_{r}(m_{r}+1)$ is an exitpoint and we write
+$V_{r} = \bar{V}_{r} \setminus \{ v_{r}(0), \, v_{r}(m_{r}+1) \}$ to denote the part of
+the path that is restricted to intersections.
+%
+We say that some $(v, w) \in A$ is on path $V_{r}$ whenever $v$ and $w$ are two
+consecutive nodes on the path and we write $A_{r}$ to denote the set of all
+these arcs.
+
+Let $\mathcal{N}$ to denote all the vehicles in the system and let
+$\mathcal{N}_r$ to denote vehicles on route $r \in \mathcal{R}$.
+%
+To keep the model simple, we make the following assumption on routes:
+
+\begin{assump}\label{assump:lane-disjoint}
+For every pair of routes $p \neq q$, we have $A_{p} \neq A_{q}$.
 \end{assump}
+%
+This assumption essentially says that routes can only overlap at intersections
+and may not share lanes.
+%
+This \emph{lane-disjoint route} assumption has a huge impact on the
+combinatorial complexity of the crossing order decisions, because it keeps the
+problem \emph{local} in some sense.
+%
+The grid network of Figure~\ref{fig:network_illustration} satisfies this assumption.
 
+This lane-disjoint route assumption ensures that the relative ordering of
+vehicles on each route is completely determined by their initial positions.
+Hence, we write $\mathcal{C}$ for all consecutive pairs of vehicles and
+$\mathcal{C}_r$ for those pertaining only to route $r$.
+%
+Collisions can now occur at multiple intersections, so we define
+\begin{align}
+  \label{eq:6}
+  \mathcal{D}^v = \{ \{i, j\} \subset \mathcal{N} : r(i) \neq r(j) , v\in V_{r(i)} \cap V_{r(j)}\}  ,
+\end{align}
+which are pairs of vehicles that have conflicting paths at some intersection
+$v \in V$.
+
+\pagebreak
 \paragraph{Conflicting positions.}
-We start by considering networks in which all roads are axis-aligned, such that
-intersections always involve perpendicular lanes and where routes are such that
-no turning is required. For each $k\in \{1, \dots, m_r\}$, we define the conflict zone
+
+The general method described in 
+Appendix~\ref{app:A} could also be applied here, which would allow lanes that intersect at arbitrary angles.
+%
+However, for the sake of the current presentation, we consider networks in which
+all roads are axis-aligned, such that intersections always involve perpendicular
+lanes, like in Figure~\ref{fig:network_illustration}.
+%
+This means that conflicting vehicle positions can be modeled similar as
+in~\Cref{chap:single}.
+%
+For each $k\in \{1, \dots, m_r\}$, we define the conflict zone
 $\mathcal{E}_{rk} = (B_{rk}, E_{rk} + L)$ and define the union
 \begin{align*}
   \mathcal{E}_{r} = \bigcup_{k=1}^{m_r} \mathcal{E}_{rk}
@@ -4484,55 +4900,45 @@ $\mathcal{E}_{rk} = (B_{rk}, E_{rk} + L)$ and define the union
 corresponding to the positions of vehicles for which it occupies an intersection
 on its path $V_{r}$, see also Figure~\ref{fig:intersections}.
 %
-By setting $\mathcal{E}_r \equiv \mathcal{E}$, the single intersection problem
-naturally extends to the network case.
+% By setting $\mathcal{E}_r \equiv \mathcal{E}$, the single intersection problem
+% naturally extends to the network case.
 %
-We will also write $\mathcal{E}_r(v) := \mathcal{E}_{rk}$ with $k$ such that
-$v_r(k) = v$ to denote the positions of vehicles from route $r$ that occupy
-intersection $v$.
-
-\paragraph{Vehicle indices.}
-Again, we will write $\mathcal{N}$ to denote all the vehicles in the system and
-$\mathcal{N}_r$ to denote vehicles on route $r \in \mathcal{R}$.
-%
-Assumption~\ref{assump:disjoint-routes} ensures that the relative ordering of
-vehicles on each route is completely determined by their initial positions.
-Hence, we write $\mathcal{C}$ for all consecutive pairs of vehicles and
-$\mathcal{C}_r$ for a specific route.
-%
-Collisions can now occur at multiple intersections, so we define
-\begin{align}
-  \label{eq:6}
-  \mathcal{D}^v := \{ \{i, j\} \subset \mathcal{N} : r(i) \neq r(j) , v\in V_{r(i)} \cap V_{r(j)}\}  ,
-\end{align}
-which are pairs of vehicles that have conflicting paths at some intersection
-$v \in V$.
+We will also use the shorthand notation $\mathcal{E}_r(v) := \mathcal{E}_{rk}$
+with $k$ such that $v_r(k) = v$ to denote the positions of vehicles from route
+$r$ that occupy intersection $v$.
 
 \begin{figure}
   \centering
   \includegraphics[scale=1]{figures/motion/intersection}
-  \caption{Illustration of a route with intersections, marked with a little
-    cross. The length of each intersection is $W$. The four shaded rectangles
-    illustrate four possible vehicle positions. The conflict areas
-    $\mathcal{E}_{rk} = (B_{rk}, E_{rk} + L)$ indicated the positions of the front
-    of the vehicle that correspond to occupying some intersection.}%
+  \caption{Part of a horizontal route with two intersections of length $W$. Each
+    intersection area is marked with a little cross. The conflict areas
+    $\mathcal{E}_{rk} = (B_{rk}, E_{rk} + L)$ are the positions of the front of
+    the vehicle that correspond to occupying some intersection. Hence, the four
+    shaded rectangles illustrate the positions where the vehicle just enters of
+    just left the intersection.}%
   \label{fig:intersections}
 \end{figure}
 
-\paragraph{Trajectory optimization problem.}
+\paragraph{Trajectory optimization.}
 
-The single intersection trajectory optimization problem~\eqref{eq:T} immediately
-extends to the network case.
+Under the assumptions above, the single intersection trajectory
+optimization problem~\eqref{eq:T} almost immediately extends to the network case.
 %
-Let $s = \{ s_i = (x_i^0, v_i^0) : i \in \mathcal{N} \}$ denote the initial
-state of all vehicles in the system. We consider the same vehicle dynamics as in
-the single intersection model, written as $x_i \in D(s_i)$.
+We assume that vehicles satisfy the motion dynamics of~\Cref{chap:single}.
 %
-Let $J(x_i)$ be some trajectory performance criterion. Assume that the network
-$(V,A)$ is given and the system parameters
-$(L, \mathcal{E}_r, \bar{v}, \omega, \bar{\omega}, t_f)$ are fixed, with $t_f$
-some final time and let $x := \{ x_i : i \in \mathcal{N} \}$ denote the joint
-position of all vehicles. Consider the following optimization problem over $x$.
+Like before, we write $x_i \in D(s_i)$ to denote that $x_i$ is a valid
+trajectory for vehicle $i$ with initial conditions $s_i$.
+%
+Let the joint initial state of all vehicles in the system be denoted by
+$s = \{ s_i = (x_i^0, v_i^0) : i \in \mathcal{N} \}$.
+%
+Let $J(x_i)$ be some trajectory performance criterion, for example
+$J_{\alpha,\beta}$ or $J_{v_d}$ defined in~\Cref{sec:criteria}.
+%
+Assume the network $(V,A)$ and system parameters
+$(L, \mathcal{E}_r, \bar{v}, \omega, \bar{\omega}, t_f)$ are fixed, with $t_f$ some final
+time and let $x := \{ x_i : i \in \mathcal{N} \}$ denote the joint position of all
+vehicles. Consider the following optimization problem over $x$.
 %
 \begin{alignat}{3}\label{eq:N}
   J(s) := \min_x & \sum_{i \in \mathcal{N}} J(x_i) \tag{NT} \\
@@ -4540,15 +4946,29 @@ position of all vehicles. Consider the following optimization problem over $x$.
                        &  x_i(t) - x_j(t) \geq L && \quad \text{ for all } (i,j) \in \mathcal{C} , \tag{NT.2} \\
                        &  (x_i(t), x_j(t)) \notin \mathcal{E}_{r(i)} \times \mathcal{E}_{r(j)} && \quad \text{ for all } \{i,j\} \in \mathcal{D}^v \text{ and  } v \in V . \tag{NT.3}
 \end{alignat}
-%
-Like before, the resulting problem can be numerically solved by a direct
-transcription method.
-%
-However, this does not scale to networks of practically relevant sizes, so we
-will immediately turn our attention to decomposing and reducing the problem into
-a more manageable formulation.
 
-\subsection{Bilevel decomposition}
+\section{Crossing time scheduling}
+
+Like before, the trajectory optimization problem~\eqref{eq:N} can be immediately
+solved by direct transcription to an integer (potentially nonlinear) program.
+%
+However, without further tricks, this approach does not scale to networks of
+practically relevant sizes, because the large number of variables involved.
+%
+Instead, we try to obtain a proper decomposition like we did
+in~\Cref{sec:decomposition}.
+%
+The general bilevel reformulation poses no problems. We again assume that
+vehicles cross intersections at full speed and that performance is measured only
+in terms of delay, which should enable a proper decomposition.
+%
+However, it turns out to be tricky to precisely define the resulting crossing
+time scheduling problem.
+%
+We provide a formulation that is very close; we think that it is a little bit
+too conservative in some sense.
+
+\subsection{Bilevel reformulation}
 
 The decomposition for the single intersection extends to the
 network model as follows. Let for each pair $(i,v)$ of some vehicle
@@ -4556,13 +4976,14 @@ $i \in \mathcal{N}$ and an intersection $v \in V_{r(i)}$ along its route, let
 \begin{align*}
 y(i, v) := \inf \{ t: x_{i}(t) \in \mathcal{E}_{r}(v) \} \;\; \text{ and } \;\;  z(i, v) := \sup \{ t: x_{i}(t) \in \mathcal{E}_{r}(v) \}
 \end{align*}
-be the crossing time and exit time, respectively. We also define $\sigma(i, v) = z(i, v) - y(i, v)$, which
-is the amount of time vehicle $i$ occupies intersection $v$.
+be the crossing time and exit time, respectively. We also define
+$\sigma(i, v) = z(i, v) - y(i, v)$, which is the amount of time vehicle $i$ occupies
+intersection $v$.
 %
 Let $(\mathrm{NT}')$ denote the problem~\eqref{eq:N} with the additional
 requirement that $y(i,v) < \infty$ and $z(i, v) < \infty$ for all
 $i \in \mathcal{N}$ and $v \in V_r$, then we claim that $(\mathrm{NT}')$ is
-equivalent to solving the upper-level occupancy time slot scheduling problem
+equivalent to solving
 \begin{alignat}{3}
   U(s) := \min_{y,z} \;\; & \sum_{r \in \mathcal{R}} F(y_{r}, z_{r}, s_r) \tag{NU} \\
   \text{ s.t. } & y(i,v) + \sigma(i,v) \leq y(j,v) \text{ or } \notag \\
@@ -4571,127 +4992,211 @@ equivalent to solving the upper-level occupancy time slot scheduling problem
 \end{alignat}
 %
 where $F(y_{r}, z_{r}, s_r)$ and $\mathcal{S}_{r}$ are the value function and
-set of feasible parameters, respectively, of the parametric lower-level
-trajectory optimization problems
+set of feasible parameters, respectively, of the parametric lower-level problems
 %
 \begin{alignat}{3}
-  F(y_{r}, z_{r}, s_r) = \min_{x_{r}} & \; \sum_{i \in \mathcal{N}_{r}} J(x_{i}) \tag{NL} \\
+  F(y_{r}, z_{r}, s_r) := \min_{x_{r}} & \; \sum_{i \in \mathcal{N}_{r}} J(x_{i}) \tag{NL} \\
   \text{ s.t. } & x_{i}(t) \in D_{i}(s_{i}) , && \quad \text{ for } i \in \mathcal{N}_{r} , \tag{NL.1} \\
-  & x_{i}(t) - x_{j}(t) \geq L , && \quad \text{ for } (i, j) \in \mathcal{C} \cap \mathcal{N}^2_{r} , \tag{NL.2} \\
+  & x_{i}(t) - x_{j}(t) \geq L , && \quad \text{ for } (i, j) \in \mathcal{C}_{r} , \tag{NL.2} \\
   & x_{i}(y(i,v)) = B_{r}(v) , && \quad \text{ for } v \in V_{r} \text{ and } i \in \mathcal{N}_{r} , \tag{NL.3} \\
   & x_{i}(z(i,v)) = E_{r}(v) + L , && \quad \text{ for } v \in V_{r} \text{ and } i \in \mathcal{N}_{r} , \tag{NL.4}
 \end{alignat}
-where we use subscript $r$ to group variables according to their associated route.
+where we again use subscript $r$ to group variables according to their
+associated route.
 %
-A rigorous proof of this fact would be a trivial extension of the proof
-presented for Theorem~\ref{thm:decomposition} and does not provide further
-insight.
+A rigorous proof of the correctness of the above reformulation would be a
+trivial extension of the proof presented for Theorem~\ref{thm:decomposition} and does not provide
+much further insight.
 
-\subsection{Isolating the occupancy scheduling problem}
-
-We make the following assumptions, similar to~\Cref{sec:delay-minimization}.
+\subsection{Proper decomposition}
+In order to fully separate the upper level problem, we make the following
+assumptions and definitions, which parallel those in~\Cref{sec:delay-minimization}.
 
 \begin{assump}[Full speed]
   Each vehicle starts at full speed $v_i^0 = \bar{v}$ and must enter each
   intersection $v \in \mathcal{V}_{r(i)}$ along its path at full speed.
 \end{assump}
 
-\begin{define}[Earliest crossing time]
-  Consider some vehicle $i$ on route $r = r(i)$. For some trajectory $x_i$ and
-  initial state $s_i = (x_i^0, \bar{v})$, define the \emph{earliest crossing
-    time} of vehicle $i$ at intersection $v \in V_{r}$ to be
-  $a(i, v) := (B_{r}(v) - x_i^0) / \bar{v}$.
-\end{define}
-
 \begin{assump}[Uniform intersection]
   We assume that all intersection areas are of the same length, so
-  $E_{rk} - B_{rk} = E_{r'k'} - B_{r'k'}$, for all $r, r'$ and $k,k'$. Suppose
-  some vehicle drives at full speed as long as it occupies an intersection. In
-  that case, the vehicle occupies the intersection for a duration of precisely
-  $\sigma := (E_{rk} + L - B_{rk}) / \bar{v}$, with arbitary $r$ and $k$. Again,
-  define the \emph{processing time} $\rho := L / \bar{v}$ and let
-  $\delta := \sigma - \rho$ denote the \emph{switch-over time}.
+  $E_{rk} - B_{rk} = E_{r'k'} - B_{r'k'}$, for all $r, r'$ and $k,k'$. When
+  vehicles drives at full speed on the full intersection area, it occupies the
+  intersection for a duration of precisely
+  \begin{align}
+    \sigma := (E_{rk} + L - B_{rk}) / \bar{v} ,
+  \end{align}
+  Again, define the \emph{processing time} $\rho := L / \bar{v}$ and let $\delta := \sigma - \rho$
+  denote the \emph{switch-over time}.
 \end{assump}
 
-\begin{define}[Delay criteria]
-  Consider the total delay a vehicle experiences along its entire trip through
-  the network, which we define to be
-  $J_d(x_i) = y(i, v_r(m_r)) - a(i, v_r(m_r))$. Alternatively, we could take
-  into account the sum of delay experienced at each intersection, given by
-  $J'_{d}(x_i) = \sum_{v \in V_{r(i)}} y(i, v) - a(i, v)$.
+\begin{define}[Earliest crossing time]
+  Let $i$ be some vehicle on route $r$ with trajectory $x_i$ and initial state
+  $s_i = (x_i^0, \bar{v})$. Define the \emph{earliest crossing time} at intersection
+  $v \in V_{r}$ to be
+  \begin{align}
+    a(i, v) := (B_{r}(v) - x_i^0) / \bar{v}.
+  \end{align}
 \end{define}
 
-Using the same reasoning as in~\Cref{sec:delay-minimization}, the full speed
-crossing assumption causes the feasibility of the lower-level problems to depend
-only on $y$.
+\begin{define}[Delay criterion]
+  Consider the total delay a vehicle experiences along its entire trip through
+  the network, which we define to be
+  \begin{align}
+    J_d(x_i) = y(i, v_r(m_r)) - a(i, v_r(m_r)) .
+  \end{align}
+  Instead, we could also take the sum of delay experienced at each intersection:
+  \begin{align}
+    \bar{J}_{d}(x_i) = \sum_{v \in V_{r(i)}} y(i, v) - a(i, v) .
+  \end{align}
+\end{define}
+
+\paragraph{Isolating the timing problem.}
+Using a similar argument as in~\Cref{sec:delay-minimization}, it can be shown
+that the full speed crossing assumption causes the feasibility of the
+lower-level problems to depend only on the crossing time schedule $y$.
+%
 This means that we have $z(i, v) = y(i, v) + \sigma$.
 %
-Let
-$ y_r := \{ y(i, v) : i \in \mathcal{N}, v \in V_{r} \}$,
-then we can focus on
+Let $ y_r := \{ y(i, v) : i \in \mathcal{N}, v \in V_{r} \}$, then we can focus on the
+set of feasible crossing times
 \begin{align}
   \mathcal{Y}(s_r) := \{ y_r : (y_r, y_r + \sigma) \in \mathcal{S}(s_r)  \} .
 \end{align}
-%
-Furthermore, it can be shown that each lower-level trajectory optimization
-problem for a given route $r \in \mathcal{R}$ decomposes into a sequence of
-problems, each corresponding to two consecutive intersection along $V_{r}$.
-%
-This means that $y_{r} \in \mathcal{Y}_{r}$ is essentially equivalent to
-$y_{(v,w)} \in \mathcal{Y}_{(v,w)}$ for each $(v,w) \in A_{r}$, where
-$y_{(v,w)}$ denotes the vector of all variables $y(i, v)$ and $y(i, w)$ for all
-$i \in \mathcal{N}_{r}$ and $\mathcal{Y}_{(v,w)}$ denotes the set of values of
-$y_{(v,w)}$ for which a feasible trajectory part can be found.
-%
-Like we mentioned in~\Cref{sec:delay-minimization}, it is non-trivial to
-formulate a polyhedral characterization of $\mathcal{Y}_{(v,w)}$.
-%
-Without rigorous proof, we now provide some sufficient conditions:
 
-\begin{subnumcases}{y_r \in \mathcal{Y}(s_r) \iff }
-        a(i, v) \leq y(i, v) & for $i \in \mathcal{N}_r$  and $v \in V_r$,  \\
-        y(i, v) + \rho \leq y(j, v) & for $(i, j) \in \mathcal{C} , v \in V_{r(i)=r(j)}$,  \\
-        y(i, v) + d(v,w) / \bar{v} \leq y(i, w) & for $i \in \mathcal{N} , (v,w) \in A_{r(i)}$, \label{travel}  \\
-        y(i + c(v,w), w) \leq y(i, v)  & for $i \in \mathcal{N}, (v, w) \in A_r$, \label{buffer}
+It is not difficult to see that each lower-level trajectory optimization problem
+decomposes even further into a sequence of smaller problems.
+%
+For each two consecutive intersection along $V_{r}$, we can consider the lower-level trajectory optimization problem separately.
+%
+This means that $y_{r} \in \mathcal{Y}(s_{r})$ is equivalent to
+$y_{e} \in \mathcal{Y}_{e}(s_r)$ for each lane $e = (v,w) \in A_{r}$, where $y_{e}$
+denotes the vector of all variables $y(i, v)$ and $y(i, w)$ for all
+$i \in \mathcal{N}_{r}$, and where $\mathcal{Y}_{e}(s_r)$ denotes the set of
+values of $y_{e}$ for which a feasible trajectory part can be found on this part
+of the path.
+
+Unfortunately it is non-trivial to formulate a polyhedral characterization of
+$\mathcal{Y}_e(s_r)$, like in~\Cref{sec:delay-minimization}.
+%
+Without rigorous proof, we now provide the following sufficient conditions:
+%
+\begin{subnumcases}{\hspace{-3em} y_e \in \mathcal{Y}_e(s_r) \iff }
+ \;   a(i, v) \leq y(i, v) & for $i \in \mathcal{N}_r$, \tag{arrival} \\[4pt]
+ \;   y(i, v) + \rho \leq y(j, v) & for $(i, j) \in \mathcal{C}_r $, \tag{follow} \\[5pt]
+ \;   y(i, v) + d(e) / \bar{v} \leq y(i, w) & for $i \in \mathcal{N}_r$, \label{travel} \tag{travel}  \\[5pt]
+ \;   \check{y}(i, v) \leq y(i, v)  & for $i \in \mathcal{N}_r$, \label{buffer} \tag{entry}
 \end{subnumcases}
-where $c(v, w)$ denotes the \emph{capacity} of the lane between intersections
-$v$ and $w$, being the maximum number of vehicles for which there is room on
-this lane.
 %
-We refer to~\eqref{travel} as the \emph{travel constraint}, since it encodes the
-minimum time necessary for some vehicle $i$ to travel from node $v$ to the next
-$w$.
+where $d(e)$ denotes the length of lane $e = (v,w)$.
 %
-We refer to~\eqref{buffer} as the \emph{buffer constraint}, because it
-essentially says that there must be room in the lane $(v,w)$ before vehicle $i$
-can enter.
+The first two constraints are not very surprising; they merely extend their
+single-intersection counterparts in terms of notation.
 %
-In general, we conjecture that this constraint can be relaxed slightly. Our
-preliminary investigation of this issue is presented in the next chapter.
+We refer to the third constraint as the \emph{travel constraint}, since it encodes the
+minimum time necessary for some vehicle $i$ to travel accross $e$.
 
-\section{Network scheduling}
+\paragraph{Entry space constraint.}
 
-The discussion above guides us in formulating the extension of the crossing time scheduling problem~\eqref{eq:C} to networks of intersections.
-Consider the following scheduling problem.
+We use the constraint (entry) to model the fact that there must be enough space
+in the lane when a new vehicle enters, so we refer to it as the \emph{entry space
+  constraint}.
+%
+At this moment, we do not know how to formulate $\check{y}(i, v)$ such that the
+four constraints together are necessary and sufficient for
+$y_e \in \mathcal{Y}_e(s_r)$.
+
+Nevertheless, we are pretty confident that by setting
+\begin{align}\label{eq:check-y}
+  \check{y}(i, v) := y(i - c(e), w) + (c(e) L - d(e)) / \bar{v} ,
+\end{align}
+%
+we obtain an inner approximation of $\mathcal{Y}_e(s_r)$, meaning that the
+constraints on the right are sufficient.
+%
+In this expression, $c(e)$ denotes the capacity of the lane, which we define to
+be the maximum number of vehicles that can enter the lane, queue up at the end
+of the lane, with just enough room to accelerate to a full speed crossing. It is
+thus computed as
+\begin{align}
+  c(e) = \left\lfloor \frac{d(e) - 1/(2\bar{\omega}) - 1/(2\omega)}{L} \right\rfloor + 1 ,
+\end{align}
+where we recall that $L$ is the minimum distance required between two
+consecutive vehicles, and where $1/(2\bar{\omega})$ is the minimum time to
+accelerate from a standstill to maximum speed and, similarly, $1/(2\omega)$ is the minimum
+time to fully decelerate from full speed to standstill.
+%
+In its current form,~\eqref{eq:check-y} is a little bit too conservative; some
+quick numerical simulations show that vehicles are able to enter the lane
+slightly earlier.
+%
+Our preliminary work on making the above discussion more rigorous is presented
+in~\Cref{chap:capacitated-lanes}.
+
+\subsection{Integer programming}
+
+Using the above four constraints with~\eqref{eq:check-y} means we lose a little
+bit of optimality, but we suspect that the impact is very limited in practice.
+%
+Therefore, we will use these sufficient conditions to formulate the following
+crossing time scheduling problem in networks, which is the direct extension
+of~\eqref{eq:C}.
+%
+By encoding the crossing order constraints with binary variables with the
+big-$M$ trick this problem turns into a mixed-integer linear program.
+
 \begin{alignat}{3}
   \min_{y} & \sum_{i \in \mathcal{N}} \sum_{v \in V_{r(i)}} y(i, v) \tag{NC} \label{NC} \\
-  \text{ s.t. } & a(i, v) \leq y(i, v) && \text{ for all } i \in \mathcal{N}, v \in V_{r(i)} , \tag{NC.1}\label{eq:travel} \\
-                & y(i, v) + \rho \leq y(j, v) && \text{ for all } (i, j) \in \mathcal{C}, v \in V_{r(i)=r(j)} , \tag{NC.2} \\
+  \text{ s.t. } & a(i, v) \leq y(i, v) && \text{ for } i \in \mathcal{N}, v \in V_{r(i)} , \tag{NC.1}\label{eq:travel} \\
+                & y(i, v) + \rho \leq y(j, v) && \text{ for } (i, j) \in \mathcal{C}, v \in V_{r(i)} , \tag{NC.2} \\
                 & y(i,v) + \sigma(i,v) \leq y(j,v) \text{ or } \quad \notag \\
-                & y(j,v) + \sigma(j,v) \leq y(i,v) , && \text{ for all } \{i,j\} \in \mathcal{D}^{v} \text{ and } v \in V, \tag{NC.3} \label{eq:network-disj} \\
+                & y(j,v) + \sigma(j,v) \leq y(i,v) , && \text{ for } \{i,j\} \in \mathcal{D}^{v}, v \in V, \tag{NC.3} \label{eq:network-disj} \\
                 & y(i, v) + d(v,w) / \bar{v} \leq y(i, w) && \text{ for } i \in \mathcal{N} , (v,w) \in A_{r(i)}, \tag{NC.4} \label{eq:travel} \\
-                & y(i + c(v,w), w) \leq y(i, v) && \text{ for  } i \in \mathcal{N}, (v,w ) \in A_{r(i)} . \tag{NC.5} \label{eq:buffer}
+                & \check{y}(i, v) \leq y(i, v) && \text{ for  } i \in \mathcal{N}, (v,w ) \in A_{r(i)} . \tag{NC.5} \label{eq:buffer}
 \end{alignat}
 
-After encoding the constraints~\eqref{eq:network-disj} with binary variables and
-the big-$M$ trick, we can again reformulate this problem as a mixed-integer
-linear program.
+\paragraph{Runtime benchmark.}
 
-\subsection{Constructive scheduling}
+We evaluate how well general-purpose solvers scales to larger network sizes by
+performing the following little benchmark.
+%
+For some given grid network with $m$ rows and $n$ columns of intersections, with
+a fixed number of arrivals $n_r$ for each of the $m+n$ routes, we let the solver
+run for some fixed time per instance.
+%
+We record the final MIP gap reported by the solver after this fixed time.
+For minimization problems, the gap is roughly defined as
+\begin{align*}
+  gap := \frac{\textit{obj} - \textit{bnd}}{\textit{obj}} .
+\end{align*}
+where \emph{obj} is the objective of the best solution found so far and
+\emph{bnd} the best lower bound on the objective so far.
 
-Without going into detail, we will now discuss some of our preliminary findings
-with respect to extending the constructive scheduling approach
-of~\Cref{chap:single-learning}.
+The results are presented in Table~\ref{tab:milp-bench-results}. Observe that
+the results are more dependent on $N$ than on the network size, which is not
+really surprising, because the number of conflicts does not really depend on the
+network, due to Assumption~\ref{assump:lane-disjoint}.
+%
+It would be interesting to see how removing this assumption affects the quality
+of solutions found by integer programming.
+
+\begin{table}[!hp]
+  \caption{Benchmarking the final MIP gap of integer programming for crossing
+    time scheduling in networks of varying sizes. We record the average MIP gap
+    with standard deviation over 5 instances, after running the solver for at
+    most a minute on each instance. The network size is written as rows $\times$
+    columns. $N = n_r (n+m)$ denotes the total number of vehicles in the network.
+    For this benchmark, we used the Gurobi solver version 11.0.2 on a system
+    with a 13th Gen Intel i5-13600K CPU and 32GiB of RAM.}\label{tab:milp-bench-results}
+  \centering
+  \hspace{-0.8em}
+  \input{milp-bench.tex}
+\end{table}
+
+\section{Constructive scheduling}
+
+We now briefly discuss some of our preliminary findings on extending the
+constructive scheduling approach of~\Cref{chap:single-learning} to networks of
+intersections.
 %
 Instead of a single vehicle and route order, we must now deal with a separate
 vehicle order $\nu^v$ and route order $\eta^v$ for each intersection $v \in V$.
@@ -4719,11 +5224,6 @@ satisfy~\eqref{eq:active_schedule}, where $\mathcal{N}^-$ now involves these
 additional arcs. Furthermore, the definition of crossing time lower bounds
 naturally extends to $\beta_{iv}(s_t)$, for each vehicle-intersection pair
 $(i, v)$.
-
-\subsection{Learning to schedule}
-
-We will now briefly discuss some of our preliminary findings on extending the
-methodology of~\Cref{chap:single-learning} to networks.
 
 \paragraph{Intersection visit order.}
 
@@ -4783,10 +5283,10 @@ Furthermore, the definition of the threshold rule itself does not depend on the
 network of intersections. This is a desirable property, because it allows us to
 tune the threshold on small networks and then apply it on larger ones.
 
-\paragraph{Neural constructive heuristic.}
+\paragraph{Neural constructive heuristics.}
 
-The neural network parameterization of~\eqref{sec:neural-param} can be extended
-to networks.
+The recurrent neural network parameterization of~\Cref{sec:neural-param} can be extended to
+networks.
 %
 The model can be best understood as solving a multi-label classification
 problem, because it needs to provide a distribution over routes at every
@@ -4806,34 +5306,82 @@ ways, depending on the specific intersection visit order that is used.
 The model might become more robust when training on multiple samples of
 intersections orders per instance.
 % fixed intersection order
-Alternatively, we can consider one of the fixed intersection orders
-described at the start of this section (random, boundary, alternating).
+Alternatively, we can consider one of the fixed intersection orders described
+above (random, boundary, alternating).
+
+Table~\ref{tab:results} contains some of our preliminary numerical results for
+this imitation learning setting. It seems to verify our hypothesis that the
+order in which intersections are attended matters, with the alternating order
+outperforming the other two.
 
 \input{data-network/comparison-woven.tex}
 
+\subsection{Similarity to job shop scheduling}
 
-\section{Notes and references}
+Observe that the crossing time scheduling problem~\eqref{NC} is quite similar to
+Job Shop Scheduling Problems (JSSPs), see Appendix~\ref{app:job-shop} for some
+background on this classical class of problems.
+%
+The intersections can be interpreted as machines and the vehicles as jobs that
+need to visit the machines in a certain order. Some part of the this visiting
+order is already fixed, for vehicles from on the same route.
+%
+The reason why this parallel is important is because job shop has received a lot
+of attention\footnote{Pun not intended: a lot of recent proposals involve 
+  neural attention architectures.} in the literature and various ways of
+combinatorial learning have been proposed.
+%
+Hence, it is interesting direction of further research to leverage the recent
+advances in this field by trying to apply similar techniques to~\eqref{NC}.
+%
+We will now highlight three publications that caught our attention.
+%
+A lot of works in this direction rely on some kind of graph neural network
+architecture. The survey~\cite{smitGraphNeuralNetworks2024} provides an overview
+based on this distinguishing feature, and it serves as a good general starting
+point to explore this research area.
 
-We emphasize again that the assumption of crossing the intersection at maximum
-speed is a central feature of our model, because it causes intersections to act
-as a sort of ``checkpoints''.
+% Tassel (principal construction, naive environment)
+\paragraph{Dispatching rules.}
+A very natural approach to model JSSP in terms of an MDP is taken
+in~\cite{tasselReinforcementLearningEnvironment2021}, where a dispatching
+heuristic is defined in an environment based on discrete scheduling time steps.
 %
-The fact that the global trajectory optimization can be stated as a
-job-shop-like problem hinges on this assumption, because we essentially
-``localized'' the effects of the vehicle dynamics to individual lanes; the
-coupling between lanes are through the crossing times.
-%
-In order to relax this assumption and deal with objectives that takes into
-account energy or fuel consumption, we need to take make a global trade-off
-between fast crossing and energy efficiency, for which more advanced
-optimization schemes are required.
+Every available job corresponds to a valid action and there is a so-called No-Op
+action to skip to the next time step. States are encoded by some manually
+designed features. They consider the makespan objective and propose a dense
+reward based on how much idle time is introduced compared to the processing time
+of the job that is dispatched.
 
-Although our network examples are all grid-like and have perpendicular
-intersecting lanes, the model proposed in this chapter is more generally
-applicable.
+% Zhang construction heuristic (principal construction, based on order)
+The Learning to Dispatch (L2D) paper~\cite{zhangLearningDispatchJob2020}
+proposes a constructive scheduling heuristic for JSSP with makespan objective.
+Their method is based on a dispatching policy that is parameterized in terms of
+a graph neural network encoding of the disjunctive graph of the partial
+schedule.
 %
-For example, curved roads can be modeled as well, as long we assume that this
-does not affect the dynamics of the vehicles, in particular the maximum speed.
+Each action corresponds to choosing for which job the next operation is
+dispatched. Rewards are based on how much the lower bound on the makespan
+changes between successive states. They use a Graph Isomorphism Network (GIN)
+architecture to parameterize both an actor and critic, which are trained using
+the Proximal Policy Optimization (PPO) algorithm.
+
+% Zhang improvement heuristic (principal improvement)
+\paragraph{Guided local search.}
+More recently, the authors of L2D investigated an improvement heuristic for
+JSSP~\cite{zhangDeepReinforcementLearning2024} with makespan objective.
+%
+This method is based on selecting a solution within some neighborhood of the
+current candidate schedule.
+%
+The reward is defined in terms of how much the solution improves relative to the
+best solution seen so far (the ``incumbent'' solution). The policy is
+parameterized using a GIN architecture designed to capture the topological
+ordering of operations encoded in the disjunctive graph of solutions. They
+propose a custom $n$-step variant of the REINFORCE algorithm in order to deal
+with the sparse reward signal and long trajectories.
+
+
 
 \chapter{Capacitated lanes}\label{chap:capacitated-lanes}
 
@@ -4892,7 +5440,7 @@ Note that the unit speed upper bound is not restrictive, since we can always
 apply an appropriate scaling of time and the acceleration bounds to arrive at
 this form.
 %
-We use $A$ and $B$ to denote the start\footnote{Note that assuming $A\neq 0$ is convenient later when we start piecing together multiple lanes.} and end position of the lane.
+We use $A$ and $B$ to denote the start and end position of the lane.
 %
 Let $D_{1}[a, b] \subset \mathcal{D}[a, b]$ denote all trajectories $x$ that satisfy
 the first-order boundary conditions
@@ -5840,11 +6388,11 @@ This will be the subject of further research.
 
 \section{Notes and references}
 
-The analysis of feasibility conditions in this chapter is very much related to
+The analysis of feasibility conditions in this chapter is somewhat related to
 the proof of the safety guarantee in~\cite{miculescuPollingsystemsbasedAutonomousVehicle2016}, see their Lemma IV.4 with
 relatively long proof in appendix.
 %
-They study the online situation, in which new vehicles arrive to the system at
+They study an online setting, in which new vehicles arrive to the system at
 later times, for which they show that the rescheduling policy is safe, in the
 sense that there are still feasible and collision-free trajectories for the
 vehicles whose crossing times got updated.
@@ -5871,7 +6419,7 @@ necessary.
 
 % \addtocontents{toc}{\protect\renewcommand\cftbeforechapskip{2.5em}}
 \chapter{Conclusion and discussion}\label{chap:conclusion}
-\addtocontents{toc}{\protect\renewcommand\cftbeforechapskip{1em}}
+% \addtocontents{toc}{\protect\renewcommand\cftbeforechapskip{1em}}
 
 Coordination of autonomous vehicles at intersections poses challenging
 computational problems that have been approached from many perspectives across
@@ -6104,45 +6652,49 @@ believe this example is an excellent candidate for this paradigm.
 % related to our network scheduling problem. Hence, this is a highly suggested
 % direction of further research and collaboration.
 
+% \cleardoublepage
 
-% the code around the bibliographp itself serves as
-% a sort of anchor for adding a bookmark entry
-\phantomsection
-\begin{singlespacing}\raggedright
-% \bibliographystyle{unsrt}
-% \bibliography{references}\label{sec:references}
-\printbibliography
-\end{singlespacing}
-% add entry to documents table of contents
-\addcontentsline{toc}{chapter}{Bibliography}
+% \titleformat{\chapter}[block]   % default display style
+%   {\normalfont\large\bfseries}   % font size & bold
+%   {\thechapter.}   % “Chapter <number>”
+%   {20pt}                        % spacing between number and title
+%   {}
+% \titlespacing*{\chapter}{0pt}{0.5em}{1em} % spacing: left, before, after
 
-\cleardoublepage\makeatletter\@openrightfalse\makeatother
+% \titleformat{\chapter}
+%   {\normalfont\Large\bfseries} % font: Large and bold
+%   {Appendix \thechapter~--}{0.4em}{} % label format
+% \titlespacing*{\chapter}{0pt}{0em}{1em} % spacing: left, before, after
 
-\appendix
+% \let\oldcleardoublepage\cleardoublepage
+% \renewcommand{\cleardoublepage}{}  % temporarily disable new pages
+% \cleardoublepage\makeatletter\@openrightfalse\makeatother
+
+% \appendix
 
 
 % add '.' after appendices in pdf bookmark, to avoid misreading 'A' as the first
 % word of a sentence
 % TODO: only do this at the top level
-\let\origthechapter\thechapter
-\makeatletter
-\xpatchcmd{\addcontentsline}{%
-\Hy@writebookmark{\csname the#2\endcsname}%
-      {#3}%
-      {\@currentHref}%
-      {\Hy@toclevel}%
-      {#1}%
-}{%
-\begingroup
-\renewcommand{\thechapter}{\origthechapter.}
-\Hy@writebookmark{\csname the#2\endcsname}%
-{#3}%
-{\@currentHref}%
-{\Hy@toclevel}%
-{#1}%
-\endgroup
-}{\typeout{Success}}{}
-\makeatother
+% \let\origthechapter\thechapter
+% \makeatletter
+% \xpatchcmd{\addcontentsline}{%
+% \Hy@writebookmark{\csname the#2\endcsname}%
+%       {#3}%
+%       {\@currentHref}%
+%       {\Hy@toclevel}%
+%       {#1}%
+% }{%
+% \begingroup
+% \renewcommand{\thechapter}{\origthechapter.}
+% \Hy@writebookmark{\csname the#2\endcsname}%
+% {#3}%
+% {\@currentHref}%
+% {\Hy@toclevel}%
+% {#1}%
+% \endgroup
+% }{\typeout{Success}}{}
+% \makeatother
 
 % % non-bold appendix entries
 % \addtocontents{toc}{\protect
@@ -6158,13 +6710,31 @@ believe this example is an excellent candidate for this paradigm.
 % }
 
 
-\addtocontents{toc}{\vspace{0.5cm}} % add 0.5 cm space
+% \addtocontents{toc}{\vspace{0.5cm}} % add 0.5 cm space
 % \addcontentsline{toc}{part}{Appendix}
 
-\chapter{Feasible configurations for single intersection model}\label{app:configuration-space}
+% Counter for appendix sections
+\newcounter{appsec}
+\renewcommand{\theappsec}{\Alph{appsec}}
 
-We present a way to derive the feasible configurations of the two routes that
-intersect at some arbitrary angle, as shown in Figure~\ref{fig:intersection-non-axis-aligned}.
+% Command for appendix sections
+\newcommand{\appsection}[1]{%
+  \refstepcounter{appsec}%
+  \section*{\theappsec. #1}% unnumbered in the document
+  \addcontentsline{toc}{section}{\protect\numberline{\theappsec.} #1}% appears in TOC
+  \label{app:\theappsec}% reference label
+}
+
+% \addtocontents{toc}{\protect\addvspace{2em}}
+\chapter*{Appendix}
+\addcontentsline{toc}{chapter}{Appendix}
+\addtocontents{toc}{\protect\addvspace{0.3em}}
+
+\appsection{Feasible configurations in single intersection model}\label{app:configuration-space}
+
+We derive the feasible configurations of two vehicles in a single intersection,
+consisting of two routes intersecting at some arbitrary angle, as shown in
+Figure~\ref{fig:intersection-non-axis-aligned}.
 % general case
 Assume that $\alpha < \pi / 2$ is the acute angle between the two intersections.
 %
@@ -6237,7 +6807,7 @@ such that the set of feasible configurations is simply given by
 \end{figure}
 
 
-\chapter{Job shop scheduling and disjunctive graph}\label{app:job-shop}
+\appsection{Job shop scheduling and disjunctive graph}\label{app:job-shop}
 
 The job shop model provides a mathematical framework to study systems where a
 given set of---possibly distinct---facilities must be shared among a number of
@@ -6263,8 +6833,7 @@ $m$ machines. Each machine can process at most one job at the same time.
 We use the pair of indices $(i,j)$ to identify the operation that machine $i$
 performs on job $j$, which takes a fixed amount of time $p(i,j)$.
 %
-Each job $j$ visits all machines\footnote{When some job $j$ requires only
-  processing on a proper subset of the machines, observe that we can simply
+Each job $j$ visits all machines\footnote{When some job $j$ requires only processing on a proper subset of the machines, observe that we can simply
   assume that $p(i,j) = 0$ for each machine $i$ that is not involved.} following
 a predetermined machine sequence, which may be different among jobs.
 %
@@ -6314,7 +6883,7 @@ illustrate in the following example.
 
 \begin{figure}
   \centering
-  \includegraphics[scale=1]{figures/job-shop-delay.pdf}
+  \includegraphics[scale=1.0]{figures/job-shop-delay.pdf}
   \caption{Example of an optimal schedule for Example~\ref{eg:job-shop}, shown
     as a Gantt chart. Each row $M_{i}$ corresponds to machine $i$ and each block
     numbered $j$ on this row represents the operation $(i,j)$. The dashed lines
@@ -6376,7 +6945,7 @@ in Example~\ref{eg:job-shop} are shown in Figure~\ref{fig:disjunctive-graphs-job
 
 \paragraph{Solution methods.}
 
-Most job shop problems are very hard to solve. For example, the class of
+Job shop problems are notoriously hard to solve in practice. The class of
 problems $Jm|r_{j}|C_{\max}$ considered in Example~\ref{eg:job-shop} is known to
 be NP-hard~\cite{grahamOptimizationApproximationDeterministic1979}, even without
 release dates, which is denoted $Jm||C_{\max}$.
@@ -6419,10 +6988,10 @@ disjunctive arcs, then the pair of disjunctive constraint can be rewritten to
   y(i,j) + p(i,j) &\leq y(i,k) + M b_{(i,j)\leftrightarrow (i,k)} , \\
   y(i,k) + p(i,k) &\leq y(i,j) + M (1 - b_{(i,j)\leftrightarrow (i,k)}) ,
 \end{align*}
-which is generally referred to as the \emph{big-M method}. The resulting MILP can
-be solved by any off-the-shelf solver.
+which is generally referred to as the \emph{big-M method}.
 
-\chapter{Local search for crossing time scheduling}\label{sec:local_search}
+
+\appsection{Local search for crossing time scheduling}\label{sec:local_search}
 
 Without relying on systematic search methods like branch-and-bound, an often
 employed method is to use some kind of local search heuristic.
@@ -6488,7 +7057,7 @@ The latter variant is generally known as \textit{beam search}.
 
 
 
-% \chapter{Neural combinatorial optimization}\label{app:nco}
+% \section{Neural combinatorial optimization}\label{app:nco}
 
 % % maybe discuss traditional epsilon-approximation schemes?
 % % argue that it takes a lot of expert knowledge about the problem structure to design these
@@ -6578,109 +7147,8 @@ The latter variant is generally known as \textit{beam search}.
 % OptNet~\cite{amosOptNetDifferentiableOptimization2021a}) when general convex
 % constraints are considered.
 
-% \paragraph{Neural job shop scheduling}
-% % examples for job-shop scheduling
-% Various NCO methods have already been studied for the Job Shop Scheduling Problem
-% (JSSP) with makespan objective, for which we now highlight some works that
-% illustrate some of the above classes of methods. A lot of the policies used in
-% these works rely on some graph neural network architecture, which is why the
-% survey~\cite{smitGraphNeuralNetworks2024} provides an overview based on this distinguishing feature.
 
-% % Tassel (principal construction, naive environment)
-% \paragraph{Dispatching rules.}
-% A very natural approach to model JSSP in terms of an MDP is taken
-% in~\cite{tasselReinforcementLearningEnvironment2021}, where a dispatching
-% heuristic is defined in an environment based on discrete scheduling time steps.
-% %
-% Every available job corresponds to a valid action and there is a so-called No-Op
-% action to skip to the next time step. States are encoded by some manually
-% designed features. They consider the makespan objective by proposing a dense
-% reward based on how much idle time is introduced compared to the processing time
-% of the job that is dispatched.
-% %
-% In some situation, some action can be proved to be always optimal (``non-final
-% prioritization''), in which case the policy is forced to take this action.
-% Additionally, the authors design some rules for when the No-Op action is not
-% allowed in order to prevent unnecessary idling of machines.
-% %
-% The proposed method is evaluated on the widely used
-% Taillard~\cite{taillardBenchmarksBasicScheduling1993} and
-% Demirkol~\cite{DEMIRKOL1998137} benchmarks, for which performance is compared to
-% static dispatching rules and a constraint programming (CP) solver, which is
-% considered cutting-edge.
-
-% % exact start times follow from order
-% From a scheduling theory
-% perspective~\cite{pinedoSchedulingTheoryAlgorithms2016}, it can be shown that
-% optimal schedules are completely characterized by the order of operations for
-% regular objectives (non-decreasing functions of the completion times). The start
-% times are computed from this order by a so-called \textit{placement rule}, so
-% considering discrete time steps introduces unnecessary model redundancy.
-
-% % Zhang construction heuristic (principal construction, based on order)
-
-% The seminal ``Learning to Dispatch'' (L2D)
-% paper~\cite{zhangLearningDispatchJob2020} proposes a construction heuristic for
-% JSSP with makespan objective. Their method is based on a dispatching policy that
-% is parameterized in terms of a graph neural network encoding of the disjunctive
-% graph belonging to a partial solution. Again, each action corresponds to
-% choosing for which job the next operation is dispatched. The rewards are based
-% on how much the lower bound on the makespan changes between successive states.
-% They use a Graph Isomorphism Network (GIN) architecture to parameterize both an
-% actor and critic, which are trained using the Proximal Policy Optimization (PPO)
-% algorithm. Using the Taillard and Demirkol benchmarks, they show that their
-% model is able to generalize well to larger instances.
-% % problem with dispatching mechanism
-% As we already alluded to above, this way of modeling the environment is better
-% suited to JSSP with regular objectives, because it does not explicitly determine
-% starting times.
-% %
-% They use a dispatching mechanism based on finding the earliest starting time of
-% a job, even before already scheduled jobs, see their Figure 2. By doing this,
-% they introduce symmetry in the environment: after operations
-% $O_{11}, O_{21}, O_{31}$ have been scheduled, both action sequences
-% $O_{22}, O_{32}$ and $O_{32}, O_{22}$ lead to exactly the same state $S_5$ shown
-% in their Figure 2. In this particular example, this means that it is impossible
-% to have $O_{11} \rightarrow O_{22} \rightarrow O_{32}$. In general, it is not
-% clear whether the resulting restricted policy is still sufficiently powerful, in
-% the sense that an optimal operation order can always be constructed.
-
-% % Zhang improvement heuristic (principal improvement)
-
-% \paragraph{Guided local search.}
-% Recently, the authors of L2D investigated an improvement heuristic for
-% JSSP~\cite{zhangDeepReinforcementLearning2024} with makespan objective.
-% %
-% This method is based on selecting a solution within the well-known $N_5$
-% neighborhood, which has been used in previous local search heuristics.
-% %
-% It is still not clear whether their resulting policy is complete, in the sense
-% that any operation order can be achieved by a sequence of neighborhood moves.
-% %
-% The reward is defined in terms of how much the solution improves relative to the
-% best solution seen so far (the ``incumbent'' solution). The policy is
-% parameterized using a GIN architecture designed to capture the topological
-% ordering of operations encoded in the disjunctive graph of solutions. They
-% propose a custom $n$-step variant of the REINFORCE algorithm in order to deal
-% with the sparse reward signal and long trajectories.
-% %
-% To compute the starting times based on the operation order, they propose a
-% dynamic programming algorithm, in terms of a message-passing scheme, as a more
-% efficient alternative to the classical recursive critical path method.
-% %
-% Our proposal for efficiently updating the current starting time lower bounds in
-% partial solutions can also be understood as a similar message-passing scheme,
-% but where only some messages are necessary.
-
-% \paragraph{Joint method.}
-% % Tassel (joint with CP solver)
-% An example of a joint method is given
-% in~\cite{tasselEndEndReinforcementLearning2023}, where the environment is stated
-% in terms of a Constraint Programming (CP) formulation. This allows the method to
-% be trained using demonstration from an off-the-shelf CP solver.
-
-
-% \chapter{Reinforcement learning}
+% \section{Reinforcement learning}
 
 % For machine learning problems where data-collection is restricted in some way,
 % the supervised learning paradigm, i.e., learning from labeled examples, is
@@ -7022,7 +7490,7 @@ The latter variant is generally known as \textit{beam search}.
 % \end{align}
 
 
-\chapter{Miscellaneous}\label{app:misc}
+\appsection{Miscellaneous}\label{app:misc}
 
 \minimalnode*
 \begin{proof}
@@ -7193,6 +7661,24 @@ The latter variant is generally known as \textit{beam search}.
 %     drawn with solid lines and disjunctive arcs $\mathcal{O}$ are drawn with
 %     dashed lines. The dotted line depicts a chain of conjunctive arcs.}\label{fig:lb-computation}
 % \end{figure}
+
+% \titleformat{\chapter}[display] % default display style
+%   {\normalfont\Huge\bfseries}   % font size & bold
+%   {\chaptername\ \thechapter}   % “Chapter <number>”
+%   {20pt}                        % spacing between number and title
+%   {}
+
+% the code around the bibliographp itself serves as
+% a sort of anchor for adding a bookmark entry
+% \addtocontents{toc}{\protect\addvspace{1em}}
+\phantomsection
+\begin{singlespacing}\raggedright
+% \bibliographystyle{unsrt}
+% \bibliography{references}\label{sec:references}
+\printbibliography
+\end{singlespacing}
+% add entry to documents table of contents
+\addcontentsline{toc}{chapter}{Bibliography}
 
 \end{document}
 
