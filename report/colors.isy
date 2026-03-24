@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!DOCTYPE ipestyle SYSTEM "ipe.dtd">
+<ipestyle name="mystyle">
+  <color name="myred" value="0.984313725490196, 0.7058823529411765, 0.6823529411764706"/>
+  <color name="myblue" value="0.7019607843137254, 0.803921568627451, 0.8901960784313725"/>
+</ipestyle>
+

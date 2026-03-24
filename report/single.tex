@@ -55,6 +55,8 @@
 
 \newdateformat{monthyeardate}{\monthname[\THEMONTH] \THEYEAR}
 
+\newcommand\note[1]{{\color{Navy}#1}}
+
 \author{Jeroen van Riel}
 \date{\monthyeardate\today}
 \title{Autonomous vehicle scheduling in a single intersection}
@@ -85,20 +87,21 @@
 % 2. fixed routes (no dynamic rerouting)
 % 3. vehicle dynamics: double integrator
 % 4. central controller
+
 We start by defining the \textit{vehicle trajectory optimization problem} for a
 single intersection.
 %
 Consider the single intersection illustrated in
-Figure~\ref{fig:intersection_illustration}, which has two incoming lanes,
-identified by indices $\mathcal{R} = \{ 1, 2 \}$. The corresponding two routes
+Figure~\ref{fig:intersection_illustration}, which has two incoming lanes. The corresponding two routes
 are crossing the intersection from south to north and crossing from west to
 east.
 %
 Each route is followed by a fixed set of vehicles, so we consider a closed
 system, in the sense that no more vehicles arrive in the future.
-%
-We identify vehicles by their route and by their relative order on this
-route, by defining the vehicle index set
+
+We let the lanes be identified by indices $\mathcal{R} = \{ 1, 2 \}$. We
+identify vehicles by their route and by their relative order on this route, by
+defining the vehicle index set
 \begin{align}
   \mathcal{N} = \{ (r, k) : k \in \{1, \dots, n_{r}\}, r \in \mathcal{R}\} ,
 \end{align}

@@ -1,0 +1,392 @@
+\documentclass[11pt,a4paper]{article}
+
+% ====== Packages ======
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm, mathtools}
+\usepackage{physics}          % for \abs, \norm, etc.
+\usepackage{bm}               % bold math symbols
+\usepackage{enumitem}         % better control over lists
+\usepackage{hyperref}         % clickable references
+\usepackage[svgnames]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+% ====== Hyperref setup ======
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=teal!60!black,
+  urlcolor=blue!70!black
+}
+
+% ====== Environments ======
+\newtheorem{define}{Definition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{corollary}{Corollary}[section]
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{example}{Example}
+
+% ====== Custom Commands ======
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+
+\newcommand\note[1]{{\color{Navy}\noindent\scriptsize#1}}
+
+% ====== Title ======
+\title{Reinforcement Learning for Combinatorial Optimization}
+\author{Jeroen van Riel}
+\date{\today}
+
+% ====== Document ======
+\begin{document}
+\maketitle
+% \tableofcontents
+\bigskip
+
+\noindent
+First, we briefly provide a broad overview of the Markov decision process (MDP)
+framework, based on Chapter 2 of Puterman's classic reference
+work~\cite{putermanMarkovDecisionProcesses2009}.
+%
+This discussion assumes that the reader is already familiar with the MDP
+framework and is primarily intended to establish some notation, specify some
+specific assumptions to show which parts of the general framework are most
+relevant in the context of modeling algorithms for combinatorial problems, and
+recall some fundamental theoretical results.
+%
+For a more gentle introduction, we refer the reader to the reinforcement
+learning book of Sutton and
+Barto~\cite{suttonReinforcementLearningIntroduction2018}.
+
+Next, we take a closer look at the particular constructive scheduling MDP that
+we defined in Section~\note{[insert]} and argue that the class of horizon
+policies considered there is general enough, in the sense that it always
+contains an optimal policy.
+
+In Section~\ref{sec:policy-gradient}, we present the policy gradient theorem and
+show how it leads to the well-known REINFORCE algorithm with baselines.
+%
+We examine the difference between the single-step update and the episode update.
+
+
+\section{Broad overview of the MDP framework}\label{sec:broad-MDP}
+
+% Decision Epochs and Periods
+We consider some set $T$ of decision epochs, which is assumed to be a finite or
+countable set.\footnote{When decisions are made continuously, and if we are not
+  willing to introduce some discretization scheme to justify this assumption,
+  the decision problem is better approached using optimal control
+  theory.}
+%
+In general, we can distinguish between \emph{finite-horizon} problems, in which
+$T = \{1, 2, \dots, N\}$ for some integer $N < \infty$ and
+\emph{infinite-horizon} problems, where $T = \{1, 2, \dots\}$.
+%
+At each decision epoch $t \in T$, the system or \emph{environment} is in some
+state $s$ from the state space $\mathcal{S}$ and the decision maker or \emph{agent}
+needs to select some action $a$ from the set of \emph{admissible} actions
+$\mathcal{A}(s)$ in this state.
+%
+We assume that $\mathcal{S}$ and $\mathcal{A}(s)$, for each $s \in \mathcal{S}$,
+are finite or countable sets.
+%
+We assume that the system starts in some initial state $s_0$, according to the
+initial state distribution\footnote{Given some countable set
+  $A = (a_1, a_2, \dots )$, we define the \emph{probability simplex} over $A$ to
+  be the set of mappings
+\begin{align*}
+  \Delta(A) := \left\{ p : A \rightarrow [0, 1] \mid \sum_{a \in A} p(a) = 1 \right\} ,
+\end{align*}
+so it represents all possible discrete probability distributions over $A$. For
+functions $f : X \rightarrow \Delta(A)$, mapping some element $x \in X$ to a
+particular distribution $p = f(x) \in \Delta(A)$, we use the notational
+convention $p(a) = f(a | x )$.} $\rho_0 \in \Delta(\mathcal{S})$.
+%
+Upon selecting action $a$ in state $s$ at decision epoch $t$, the system
+transitions to some next state $s'$, according to the transition probability
+$p_t(s, a) \in \Delta(\mathcal{S})$, and the agent receives a reward
+$r_t(s, a, s') \in \mathbb{R}$.
+%
+When dealing with finite-horizon problems ($N < \infty$), the last decision is
+made at epoch $t = N - 1$ and in that case, the final state $s$ of the system at
+epoch $N$ determines the so-called final reward $r_N(s)$.
+%
+We will assume that $p_t \equiv p$ for all $t \in T$, which means that the system
+dynamics do not change over time, and similarly that $r_t \equiv r$ for $t \in T$.
+%
+The Markov decision process (MDP) is then defined as the tuple
+\begin{align}
+  \mathcal{M} := (T, \rho_0, \mathcal{S}, \mathcal{A}, p, r) .
+\end{align}
+
+\note{[Change the final reward definition in the single intersection MDP to
+  reflect assumption above.]}
+
+\paragraph{Decision rules and policies.}
+
+We now discuss how the behavior of the agent can be modeled. At each decision
+epoch $t$, some \emph{decision rule} $d_t$ determines how the action is selected given
+the current state.
+%
+There are two axes that determine the class of decision rules:
+%
+\begin{center}
+\begin{tabular}{c|cc}
+ & Deterministic & Randomized \\
+\hline
+Markov & MD & MR \\
+History-dependent & HD & HR \\
+\end{tabular}
+\end{center}
+%
+The simplest of these four is the class of MD decision rules, where every state
+is mapped to a single action, so we have $d_t(s_t) \in \mathcal{A}(s_t)$.
+%
+Instead of the current state only, we could allow this mapping to depend on the
+whole state-action \emph{history}
+\begin{align}
+  \label{eq:1}
+  h_t = (s_0, a_1, s_1, \dots, a_{t-1}, s_{t-1}) ,
+\end{align}
+in which case we obtain the class of HD decision rules, which can be written as
+$d_t(h_t) \in \mathcal{A}(s_t)$.
+%
+Next, we could allow the agent to specify a distribution over actions, which
+leads to the class MR decision rules of the form
+$d_t(s_t) \in \Delta(\mathcal{A}(s_t))$ and the most general class of HR
+decision rules of the form $d_t(h_t) \in \Delta(\mathcal{A}(s_t))$.
+
+We obtain a policy $\pi$ when we specify a decision rule $d_t$ for each decision
+epoch $t \in T$. In the finite-horizon case, this means that we have
+$\pi = (d_1, d_2, \dots, d_{N-1})$. Some policy $\pi$ is called \emph{stationary} if the same
+decision rule $d_t = d$ is used at each decision epoch $t \in T$. In that case, we
+will just write $\pi(\cdot)$ instead of $d_t(\cdot)$.
+
+For each of the four types $K \in \{\text{MD}, \text{HD}, \text{MR}, \text{HR}\}$,
+let $\Pi^K$ denote the set of policies in which all decision rules are of type
+$K$, then we have
+$\Pi^\textrm{MD} \subset \Pi^\textrm{HD} \subset \Pi^\textrm{HR}$ and
+$\Pi^\textrm{MD} \subset \Pi^\textrm{MR} \subset \Pi^\textrm{HR}$, so
+$\Pi^\textrm{HR}$ is the most general and $\Pi^\textrm{MD}$ is the most
+restrictive.
+%
+Stationary policies in $\Pi^\textrm{MD}$ are called \emph{pure} and we will use $\Pi_\mathrm{p}$ to denote the
+set of all pure policies.
+
+\paragraph{Behavior of the system.}
+After fixing the action selecting process in the MDP by choosing some policy
+$\pi$, we have essentially fixed the (random) behavior of the system.
+%
+Let us illustrate this by showing how a single realization of the evolution of
+the system can be sampled. We will use the notation $a \sim \Delta(A)$ to denote
+a sample from a distribution.
+%
+Consider a finite-horizon MDP and suppose we are given some policy
+$\pi \in \Pi^\mathrm{HR}$.
+%
+We start by sampling the initial state $S_0 \sim \rho_0$. We sample the first
+action $A_1 \sim d_1(h_1) \equiv d_1(S_0)$ and the next state
+$S_1 \sim p(S_0, A_1)$, which results in a reward $R_1 = r(S_0, A_1, S_1)$. By
+repeating $A_t \sim d_t(h_t)$, $S_t \sim p(S_{t-1}, A_t)$ and
+$R_t = r(S_{t-1}, A_t, S_t)$ for the remaining decision epochs, we obtain a
+sequence of samples
+\begin{align}
+  \tau = (S_0, A_1, R_1, S_1, A_2, R_2, S_2, \dots, A_{N-1}, R_{N-1}, S_N, R_N) ,
+\end{align}
+which is called an \emph{episode}.
+%
+In the infinite-horizon case, the policy $\pi$ induces some probability law
+$P^\pi(\tau)$ over the space of possible episodes, which are infinite sequences.
+%
+From now on, we will assume that $S_i, A_i, R_i$ are random variables and $\tau$
+is the corresponding stochastic process.
+
+\paragraph{Optimality criteria.}
+In order to specify how we want the system to behave, we need to specify which
+law---and thus implicitly which policy---is most desirable.
+%
+In the MDP framework, the central premise is that this can be done entirely in
+terms of the subprocess of rewards $R(\tau) = (R_1, R_2, \dots)$.
+%
+This means that we can define some \emph{optimality criterion} $\Psi$ to map this reward
+process to a single real number, such that the goal of finding good policies can
+be concisely stated as the policy optimization problem
+\begin{align}
+  \max_{\pi \in \Pi^\mathrm{HR}} \Psi\left(R(\tau)\right) .
+\end{align}
+When this maximum exists and is attained by some policy $\pi^*$, we call $\pi^*$
+an \emph{optimal} policy.
+
+In the finite-horizon case, the most natural and common optimality criterion
+considered in the literature is the \emph{total expected reward}, which is
+defined as
+\begin{align}
+  \label{eq:total-expected-reward}
+  \Psi(R(\tau)) = \mathbb{E}^\pi \left[ \sum_{t \in T} R_t \right] ,
+\end{align}
+where we use $\mathbb{E}^\pi$ to emphasize that this expectation depends on the
+particular policy being used.
+%
+We could also include higher moments to take into account the variability of the
+process, for example to model some kind of risk-aversion. In the context of
+modeling combinatorial algorithms, this can be useful to model probabilistic
+guarantees on the quality of the computed solution.
+%
+There are various ways to define $\Psi$ in the infinite-horizon case, the most
+common being \emph{average reward} and \emph{total discounted reward}, but we will not discuss
+these here, since they appear to be less relevant in the context of modeling
+combinatorial algorithms.
+
+In the most common problem settings in the literature, finite-horizon or
+infinite-horizon problems with one of the optimality criteria just mentioned, it
+can be shown that an optimal policy exist that is in class $\Pi_\textrm{MD}$. In
+other words, we cannot expect to gain anything by looking at the history or
+using randomized action selection.
+
+
+\section{Optimal policies for the constructive scheduling MDP}
+
+For finite-horizon MDPs with the total expected reward objective, it is well
+known that among all optimal policies, we can select one that is deterministic
+and Markov (but not necessarily stationary).
+%
+Let the constructive scheduling MDP that we introduced in
+Section~\note{[insert]} be denoted by $\mathcal{M}_\mathrm{constr}$.
+%
+To keep notation concise, let $\Pi^*(\mathcal{M})$ denote the set of policies
+$\pi \in \Pi^\mathrm{HR}$ that are optimal for $\mathcal{M}$ with respect to the
+total expected reward criterion~\eqref{eq:total-expected-reward}.
+%
+Our first goal is to show that we only have to consider pure policies, as stated
+by the followin lemma.
+
+\begin{lemma}
+  The constructive scheduling MDP satisfies
+  $\Pi^*(\mathcal{M}_\mathrm{constr}) \cap \Pi_\mathrm{p} \neq \varnothing$.
+\end{lemma}
+
+Furthermore, as we argued intuitively in the main text, the disjunctive graph
+state encoding contains some redundancy. In particular, it can be shown that
+there exist optimal policies that are indifferent to how the partial schedule
+was constructed up until the current decision epoch, and thus only take into
+account the horizon $\phi(s_t)$ at that time.
+%
+Let $\Pi_\phi$ denote the set of so-called \emph{horizon policies}, which can be
+defined as the set of all policies $\pi \in \Pi^\mathrm{HR}$ for which there
+exists some function $f$ such that $\pi = f \circ \phi$.
+%
+Our intuitive argument is now made precise by the following sharpening of the
+above lemma.
+
+\begin{theorem}
+  The constructive scheduling MDP satisfies
+  $\Pi^*(\mathcal{M}_\mathrm{constr}) \cap \Pi_\mathrm{p} \cap \Pi_\phi \neq \varnothing$.
+
+\end{theorem}
+
+\paragraph{Pure policies.}
+Note that $\mathcal{M}_\mathrm{constr}$ does not immediately belong to the
+finite-horizon or infinite-horizon cases introduced in
+Section~\ref{sec:broad-MDP}, because the number of decision epochs depends on
+the initial state.
+%
+Therefore, we first apply the well-known trick of introducing so-called
+\emph{terminal states} to formulate $\mathcal{M}_\mathrm{constr}$ in terms of an
+equivalent infinite-horizon problem.
+%
+For every state that is a complete disjunctive graph, we introduce a
+
+\begin{proposition}
+  Let $\mathcal{M}$ be a finite-horizon MDP, then
+  $\Pi^*(\mathcal{M}) \cap \Pi^\mathrm{MD} \neq \varnothing$.
+\end{proposition}
+\begin{proof}
+  Our MDP definition in Section~\ref{sec:broad-MDP} satisfies case (a) of
+  Proposition 4.4.3 in \cite{putermanMarkovDecisionProcesses2009}.
+\end{proof}
+
+\paragraph{Horizon policies.}
+
+
+\begin{theorem}
+  Let $\phi : \mathcal{S} \rightarrow \bar{\mathcal{S}}$ some state abstraction. Suppose that for all $s_1, s_2 \in \mathcal{S}$ such that $\phi(s_1) = \phi(s_2)$, the following holds
+  \begin{enumerate}
+    \item $\mathcal{A}(s_1) = \mathcal{A}(s_2) =: A$,
+    \item $\phi(p(s_1, a)) = \phi(p(s_2, a))$ for all $a \in A$,
+    \item $r(s_1, a) = r(s_2, a)$ for all $a \in A$,
+  \end{enumerate}
+  then there exists an optimal policy $\pi^* \in \Pi_\text{det}$ such that
+  $\pi^* \in \Pi_\phi$.
+\end{theorem}
+\begin{proof}
+  Argue that we can change every optimal $\pi^*$ into an abstract policy $\pi^*_\phi$
+  without changing the total reward.
+\end{proof}
+
+\section{Policy gradient optimization}\label{sec:policy-gradient}
+
+\note{
+We introduce yet another perspective on the algorithm model that could
+be helpful in some contexts.
+%
+Suppose we are given an MDP specified by the tuple
+$(\mathcal{S}, \mathcal{A}, p, r)$, and some policy $\pi$.
+%
+Let $s_0$ denote some initial state and let $\tau$ denote some particular episode
+of states and actions, so it is a tuple
+\begin{align}
+  \tau = (s_0, a_0, s_1, a_1, \dots, s_T) .
+\end{align}
+The probability of this trajectory can be decomposed as follows
+\begin{align}
+  \label{eq:7}
+  p(\tau) = \rho_0(s_0) \prod_{t=0}^{T-1} \pi(a_t | s_t) p(s_{t+1} | s_t, a_t) ,
+\end{align}
+where $\rho_0(\cdot)$ denotes the distribution of the initial state.}
+
+
+\paragraph{Why consider non-deterministic policies?}
+%
+We showed that there exists an optimal pure policy for
+$\mathcal{M}_\mathrm{constr}$, so it might appear strange to consider stationary
+randomized policies during optimization.
+%
+However, the reasons for doing this is related to the reason for considering \emph{relaxations}
+when solving integer programs. In the relaxed version of an integer program, the
+integer constraints are removed, which makes it much easier to solve. The final
+solution must of course satisfy the integer constraints, so we need some sort of
+\emph{rounding procedure} to return to integer values.
+%
+Similarly, we want to find an optimal deterministic policy, but we relax the
+constraint that each state maps into a single action by allowing distributions
+of actions instead.
+%
+Since the final solution needs to be a deterministic policy, we need to specify
+some ``rounding procedure'' to return to degenerate distributions, for example,
+by performing greedy action selection, or by applying search procedures like
+beam search, or the active search procedure
+from~\cite{belloNeuralCombinatorialOptimization2017}.
+
+\clearpage
+
+\section{MDP homomorphism}
+
+\begin{define}
+  An MDP homomorphism between $\mathcal{M} = (T, )$
+\end{define}
+
+\begin{define}
+\end{define}
+
+
+\clearpage
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+
+\end{document}

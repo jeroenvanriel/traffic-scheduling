@@ -1,0 +1,158 @@
+\documentclass{article}
+
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools,thmtools,cleveref}
+\usepackage{stmaryrd} % double bracket [[1, n]]
+\usepackage{graphicx,dsfont,float,booktabs,multirow}
+
+\theoremstyle{definition}
+\newtheorem{eg}{Example}
+\newtheorem{define}{Definition}
+\newtheorem{assump}{Assumption}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem*{remark}{Remark}
+\newtheorem{remarknum}{Remark}
+
+\setlength{\skip\footins}{15pt}
+
+\begin{document}
+
+\section*{Platoon preservation in a single intersection\\ with vehicles of arbitary length}
+
+Consider vehicles with the same motion dynamics, but with different geometry in
+terms of length.
+%
+For each vehicle $i$, let $c(i) \in \llbracket C \rrbracket$ denote its class\footnote{We write $\llbracket n \rrbracket := \{1, 2, \dots, n\}$ for sequences of integers.}
+and let let $L^{c(i)}$ denote the corresponding length. Assume that
+$L^1 \leq L^2 \leq \cdots \leq L^C$.
+%
+For example, we can model a mix of passenger cars and trucks with $C = 2$.
+
+Each vehicle of class $c$ occupies the intersection for a duration of exactly
+\begin{align*}
+  \sigma^c := (E + L^c - B) / \bar{v} .
+\end{align*}
+Furthermore, the amount of time after which the next vehicle on the same route
+can cross the intersection is given by
+\begin{align*}
+  \rho^c := L^c / \bar{v} ,
+\end{align*}
+to which we refer as the \emph{processing time} and we refer to the time
+difference $\delta := \sigma^c - \rho^c = (E + B) / \bar{v}$ as the
+\emph{switch-over time}.
+%
+In particular, observe that we have $\rho^1 \leq \rho^2 \leq \cdots \leq \rho^C$.
+%
+Furthermore, we use the shorthand notation $f_i = f^{c(i)}$ for $f \in \{L, \rho, \sigma\}$.
+
+With the full speed assumption and delay minimization, it can be shown that the
+upper-level problem is equivalent to the \emph{crossing time scheduling
+  problem}:
+%
+\begin{alignat}{2}\label{eq:C}
+  \min_{y} \quad & \sum_{i \in \mathcal{N}} y_i \tag{C} \\
+  \text{ s.t.} \quad & a_{i} \leq y_i  && \quad \text{ for all } i \in \mathcal{N} , \label{eq:arrival} \tag{C.1} \\
+                    & y_i + \rho_i \leq y_{j}  && \quad \text{ for all } (i,j) \in \mathcal{C} , \label{eq:conjunctive} \tag{C.2} \\
+                    & (y_{i}, y_i + \sigma_i) \cap (y_{j}, y_j + \sigma_j) = \varnothing && \quad \text{ for all } \{i,j\} \in \mathcal{D} . \label{eq:disjunctive} \tag{C.3}
+\end{alignat}
+
+\begin{remark}
+  Note that we did not yet completely prove this equivalence. What is missing is
+  a clear argument why~\eqref{eq:arrival} and~\eqref{eq:conjunctive} together are necessary and sufficient for
+  feasible trajectories for each route. This is easy to see from a picture, but
+  we rather have some clear symbolic argument here.
+\end{remark}
+\begin{remark}
+  Remember that we removed the earliest arrival times $a_i$ from the objective,
+  but we can always add back $\sum_i a_i$ at the end to get the total delay.
+\end{remark}
+
+Observe that each feasible schedule $y$ induces a total order over the vehicles,
+since we have either $y_i > y_j$ or $y_i < y_j$ for any pair $i \neq j$.
+%
+Let the corresponding \emph{vehicle order} be the sequence
+$\nu(y) = (i_1, i_2, \dots, i_N)$ such that $y_{i_k} < y_{i_{k+1}}$, for each
+$k \in \llbracket N-1 \rrbracket$.
+%
+This leads to the following equivalent characterization of feasible schedules.
+
+\begin{proposition}\label{thm:feasible-schedule}
+  Schedule $y$ is a feasible solution of problem~\eqref{eq:C} if and only if
+  $a_i \leq y_i$ for each $i \in \mathcal{N}$ and, for each
+  $k \in \llbracket N - 1 \rrbracket$, we have
+  \begin{align}
+    y_{i_k} + \rho_{i_k} +
+    \left\{
+    \begin{array}{l}
+    0 \; \text{ if } \; r(i_k) = r(i_{k+1}) \\
+    \delta \; \text{ if } \; r(i_k) \neq r(i_{k+1})
+    \end{array}
+    \right\} \leq y_{i_{k+1}} .
+  \end{align}
+\end{proposition}
+
+It turns out that optimal schedules satisfy the following interesting property.
+
+\begin{theorem}
+  If schedule $y$ is optimal for~\eqref{eq:C} and
+  $a_{j^*} \leq y_{i^*} + \rho_{i^*}$ for some $(i^*, j^*) \in \mathcal{C}$ with
+  $c(j^*) = 1$, then $j^*$ must immediately follow $i^*$, so
+  $y_{j^*} = y_{i^*} + \rho_{i^*}$.
+\end{theorem}
+\begin{proof}
+  Without loss of generality, assume $r(i^*) = r(j^*) = 1$.
+  %
+  Let $K$ denote the number, possibly zero, of vehicles scheduled between $i^*$
+  and $j^*$ in schedule $y$ and let $l^*$ denote the vehicle that immediately
+  follows $j^*$. In other words, the vehicle order is
+  \begin{align*}
+    \nu(y) = (\, \dots , i^*, l_1, l_2, \dots, l_K, j^*, l^*, \dots) ,
+  \end{align*}
+  with $r(l_k) \neq 1$ for all $k \in \llbracket K \rrbracket$. Vehicle $l^*$
+  may belong to any route.
+  
+  Suppose $y_{i^*} + \rho_{i^*} < y_{j^*}$, then we show that $y$ is not optimal by
+  constructing a new schedule $y'$ from $y$ by moving $j^*$ forward as far as
+  possible.
+  %
+  When $K=0$, we can simply set $y'_{j^*} = y_{i^*} + \rho_{i^*}$ and
+  $y'_i = y_i$ for any other $i \neq j^*$, such that $y'$ is a feasible schedule
+  with strictly lower objective, contradicting optimality of $y$.
+  %
+  Therefore, we assume that $k \geq 1$ and we construct $y'$ such that the new
+  vehicle order satisfies
+  \begin{align*}
+    \nu(y') = (\, \dots , i^*, j^*, l_1, l_2, \dots, l_K, l^*, \dots) .
+  \end{align*}
+  Specifically, we set $y'_{j^*} = y_{i^*} + \rho_{i^*}$ and
+  $y'_{l_k} = y_{l_k} + \rho_{j^*}$, for each $k \in \llbracket K \rrbracket$. For
+  each remaining vehicle $i$, we keep $y'_i = y_i$.
+  %
+  Using~\Cref{thm:feasible-schedule}, it is easily verified that the resulting
+  $y'$ is still feasible.
+  % 
+  % Indeed, we have
+  % Show that $y'_{l_K} + \sigma_{l_K} \leq l^*$ is satisfied, such that the tail of the schedule is still valid.
+  % 
+  Observe that 
+  \begin{align*}
+    y_{j^*} \geq y_{i^*} + \rho_{i^*} + 2\delta + \sum_{k=1}^K \rho_{l_k},
+  \end{align*}
+  which implies
+  \begin{align*}
+    y'_{j^*} - y_{j^*} \leq - K \rho^1 - 2\delta ,
+  \end{align*}
+  since $\rho^1 \leq \rho_{l_k}$ for every $k \in \llbracket K \rrbracket$.
+  %
+  Hence, we have
+  \begin{align*}
+    \sum_{i \in \mathcal{N}} y'_i - \sum_{i \in \mathcal{N}} y_i &= \left(y'_{j^*} - y_{j^*}\right) + \sum_{k=1}^K \left(y'_{l_k} - y_{l_k}\right) \\
+    &\leq K (\rho_{j^*} - \rho^1) - 2\delta  = -2\delta
+    \leq 0
+  \end{align*}
+  which contradicts the assumption that $y$ is optimal.
+  \end{proof}
+
+  \end{document}

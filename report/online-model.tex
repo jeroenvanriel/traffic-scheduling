@@ -1,0 +1,71 @@
+\documentclass{article}
+
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools,thmtools,cleveref}
+\usepackage{stmaryrd} % double bracket [[1, n]]
+\usepackage{graphicx,dsfont,float,booktabs,multirow}
+
+\newcommand\halfopen[2]{\ensuremath{[#1,#2)}}
+\newcommand\openhalf[2]{\ensuremath{(#1,#2]}}
+
+\begin{document}
+
+\section{Online autonomous intersection control as
+  an adaptive trajectory optimization problem}
+
+We consider a transportation system with only autonomous vehicles that are all
+connected to a single, central controller, that is in charge with steering each
+individual vehicle.
+%
+Assume that routes of vehicles are fixed, so that vehicles can be modeled as
+double integrators.
+%
+When no more additional vehicles arrive to the system, the coordination problem
+can be stated as a trajectory optimization problem.
+
+We want to extend this model such that it captures the random arrival of
+vehicles to the network. More generally, we will allow arrivals to be announced
+before the actual vehicle enters the sytem.
+
+\paragraph{Online model.}
+This setting is naturally captured as a semi-Markov decision process (SMDP).
+Since we are dealing with vehicle trajectories, this means that we have
+infinite-dimensional state and action spaces.
+%
+Let $\{ X_m, m \geq 0 \}$ denote the state process, let $\Upsilon_m$ denote the
+sojourn time.
+
+\paragraph{States.}
+The state is defined as the tuple $X_m = (\mathcal{N}_m, S_m)$, where
+$\mathcal{N}_m$ denotes the set of vehicle indices of the vehicles currently in
+the system, and $S_m : \mathcal{N}_m \rightarrow \mathbb{R}^2$ maps each vehicle
+index $i$ to the state $S_m(i) = (p_i, v_i)$ of that vehicle, consisting of its
+position $p_i$ along the route and its current speed $v_i$.
+
+\paragraph{Actions.}
+Each action prescribes the trajectories for the vehicles $\mathcal{N}_m$ to
+follow through the network.
+%
+Each action is a function
+$a_m : \mathcal{N}_m \rightarrow (\halfopen{t_m}{\infty} \rightarrow \mathbb{R}^2)$
+
+\paragraph{Constraints.}
+
+\begin{enumerate}
+  \item effect of collision avoidance on arrivals
+  \item collision avoidance restricts actions
+  \item continuity requirement of actions: trajectories must be a smooth
+        continuation of the current trajectory plan (second-order or higher
+        continuity)
+\end{enumerate}
+
+\subsection{Problem aspects}
+
+\paragraph{Optimal control.}
+
+\paragraph{Online scheduling.}
+
+\subsection{Solution methods}
+
+
+
+\end{document}

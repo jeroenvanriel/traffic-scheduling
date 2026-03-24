@@ -1,0 +1,106 @@
+\documentclass{article}
+
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools,thmtools,cleveref}
+\usepackage{stmaryrd} % double bracket [[1, n]]
+\usepackage{graphicx,dsfont,float,booktabs,multirow}
+
+\theoremstyle{definition}
+% \theoremstyle{plain}
+\newtheorem{eg}{Example}
+\newtheorem{define}{Definition}
+\newtheorem{assump}{Assumption}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+\newtheorem*{remark}{Remark}
+\newtheorem{remarknum}{Remark}
+
+%% some (math) macros
+\DeclareMathOperator{\interior}{int}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand\halfopen[2]{\ensuremath{[#1,#2)}}
+\newcommand\openhalf[2]{\ensuremath{(#1,#2]}}
+\newcommand*\diff{\mathop{}\!\mathrm{d}}
+
+\setlength{\skip\footins}{15pt}
+
+\begin{document}
+
+\section*{Reachability analysis}
+
+Define the set of admissible controls
+\begin{align}
+  \mathcal{U} = \{ u : [t_0, t_1] \rightarrow U \; \mid \; u \text{ is measurable} \} .
+\end{align}
+Define the forward reachable set
+\begin{align}
+  \mathcal{R}^f(t) = \mathcal{R}^f(t ; t_0, x_0) = \{ x(t ; t_0, x_0, u) \mid u \in \mathcal{U} \} ,
+\end{align}
+where $x(\cdot \, ; t_0, x_0, u)$ denotes the unique trajectory satisfying
+\begin{align}
+  \dot{x}(t) = Ax(t) + Bu(t), \quad x \in K, \quad  x(t_0) = x_0 ,
+\end{align}
+where $x \in K$ represents the state-constraints.
+%
+Similarly, define the backward reachable set
+\begin{align}
+  \mathcal{R}^b(t) = \mathcal{R}^b(t ; t_1, x_1) = \{ x_0 \mid \exists \, u \in \mathcal{U} \text{ s.t. } x(t_1 ; t, x_0, u) = x_1 \} .
+\end{align}
+%
+Define $\mathcal{R}(t) = \mathcal{R}^f(t; t_0, x_0) \cap \mathcal{R}^b(t; t_1, x_1)$.
+
+\paragraph{Some general questions.}
+
+\begin{itemize}
+  \item $\mathcal{R}^f(t)$ is compact (Filippov, extended to state constraints)
+  \item $\mathcal{R}^b(t)$ is compact (time reversal + Filippov, extended to state constraints)
+  \item $\mathcal{R}(t)$ is convex, so connected
+\end{itemize}
+Fillipov's theorem as mentioned in Liberzon's book does not handle state constraints.
+It seems that ``viability theory'' could provide an answer to this question.
+
+Let $\pi : \mathbb{R}^2 \rightarrow \mathbb{R}$ be the projection that maps each
+state $q = (x, v)$ to its position component $\pi(q) = x$.
+\begin{itemize}
+  \item $\pi(\mathcal{R}(t))$ is an interval
+  \item $t \mapsto \sup \pi(\mathcal{R}(t))$ with $v(t) = \dot{p}(t)$ is an optimal
+        trajectory
+\end{itemize}
+
+
+
+\paragraph{Reachable set of time-space.}
+Let $d \in \{\mathrm{forward}, \mathrm{backward} \}$, then the $d$ reachable set
+over an interval to be
+\begin{align}
+  \mathcal{R}^d([t_0, t_1]) := \bigcup_{t \in [t_0, t_1]} (t, \mathcal{R}^d(t)) .
+\end{align}
+%
+If $\mathcal{R}([t_0, t_1]) := \mathcal{R}^f([t_0, t_1]; x_0) \cap \mathcal{R}^b([t_0, t_1]; x_1) = \varnothing$,
+then there does not exist any admissible control that steers the system from
+state $x_0$ at time $t_0$ to state $x_1$ at time $t_1$.
+
+\newpage
+
+\begin{define}
+  Let $q_0 = (x_0, v_0)$ be some initial state and consider some fixed control
+  input $\omega \in [\omega_d, \omega_a]$, then we define
+  \begin{align}
+    x_{q_0}^\omega(t) := x_0 + \int_0^t \{ v_0 + \omega \tau \}_{[0, 1]} \diff \tau ,
+  \end{align}
+  where ${\{ \alpha \}}_{[0,1]} := \max(0, \min(1, \alpha))$ denotes clipping to
+  interval $[0, 1]$.
+\end{define}
+
+\begin{proposition}
+  The reachable set of positions at time $t$ is the interval
+  \begin{align}
+    \pi(\mathcal{R}^f(t)) = [x^{\omega_d}_{q_0}(t), x^{\omega_a}_{q_0}(t)] .
+  \end{align}
+\end{proposition}
+\begin{proof}
+  $\omega \mapsto x_{q_0}^\omega(t)$ is continuous.
+\end{proof}
+
+\end{document}
