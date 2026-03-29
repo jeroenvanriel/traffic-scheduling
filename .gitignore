@@ -40,3 +40,6 @@
 ## results / reporting / figures
 notebooks/single/results/
 notebooks/network/results/
+
+## ide-specific files
+.vscode/
