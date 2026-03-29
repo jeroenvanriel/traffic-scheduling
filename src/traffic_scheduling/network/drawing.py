@@ -34,7 +34,6 @@ from shapely.ops import unary_union
 # %%
 # %load_ext autoreload
 # %autoreload 2
-# %cd /home/jeroen/repos/traffic-scheduling/network
 
 # %% [markdown]
 # ## Drawing graphs and networks
@@ -184,7 +183,7 @@ def plot_schedule(schedule):
 # ## Drawing vehicles
 
 # %%
-from network.util import dist
+from traffic_scheduling.network.util import dist
 
 def current_edge(G, route, pos):
     """Find the current edge (u,v) along the route of a vehicle, given its route

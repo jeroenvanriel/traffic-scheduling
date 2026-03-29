@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib import colormaps
 import math
-from operator import itemgetter
 
 
 def vehicle_indices(instance):
@@ -29,6 +28,7 @@ def order_indices(indices):
     """Return dict of order indices n[r] for each class r, sorted in increasing order."""
     return { route: sorted([k for (r, k) in indices if r == route]) for route in route_indices(indices) }
 
+
 def routes_at_intersection(instance):
     """Returns dict mapping intersection v to all the route indices that cross v."""
     routes = { v: [] for v in instance['G'].nodes }
@@ -37,15 +37,6 @@ def routes_at_intersection(instance):
             if i not in routes[v]:
                 routes[v].append(i)
     return routes
-
-def indexed_arrivals(instance):
-    """Get tuples (r, k, release date) for every vehicle in instance, sorted by
-    increasing release date."""
-    indices = vehicle_indices(instance)
-    N = class_indices(indices)
-    n = lane_indices(indices)
-    arrivals = [(r, k, instance['release'][r][k]) for r in N for k in n[r]]
-    return sorted(arrivals, key=itemgetter(2))
 
 
 def plot_schedule(instance, y=None):
@@ -215,7 +206,6 @@ def as_dict(list_of_lists):
             d[r,k] = list_of_lists[r][k]
     return d
 
-import matplotlib.pyplot as plt
 
 def set_plot_defaults():
     plt.rcParams.update({

@@ -1,4 +1,4 @@
-from util import vehicle_indices, route_indices, order_indices, routes_at_intersection, pos_along_route, dist
+from traffic_scheduling.network.util import vehicle_indices, route_indices, order_indices, routes_at_intersection, pos_along_route, dist
 import networkx as nx
 
 

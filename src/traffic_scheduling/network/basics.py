@@ -29,7 +29,6 @@ import matplotlib.pyplot as plt
 # %%
 # %load_ext autoreload
 # %autoreload 2
-# %cd /home/jeroen/repos/traffic-scheduling/network
 
 # %% [markdown]
 # # Getting started
@@ -75,7 +74,7 @@ class NetworkInstance:
 # Connect some drawing function to this class, for convenient access.
 
 # %%
-from network.drawing import draw_graph, draw_road
+from traffic_scheduling.network.drawing import draw_graph, draw_road
 
 NetworkInstance.draw_graph = lambda self: draw_graph(self.G)
 NetworkInstance.draw_road = lambda self, **kwargs: draw_road(self.G, **kwargs)
@@ -111,7 +110,7 @@ class NetworkMILPSchedule:
 # Keep the schedule plot function local to this class, for convenience.
 
 # %%
-from network.drawing import plot_schedule
+from traffic_scheduling.network.drawing import plot_schedule
 NetworkMILPSchedule.plot_schedule = lambda self: plot_schedule(self)
 
 # %% [markdown]
@@ -120,7 +119,7 @@ NetworkMILPSchedule.plot_schedule = lambda self: plot_schedule(self)
 # %%
 import gurobipy as gp
 from itertools import product, combinations
-from network.util import dist
+from traffic_scheduling.network.util import dist
 
 def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False, logfile=None):
     """Solve a network scheduling problem as a MILP."""
@@ -333,11 +332,11 @@ def generate_grid_network(m=None, n=None, xdist=[10, 10], ydist=[10]):
 # Reuse the route arrival generation function from the single intersection.
 
 # %%
-from single.basics import uniform, clipped, bimodal_exponential
+from traffic_scheduling.single.basics import uniform, clipped, bimodal_exponential
 
 # %%
 from collections.abc import Iterable
-from single.basics import arrivals_from_gaps
+from traffic_scheduling.single.basics import arrivals_from_gaps
 
 def generate_instance(F, n, rho=1.2, sigma=1.7, net_m=3, net_n=2, distance=10):
     G, routes = generate_grid_network(net_m, net_n, distance, distance)
@@ -382,7 +381,7 @@ def generate_simple_instance(n=[10, 10, 10, 10], net_m=2, net_n=2):
 # ### Trajectories from scheduled crossing times
 
 # %% tags=["active-ipynb"]
-# from motion.motion import generate_trajectories
+# from traffic_scheduling.motion.motion import generate_trajectories
 # params = dict(vmax=1, umax=1, l=1.19, dt=0.25)
 # trajectories = generate_trajectories(instance.G, instance.routes, instance.arrivals, instance.opt.y, 1.2, params)
 
