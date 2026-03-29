@@ -22,4 +22,3 @@ Autonomous vehicle technology is advancing rapidly, making large-scale coordinat
 - *network* - Extensions of experiments to a network of intersections
 - *motion* - Various ways of solving the optimal control problem to determine speed profiles
 - *report* - Thesis and miscellaneous personal notes
-- *notebooks* - Some Jupyter notebooks from the exploratory phase of this project
