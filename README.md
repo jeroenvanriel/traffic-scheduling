@@ -16,9 +16,10 @@ Autonomous vehicle technology is advancing rapidly, making large-scale coordinat
 
 **Abstract**: The growing adoption of autonomous vehicles motivates the need for systems that coordinate joint motion across traffic networks, aiming to reduce travel time, fuel consumption, and improve comfort. We study this coordination problem under ideal conditions, assuming perfect communication and a centralized controller that prescribes precise vehicle trajectories. Focusing on intersection management, we identify the determination of optimal crossing orders as a key combinatorial challenge. Formulating delay minimization as a scheduling problem, we develop an integer programming model and introduce two types of cutting planes that significantly accelerate solution time for single-intersection cases. As exact optimization scales poorly, we investigate step-by-step scheduling as a basis for fast heuristics. For a single intersection, a simple one-parameter threshold policy achieves less than 2% and 10% optimality gaps for two and three crossing routes, respectively, with up to 60 vehicles per route. Neural network policies trained via imitation and reinforcement learning offer limited additional benefit. Finally, we outline challenges in extending the framework to networks of intersections, particularly in modeling finite lane capacities, and present preliminary insights into how finite lane capacity defines the space of feasible crossing time schedules. 
 
-## 📂 Folder Organisation
+## 📂 Project Organisation
 
-- *single* - Main experiments for a single intersection
-- *network* - Extensions of experiments to a network of intersections
-- *motion* - Various ways of solving the optimal control problem to determine speed profiles
-- *report* - Thesis and miscellaneous personal notes
+- *notebooks/* - Jupyter notebooks for visualizations and experiments
+- *report/* - Thesis and miscellaneous personal notes
+- *src/traffic_scheduling/single/* - Main experiments for a single intersection
+- *src/traffic_scheduling/network/* - Extensions of experiments to a network of intersections
+- *src/traffic_scheduling/motion.py* - Solving the optimal control problem using a direct transcription method
