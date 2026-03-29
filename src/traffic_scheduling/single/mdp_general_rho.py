@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
 from matplotlib.ticker import MaxNLocator
-from colors import pastel_cmap 
+from util.colors import pastel_cmap 
 
 
 def current_route(base_env):
