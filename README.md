@@ -1,14 +1,46 @@
 ## 🚘 Autonomous Intersection Coordination
 
-> How to optimally guide autonomous vehicles through a busy network of intersections?
+> How to optimally guide autonomous vehicles through a dense network of intersections?
 
-Suppose you can control every autonomous vehicle in a certain neighborhood of tightly interconnected intersections, maybe something like downtown Manhattan. Assume that every driver (or rather, *passenger* in this scenario) has communicated their next destination, then how would we have to guide all vehicles in order to optimize measures such as overall travel time and energy efficiency?
+Suppose you can control every autonomous vehicle in a certain neighborhood of tightly interconnected intersections, maybe something like downtown Manhattan.
+Assume that every driver (or rather, *passenger* in this scenario) has communicated their next destination, then how would we have to guide all vehicles in order to optimize measures such as overall travel time and energy efficiency? 
 
-Autonomous vehicle technology is advancing rapidly, making large-scale coordinated traffic control an increasingly relevant problem. There are many modeling facets, but this project focuses on the following two main aspects:
-1. In which order are vehicles going to cross intersections?
-2. Given fixed routes, how to control the speed of each vehicle?
+Autonomous vehicle technology has seen rapid advancement, making such large-scale coordinated traffic control an increasingly relevant problem.
+There are many modeling facets to this problem, but this project focuses on simple grid-like networks of intersections, in which vehicles can only move in four cardinal directions.
+It is assumed that vehicles have predetermined routes.
+Furthermore, we assume that vehicles can be controlled with perfect precision, and that there is a centralized controller that can prescribe the exact trajectory of each vehicle.
+The main questions we seek to answer are:
 
-![Animation of vehicle movement in a grid-like network](grid.gif)
+1. In which order should vehicles cross intersections?
+2. How to control the speed of each vehicle?
+
+<!-- ![Animation of vehicle movement in a grid-like network](grid.gif) -->
+<img src="grid.gif" width="600">
+
+## 📈 Motion Planning
+
+Mathematically, the coordination problem can be defined as finding an optimal set of collision-free trajectories.
+When we define "optimal" to mean "minimizing the total delay of all vehicles", it turns out that we have to use a "bang-off-bang" speed control stategy, which means that vehicles should either accelerate at maximum rate, decelerate at maximum rate, or maintain their current speed.
+Finding the precise timing of these bang-off-bang control actions can be done using a direct transcription method, which discretizes the trajectory of each vehicle into a finite number of segments, and formulates the motion planning problem as a large linear program.
+
+The constraint that enforces a safety distance between vehicles on the same route distinguishes this motion planning problem from classical optimal control problems that can be solved analytically using the Pontryagin Maximum Principle.
+We have implemented an algebraic method that "glues together" a finite number of polynomial trajectory segments, which results in a couple of quadratic equations that can be solved symbolically using the `sympy` library.
+Although the results seem to be plausible when compared to direct transcription, we have no clear strategy for proving the correctness of this approach.
+
+<!-- ![Illustration of bang-off-bang control](bangbang.png) -->
+<img src="bangbang.png" width="600">
+
+## 🔢 Crossing Order Scheduling
+
+In the delay minimization setting, the motion planning problem is completely independent of the crossing order problem, which can thus be solved using integer programming.
+However, since this method scales poorly, we also investigate various heuristics that are based on a step-by-step scheduling approach.
+We find that a simple one-parameter threshold policy achieves surprisingly good results.
+Furthermore, we investigate policies parameterized by a neural network, which is trained using imitation learning and reinforcement learning.
+The results suggest that the neural network policies offer limited additional benefit compared to the simple threshold policy.
+Our hypothesis is that the architecture of the neural network is not well-suited to capture the combinatorial structure of the crossing order problem, and that more specialized architectures (e.g., including attention mechanisms) may be required to achieve better performance.
+
+<!-- ![Illustration of crossing time schedule](schedule.png) -->
+<img src="schedule.png" width="600">
 
 ## 📚 Thesis
 
