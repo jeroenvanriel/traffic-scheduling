@@ -381,7 +381,7 @@ def generate_simple_instance(n=[10, 10, 10, 10], net_m=2, net_n=2):
 # ### Trajectories from scheduled crossing times
 
 # %% tags=["active-ipynb"]
-# from traffic_scheduling.motion.motion import generate_trajectories
+# from traffic_scheduling.motion import generate_trajectories
 # params = dict(vmax=1, umax=1, l=1.19, dt=0.25)
 # trajectories = generate_trajectories(instance.G, instance.routes, instance.arrivals, instance.opt.y, 1.2, params)
 
