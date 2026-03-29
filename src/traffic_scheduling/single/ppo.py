@@ -21,7 +21,7 @@
 # > ⚠️ **Warning:** This notebook file is paired to a .py file with the same name, such that we can cleanly import the functionality from other notebooks. This is done using the facilities of the jupytext package. The cells in this notebook that are only meant as "demonstration" are marked with the cell tag "active-ipynb", which causes the jupytext synchronization command to ignore these when syncing to the .py file. This is our current way of doing "literate programming" with jupyter notebooks.
 
 # %%
-from single.mdp import SingleScheduleEnv, NewHorizonObservationWrapper, NewHorizonRollingWrapper, PaddedHorizonWrapper
+from traffic_scheduling.single.mdp import SingleScheduleEnv, NewHorizonObservationWrapper, NewHorizonRollingWrapper, PaddedHorizonWrapper
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.evaluation import evaluate_policy
@@ -30,9 +30,8 @@ from stable_baselines3.common.monitor import load_results
 from stable_baselines3.common.results_plotter import ts2xy, window_func
 import matplotlib.pyplot as plt
 import torch as th
-import pandas as pd
 import numpy as np
-from util import TqdmCallback
+from traffic_scheduling.single.util import TqdmCallback
 import os
 
 os.makedirs("results/ppologs/", exist_ok=True)

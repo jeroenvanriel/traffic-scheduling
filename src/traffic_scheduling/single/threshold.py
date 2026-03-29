@@ -25,7 +25,7 @@
 # ## Threshold heuristic
 
 # %%
-from single.mdp import SingleScheduleEnv, HorizonObservationWrapper
+from traffic_scheduling.single.mdp import SingleScheduleEnv, HorizonObservationWrapper
 
 import numpy as np
 from scipy.optimize import minimize_scalar

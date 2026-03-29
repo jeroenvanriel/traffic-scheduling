@@ -27,7 +27,6 @@ import pandas as pd
 # %%
 # %load_ext autoreload
 # %autoreload 2
-# %cd /home/jeroen/repos/traffic-scheduling/single
 
 # %% [markdown]
 # # Getting started
@@ -51,7 +50,7 @@ import pandas as pd
 # Each instance can be visualized by calling `instance.visualize()`. Since we already implement empty/partial/full schedule visualization in the gym environment, we generate a dummy env, reset it and render with some default options. See `SingleEnvironment.visualize()` for the options available.
 
 # %%
-from single.mdp import SingleScheduleEnv
+from traffic_scheduling.single.mdp import SingleScheduleEnv
 from dataclasses import dataclass
 
 @dataclass

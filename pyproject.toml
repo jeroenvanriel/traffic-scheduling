@@ -3,7 +3,7 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "traffic-scheduling"
+name = "traffic_scheduling"
 version = "0.1.0"
 description = "Autonomous Intersection Coordination"
 authors = [{name="Jeroen van Riel"}]

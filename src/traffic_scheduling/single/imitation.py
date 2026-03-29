@@ -21,7 +21,7 @@
 # > ⚠️ **Warning:** This notebook file is paired to a .py file with the same name, such that we can cleanly import the functionality from other notebooks. This is done using the facilities of the jupytext package. The cells in this notebook that are only meant as "demonstration" are marked with the cell tag "active-ipynb", which causes the jupytext synchronization command to ignore these when syncing to the .py file. This is our current way of doing "literate programming" with jupyter notebooks.
 
 # %%
-from single.mdp import SingleScheduleEnv, HorizonObservationWrapper, HorizonRollingWrapper
+from traffic_scheduling.single.mdp import SingleScheduleEnv, HorizonObservationWrapper, HorizonRollingWrapper
 
 import torch as th
 import torch.nn as nn
