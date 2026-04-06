@@ -92,9 +92,6 @@ class SingleScheduleEnv(gym.Env):
         for r in range(self.R):
             self.LB[r, :self.n[r]] = self.instance.arrivals[r]
 
-        # keep track of which LBs needed update, for rendering
-        self.LB_updated = []
-
         # initial total crossing time sum
         self.LB0 = self.LB.sum()
 
@@ -113,7 +110,6 @@ class SingleScheduleEnv(gym.Env):
         # and keep track of which LBs where updated, for rendering
         root_lb = self.LB[*vehicle] + self.rho + self.switch
         LB_inc = 0
-        self.LB_updated = []
         # for all other routes
         for r in set(range(self.R)) - {action}:
             # we change the 'lb' to do conjunctive chain propagation
@@ -124,7 +120,6 @@ class SingleScheduleEnv(gym.Env):
                     # actual update necessary
                     LB_inc += lb - self.LB[r, k]
                     self.LB[r, k] = lb
-                    self.LB_updated.append((r, k))
                     lb = self.LB[r, k] + self.rho
                 else:
                     # stop propagating updates
