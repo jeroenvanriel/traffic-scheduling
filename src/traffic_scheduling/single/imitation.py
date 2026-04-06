@@ -255,7 +255,7 @@ class ImitationLearning:
 # Verify that replaying the actions on the environment yields again the original schedule.
 
 # %% tags=["active-ipynb"]
-# from single.basics import bimodal_exponential, generate_instance
+# from traffic_scheduling.single.basics import bimodal_exponential, generate_instance
 #
 # F = bimodal_exponential(p=0.1, s1=0.1, s2= 5.6)
 # n = [5, 5, 5]
@@ -284,7 +284,7 @@ class ImitationLearning:
 # ### Measure learning performance
 
 # %% tags=["active-ipynb"]
-# from single.basics import bimodal_exponential, generate_instance
+# from traffic_scheduling.single.basics import bimodal_exponential, generate_instance
 #
 # F = bimodal_exponential(p=0.1, s1=0.1, s2= 5.6)
 # n = [5, 5, 5]
