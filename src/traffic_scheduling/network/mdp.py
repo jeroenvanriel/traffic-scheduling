@@ -35,11 +35,11 @@ class DisjunctiveGraph(nx.DiGraph):
                                 font_size=9, pos={ i: (pos[i][0], pos[i][1]) for i in pos })
 
 
-class Automaton:
+class NetworkScheduleEnv:
     """Dynamically updates disjunctive graph augmented with crossing time lower
     bounds. Assumes non-negative crossing times.
 
-    Automaton.D is a networkx graph representing the disjunctive graph. Each
+    NetworkScheduleEnv.D is a networkx graph representing the disjunctive graph. Each
     node has the following attributes:
 
     - `LB` contains the crossing time lower bound.
