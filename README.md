@@ -32,12 +32,12 @@ Although the results seem to be plausible when compared to direct transcription,
 
 ## 🔢 Crossing Order Scheduling
 
-In the delay minimization setting, the motion planning problem is completely independent of the crossing order problem, which can thus be solved using integer programming.
-However, since this method scales poorly, we also investigate various heuristics that are based on a step-by-step scheduling approach.
+In the delay minimization setting, the motion planning problem is completely independent of the crossing order problem, which means that the latter can thus be solved using integer programming.
+However, since this method scales poorly, we also investigate various heuristics that are based on a step-by-step schedule construction approach.
 We find that a simple one-parameter threshold policy achieves surprisingly good results.
-Furthermore, we investigate policies parameterized by a neural network, which is trained using imitation learning and reinforcement learning.
-The results suggest that the neural network policies offer limited additional benefit compared to the simple threshold policy.
-Our hypothesis is that the architecture of the neural network is not well-suited to capture the combinatorial structure of the crossing order problem, and that more specialized architectures (e.g., including attention mechanisms) may be required to achieve better performance.
+Furthermore, we investigate policies parameterized by neural networks, which are trained using imitation learning and reinforcement learning.
+The results suggest that the neural policies offer limited additional benefit compared to the simple threshold policy.
+Our hypothesis is that our simple neural network architecture is not suited to capture the combinatorial structure of the crossing order problem, and that more specialized architectures (e.g., using attention mechanisms) is required for better performance.
 
 <!-- ![Illustration of crossing time schedule](schedule.png) -->
 <img src="schedule.png" width="600">
@@ -48,10 +48,16 @@ Our hypothesis is that the architecture of the neural network is not well-suited
 
 **Abstract**: The growing adoption of autonomous vehicles motivates the need for systems that coordinate joint motion across traffic networks, aiming to reduce travel time, fuel consumption, and improve comfort. We study this coordination problem under ideal conditions, assuming perfect communication and a centralized controller that prescribes precise vehicle trajectories. Focusing on intersection management, we identify the determination of optimal crossing orders as a key combinatorial challenge. Formulating delay minimization as a scheduling problem, we develop an integer programming model and introduce two types of cutting planes that significantly accelerate solution time for single-intersection cases. As exact optimization scales poorly, we investigate step-by-step scheduling as a basis for fast heuristics. For a single intersection, a simple one-parameter threshold policy achieves less than 2% and 10% optimality gaps for two and three crossing routes, respectively, with up to 60 vehicles per route. Neural network policies trained via imitation and reinforcement learning offer limited additional benefit. Finally, we outline challenges in extending the framework to networks of intersections, particularly in modeling finite lane capacities, and present preliminary insights into how finite lane capacity defines the space of feasible crossing time schedules. 
 
-## 📂 Project Organisation
+## 📂 Project Organization
 
-- *notebooks/* - Jupyter notebooks for visualizations and experiments
-- *report/* - Thesis and miscellaneous personal notes
-- *src/traffic_scheduling/single/* - Main experiments for a single intersection
-- *src/traffic_scheduling/network/* - Extensions of experiments to a network of intersections
-- *src/traffic_scheduling/motion.py* - Solving the optimal control problem using a direct transcription method
+- **notebooks/** - Jupyter notebooks for visualizations and experiments
+    - **experiments.ipynb** - Main experiments for a single intersection, which invokes the different strategies from the **src/traffic_scheduling/single/** directory
+- **src/traffic_scheduling/single/** - Main experiments for a single intersection
+    - **basics.ipynb** - Problem instance generation and basic integer programming procedure with cutting planes
+    - **imitation.ipynb** - Constructive scheduling with imitation learning, using a recursive neural network (RNN) policy parameterization
+    - **ppo.ipynb** - Constructive scheduling with reinforcement learning (PPO), using the default neural network policy parameterization provided by the *stable-baselines3* library
+    - **threshold.ipynb** - Constructive scheduling using a simple one-parameter threshold policy that is fitted using grid search
+- **src/traffic_scheduling/network/** - Extensions of experiments to a network of intersections
+    - **basics.ipynb** - Problem instance generation and basic integer programming procedure with cutting planes
+- **src/traffic_scheduling/motion.py** - Solving the optimal control problem using a direct transcription method
+- **report/** - Thesis and miscellaneous personal notes
