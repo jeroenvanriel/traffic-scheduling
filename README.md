@@ -50,14 +50,20 @@ Our hypothesis is that our simple neural network architecture is not suited to c
 
 ## 📂 Project Organization
 
+Below is a brief overview of some important files and directories in this repository:
+
 - **notebooks/** - Jupyter notebooks for visualizations and experiments
-    - **experiments.ipynb** - Main experiments for a single intersection, which invokes the different strategies from the **src/traffic_scheduling/single/** directory
+    - **single/experiments.ipynb** - Main experiments for a single intersection, which invokes the different strategies from the **src/traffic_scheduling/single/** directory
+    - **configuration-space.ipynb** - Numerical computation of the configuration space for a single intersection
+    - **presentation.ipynb** - Programmatic figure generation for the final presentation
 - **src/traffic_scheduling/single/** - Main experiments for a single intersection
     - **basics.ipynb** - Problem instance generation and basic integer programming procedure with cutting planes
+    - **mdp.py** - Markov decision process (MDP) formulation of the crossing order scheduling problem
     - **imitation.ipynb** - Constructive scheduling with imitation learning, using a recursive neural network (RNN) policy parameterization
     - **ppo.ipynb** - Constructive scheduling with reinforcement learning (PPO), using the default neural network policy parameterization provided by the *stable-baselines3* library
     - **threshold.ipynb** - Constructive scheduling using a simple one-parameter threshold policy that is fitted using grid search
 - **src/traffic_scheduling/network/** - Extensions of experiments to a network of intersections
     - **basics.ipynb** - Problem instance generation and basic integer programming procedure with cutting planes
+    - **mdp.py** - Markov decision process (MDP) formulation of the crossing order scheduling problem for multiple intersection, in which states are encoded as  disjunctive graphs
 - **src/traffic_scheduling/motion.py** - Solving the optimal control problem using a direct transcription method
 - **report/** - Thesis and miscellaneous personal notes
