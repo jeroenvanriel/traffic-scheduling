@@ -426,6 +426,9 @@ def generate_simple_instance(n=[3, 3]):
 # env.action_space.seed(11) # to keep the same example once we like it
 # obs, info = env.reset()
 #
+# import os
+# # make sure the results directory exists
+# os.makedirs('figures', exist_ok=True)
 # self.visualize(out='figures/instance.pdf', **options)
 #
 # # obtain some random schedule
@@ -448,7 +451,7 @@ def generate_simple_instance(n=[3, 3]):
 # Verify that the MILP and MDP implementations agree, in the sense that replaying the optimal route order on the MDP yields a total reward that is the negative delay of the optimal schedule.
 
 # %% tags=["active-ipynb"]
-# from single.mdp import SingleScheduleEnv
+# from traffic_scheduling.single.mdp import SingleScheduleEnv
 #
 # instance = SingleInstance(
 #     arrivals=[np.array([1, 2.5, 4]), np.array([1, 2.5])],

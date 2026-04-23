@@ -41,6 +41,7 @@
 notebooks/single/results/
 notebooks/network/results/
 notebooks/figures/
+src/traffic_scheduling/single/figures/
 
 ## ide-specific files
 .vscode/
