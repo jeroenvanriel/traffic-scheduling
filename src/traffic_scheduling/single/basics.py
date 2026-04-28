@@ -144,13 +144,18 @@ class SingleMILPSchedule:
 # %% [markdown]
 # ### Mixed-integer linear programming
 
+# %% [markdown]
+# > Note: this implementation uses Pyomo with SCIP. The previous `recordprogress` option has been removed because tracking MIP progress over time with Pyomo+SCIP is more involved compared to the previous implementation with Gurobi, and would require parsing solver logs afterward. Hence, the benchmark `notebooks/single/milp-benchmark-progress.ipynb` does not work anymore with the current implementation.
+
 # %%
-import gurobipy as gp
+from pyomo.environ import *
+from pyomo.core import ConcreteModel, Var, ConstraintList, Objective, NonNegativeReals, Binary, minimize, value
+from pyomo.opt import SolverFactory, TerminationCondition
 import numpy as np
 from itertools import product, combinations
 import os
 
-def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False, logfile=None, cutting_planes=None):
+def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None, cutting_planes=None):
     """Solve a single intersection scheduling problem as a MILP.
 
     `cutting_planes` is a list/set specifying which cutting planes to add,
@@ -160,19 +165,6 @@ def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False
         2. conjunctive cutting planes
         3. disjunctive cutting planes
     """
-
-    env = gp.Env(empty=True)
-    if not consolelog:
-        env.setParam('LogToConsole', 0)  # disable console logging
-    if logfile is not None:
-        env.setParam('LogFile', logfile)
-        # make sure directory exists
-        os.makedirs(os.path.dirname(os.path.abspath(logfile)), exist_ok=True)
-    if timelimit > 0:
-        env.setParam('TimeLimit', timelimit)
-
-    env.start()
-    g = gp.Model(env=env)
 
     if cutting_planes is None:
         cutting_planes = []
@@ -187,14 +179,26 @@ def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False
     # big-M
     M = 1000
 
+    g = ConcreteModel()
+    g.release_times = ConstraintList()
+    g.conjunctions = ConstraintList()
+    g.delta_defs = ConstraintList()
+    g.delta_cuts = ConstraintList()
+    g.disjunctions = ConstraintList()
+    g.transitive_cuts = ConstraintList()
+    g.disjunctive_cuts = ConstraintList()
+
     ### Variables
 
     # non-negative starting times
     y = {}
+    objective_terms = []
     for r in range(R):
         for k in range(n[r]):
-            y[r, k] = g.addVar(obj=1, vtype=gp.GRB.CONTINUOUS, name=f"y_{r}_{k}")
-            g.addConstr(y[r, k] >= arrivals[r][k])
+            y[r, k] = Var(domain=NonNegativeReals)
+            setattr(g, f"y_{r}_{k}", y[r, k])
+            objective_terms.append(y[r, k])
+            g.release_times.add(y[r, k] >= arrivals[r][k])
 
     ### Constraints
 
@@ -204,31 +208,33 @@ def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False
     # conjunctions
     for r in range(R):
         for k in range(n[r] - 1):
-            g.addConstr(y[r, k] + rho <= y[r, k + 1])
+            g.conjunctions.add(y[r, k] + rho <= y[r, k + 1])
 
             # definition of delta
             if 2 in cutting_planes or 3 in cutting_planes:
-                delta[r, k] = g.addVar(obj=0, vtype=gp.GRB.BINARY, name=f"delta_{r}_{k}")
-                g.addConstr(y[r, k] + rho <= arrivals[r][k + 1] + delta[r, k] * M)
-                g.addConstr(y[r, k] + rho >= arrivals[r][k + 1] - (1 - delta[r, k]) * M)
+                delta[r, k] = Var(domain=Binary)
+                setattr(g, f"delta_{r}_{k}", delta[r, k])
+                g.delta_defs.add(y[r, k] + rho <= arrivals[r][k + 1] + delta[r, k] * M)
+                g.delta_defs.add(y[r, k] + rho >= arrivals[r][k + 1] - (1 - delta[r, k]) * M)
 
             if 2 in cutting_planes:
-                g.addConstr(y[r, k] + rho >= y[r, k + 1] - (1 - delta[r, k]) * M)
+                g.delta_cuts.add(y[r, k] + rho >= y[r, k + 1] - (1 - delta[r, k]) * M)
 
 
     # disjunctions
     o = {}
     for r1, r2 in combinations(range(R), 2):
         for k, l in product(range(n[r1]), range(n[r2])):
-            oc = g.addVar(obj=0, vtype=gp.GRB.BINARY, name=f"o_{r1}_{k}_{r2}_{l}")
+            oc = Var(domain=Binary)
+            setattr(g, f"o_{r1}_{k}_{r2}_{l}", oc)
             o[r1, k, r2, l] = oc
 
-            g.addConstr(y[r1, k] + sigma <= y[r2, l] + oc * M)
-            g.addConstr(y[r2, l] + sigma <= y[r1, k] + (1 - oc) * M)
+            g.disjunctions.add(y[r1, k] + sigma <= y[r2, l] + oc * M)
+            g.disjunctions.add(y[r2, l] + sigma <= y[r1, k] + (1 - oc) * M)
 
             # transitive cutting planes
             if 1 in cutting_planes:
-                g.addConstr(gp.quicksum(o[r1, p, r2, q] for p in range(0, k) for q in range(l + 1, n[r2])) <= o[r1, k, r2, l] * M)
+                g.transitive_cuts.add(quicksum(o[r1, p, r2, q] for p in range(0, k) for q in range(l + 1, n[r2])) <= o[r1, k, r2, l] * M)
 
 
     # necessary disjunctive cutting planes
@@ -236,53 +242,50 @@ def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False
         for r1, r2 in combinations(range(R), 2):
             for l in range(n[r1] - 1): # for all conjunctive pairs (i, j) = ((r1, l), (r1, l + 1))
                 for k in range(n[r2]):
-                    g.addConstr(delta[r1, l] + (1 - o[r1, l, r2, k]) + o[r1, l + 1, r2, k] <= 2)
-                    # g.addConstr(delta[r1, l] + o[r1, l, r2, k] + (1 - o[r1, l + 1, r2, k]) <= 2)
+                    g.disjunctive_cuts.add(delta[r1, l] + (1 - o[r1, l, r2, k]) + o[r1, l + 1, r2, k] <= 2)
+                    # g.disjunctive_cuts.add(delta[r1, l] + o[r1, l, r2, k] + (1 - o[r1, l + 1, r2, k]) <= 2)
 
     ### Solving
 
-    progress = []
-    def record_progress(model, where):
-        if where == gp.GRB.Callback.MIP:
-            runtime = model.cbGet(gp.GRB.Callback.RUNTIME)
-            best_obj = model.cbGet(gp.GRB.Callback.MIP_OBJBST)
-            best_bound = model.cbGet(gp.GRB.Callback.MIP_OBJBND)
-            if best_obj < gp.GRB.INFINITY and best_bound < gp.GRB.INFINITY:
-                gap = abs(best_obj - best_bound) / (abs(best_obj) + 1e-10)
-                # record every 0.5 seconds or on significant gap change
-                if len(progress) == 0 or runtime - progress[-1][0] >= 0.5 or gap < progress[-1][3] - 1e-4:
-                    progress.append((runtime, best_obj, best_bound, gap))
+    g.obj = Objective(expr=sum(objective_terms), sense=minimize)
+
+    solver = SolverFactory("scip")
+    if not solver.available(False):
+        raise RuntimeError(
+            "SCIP executable not found. Install SCIP and ensure `scip` is on PATH to use this solver."
+        )
+    if gap > 0:
+        solver.options["limits/gap"] = gap
+    if timelimit > 0:
+        solver.options["limits/time"] = timelimit
+    if not consolelog:
+        solver.options["display/verblevel"] = 0
+
+    solve_kwargs = {"tee": consolelog}
+    if logfile is not None:
+        os.makedirs(os.path.dirname(os.path.abspath(logfile)), exist_ok=True)
+        solve_kwargs["logfile"] = logfile
+
+    results = solver.solve(g, **solve_kwargs)
 
     res = {}
-    g.ModelSense = gp.GRB.MINIMIZE
-    g.Params.MIPGap = gap
-    g.update()
-
-    if recordprogress:
-        g.optimize(record_progress)
-
-        # make sure last progress observation is recorded
-        if g.SolCount > 0:  # if feasible solution exists
-            final_time = g.Runtime
-            final_best = g.ObjVal
-            final_bound = g.ObjBound
-            final_gap = abs(final_best - final_bound) / (abs(final_best) + 1e-10)
-            progress.append((final_time, final_best, final_bound, final_gap))
-
-        progress = pd.DataFrame(progress, columns=["time", "best_obj", "best_bound", "gap"])
-        progress["gap_percent"] = progress["gap"] * 100
-        res['progress'] = progress
-    else:
-        g.optimize()
-
-    y = { r : (v.X if hasattr(v, 'X') else v) for r, v in y.items() }
+    y = { idx : value(v) for idx, v in y.items() }
     res['y'] = []
     for r in range(R):
         res['y'].append(np.array([y[r, j] for j in range(n[r])]))
-    res['obj'] = g.getObjective().getValue() 
-    res['done'] = int(g.status == gp.GRB.OPTIMAL)
-    res['gap'] = g.MIPGap
-    res['time'] = g.Runtime
+    res['obj'] = value(g.obj)
+    res['done'] = int(results.solver.termination_condition == TerminationCondition.optimal)
+
+    upper = getattr(results.problem, "upper_bound", None)
+    lower = getattr(results.problem, "lower_bound", None)
+    if upper is not None and lower is not None and np.isfinite(upper) and np.isfinite(lower):
+        res['gap'] = abs(upper - lower) / (abs(upper) + 1e-10)
+    elif res['done']:
+        res['gap'] = 0.0
+    else:
+        res['gap'] = np.nan
+
+    res['time'] = getattr(results.solver, "time", 0.0) or 0.0
 
     return SingleMILPSchedule(instance=instance, **res)
 
