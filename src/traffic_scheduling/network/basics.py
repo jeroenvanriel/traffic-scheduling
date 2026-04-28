@@ -116,26 +116,18 @@ NetworkMILPSchedule.plot_schedule = lambda self: plot_schedule(self)
 # %% [markdown]
 # ### Mixed-integer linear programming
 
+# %% [markdown]
+# > Note: this implementation uses Pyomo with SCIP. The previous `recordprogress` option has been removed because tracking MIP progress over time with Pyomo+SCIP is more involved compared to the previous implementation with Gurobi, and would require parsing solver logs afterward. Hence, the benchmark `notebooks/network/milp-benchmark-progress.ipynb` does not work anymore with the current implementation.
+
 # %%
-import gurobipy as gp
+from pyomo.environ import *
+from pyomo.core import ConcreteModel, Var, ConstraintList, Objective, NonNegativeReals, Binary, minimize, value
+from pyomo.opt import SolverFactory, TerminationCondition
 from itertools import product, combinations
 from traffic_scheduling.network.util import dist
 
-def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False, logfile=None):
+def solve(instance, gap=0.0, timelimit=0, consolelog=False, logfile=None):
     """Solve a network scheduling problem as a MILP."""
-    env = gp.Env(empty=True)
-    if not consolelog:
-        env.setParam('LogToConsole', 0)  # disable console logging
-    if logfile is not None:
-        env.setParam('LogFile', logfile)
-        # make sure directory exists
-        os.makedirs(os.path.dirname(os.path.abspath(logfile)), exist_ok=True)
-    if timelimit > 0:
-        env.setParam('TimeLimit', timelimit)
-
-    env.start()
-    g = gp.Model(env=env)
-
     routes = instance.routes
     arrivals = instance.arrivals
 
@@ -148,43 +140,54 @@ def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False
     # big-M
     M = 1000
 
+    g = ConcreteModel()
+    g.yvars = VarList = []  # placeholder to keep style close; actual vars stored in `y` dict
+    g.conjunctions = ConstraintList()
+    g.disjunctions = ConstraintList()
+    g.distances = ConstraintList()
+    g.buffers = ConstraintList()
+
     y = {}
+    objective_terms = []
 
     # release time parameters and crossing time variables
     for l in range(R):
         for k in range(n[l]):
-            for r in range(len(routes[l])):
+            for r in range(len(routes[l]) - 1): # skip the last node in each route, which is the exit point
                 v = routes[l][r]
                 if r == 0: # entrypoint
                     y[l, k, v] = arrivals[l][k]
-                elif r == len(routes[l]) - 1: # exitpoint
-                    y[l, k, v] = g.addVar(obj=0, vtype=gp.GRB.CONTINUOUS, name=f"y_{l}_{k}_{v}")
                 else: # intersections
-                    y[l, k, v] = g.addVar(obj=1, vtype=gp.GRB.CONTINUOUS, name=f"y_{l}_{k}_{v}")
+                    y[l, k, v] = Var(domain=NonNegativeReals)
+                    setattr(g, f"y_{l}_{k}_{r}", y[l, k, v])
+                    objective_terms.append(y[l, k, v])
 
     # conjunctions...
     for l in range(R):
-        for v in routes[l][1:]: # ...on all except the first node
+        for v in routes[l][1:-1]: # ...on all except the first and last node on each route
             for k in range(n[l] - 1):
-                g.addConstr(y[l, k, v] + rho <= y[l, k + 1, v])
+                g.conjunctions.add(y[l, k, v] + rho <= y[l, k + 1, v])
 
     # disjunctions at route intersections
     for l1, l2 in combinations(range(R), 2):
         # intersections of routes is set of "merge points"
         for v in set(routes[l1]) & set(routes[l2]):
             for k1, k2 in product(range(n[l1]), range(n[l2])):
-                oc = g.addVar(obj=0, vtype=gp.GRB.BINARY, name=f"o_{l1}_{k1}_{l2}_{k2}")
+                oc = Var(domain=Binary)
+                setattr(g, f"o_{l1}_{k1}_{l2}_{k2}", oc)
 
-                g.addConstr(y[l1, k1, v] + sigma <= y[l2, k2, v] + oc * M)
-                g.addConstr(y[l2, k2, v] + sigma <= y[l1, k1, v] + (1 - oc) * M)
+                g.disjunctions.add(y[l1, k1, v] + sigma <= y[l2, k2, v] + oc * M)
+                g.disjunctions.add(y[l2, k2, v] + sigma <= y[l1, k1, v] + (1 - oc) * M)
 
     # distances
     for l in range(R):
         for k in range(n[l]):
-            for r in range(len(routes[l]) - 1):
+            # skip the distance constraint to the exit point, we compute the entry time
+            # at the exit point after solving
+            for r in range(len(routes[l]) - 2):
                 v = routes[l][r]
                 w = routes[l][r + 1]
-                g.addConstr(y[l, k, w] >= y[l, k, v] + dist(instance.G, v, w) / instance.vmax)
+                g.distances.add(y[l, k, w] >= y[l, k, v] + dist(instance.G, v, w) / instance.vmax)
 
     # buffers
     for l in range(R):
@@ -196,49 +199,52 @@ def solve(instance, gap=0.0, timelimit=0, recordprogress=False, consolelog=False
                 continue
             for k in range(n[l] - capacity):
                 rho_hat = capacity * rho - dist(instance.G, v, w) / instance.vmax
-                g.addConstr(y[l, k, w] + rho_hat <= y[l, k + capacity, v])
+                g.buffers.add(y[l, k, w] + rho_hat <= y[l, k + capacity, v])
 
-    ### Solving
+    g.obj = Objective(expr=sum(objective_terms), sense=minimize)
 
-    progress = []
-    def record_progress(model, where):
-        if where == gp.GRB.Callback.MIP:
-            runtime = model.cbGet(gp.GRB.Callback.RUNTIME)
-            best_obj = model.cbGet(gp.GRB.Callback.MIP_OBJBST)
-            best_bound = model.cbGet(gp.GRB.Callback.MIP_OBJBND)
-            if best_obj < gp.GRB.INFINITY and best_bound < gp.GRB.INFINITY:
-                gap = abs(best_obj - best_bound) / (abs(best_obj) + 1e-10)
-                # record every 0.5 seconds or on significant gap change
-                if len(progress) == 0 or runtime - progress[-1][0] >= 0.5 or gap < progress[-1][3] - 1e-4:
-                    progress.append((runtime, best_obj, best_bound, gap))
+    solver = SolverFactory("scip")
+    if not solver.available(False):
+        raise RuntimeError(
+            "SCIP executable not found. Install SCIP and ensure `scip` is on PATH to use this solver."
+        )
+    if gap > 0:
+        solver.options["limits/gap"] = gap
+    if timelimit > 0:
+        solver.options["limits/time"] = timelimit
+    if not consolelog:
+        solver.options["display/verblevel"] = 0
+
+    solve_kwargs = {"tee": consolelog}
+    if logfile is not None:
+        os.makedirs(os.path.dirname(os.path.abspath(logfile)), exist_ok=True)
+        solve_kwargs["logfile"] = logfile
+
+    results = solver.solve(g, **solve_kwargs)
+
+    # compute the arrival time at the exit point for each vehicle, which is computed from the entry time at the last
+    # intersection and the travel time
+    for l in range(R):
+        for k in range(n[l]):
+            v = routes[l][-2]
+            w = routes[l][-1]
+            y[l, k, w] = value(y[l, k, v]) + dist(instance.G, v, w) / instance.vmax
 
     res = {}
-    g.ModelSense = gp.GRB.MINIMIZE
-    g.Params.MIPGap = gap
-    g.update()
+    res['y'] = { k : (value(v) if hasattr(v, 'is_expression_type') or hasattr(v, 'is_variable_type') else v) for k, v in y.items() }
+    res['obj'] = value(g.obj)
+    res['done'] = int(results.solver.termination_condition == TerminationCondition.optimal)
 
-    if recordprogress:
-        g.optimize(record_progress)
-
-        # make sure last progress observation is recorded
-        if g.SolCount > 0:  # if feasible solution exists
-            final_time = g.Runtime
-            final_best = g.ObjVal
-            final_bound = g.ObjBound
-            final_gap = abs(final_best - final_bound) / (abs(final_best) + 1e-10)
-            progress.append((final_time, final_best, final_bound, final_gap))
-
-        progress = pd.DataFrame(progress, columns=["time", "best_obj", "best_bound", "gap"])
-        progress["gap_percent"] = progress["gap"] * 100
-        res['progress'] = progress
+    upper = getattr(results.problem, "upper_bound", None)
+    lower = getattr(results.problem, "lower_bound", None)
+    if upper is not None and lower is not None and np.isfinite(upper) and np.isfinite(lower):
+        res['gap'] = abs(upper - lower) / (abs(upper) + 1e-10)
+    elif res['done']:
+        res['gap'] = 0.0
     else:
-        g.optimize()
+        res['gap'] = np.nan
 
-    res['y'] = { k : (v.X if hasattr(v, 'X') else v) for k, v in y.items() }
-    res['obj'] = g.getObjective().getValue()
-    res['done'] = int(g.status == gp.GRB.OPTIMAL)
-    res['gap'] = g.MIPGap
-    res['time'] = g.Runtime
+    res['time'] = getattr(results.solver, "time", 0.0) or 0.0
 
     return NetworkMILPSchedule(instance=instance, **res)
 
