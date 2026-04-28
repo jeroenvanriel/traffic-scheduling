@@ -50,6 +50,11 @@ class NetworkInstance:
     sigma: float = 1.7   # time between conflicting vehicles
     vmax:  float = 1     # maximum speed
 
+    # parameters for trajectory generation (not required for scheduling)
+    umax:  float = 1     # maximum acceleration
+    veh_l: float = 1.2   # vehicle length
+    veh_w: float = 0.5   # vehicle width
+
     @property
     def switch(self): return self.sigma - self.rho
 
@@ -67,7 +72,6 @@ class NetworkInstance:
         R = range(self.R); n = [range(self.n[r]) for r in R]
         # use 'sorted' to guarantee lexicographical order
         return sorted([(r, k) for r in R for k in n[r]])
-    
 
 
 # %% [markdown]
@@ -89,16 +93,17 @@ NetworkInstance.draw_road = lambda self, **kwargs: draw_road(self.G, **kwargs)
 # Plus schedule visualization, as Gantt chart.
 
 # %%
-from typing import Optional
+from typing import Optional, Dict, Any
 
 @dataclass
 class NetworkMILPSchedule:
     instance: NetworkInstance
-    y: list[np.ndarray]
-    obj: float
-    done: bool
-    gap: float
-    time: float
+    # schedule is mapping from [route, vehicle, node] -> scheduled crossing time
+    y: Dict[tuple[int, int, Any], float] 
+    obj: Optional[float] = None
+    done: Optional[bool] = None
+    gap: Optional[float] = None
+    time: Optional[float] = None
     progress: Optional[pd.DataFrame] = None
 
     @property
@@ -338,11 +343,9 @@ def generate_grid_network(m=None, n=None, xdist=[10, 10], ydist=[10]):
 # Reuse the route arrival generation function from the single intersection.
 
 # %%
-from traffic_scheduling.single.basics import uniform, clipped, bimodal_exponential
-
-# %%
 from collections.abc import Iterable
-from traffic_scheduling.single.basics import arrivals_from_gaps
+from traffic_scheduling.single.basics import uniform, clipped, arrivals_from_gaps
+
 
 def generate_instance(F, n, rho=1.2, sigma=1.7, net_m=3, net_n=2, distance=10):
     G, routes = generate_grid_network(net_m, net_n, distance, distance)
@@ -360,12 +363,163 @@ def generate_instance(F, n, rho=1.2, sigma=1.7, net_m=3, net_n=2, distance=10):
         # earliest arrival times
         arrivals.append(arrivals_from_gaps(f(n1), rho))
 
-    instance = NetworkInstance(G, routes, arrivals)
-    return instance
+    return NetworkInstance(G, routes, arrivals, sigma=sigma, rho=rho)
 
 
 def generate_simple_instance(n=[10, 10, 10, 10], net_m=2, net_n=2):
     return generate_instance(clipped(uniform()), n, net_m=net_m, net_n=net_n)
+
+
+# %% [markdown]
+# ## Disjunctive graphs for instances/schedules
+
+# %% [markdown]
+# The disjunctive graph is a useful tool for representing (partial) schedules. We include a function to construct the disjunctive graph for a given instance (empty schedule) and for a given complete schedule. It can also be useful for visualization for small instances, for which we also provide a utility function.
+
+# %%
+import networkx as nx
+from traffic_scheduling.network.util import dist
+
+def next_intersection(route, v):
+    """Get next intersection after v on route."""
+    ix = route.index(v)
+    if ix + 1 < len(route):
+        return route[ix + 1]
+
+
+def empty_disjunctive_graph(instance: NetworkInstance) -> nx.DiGraph:
+    """Create the empty disjunctive graph for the given instance."""
+    routes = instance.routes
+    indices = instance.vehicle_indices
+    route_indices = range(instance.R)
+    order_indices = { route: range(instance.n[route]) for route in route_indices }
+
+    D = nx.DiGraph()
+
+    # nodes
+    for r, k in indices:
+        for v in routes[r]:
+            # set default lower bound zero, assuming non-negative crossing times
+            D.add_node((r, k, v), label=str((r, k, v)), LB=0, done=0, action_mask=0)
+
+    # edges
+    for r in route_indices:
+        for v in routes[r]:
+            for k in order_indices[r]:
+                if k + 1 < len(order_indices[r]):
+                    # conjunction
+                    D.add_edge((r, k, v), (r, k + 1, v), weight=instance.rho)
+
+                if (w := next_intersection(routes[r], v)) is not None:
+                    # travel constraint
+                    D.add_edge((r, k, v), (r, k, w), weight=dist(instance.G, v, w) / instance.vmax)
+
+                    # buffer constraint
+                    if (capacity := instance.G[v][w]['capacity']) >= 0:
+                        k2 = k + capacity
+                        if (r, k2) in indices:
+                            rho_vw = capacity * instance.rho - dist(instance.G, v, w) / instance.vmax
+                            D.add_edge((r, k, w), (r, k2, v), weight=rho_vw)
+
+    return D
+
+
+def full_disjunctive_graph(schedule: NetworkMILPSchedule) -> nx.DiGraph:
+    """Create the full disjunctive graph for the given schedule."""
+    D = empty_disjunctive_graph(schedule.instance)
+
+    intersections = { v for route in schedule.instance.routes for v in route[1:-1] }
+
+    indices_at_intersection = { v: [] for v in intersections }
+    for r, k in schedule.instance.vehicle_indices:
+        for v in schedule.instance.routes[r][1:-1]: # exclude entry/exit nodes
+            indices_at_intersection[v].append((r, k))
+
+    rho = schedule.instance.rho
+    sigma = schedule.instance.sigma
+
+    # add the directed disjunctive edges based on the schedule
+    for v in intersections:
+        # sort by scheduled crossing time
+        indices = indices_at_intersection[v]
+        indices.sort(key=lambda rk: schedule.y[rk[0], rk[1], v])
+        for (r1, k1), (r2, k2) in zip(indices[:-1], indices[1:]):
+            D.add_edge((r1, k1, v), (r2, k2, v), weight=rho if r1 == r2 else sigma)
+
+    return D
+
+
+# %%
+def draw_disjunctive_graph(D, intersection=None):
+    pos = {}
+    nodes = []
+    for r, k, v in D.nodes:
+        if intersection is None or v == intersection:
+            nodes.append((r, k, v))
+            pos[r, k, v] = (k, r)
+
+    nx.draw_networkx(D.subgraph(nodes), pos=pos, with_labels=False,
+                        node_size=1600, arrowsize=20)
+
+    # indices
+    labels = { (r, k, v): f"{r}: {k}\n{v}" for r, k, v in D.subgraph(nodes) }
+    nx.draw_networkx_labels(D.subgraph(nodes), labels=labels,
+                            font_size=9, pos={ i: (pos[i][0], pos[i][1]) for i in pos })
+
+
+# %% [markdown]
+# ## Schedule regularization
+
+# %% [markdown]
+# Before using a schedule for motion synthesis, we need to align the schedule times to regular time steps. This is done by rounding up the schedule times to the nearest multiple of the time step and checking the constraints. By visiting the nodes of the disjunctive graph in topological order, we only need one round of rounding.
+
+# %%
+from dataclasses import dataclass
+from typing import Dict, Any
+
+@dataclass
+class NetworkStepSchedule:
+    original: NetworkMILPSchedule
+    # mapping from (route, vehicle, node) to time step index
+    steps: Dict[tuple[int, int, Any], int]
+    y: Dict[tuple[int, int, Any], float]
+    time_step: float
+
+def regularize_schedule(schedule: NetworkMILPSchedule, time_step: float) -> NetworkStepSchedule:
+    """Regularize the schedule times to be multiples of the time step."""
+    steps = { (r, k, v): None for r, k, v in schedule.y.keys() }
+    y = schedule.y.copy()
+
+    # compute full disjunctive graph, compute topological order of nodes
+    D = full_disjunctive_graph(schedule)
+    topological_order = list(nx.topological_sort(D))
+
+    # update in topological order of disjunctive graph to ensure single-pass
+    for node in topological_order:
+        preds = list(D.predecessors(node))
+        if preds:
+            max_pred_time = max(y[pred] + D.edges[pred, node]['weight'] for pred in preds)
+            y[node] = max(y[node], max_pred_time)
+
+        # round up to nearest multiple of time_step
+        # NOTE: might need a small tolerance here
+        steps[node] = int((y[node] + time_step - 1e-9) // time_step)
+
+    return NetworkStepSchedule(original=schedule, steps=steps, y=y, time_step=time_step)
+
+
+# %%
+from traffic_scheduling.network.drawing import plot_schedule
+
+def plot_step_schedule(step_schedule: NetworkStepSchedule):
+    """Plot the step schedule by converting it back to a regular schedule."""
+    dummy_schedule = NetworkMILPSchedule(
+        instance=step_schedule.original.instance,
+        y={ key: step * step_schedule.time_step for key, step in step_schedule.steps.items() },
+    )
+    plot_schedule(dummy_schedule)
+
+NetworkStepSchedule.plot_schedule = lambda self: plot_step_schedule(self)
 
 # %% [markdown]
 # ## Testing
@@ -376,7 +530,7 @@ def generate_simple_instance(n=[10, 10, 10, 10], net_m=2, net_n=2):
 # %% tags=["active-ipynb"]
 # F = clipped(uniform(1, 3), min=0.1)
 # instance = generate_instance(F, n=[3,3], net_m=1, net_n=1)
-# instance.solve(timelimit=10, recordprogress=True);
+# instance.solve(timelimit=10);
 # # instance.draw_graph();
 # # instance.draw_road();
 
@@ -396,7 +550,6 @@ def generate_simple_instance(n=[10, 10, 10, 10], net_m=2, net_n=2):
 #     for r in range(len(trajectories)):
 #         for k in range(len(trajectories[r])):
 #             t0 = trajectories[r][k][0]
-#             ts = len(trajectories[r][k][1])
 #             t = [t0 + i*dt for i in range(len(trajectories[r][k][1]))]
 #             plt.plot(t, trajectories[r][k][1], 'k')
 #         plt.show()
