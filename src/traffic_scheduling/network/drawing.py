@@ -152,13 +152,13 @@ def draw_road(G, road_width=1, ax=None):
 #
 
 # %%
-def plot_schedule(schedule):
+def plot_schedule(schedule, height=None):
     indices = schedule.instance.vehicle_indices
     nodes = list(schedule.instance.G.nodes)
     nr_nodes = len(nodes)
 
-    # compute row height relative to rho
-    height = 0.4 * schedule.instance.rho
+    if height is None:
+        height = 0.4 * schedule.instance.rho
     end = schedule.makespan
     fig, ax = plt.subplots(figsize=(end, nr_nodes))
     cmap = colormaps["Paired"] # lane colors
