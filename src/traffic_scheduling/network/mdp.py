@@ -1,38 +1,6 @@
-from traffic_scheduling.network.util import vehicle_indices, route_indices, order_indices, routes_at_intersection, pos_along_route, dist
+from traffic_scheduling.network.util import vehicle_indices, route_indices, order_indices, routes_at_intersection
+from traffic_scheduling.network.basics import empty_disjunctive_graph
 import networkx as nx
-
-
-def next_intersection(route, v):
-    """Get next intersection after v on route."""
-    ix = route.index(v)
-    if ix + 1 < len(route):
-        return route[ix + 1]
-
-
-class DisjunctiveGraph(nx.DiGraph):
-
-    def remove_done_edges(self):
-        """Remove all edges from or to nodes that are done."""
-        to_remove = [edge for x, y in self.nodes(data=True) if y['done']==1 for
-                     edge in [*self.out_edges(x), *self.in_edges(x)]]
-        self.remove_edges_from(to_remove)
-
-
-    def draw(self, intersection=None):
-        pos = {}
-        nodes = []
-        for r, k, v in self.nodes:
-            if intersection is None or v == intersection:
-                nodes.append((r, k, v))
-                pos[r, k, v] = (k, r)
-
-        nx.draw_networkx(self.subgraph(nodes), pos=pos, with_labels=False,
-                         node_size=1600, arrowsize=20)
-
-        # indices
-        labels = { (r, k, v): f"{r}: {k}\n{v}" for r, k, v in self.subgraph(nodes) }
-        nx.draw_networkx_labels(self.subgraph(nodes), labels=labels,
-                                font_size=9, pos={ i: (pos[i][0], pos[i][1]) for i in pos })
 
 
 class NetworkScheduleEnv:
@@ -78,38 +46,14 @@ class NetworkScheduleEnv:
         self.size = sum( len(route[1:-1]) * len(release)
                     for route, release in zip(self.route, self.instance['release']) )
 
-        ### compute disjunctive graph for empty ordering ###
-
-        self.D = DisjunctiveGraph()
         self.rho = instance['rho']
         self.sigma = instance['sigma']
 
-        # nodes
-        for r, k in self.indices:
-            for v in self.route[r]:
-                # set default lower bound zero, assuming non-negative crossing times
-                self.D.add_node((r, k, v), label=str((r, k, v)), LB=0, done=0, action_mask=0)
+        ### compute disjunctive graph for empty ordering ###
 
-        # edges
-        for r in self.route_indices:
-            for v in self.route[r]:
-                for k in self.order_indices[r]:
-                    if k + 1 < len(self.order_indices[r]):
-                        # conjunction
-                        self.D.add_edge((r, k, v), (r, k + 1, v), weight=self.rho)
-
-                    if (w := next_intersection(self.route[r], v)) is not None:
-                        # travel constraint
-                        self.D.add_edge((r, k, v), (r, k, w), weight=dist(self.G, v, w) / instance['vmax'])
-
-                        # buffer constraint
-                        if (capacity := self.G[v][w]['capacity']) >= 0:
-                            k2 = k + capacity
-                            if (r, k2) in self.indices:
-                                rho_vw = capacity * self.rho - dist(self.G, v, w) / instance['vmax']
-                                self.D.add_edge((r, k, w), (r, k2, v), weight=rho_vw)
-
-        ### initialize attributes for empty ordering ###
+        self.D = empty_disjunctive_graph(self.instance)
+        
+         ### initialize attributes for empty ordering ###
 
         # set release dates as lower bounds on entry nodes
         # set done for operations on entry nodes
