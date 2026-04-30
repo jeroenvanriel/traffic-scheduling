@@ -14,8 +14,8 @@ The main questions we seek to answer are:
 1. In which order should vehicles cross intersections?
 2. How to control the speed of each vehicle?
 
-<!-- ![Animation of vehicle movement in a grid-like network](grid.gif) -->
-<img src="grid.gif" width="600">
+<!-- ![Animation of vehicle movement in a grid-like network](video.gif) -->
+<img src="video.gif" width="600">
 
 ## 📈 Motion Planning
 
